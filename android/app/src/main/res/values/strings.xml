@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BrainWave</string>
+    <string name="title_activity_main">BrainWave</string>
+    <string name="package_name">com.brainwave.app</string>
+    <string name="custom_url_scheme">com.brainwave.app</string>
+</resources>
