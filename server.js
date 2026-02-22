@@ -20,24 +20,27 @@ const VISION_MODEL = 'llama-3.2-90b-vision-preview';
 function hasImages(messages) {
   return messages.some(msg =>
     Array.isArray(msg.content) &&
-    msg.content.some(block => block.type === 'image')
+    msg.content.some(block => block.type === 'image' || block.type === 'document')
   );
 }
 
-// Convert Anthropic-style image blocks → Groq/OpenAI image_url blocks
+// Convert Anthropic-style content blocks → Groq/OpenAI format
+// - image  → image_url  (Groq vision model supports jpeg/png/gif/webp)
+// - document (PDF) → stripped; Groq has no PDF support, drop the binary
+// - text   → unchanged
 function convertMessages(messages) {
   return messages.map(msg => {
     if (typeof msg.content === 'string') return msg;
-    return {
-      role: msg.role,
-      content: msg.content.map(block => {
+    const converted = msg.content
+      .filter(block => block.type !== 'document') // drop PDF blobs — Groq can't read them
+      .map(block => {
         if (block.type === 'image') {
           const { media_type, data } = block.source;
           return { type: 'image_url', image_url: { url: `data:${media_type};base64,${data}` } };
         }
         return block; // text blocks are identical
-      }),
-    };
+      });
+    return { role: msg.role, content: converted };
   });
 }
 
