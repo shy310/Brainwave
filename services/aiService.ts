@@ -17,7 +17,13 @@ const LANG_MAP: Record<string, string> = { 'en': 'English', 'ru': 'Russian', 'he
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
-function imgBlock(att: Attachment) {
+function contentBlock(att: Attachment) {
+    if (att.mimeType === 'application/pdf') {
+        return {
+            type: 'document' as const,
+            source: { type: 'base64' as const, media_type: 'application/pdf' as const, data: att.data }
+        };
+    }
     return {
         type: 'image' as const,
         source: { type: 'base64' as const, media_type: att.mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp', data: att.data }
@@ -159,13 +165,13 @@ INSTRUCTIONS:
         const historyMessages = history.slice(-14).map(msg => ({
             role: (msg.role === 'model' ? 'assistant' : 'user') as 'user' | 'assistant',
             content: msg.attachments && msg.attachments.length > 0
-                ? [...msg.attachments.map(imgBlock), { type: 'text' as const, text: msg.text || '.' }]
+                ? [...msg.attachments.map(contentBlock), { type: 'text' as const, text: msg.text || '.' }]
                 : msg.text || '.',
         }));
 
         // Build current user message
         const currentContent: object[] = [];
-        attachments.forEach(att => currentContent.push(imgBlock(att)));
+        attachments.forEach(att => currentContent.push(contentBlock(att)));
         if (currentInput?.trim()) currentContent.push({ type: 'text', text: currentInput });
         else if (currentContent.length === 0) currentContent.push({ type: 'text', text: '.' });
 
@@ -223,7 +229,7 @@ Example of correct display math in a JSON string: "$$\\\\frac{-b \\\\pm \\\\sqrt
 Example of correct inline math in a JSON string: "the slope is $m = \\\\frac{\\\\Delta y}{\\\\Delta x}$"`;
 
     const content: object[] = [];
-    if (attachments?.length) attachments.forEach(att => content.push(imgBlock(att)));
+    if (attachments?.length) attachments.forEach(att => content.push(contentBlock(att)));
     content.push({ type: 'text', text: prompt });
 
     const text = await callClaude({
@@ -303,7 +309,7 @@ Return ONLY a JSON object (no markdown, no code blocks):
 }`;
 
     const content: object[] = [];
-    attachments.forEach(att => content.push(imgBlock(att)));
+    attachments.forEach(att => content.push(contentBlock(att)));
     content.push({ type: 'text', text: prompt });
 
     const text = await callClaude({
@@ -378,7 +384,7 @@ Rules:
 
     try {
         const content: object[] = [];
-        if (attachments?.length) attachments.forEach(att => content.push(imgBlock(att)));
+        if (attachments?.length) attachments.forEach(att => content.push(contentBlock(att)));
         content.push({ type: 'text', text: prompt });
 
         const text = await callClaude({
@@ -415,39 +421,44 @@ export const generatePresentation = async (
 ): Promise<Presentation> => {
     const targetLang = LANG_MAP[language] || language;
 
-    const prompt = `You are an expert educator. Create a slide deck presentation in ${targetLang}.
+    const prompt = `You are an expert educator. Create a detailed slide deck presentation in ${targetLang}.
 
 Topic: ${topic}
 Subject: ${subject}
 Grade Level: ${grade}
 ${context ? `Additional Context: ${context}` : ''}
 
-Generate 6-8 slides. Return ONLY a JSON object (no markdown, no code blocks):
+Generate 8-10 slides. Return ONLY a JSON object (no markdown, no code blocks):
 {
   "title": "Presentation title",
   "subject": "${subject}",
-  "totalSlides": 7,
+  "totalSlides": 9,
   "slides": [
     {
       "slideNumber": 1,
       "title": "slide title",
-      "bullets": ["bullet 1", "bullet 2", "bullet 3", "bullet 4"],
-      "speakerNotes": "2-3 sentence paragraph for the presenter"
+      "layout": "title",
+      "bullets": ["bullet 1", "bullet 2", "bullet 3"],
+      "body": "2-3 sentence paragraph that elaborates on the slide topic with key details, context, or explanation",
+      "imageKeyword": "short English keyword for finding a relevant photo (e.g. 'photosynthesis', 'ancient rome map', 'algebra equations')",
+      "speakerNotes": "2-3 sentence paragraph for the presenter with teaching tips and extra context"
     }
   ]
 }
 
 Rules:
-- Slide 1 is always a title/intro slide with 2-3 bullets summarizing what will be covered
-- Final slide is always a summary/conclusion
-- Each middle slide covers one focused concept
-- Bullets are concise (max 10 words each), not full sentences
-- Speaker notes are full sentences giving extra explanation and teaching tips
-- ALL text in ${targetLang}`;
+- layout is "title" for the first/last slides, "content" for regular slides, "split" for slides with a key visual concept
+- Slide 1: title/intro slide — 2-3 bullets summarizing what will be covered; body gives overview; layout = "title"
+- Final slide: summary/conclusion — key takeaways; layout = "title"
+- Each middle slide: one focused concept; 3-5 bullets (concise, max 10 words each); body = 2-3 full sentences expanding on the concept
+- body must be informative full sentences, NOT a restatement of bullets
+- imageKeyword: 2-4 English words that describe a relevant image (always in English regardless of output language)
+- speakerNotes: full sentences with teaching context and presentation guidance
+- ALL text fields except imageKeyword must be in ${targetLang}`;
 
     const text = await callClaude({
         model: HAIKU,
-        max_tokens: 4096,
+        max_tokens: 6000,
         messages: [{ role: 'user', content: prompt }],
     });
 

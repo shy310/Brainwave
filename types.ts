@@ -210,7 +210,10 @@ export interface Exercise {
 export interface PresentationSlide {
   slideNumber: number;
   title: string;
+  layout?: 'title' | 'content' | 'split';
   bullets: string[];
+  body?: string;
+  imageKeyword?: string;
   speakerNotes: string;
 }
 

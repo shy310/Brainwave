@@ -15,7 +15,7 @@ interface Props {
   userGrade: GradeLevel;
   language: Language;
   translations: Translations;
-  onStartExercises: (studyContext: Attachment[]) => void;
+  onStartExercises: (studyContext: Attachment[], detectedSubject?: Subject) => void;
   onBack: () => void;
   onContextUpdate: (ctx: string) => void;
 }
@@ -203,7 +203,7 @@ const LessonView: React.FC<Props> = ({
         {/* CTA */}
         <div className="flex flex-col sm:flex-row gap-4">
           <button
-            onClick={() => onStartExercises(session.studyContext)}
+            onClick={() => onStartExercises(session.studyContext, uploadAnalysis?.detectedSubject ?? undefined)}
             className="flex-1 py-5 bg-brand-600 text-white rounded-2xl font-black text-lg hover:bg-brand-700 transition-all shadow-xl flex items-center justify-center gap-3"
           >
             <Zap size={22} fill="currentColor" />

@@ -40,6 +40,14 @@ const PISTON_LANGUAGE: Record<CodeLanguage, string> = {
   cpp: 'c++',
 };
 
+// Piston requires correct file extensions for compilation (Java needs Main.java to match class name)
+const PISTON_FILENAME: Record<CodeLanguage, string> = {
+  python: 'main.py',
+  javascript: 'main.js',
+  java: 'Main.java',
+  cpp: 'main.cpp',
+};
+
 interface ChatMsg { role: 'user' | 'ai'; text: string; }
 
 const CodeLab: React.FC<Props> = ({
@@ -102,7 +110,7 @@ const CodeLab: React.FC<Props> = ({
         body: JSON.stringify({
           language: PISTON_LANGUAGE[codeLanguage],
           version: '*',
-          files: [{ name: 'main', content: code }],
+          files: [{ name: PISTON_FILENAME[codeLanguage], content: code }],
         }),
       });
       const data = await res.json();

@@ -52,15 +52,21 @@ const ExercisePanel: React.FC<Props> = ({
   session, userGrade, language, translations,
   onComplete, onBack, onContextUpdate, onGoToLesson, onQuizGenerated
 }) => {
+  // Upload-based sessions must never use the shared cache (their key would collide with
+  // general-practice quizzes for the same subject/grade).
+  const isUploadSession = session.studyContext.length > 0;
+
   // Load from module cache immediately — runs ONCE at mount, never on re-render.
   // This means language changes, prop updates, etc. can NEVER trigger a regeneration.
   const [quiz, setQuiz] = useState<Exercise[]>(() => {
+    if (isUploadSession) return session.quiz ?? [];
     const key = `${session.subject}::${session.topicId ?? ''}::${session.grade}`;
     return _quizCache.get(key) ?? session.quiz ?? [];
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   // Start spinner immediately if no cached quiz, so there's no flash of empty state.
   const [loading, setLoading] = useState(() => {
+    if (isUploadSession) return (session.quiz ?? []).length === 0;
     const key = `${session.subject}::${session.topicId ?? ''}::${session.grade}`;
     return (_quizCache.get(key) ?? session.quiz ?? []).length === 0;
   });
@@ -96,7 +102,10 @@ const ExercisePanel: React.FC<Props> = ({
   }, []);
 
   const loadNewQuiz = async (isExplicitNewSet = false) => {
-    const cacheKey = `${session.subject}::${session.topicId ?? ''}::${session.grade}`;
+    // Upload sessions get a unique key so they never collide with topic-based quiz cache
+    const cacheKey = isUploadSession
+      ? `upload::${session.studyContext.map(a => a.name).join(',')}`
+      : `${session.subject}::${session.topicId ?? ''}::${session.grade}`;
     // Prevent concurrent loads for the same key (e.g. from double-effect invocations).
     if (!isExplicitNewSet && _loadingKeys.has(cacheKey)) return;
     _loadingKeys.add(cacheKey);
@@ -134,8 +143,11 @@ const ExercisePanel: React.FC<Props> = ({
 
     _loadingKeys.delete(cacheKey);
     if (newQuiz && newQuiz.length > 0) {
-      _quizCache.set(cacheKey, newQuiz);
-      saveQuizCache();
+      // Don't persist upload-based quizzes — they're tied to specific uploaded files
+      if (!isUploadSession) {
+        _quizCache.set(cacheKey, newQuiz);
+        saveQuizCache();
+      }
       setQuiz(newQuiz);
       onQuizGenerated?.(newQuiz);
     }

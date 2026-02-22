@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Eye, EyeOff,
-  Loader2, Presentation as PresentationIcon, Sparkles
+  Loader2, Presentation as PresentationIcon, Sparkles, ImageOff
 } from 'lucide-react';
 import { GradeLevel, Language, Translations, Subject, Presentation, PresentationSlide } from '../types';
 import { generatePresentation } from '../services/aiService';
@@ -16,7 +16,7 @@ interface Props {
   onContextUpdate: (ctx: string) => void;
 }
 
-const SLIDE_COLORS = [
+const SLIDE_GRADIENTS = [
   'from-blue-500 to-indigo-600',
   'from-purple-500 to-pink-600',
   'from-emerald-500 to-teal-600',
@@ -26,6 +26,13 @@ const SLIDE_COLORS = [
   'from-rose-500 to-pink-600',
   'from-amber-500 to-orange-500',
 ];
+
+// Deterministic gradient based on slide index
+const getGradient = (index: number) => SLIDE_GRADIENTS[index % SLIDE_GRADIENTS.length];
+
+// Build a picsum image URL seeded by the keyword for visual consistency
+const getImageUrl = (keyword: string) =>
+  `https://picsum.photos/seed/${encodeURIComponent(keyword.toLowerCase().replace(/\s+/g, '-'))}/600/400`;
 
 const PresentationView: React.FC<Props> = ({
   userGrade, language, translations, onBack, onContextUpdate
@@ -37,6 +44,9 @@ const PresentationView: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showNotes, setShowNotes] = useState(false);
+  const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
+  // Key increments on each nav to re-trigger the slide-in animation
+  const [animKey, setAnimKey] = useState(0);
 
   const handleGenerate = async () => {
     if (!topic.trim()) return;
@@ -44,6 +54,8 @@ const PresentationView: React.FC<Props> = ({
     setError(null);
     setCurrentSlide(0);
     setPresentation(null);
+    setImgErrors({});
+    setAnimKey(0);
     onContextUpdate(`Generating presentation: ${topic}`);
     try {
       const result = await generatePresentation(topic, subject, userGrade, language);
@@ -55,15 +67,23 @@ const PresentationView: React.FC<Props> = ({
     }
   };
 
+  const navigate = (newIndex: number) => {
+    setCurrentSlide(newIndex);
+    setAnimKey(k => k + 1);
+  };
+
   const goBack = () => {
     setPresentation(null);
     setError(null);
     setCurrentSlide(0);
+    setAnimKey(0);
   };
 
   const slide: PresentationSlide | undefined = presentation?.slides[currentSlide];
   const total = presentation?.totalSlides ?? presentation?.slides.length ?? 0;
-  const colorClass = SLIDE_COLORS[currentSlide % SLIDE_COLORS.length];
+  const gradient = getGradient(currentSlide);
+  const isTitleSlide = !slide?.layout || slide.layout === 'title';
+  const hasSplitLayout = slide?.layout === 'split' && slide.imageKeyword;
 
   // ── Loading ──────────────────────────────────────────────────────────────────
   if (loading) {
@@ -82,7 +102,7 @@ const PresentationView: React.FC<Props> = ({
   // ── Slideshow ────────────────────────────────────────────────────────────────
   if (presentation && slide) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <button
@@ -106,36 +126,118 @@ const PresentationView: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Slide card */}
+        {/* ── Slide Card ─────────────────────────────────────────────────────── */}
         <div
-          key={currentSlide}
-          className={`relative rounded-[2rem] bg-gradient-to-br ${colorClass} p-10 min-h-[400px] shadow-2xl flex flex-col justify-between`}
+          key={animKey}
+          className={`relative rounded-[2rem] bg-gradient-to-br ${gradient} shadow-2xl overflow-hidden animate-slide-in`}
+          style={{ minHeight: '440px' }}
         >
-          <div className="absolute top-6 right-8 text-white/40 text-sm font-bold">
+          {/* Slide number badge */}
+          <div className="absolute top-5 right-6 text-white/40 text-sm font-bold z-10">
             {currentSlide + 1} / {total}
           </div>
-          <div className="space-y-8">
-            <h2 className="text-3xl md:text-4xl font-black text-white leading-tight">
-              {slide.title}
-            </h2>
-            <ul className="space-y-3">
-              {slide.bullets.map((bullet, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="w-2 h-2 rounded-full bg-white/70 mt-2 flex-shrink-0" />
-                  <span className="text-lg text-white/90 leading-relaxed">{bullet}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="text-right">
-            <span className="text-white/30 text-sm font-medium">{presentation.title}</span>
-          </div>
+
+          {/* Split layout: content left + image right */}
+          {hasSplitLayout ? (
+            <div className="flex flex-col md:flex-row min-h-[440px]">
+              {/* Content */}
+              <div className="flex-1 p-8 md:p-10 space-y-5 flex flex-col justify-center">
+                <h2 className="text-2xl md:text-3xl font-black text-white leading-tight pr-12">
+                  {slide.title}
+                </h2>
+                <ul className="space-y-2.5">
+                  {slide.bullets.map((bullet, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-2 h-2 rounded-full bg-white/70 mt-2 flex-shrink-0" />
+                      <span className="text-base text-white/90 leading-relaxed">{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+                {slide.body && (
+                  <p className="text-sm text-white/70 leading-relaxed border-t border-white/20 pt-4">
+                    {slide.body}
+                  </p>
+                )}
+              </div>
+              {/* Image panel */}
+              <div className="md:w-56 lg:w-64 flex-shrink-0 relative">
+                {!imgErrors[currentSlide] ? (
+                  <img
+                    src={getImageUrl(slide.imageKeyword!)}
+                    alt={slide.imageKeyword}
+                    className="w-full h-48 md:h-full object-cover opacity-75"
+                    onError={() => setImgErrors(e => ({ ...e, [currentSlide]: true }))}
+                  />
+                ) : (
+                  <div className="w-full h-48 md:h-full bg-white/10 flex flex-col items-center justify-center gap-2">
+                    <ImageOff size={28} className="text-white/40" />
+                    <span className="text-white/40 text-xs font-medium">{slide.imageKeyword}</span>
+                  </div>
+                )}
+                {/* Gradient overlay for blend */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20 pointer-events-none" />
+              </div>
+            </div>
+          ) : (
+            /* Standard full-width layout */
+            <div className="p-8 md:p-10 flex flex-col justify-between min-h-[440px] space-y-6">
+              <div className="space-y-6 flex-1">
+                <h2 className={`font-black text-white leading-tight pr-12 ${isTitleSlide ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'}`}>
+                  {slide.title}
+                </h2>
+
+                {/* Content layout: optional image + bullets side by side */}
+                {slide.imageKeyword && !isTitleSlide ? (
+                  <div className="flex flex-col sm:flex-row gap-6">
+                    <ul className="flex-1 space-y-3">
+                      {slide.bullets.map((bullet, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <span className="w-2 h-2 rounded-full bg-white/70 mt-2 flex-shrink-0" />
+                          <span className="text-base text-white/90 leading-relaxed">{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {!imgErrors[currentSlide] ? (
+                      <div className="sm:w-44 flex-shrink-0 self-start rounded-xl overflow-hidden shadow-lg">
+                        <img
+                          src={getImageUrl(slide.imageKeyword)}
+                          alt={slide.imageKeyword}
+                          className="w-full h-32 object-cover opacity-80"
+                          onError={() => setImgErrors(e => ({ ...e, [currentSlide]: true }))}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <ul className="space-y-3">
+                    {slide.bullets.map((bullet, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <span className="w-2 h-2 rounded-full bg-white/70 mt-2 flex-shrink-0" />
+                        <span className="text-base text-white/90 leading-relaxed">{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* Body paragraph */}
+                {slide.body && (
+                  <p className="text-sm text-white/70 leading-relaxed border-t border-white/20 pt-4">
+                    {slide.body}
+                  </p>
+                )}
+              </div>
+
+              <div className="text-right">
+                <span className="text-white/30 text-xs font-medium">{presentation.title}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
         <div className="flex items-center justify-center gap-4">
           <button
-            onClick={() => setCurrentSlide(s => Math.max(0, s - 1))}
+            onClick={() => navigate(Math.max(0, currentSlide - 1))}
             disabled={currentSlide === 0}
             className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
@@ -143,17 +245,21 @@ const PresentationView: React.FC<Props> = ({
           </button>
 
           <div className="flex gap-2">
-            {Array.from({ length: Math.min(total, 10) }).map((_, i) => (
+            {Array.from({ length: Math.min(total, 12) }).map((_, i) => (
               <button
                 key={i}
-                onClick={() => setCurrentSlide(i)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${i === currentSlide ? 'bg-indigo-600 scale-125' : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'}`}
+                onClick={() => navigate(i)}
+                className={`rounded-full transition-all ${
+                  i === currentSlide
+                    ? 'w-6 h-2.5 bg-indigo-600'
+                    : 'w-2.5 h-2.5 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'
+                }`}
               />
             ))}
           </div>
 
           <button
-            onClick={() => setCurrentSlide(s => Math.min(total - 1, s + 1))}
+            onClick={() => navigate(Math.min(total - 1, currentSlide + 1))}
             disabled={currentSlide === total - 1}
             className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
