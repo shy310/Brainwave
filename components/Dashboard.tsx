@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { UserProfile, Course, Topic, Subject, GradeLevel, Translations } from '../types';
 import { ICON_MAP, SUBJECTS_DATA, CURRICULUM, getCurriculumCourse } from '../constants';
-import { Play, Flame, BookOpen, X, ChevronRight, ChevronDown, Zap, GraduationCap, BarChart2 } from 'lucide-react';
+import { Play, Flame, BookOpen, X, ChevronRight, ChevronDown, Zap, GraduationCap, BarChart2, Presentation, Code2, Gamepad2, Sparkles, Swords, Feather, DatabaseIcon } from 'lucide-react';
 
 interface Props {
   user: UserProfile;
@@ -12,6 +12,7 @@ interface Props {
   onSelectCourse: (courseId: string) => void;
   onResumeTopic: (courseId: string, topicId: string) => void;
   onSelectSubjectGrade: (subject: Subject, grade: GradeLevel) => void;
+  onNavigate: (view: 'presentation' | 'codelab' | 'games' | 'debate' | 'story' | 'sql-detective') => void;
 }
 
 // Grades that are grouped ranges (legacy) — these users still need to pick a specific grade
@@ -23,7 +24,7 @@ const LEGACY_GROUPED_GRADES = new Set<GradeLevel>([
   GradeLevel.HIGH_11_12,
 ]);
 
-const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery = '', onSelectCourse, onResumeTopic, onSelectSubjectGrade }) => {
+const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery = '', onSelectCourse, onResumeTopic, onSelectSubjectGrade, onNavigate }) => {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [openGradeFolder, setOpenGradeFolder] = useState<string | null>(null);
 
@@ -256,6 +257,78 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
         {filteredSubjects.length === 0 && searchQuery.trim() && (
           <p className="text-center text-gray-400 py-12 font-medium">{translations.noActiveCourses}</p>
         )}
+      </section>
+
+      {/* Feature Tools */}
+      <section className="max-w-[1400px] mx-auto pb-4">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center gap-3">
+          <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-lg">
+            <Sparkles className="text-brand-600" size={20} />
+          </div>
+          {translations.tools}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            {
+              view: 'presentation' as const,
+              icon: Presentation,
+              title: translations.presentationGenerator,
+              desc: translations.presentationGeneratorDesc,
+              grad: 'from-purple-500 to-indigo-600',
+            },
+            {
+              view: 'codelab' as const,
+              icon: Code2,
+              title: translations.codeLab,
+              desc: translations.codeLabDesc,
+              grad: 'from-orange-500 to-red-500',
+            },
+            {
+              view: 'games' as const,
+              icon: Gamepad2,
+              title: translations.educationalGames,
+              desc: translations.educationalGamesDesc,
+              grad: 'from-emerald-500 to-teal-600',
+            },
+            {
+              view: 'debate' as const,
+              icon: Swords,
+              title: translations.debateArena,
+              desc: translations.debateArenaDesc,
+              grad: 'from-rose-500 to-red-600',
+            },
+            {
+              view: 'story' as const,
+              icon: Feather,
+              title: translations.storyEngine,
+              desc: translations.storyEngineDesc,
+              grad: 'from-violet-500 to-purple-600',
+            },
+            {
+              view: 'sql-detective' as const,
+              icon: DatabaseIcon,
+              title: translations.sqlDetective,
+              desc: translations.sqlDetectiveDesc,
+              grad: 'from-cyan-500 to-teal-600',
+            },
+          ].map(({ view, icon: Icon, title, desc, grad }) => (
+            <button
+              key={view}
+              onClick={() => onNavigate(view)}
+              className="text-start bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group"
+            >
+              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                <Icon size={32} className="text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6">{desc}</p>
+              <div className="flex items-center gap-2 text-brand-600 font-bold text-sm">
+                {translations.launchTool}
+                <ChevronRight size={16} className="rtl:rotate-180" />
+              </div>
+            </button>
+          ))}
+        </div>
       </section>
 
       {/* Level Selection Modal */}

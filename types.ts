@@ -161,7 +161,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   language: Language;
   user: UserProfile;
-  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'tools' | 'profile' | 'lesson' | 'progress' | 'review';
+  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'tools' | 'profile' | 'lesson' | 'progress' | 'review' | 'presentation' | 'codelab' | 'games' | 'debate' | 'story' | 'sql-detective';
   activeCourseId: string | null;
   activeTopicId: string | null;
   currentSession: LearningSession | null;
@@ -203,6 +203,119 @@ export interface Exercise {
   xpValue?: number;
   explanation: string;
   hint: string;
+}
+
+// ─── PRESENTATION GENERATOR ──────────────────────────────────────────────────
+
+export interface PresentationSlide {
+  slideNumber: number;
+  title: string;
+  bullets: string[];
+  speakerNotes: string;
+}
+
+export interface Presentation {
+  title: string;
+  subject: string;
+  totalSlides: number;
+  slides: PresentationSlide[];
+}
+
+// ─── CODE LAB ────────────────────────────────────────────────────────────────
+
+export type CodeLanguage = 'python' | 'javascript' | 'java' | 'cpp';
+
+export interface CodingChallenge {
+  id: string;
+  title: string;
+  description: string;
+  starterCode: string;
+  expectedBehavior: string;
+  hints: string[];
+  xpValue: number;
+}
+
+export interface PistonRunResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}
+
+// ─── EDUCATIONAL GAMES ────────────────────────────────────────────────────────
+
+export type GameType = 'balloon-pop' | 'cave-runner' | 'memory-match' | 'bug-fix' | 'picture-tap' | 'word-scramble';
+
+export interface GameQuestion {
+  id: string;
+  question: string;
+  answer: string;
+  distractors?: string[];
+}
+
+export interface MemoryCard {
+  id: string;
+  pairId: string;
+  face: string;
+  isFlipped: boolean;
+  isMatched: boolean;
+}
+
+export interface BugFix {
+  lineIndex: number;
+  buggyLine: string;
+  fixedLine: string;
+  hint: string;
+}
+
+export interface BuggyCode {
+  title: string;
+  narrative: string;
+  language: string;
+  code: string[];
+  bugs: BugFix[];
+}
+
+// ─── DEBATE ARENA ─────────────────────────────────────────────────────────────
+
+export interface DebateTurn {
+  role: 'ai' | 'user';
+  text: string;
+  score?: number;
+  feedback?: string;
+}
+
+// ─── STORY ENGINE ─────────────────────────────────────────────────────────────
+
+export interface StoryChapter {
+  role: 'ai' | 'user';
+  text: string;
+  prompt?: string;
+}
+
+export interface StoryEvaluation {
+  creativity: number;
+  vocabulary: number;
+  narrative: number;
+  overall: number;
+  feedback: string;
+}
+
+// ─── SQL DETECTIVE ────────────────────────────────────────────────────────────
+
+export interface MysteryCase {
+  title: string;
+  description: string;
+  schemaDescription: string;
+  pythonSetup: string;
+  suspects: string[];
+  culprit: string;
+  clues: string[];
+}
+
+export interface QueryResult {
+  query: string;
+  output: string;
+  isError: boolean;
 }
 
 export interface Translations {
@@ -333,4 +446,102 @@ export interface Translations {
   maxAttemptsReached: string;
   progress: string;
   backToLesson: string;
+  // Presentation Generator
+  presentationGenerator: string;
+  presentationGeneratorDesc: string;
+  generatePresentation: string;
+  generatingPresentation: string;
+  slide: string;
+  ofWord: string;
+  speakerNotes: string;
+  enterTopicForSlides: string;
+  topicPlaceholder: string;
+  // Code Lab
+  codeLab: string;
+  codeLabDesc: string;
+  selectLanguage: string;
+  runCode: string;
+  runningCode: string;
+  outputLabel: string;
+  noOutput: string;
+  generateChallenge: string;
+  generatingChallenge: string;
+  askAboutCode: string;
+  codeAiPlaceholder: string;
+  challengeComplete: string;
+  // Educational Games
+  educationalGames: string;
+  educationalGamesDesc: string;
+  mathRush: string;
+  mathRushDesc: string;
+  wordFlash: string;
+  wordFlashDesc: string;
+  memoryMatch: string;
+  memoryMatchDesc: string;
+  livesLeft: string;
+  timeLeft: string;
+  gameOver: string;
+  playAgain: string;
+  yourScore: string;
+  generatingGame: string;
+  tapToFlip: string;
+  matched: string;
+  // Bug-Fix game
+  bugFix: string;
+  bugFixDesc: string;
+  systemCompromised: string;
+  worldSaved: string;
+  missionFailed: string;
+  generatingBuggyCode: string;
+  submitFix: string;
+  bugsRemaining: string;
+  clickBugToFix: string;
+  typeCorrectLine: string;
+  confirmFix: string;
+  // Cave Runner game
+  caveRunner: string;
+  caveRunnerDesc: string;
+  directTheCart: string;
+  // Debate Arena
+  debateArena: string;
+  debateArenaDesc: string;
+  generatingDebate: string;
+  yourArgument: string;
+  submitArgument: string;
+  roundLabel: string;
+  debateComplete: string;
+  finalDebateScore: string;
+  debatePlaceholder: string;
+  forSide: string;
+  againstSide: string;
+  // Story Engine
+  storyEngine: string;
+  storyEngineDesc: string;
+  generatingStory: string;
+  continueStoryBtn: string;
+  continuingStory: string;
+  writeYourChapter: string;
+  storyComplete: string;
+  wordsWritten: string;
+  minWords: string;
+  // SQL Detective
+  sqlDetective: string;
+  sqlDetectiveDesc: string;
+  generatingMystery: string;
+  runQuery: string;
+  queryResults: string;
+  accuseSuspect: string;
+  caseSchema: string;
+  caseSolved: string;
+  wrongAccusation: string;
+  sqlPlaceholder: string;
+  // Picture Tap (K-2)
+  pictureTap: string;
+  pictureTapDesc: string;
+  tapTheCorrect: string;
+  // Word Scramble (Grades 3-5)
+  wordScramble: string;
+  wordScrambleDesc: string;
+  unscrambleWord: string;
+  clickLetters: string;
 }

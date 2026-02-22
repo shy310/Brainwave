@@ -15,10 +15,17 @@ import LessonView from './components/LessonView';
 import ProgressDashboard from './components/ProgressDashboard';
 import SettingsView from './components/Settings';
 import Logo from './components/Logo';
+import PresentationView from './components/PresentationView';
+import CodeLab from './components/CodeLab';
+import EducationalGames from './components/EducationalGames';
+import DebateArena from './components/DebateArena';
+import StoryEngine from './components/StoryEngine';
+import SqlDetective from './components/SqlDetective';
 
 import {
   LayoutGrid, Library, Menu, X, Moon, Sun, Search,
-  Calculator, FlaskConical, Globe, Laptop, BookOpen, TrendingUp, LogOut, BarChart2, Settings
+  Calculator, FlaskConical, Globe, Laptop, BookOpen, TrendingUp, LogOut, BarChart2, Settings,
+  Presentation as PresentationIcon, Code2, Gamepad2, Swords, Feather, DatabaseIcon
 } from 'lucide-react';
 
 const SESSION_KEY = 'brainwave_session_v2';
@@ -290,6 +297,14 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const handleCodeLabXp = useCallback((xp: number) => {
+    handleExerciseComplete(xp, 1, 1, null, 'coding');
+  }, [handleExerciseComplete]);
+
+  const handleGamesXp = useCallback((xp: number) => {
+    handleExerciseComplete(xp, 1, 1, null, 'games');
+  }, [handleExerciseComplete]);
+
   const startSubjectPractice = (s: Subject) => {
     const grade = appState.user.gradeLevel;
     const cc = getCurriculumCourse(s, grade);
@@ -346,6 +361,12 @@ const App: React.FC = () => {
                 { view: 'courses' as const, label: t.courses, icon: <Library size={18} /> },
                 { view: 'progress' as const, label: t.progress, icon: <BarChart2 size={18} /> },
                 { view: 'settings' as const, label: t.settings, icon: <Settings size={18} /> },
+                { view: 'presentation' as const, label: t.presentationGenerator, icon: <PresentationIcon size={18} /> },
+                { view: 'codelab' as const, label: t.codeLab, icon: <Code2 size={18} /> },
+                { view: 'games' as const, label: t.educationalGames, icon: <Gamepad2 size={18} /> },
+                { view: 'debate' as const, label: t.debateArena, icon: <Swords size={18} /> },
+                { view: 'story' as const, label: t.storyEngine, icon: <Feather size={18} /> },
+                { view: 'sql-detective' as const, label: t.sqlDetective, icon: <DatabaseIcon size={18} /> },
               ].map(({ view, label, icon }) => (
                 <button
                   key={view}
@@ -464,6 +485,7 @@ const App: React.FC = () => {
                   setAppState(prev => ({ ...prev, user: { ...prev.user, gradeLevel: g } }));
                   handleStartLesson(s, g, null, 'General Practice');
                 }}
+                onNavigate={(view) => setAppState(prev => ({ ...prev, activeView: view }))}
               />
             )}
 
@@ -539,6 +561,72 @@ const App: React.FC = () => {
               />
             )}
 
+            {appState.activeView === 'presentation' && (
+              <PresentationView
+                userGrade={appState.user.gradeLevel}
+                language={appState.language}
+                translations={t}
+                theme={appState.theme}
+                onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
+                onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
+              />
+            )}
+
+            {appState.activeView === 'codelab' && (
+              <CodeLab
+                userGrade={appState.user.gradeLevel}
+                language={appState.language}
+                translations={t}
+                theme={appState.theme}
+                onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
+                onXpEarned={handleCodeLabXp}
+                onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
+              />
+            )}
+
+            {appState.activeView === 'games' && (
+              <EducationalGames
+                userGrade={appState.user.gradeLevel}
+                language={appState.language}
+                translations={t}
+                onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
+                onXpEarned={handleGamesXp}
+                onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
+              />
+            )}
+
+            {appState.activeView === 'debate' && (
+              <DebateArena
+                userGrade={appState.user.gradeLevel}
+                language={appState.language}
+                translations={t}
+                onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
+                onXpEarned={(xp) => handleExerciseComplete(xp, 1, 1, null, 'debate')}
+                onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
+              />
+            )}
+
+            {appState.activeView === 'story' && (
+              <StoryEngine
+                userGrade={appState.user.gradeLevel}
+                language={appState.language}
+                translations={t}
+                onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
+                onXpEarned={(xp) => handleExerciseComplete(xp, 1, 1, null, 'story')}
+                onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
+              />
+            )}
+
+            {appState.activeView === 'sql-detective' && (
+              <SqlDetective
+                userGrade={appState.user.gradeLevel}
+                language={appState.language}
+                translations={t}
+                onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
+                onXpEarned={(xp) => handleExerciseComplete(xp, 1, 1, null, 'sql-detective')}
+                onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
+              />
+            )}
 
           </div>
         </div>
