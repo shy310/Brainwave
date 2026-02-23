@@ -15,7 +15,7 @@ interface Props {
   userGrade: GradeLevel;
   language: Language;
   translations: Translations;
-  onStartExercises: (studyContext: Attachment[], detectedSubject?: Subject) => void;
+  onStartExercises: (studyContext: Attachment[], detectedSubject?: Subject, selectedTopics?: string[]) => void;
   onBack: () => void;
   onContextUpdate: (ctx: string) => void;
 }
@@ -32,6 +32,7 @@ const LessonView: React.FC<Props> = ({
 }) => {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [uploadAnalysis, setUploadAnalysis] = useState<UploadAnalysis | null>(null);
+  const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +52,7 @@ const LessonView: React.FC<Props> = ({
           const result = await analyzeUpload(session.studyContext, userGrade, language);
           if (result) {
             setUploadAnalysis(result);
+            setSelectedTopics(new Set(result.topics));
           } else {
             setError("Could not analyze the uploaded file. Please try again.");
           }
@@ -153,20 +155,73 @@ const LessonView: React.FC<Props> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Detected Topics */}
+          {/* Detected Topics with checkboxes */}
           <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-2 mb-6">
-              <Tag size={18} className="text-amber-500" />
-              <h3 className="font-black text-gray-900 dark:text-white">{translations.detectedTopics}</h3>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Tag size={18} className="text-amber-500" />
+                <h3 className="font-black text-gray-900 dark:text-white">{translations.detectedTopics}</h3>
+              </div>
+              <button
+                onClick={() => {
+                  if (selectedTopics.size === uploadAnalysis.topics.length) {
+                    setSelectedTopics(new Set());
+                  } else {
+                    setSelectedTopics(new Set(uploadAnalysis.topics));
+                  }
+                }}
+                className="text-xs font-bold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
+              >
+                {selectedTopics.size === uploadAnalysis.topics.length ? 'Deselect All' : 'Select All'}
+              </button>
             </div>
             <ul className="space-y-3">
-              {uploadAnalysis.topics.map((topic, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">{topic}</span>
-                </li>
-              ))}
+              {uploadAnalysis.topics.map((topic, i) => {
+                const checked = selectedTopics.has(topic);
+                return (
+                  <li key={i}>
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
+                        checked
+                          ? 'bg-brand-600 border-brand-600'
+                          : 'border-gray-300 dark:border-gray-600 group-hover:border-brand-400'
+                      }`}
+                        onClick={() => {
+                          setSelectedTopics(prev => {
+                            const next = new Set(prev);
+                            if (next.has(topic)) next.delete(topic);
+                            else next.add(topic);
+                            return next;
+                          });
+                        }}
+                      >
+                        {checked && <CheckCircle size={13} className="text-white" />}
+                      </div>
+                      <span
+                        className={`text-sm font-medium transition-colors ${
+                          checked ? 'text-gray-800 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500 line-through'
+                        }`}
+                        onClick={() => {
+                          setSelectedTopics(prev => {
+                            const next = new Set(prev);
+                            if (next.has(topic)) next.delete(topic);
+                            else next.add(topic);
+                            return next;
+                          });
+                        }}
+                      >
+                        {topic}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
             </ul>
+            {selectedTopics.size === 0 && (
+              <p className="mt-4 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                Select at least one topic to generate a quiz.
+              </p>
+            )}
           </div>
 
           {/* Detected Info */}
@@ -203,11 +258,19 @@ const LessonView: React.FC<Props> = ({
         {/* CTA */}
         <div className="flex flex-col sm:flex-row gap-4">
           <button
-            onClick={() => onStartExercises(session.studyContext, uploadAnalysis?.detectedSubject ?? undefined)}
-            className="flex-1 py-5 bg-brand-600 text-white rounded-2xl font-black text-lg hover:bg-brand-700 transition-all shadow-xl flex items-center justify-center gap-3"
+            onClick={() => onStartExercises(
+              session.studyContext,
+              uploadAnalysis?.detectedSubject ?? undefined,
+              selectedTopics.size > 0 ? [...selectedTopics] : uploadAnalysis.topics
+            )}
+            disabled={selectedTopics.size === 0}
+            className="flex-1 py-5 bg-brand-600 text-white rounded-2xl font-black text-lg hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xl flex items-center justify-center gap-3"
           >
             <Zap size={22} fill="currentColor" />
             {translations.generateQuiz}
+            {selectedTopics.size > 0 && selectedTopics.size < uploadAnalysis.topics.length && (
+              <span className="text-white/70 text-sm font-medium">({selectedTopics.size} topic{selectedTopics.size !== 1 ? 's' : ''})</span>
+            )}
           </button>
           <button
             onClick={onBack}

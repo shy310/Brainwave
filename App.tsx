@@ -506,12 +506,14 @@ const App: React.FC = () => {
                 userGrade={appState.user.gradeLevel}
                 language={appState.language}
                 translations={t}
-                onStartExercises={(studyContext, detectedSubject) => {
+                onStartExercises={(studyContext, detectedSubject, selectedTopics) => {
                   const s = appState.currentSession!;
                   const subject = detectedSubject ?? s.subject;
-                  const topicTitle = detectedSubject
-                    ? studyContext.map(a => a.name).join(', ')
-                    : s.topicTitle;
+                  const topicTitle = selectedTopics && selectedTopics.length > 0
+                    ? selectedTopics.join(', ')
+                    : detectedSubject
+                      ? studyContext.map(a => a.name).join(', ')
+                      : s.topicTitle;
                   handleStartExercises(subject, s.grade, s.topicId, topicTitle, studyContext);
                 }}
                 onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard', currentSession: null }))}

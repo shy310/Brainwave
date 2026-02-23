@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Eye, EyeOff,
-  Loader2, Presentation as PresentationIcon, Sparkles, ImageOff
+  Loader2, Presentation as PresentationIcon, Sparkles, ImageOff,
+  Maximize2, Minimize2, Printer
 } from 'lucide-react';
 import { GradeLevel, Language, Translations, Subject, Presentation, PresentationSlide } from '../types';
 import { generatePresentation } from '../services/aiService';
@@ -45,8 +46,10 @@ const PresentationView: React.FC<Props> = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showNotes, setShowNotes] = useState(false);
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
+  const [isFullscreen, setIsFullscreen] = useState(false);
   // Key increments on each nav to re-trigger the slide-in animation
   const [animKey, setAnimKey] = useState(0);
+  const slideContainerRef = useRef<HTMLDivElement>(null);
 
   const handleGenerate = async () => {
     if (!topic.trim()) return;
@@ -77,6 +80,82 @@ const PresentationView: React.FC<Props> = ({
     setError(null);
     setCurrentSlide(0);
     setAnimKey(0);
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    setIsFullscreen(false);
+  };
+
+  // Keyboard navigation
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!presentation) return;
+    const t = presentation.totalSlides ?? presentation.slides.length;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      if (currentSlide < t - 1) navigate(currentSlide + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (currentSlide > 0) navigate(currentSlide - 1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      toggleFullscreen();
+    } else if (e.key === 'Escape') {
+      if (isFullscreen) setIsFullscreen(false);
+    }
+  }, [presentation, currentSlide, isFullscreen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Sync fullscreen state with browser's native fullscreen changes
+  useEffect(() => {
+    const onFsChange = () => {
+      if (!document.fullscreenElement) setIsFullscreen(false);
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      slideContainerRef.current?.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (!presentation) return;
+    const slides = presentation.slides;
+    const html = `<!DOCTYPE html><html><head><title>${presentation.title}</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; }
+  .slide { page-break-after: always; padding: 40px; min-height: 100vh; box-sizing: border-box; }
+  .slide:last-child { page-break-after: avoid; }
+  h1 { font-size: 2rem; margin-bottom: 16px; }
+  h2 { font-size: 1.5rem; margin-bottom: 12px; }
+  ul { padding-left: 24px; }
+  li { margin: 8px 0; font-size: 1rem; }
+  .notes { border-top: 1px solid #ccc; margin-top: 24px; padding-top: 12px; font-size: 0.85rem; color: #555; }
+  .num { color: #888; font-size: 0.8rem; text-align: right; }
+</style>
+</head><body>
+${slides.map((s, i) => `
+<div class="slide">
+  <div class="num">${i + 1} / ${slides.length}</div>
+  <h${i === 0 ? '1' : '2'}>${s.title}</h${i === 0 ? '1' : '2'}>
+  ${s.bullets.length ? `<ul>${s.bullets.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
+  ${s.body ? `<p>${s.body}</p>` : ''}
+  ${s.speakerNotes ? `<div class="notes"><strong>Notes:</strong> ${s.speakerNotes}</div>` : ''}
+</div>`).join('')}
+</body></html>`;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.print();
   };
 
   const slide: PresentationSlide | undefined = presentation?.slides[currentSlide];
@@ -102,7 +181,7 @@ const PresentationView: React.FC<Props> = ({
   // ── Slideshow ────────────────────────────────────────────────────────────────
   if (presentation && slide) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+      <div ref={slideContainerRef} className={`${isFullscreen ? 'fixed inset-0 z-50 bg-gray-950 flex flex-col p-4 gap-4' : 'max-w-5xl mx-auto px-4 py-6 space-y-5'}`}>
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <button
@@ -123,14 +202,28 @@ const PresentationView: React.FC<Props> = ({
             >
               {showNotes ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
+            <button
+              onClick={handlePrint}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              title="Print / Export PDF"
+            >
+              <Printer size={18} />
+            </button>
+            <button
+              onClick={toggleFullscreen}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              title={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
+            >
+              {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
           </div>
         </div>
 
         {/* ── Slide Card ─────────────────────────────────────────────────────── */}
         <div
           key={animKey}
-          className={`relative rounded-[2rem] bg-gradient-to-br ${gradient} shadow-2xl overflow-hidden animate-slide-in`}
-          style={{ minHeight: '440px' }}
+          className={`relative rounded-[2rem] bg-gradient-to-br ${gradient} shadow-2xl overflow-hidden animate-slide-in ${isFullscreen ? 'flex-1' : ''}`}
+          style={{ minHeight: isFullscreen ? 'unset' : '440px' }}
         >
           {/* Slide number badge */}
           <div className="absolute top-5 right-6 text-white/40 text-sm font-bold z-10">
@@ -266,6 +359,13 @@ const PresentationView: React.FC<Props> = ({
             <ChevronRight size={22} />
           </button>
         </div>
+
+        {/* Keyboard hints */}
+        {!isFullscreen && (
+          <p className="text-center text-xs text-gray-400 dark:text-gray-600">
+            ← → to navigate &nbsp;·&nbsp; F for fullscreen &nbsp;·&nbsp; Space to advance
+          </p>
+        )}
 
         {/* Speaker notes */}
         {showNotes && slide.speakerNotes && (

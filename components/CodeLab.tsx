@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
+import type { editor as MonacoEditor } from 'monaco-editor';
 import {
   ArrowLeft, Play, RefreshCw, Loader2, Code2,
-  ChevronDown, ChevronUp, Send, Bot, Lightbulb, Trophy
+  ChevronDown, ChevronUp, Send, Bot, Lightbulb, Trophy, Copy, Trash2, Clock, CheckCheck
 } from 'lucide-react';
 import {
   GradeLevel, Language, Translations, CodeLanguage, CodingChallenge, PistonRunResult
@@ -66,11 +67,25 @@ const CodeLab: React.FC<Props> = ({
   const [showHints, setShowHints] = useState(false);
   const [challengeComplete, setChallengeComplete] = useState(false);
   const [xpAwarded, setXpAwarded] = useState(false);
+  const [execTime, setExecTime] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  // Stable ref so Monaco keybinding closure always calls the latest handleRunCode
+  const handleRunCodeRef = useRef<() => void>(() => {});
+
+  const handleEditorMount = useCallback((editor: MonacoEditor.IStandaloneCodeEditor, monaco: typeof import('monaco-editor')) => {
+    editorRef.current = editor;
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+      () => handleRunCodeRef.current()
+    );
+  }, []);
 
   const handleLanguageChange = (lang: CodeLanguage) => {
     setCodeLanguage(lang);
@@ -100,9 +115,11 @@ const CodeLab: React.FC<Props> = ({
     }
   };
 
-  const handleRunCode = async () => {
+  const handleRunCode = useCallback(async () => {
     setRunning(true);
     setOutput(null);
+    setExecTime(null);
+    const t0 = performance.now();
     try {
       const res = await fetch('https://emkc.org/api/v2/piston/execute', {
         method: 'POST',
@@ -119,16 +136,23 @@ const CodeLab: React.FC<Props> = ({
         stderr: data.run?.stderr ?? '',
         exitCode: data.run?.code ?? 0,
       };
+      setExecTime(Math.round(performance.now() - t0));
       setOutput(result);
       if (challenge && result.stderr === '' && result.stdout.trim() !== '') {
         setChallengeComplete(true);
       }
     } catch (e: any) {
+      setExecTime(Math.round(performance.now() - t0));
       setOutput({ stdout: '', stderr: `Network error: ${e.message}`, exitCode: 1 });
     } finally {
       setRunning(false);
     }
-  };
+  }, [codeLanguage, code, challenge]);
+
+  // Keep the ref in sync so Monaco's keybinding always calls the latest version
+  useEffect(() => {
+    handleRunCodeRef.current = handleRunCode;
+  }, [handleRunCode]);
 
   const handleClaimXp = () => {
     if (!challenge || xpAwarded) return;
@@ -261,6 +285,7 @@ const CodeLab: React.FC<Props> = ({
               value={code}
               onChange={val => setCode(val ?? '')}
               theme={theme === 'dark' ? 'vs-dark' : 'light'}
+              onMount={handleEditorMount}
               loading={<div className="flex items-center justify-center h-[350px] bg-gray-50 dark:bg-gray-900"><Loader2 size={24} className="animate-spin text-gray-400" /></div>}
               options={{
                 minimap: { enabled: false },
@@ -278,10 +303,11 @@ const CodeLab: React.FC<Props> = ({
             onClick={handleRunCode}
             disabled={running}
             className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:opacity-60 text-white font-bold py-3.5 rounded-2xl shadow-md hover:shadow-lg transition-all"
+            title="Run (Ctrl+Enter)"
           >
             {running
               ? <><Loader2 size={18} className="animate-spin" /> {translations.runningCode}</>
-              : <><Play size={18} /> {translations.runCode}</>
+              : <><Play size={18} /> {translations.runCode} <span className="ml-1 text-white/60 text-xs font-normal">Ctrl+Enter</span></>
             }
           </button>
 
@@ -315,10 +341,53 @@ const CodeLab: React.FC<Props> = ({
               <div className="w-3 h-3 rounded-full bg-red-500" />
               <div className="w-3 h-3 rounded-full bg-yellow-500" />
               <div className="w-3 h-3 rounded-full bg-green-500" />
-              <span className="ml-2 text-xs text-gray-400 font-mono">{translations.outputLabel}</span>
+              <span className="ml-2 text-xs text-gray-400 font-mono flex-1">{translations.outputLabel}</span>
+              {execTime !== null && (
+                <div className="flex items-center gap-1 text-xs text-gray-500 font-mono">
+                  <Clock size={11} />
+                  <span>{execTime < 1000 ? `${execTime}ms` : `${(execTime / 1000).toFixed(2)}s`}</span>
+                  {output && (
+                    <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-bold ${
+                      output.exitCode === 0 ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'
+                    }`}>
+                      exit {output.exitCode}
+                    </span>
+                  )}
+                </div>
+              )}
+              {output && (
+                <>
+                  <button
+                    onClick={() => {
+                      const text = [output.stdout, output.stderr].filter(Boolean).join('\n');
+                      navigator.clipboard.writeText(text).then(() => {
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 1500);
+                      });
+                    }}
+                    className="p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                    title="Copy output"
+                  >
+                    {copied ? <CheckCheck size={13} className="text-green-400" /> : <Copy size={13} />}
+                  </button>
+                  <button
+                    onClick={() => { setOutput(null); setExecTime(null); }}
+                    className="p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                    title="Clear output"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </>
+              )}
             </div>
-            <div className="p-4 min-h-[120px] max-h-[200px] overflow-y-auto font-mono text-sm">
-              {!output && (
+            <div className="p-4 min-h-[120px] max-h-[260px] overflow-y-auto font-mono text-sm">
+              {running && (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>{translations.runningCode}</span>
+                </div>
+              )}
+              {!output && !running && (
                 <span className="text-gray-500">{translations.noOutput}</span>
               )}
               {output?.stdout && (
@@ -328,7 +397,7 @@ const CodeLab: React.FC<Props> = ({
                 <pre className="text-red-400 whitespace-pre-wrap">{output.stderr}</pre>
               )}
               {output && !output.stdout && !output.stderr && (
-                <span className="text-gray-500">(no output)</span>
+                <span className="text-gray-500 italic">(process exited with no output)</span>
               )}
             </div>
           </div>
