@@ -4,6 +4,12 @@ import { GradeLevel, Language, UserProfile, Translations } from '../types';
 import { ArrowRight, User, Lock, AlignLeft, AlertCircle, ChevronDown, Moon, Sun, Globe } from 'lucide-react';
 import Logo from './Logo';
 
+// DB entries carry the hashed password for local auth only.
+// UserProfile (and app state) never includes the password field.
+interface UserDbEntry extends UserProfile {
+  _passwordHash?: string;
+}
+
 interface Props {
   language: Language;
   translations: Translations;
@@ -58,56 +64,59 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
   const handleAuth = async () => {
     setError(null);
     if (!username || !password) {
-        setError("Please fill in all fields");
-        return;
+      setError("Please fill in all fields");
+      return;
     }
 
     setLoading(true);
     try {
       const hashedPassword = await hashPassword(password);
-      const usersDb = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
+      const usersDb: Record<string, UserDbEntry> = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
 
       if (mode === 'login') {
-          const user = Object.values(usersDb).find(
-            (u: any) => u.username === username && u.password === hashedPassword
-          ) as UserProfile | undefined;
-          if (user) {
-              if (!user.progressMap) user.progressMap = {};
-              onLogin(user);
-          } else {
-              setError(translations.authError);
-          }
+        const entry = Object.values(usersDb).find(
+          (u) => u.username === username && u._passwordHash === hashedPassword
+        );
+        if (entry) {
+          // Strip _passwordHash — never put password in app state or server sync
+          const { _passwordHash: _ph, ...safeUser } = entry;
+          if (!safeUser.progressMap) safeUser.progressMap = {};
+          onLogin(safeUser);
+        } else {
+          setError(translations.authError);
+        }
       } else {
-          const exists = Object.values(usersDb).some((u: any) => u.username === username);
-          if (exists) {
-              setError(translations.userExists);
-              return;
-          }
+        const exists = Object.values(usersDb).some((u) => u.username === username);
+        if (exists) {
+          setError(translations.userExists);
+          return;
+        }
 
-          const newUser: UserProfile = {
-              id: crypto.randomUUID(),
-              username,
-              password: hashedPassword,
-              name: name || username,
-              gradeLevel: grade,
-              isRegistered: true,
-              preferredLanguage: language,
-              enrolledCourses: [],
-              totalXp: 0,
-              streakDays: 1,
-              progressMap: {},
-              lastActivityDate: new Date().toISOString()
-          };
+        const newUser: UserProfile = {
+          id: crypto.randomUUID(),
+          username,
+          name: name || username,
+          gradeLevel: grade,
+          isRegistered: true,
+          preferredLanguage: language,
+          enrolledCourses: [],
+          totalXp: 0,
+          streakDays: 1,
+          progressMap: {},
+          lastActivityDate: new Date().toISOString()
+        };
 
-          usersDb[newUser.id] = newUser;
-          localStorage.setItem(USERS_DB_KEY, JSON.stringify(usersDb));
-          onLogin(newUser);
+        // Store with hash in local DB, call onLogin without it
+        const dbEntry: UserDbEntry = { ...newUser, _passwordHash: hashedPassword };
+        usersDb[newUser.id] = dbEntry;
+        localStorage.setItem(USERS_DB_KEY, JSON.stringify(usersDb));
+        onLogin(newUser);
       }
     } catch (err) {
-        setError("Something went wrong. Please try again.");
-        console.error("Auth error:", err);
+      setError("Something went wrong. Please try again.");
+      console.error("Auth error:", err);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 

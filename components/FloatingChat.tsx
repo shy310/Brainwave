@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Message, Attachment, GradeLevel, Translations } from '../types';
+import { Message, Attachment, GradeLevel, Translations, LearningSession } from '../types';
 import { generateTutorResponse } from '../services/aiService';
 import FileUpload from './FileUpload';
 import MathText from './MathText';
@@ -12,6 +12,7 @@ interface Props {
   context: string;
   translations: Translations;
   activeView: string;
+  currentSession: LearningSession | null;
 }
 
 // ─── VIEW CONFIG ──────────────────────────────────────────────────────────────
@@ -222,7 +223,7 @@ function MarkdownMessage({ text, isUser }: { text: string; isUser: boolean }) {
 
 const INITIAL_MESSAGE_ID = 'init-0';
 
-const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translations, activeView }) => {
+const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translations, activeView, currentSession }) => {
   const cfg = getViewConfig(activeView, language);
 
   const makeInitialMessage = (config: ViewConfig): Message => ({
@@ -302,10 +303,14 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
       ? mainEl.innerText.replace(/\s{3,}/g, '\n\n').trim().slice(0, 3000)
       : '';
 
-    // Build rich context: view-specific role + screen content
+    // Build rich context: view-specific role + active session + screen content
     const viewCfg = getViewConfig(activeView, language);
+    const sessionContext = currentSession
+      ? `ACTIVE SESSION: The student is currently studying "${currentSession.topicTitle}" in ${currentSession.subject} at grade ${currentSession.grade}. Phase: ${currentSession.phase}. Answer questions relevant to this topic when possible.`
+      : '';
     const fullContext = [
       `TUTOR MODE: ${viewCfg.role}`,
+      sessionContext,
       context,
       screenText ? `--- CURRENT SCREEN CONTENT ---\n${screenText}\n---` : '',
     ].filter(Boolean).join('\n\n');

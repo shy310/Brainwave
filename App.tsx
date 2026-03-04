@@ -1,10 +1,14 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   AppState, Subject, GradeLevel, UserProfile, Attachment,
   LearningSession, ProgressMap, TopicProgress, Course
 } from './types';
 import { TRANSLATIONS, CURRICULUM, getCurriculumCourse, buildCourseFromCurriculum } from './constants';
+
+// In production (Railway), frontend + backend share the same origin — relative URL is used.
+// In Capacitor or when VITE_API_URL is set, use that base.
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
 import LanguageSelector from './components/LanguageSelector';
 import ExercisePanel from './components/ExercisePanel';
 import Dashboard from './components/Dashboard';
@@ -25,11 +29,29 @@ import SqlDetective from './components/SqlDetective';
 import {
   LayoutGrid, Library, Menu, X, Moon, Sun, Search,
   Calculator, FlaskConical, Globe, Laptop, BookOpen, TrendingUp, LogOut, BarChart2, Settings,
-  Presentation as PresentationIcon, Code2, Gamepad2, Swords, Feather, DatabaseIcon
+  Presentation as PresentationIcon, Code2, Gamepad2, Swords, Feather, DatabaseIcon,
+  User as UserIcon, Trophy, Flame, Star
 } from 'lucide-react';
 
 const SESSION_KEY = 'brainwave_session_v2';
 const USERS_DB_KEY = 'brainwave_users_db';
+
+// Ordinal values for grade-level proximity matching (Fix 8)
+const GRADE_ORDINAL: Partial<Record<GradeLevel, number>> = {
+  [GradeLevel.KINDER]: 0,
+  [GradeLevel.GRADE_1]: 1,   [GradeLevel.GRADE_2]: 2,   [GradeLevel.GRADE_3]: 3,
+  [GradeLevel.ELEMENTARY_1_3]: 2,
+  [GradeLevel.GRADE_4]: 4,   [GradeLevel.GRADE_5]: 5,   [GradeLevel.GRADE_6]: 6,
+  [GradeLevel.ELEMENTARY_4_6]: 5,
+  [GradeLevel.GRADE_7]: 7,   [GradeLevel.GRADE_8]: 8,
+  [GradeLevel.MIDDLE_7_8]: 7,
+  [GradeLevel.GRADE_9]: 9,   [GradeLevel.GRADE_10]: 10,
+  [GradeLevel.HIGH_9_10]: 9,
+  [GradeLevel.GRADE_11]: 11, [GradeLevel.GRADE_12]: 12,
+  [GradeLevel.HIGH_11_12]: 11,
+  [GradeLevel.COLLEGE_FRESHMAN]: 13,
+  [GradeLevel.COLLEGE_ADVANCED]: 15,
+};
 
 const SUBJECT_ICONS: Record<string, React.ElementType> = {
   [Subject.MATH]: Calculator,
@@ -161,16 +183,37 @@ const App: React.FC = () => {
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const [activeSubject, setActiveSubject] = useState<Subject | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // Fix 4
+  const [levelUpToast, setLevelUpToast] = useState<number | null>(null); // Fix 5
+  const [viewLoading, setViewLoading] = useState(false); // Fix 9
+  const prevXpRef = useRef(appState.user.totalXp); // Fix 5 — track previous XP
 
-  // Build courses from CURRICULUM + user progress
+  // Build courses from CURRICULUM + user progress (Fix 8: two-pass grade filter)
   useEffect(() => {
     if (!appState.isLoggedIn) return;
     const grade = appState.user.gradeLevel;
     const progressMap = appState.user.progressMap || {};
-    const built: Course[] = CURRICULUM
-      .filter(cc => cc.gradeLevel === grade || CURRICULUM.every(c => c.gradeLevel !== grade))
-      .map(cc => buildCourseFromCurriculum(cc, progressMap, appState.language));
-    // Deduplicate by subject — keep best-matching grade
+
+    // Pass 1: exact grade match
+    let filtered = CURRICULUM.filter(cc => cc.gradeLevel === grade);
+
+    // Pass 2: closest grade by ordinal distance (never falls back to "show all")
+    if (filtered.length === 0 && CURRICULUM.length > 0) {
+      const userOrd = GRADE_ORDINAL[grade] ?? 9;
+      let minDist = Infinity;
+      CURRICULUM.forEach(cc => {
+        const d = Math.abs((GRADE_ORDINAL[cc.gradeLevel] ?? 9) - userOrd);
+        if (d < minDist) minDist = d;
+      });
+      filtered = CURRICULUM.filter(cc =>
+        Math.abs((GRADE_ORDINAL[cc.gradeLevel] ?? 9) - userOrd) === minDist
+      );
+    }
+
+    const built: Course[] = filtered.map(cc =>
+      buildCourseFromCurriculum(cc, progressMap, appState.language)
+    );
+    // Deduplicate by subject — keep first (best-matching) grade entry
     const seen = new Set<string>();
     const deduped = built.filter(c => {
       if (seen.has(c.subject)) return false;
@@ -180,7 +223,7 @@ const App: React.FC = () => {
     setCourses(deduped);
   }, [appState.language, appState.user.gradeLevel, appState.user.progressMap, appState.isLoggedIn]);
 
-  // Persistence effect
+  // Persistence effect — localStorage + server sync (Fix 1)
   useEffect(() => {
     const session = {
       isLoggedIn: appState.isLoggedIn,
@@ -191,13 +234,21 @@ const App: React.FC = () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
     if (appState.isLoggedIn && appState.user?.id) {
+      // Preserve existing _passwordHash in DB entry — never overwrite with profile that lacks it
       try {
         const usersDb = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
-        usersDb[appState.user.id] = appState.user;
+        const existing = usersDb[appState.user.id] || {};
+        usersDb[appState.user.id] = { ...existing, ...appState.user };
         localStorage.setItem(USERS_DB_KEY, JSON.stringify(usersDb));
       } catch (e) {
-        console.error("Failed to save user data", e);
+        console.error("Failed to save user data to localStorage", e);
       }
+      // Sync to server — fail silently so app works offline
+      fetch(`${API_BASE}/api/user/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: appState.user.id, userData: appState.user }),
+      }).catch(() => {});
     }
 
     if (appState.theme === 'dark') document.documentElement.classList.add('dark');
@@ -208,6 +259,29 @@ const App: React.FC = () => {
     document.documentElement.lang = appState.language;
   }, [appState.theme, appState.language, appState.user, appState.isLoggedIn]);
 
+  // Level-up detection (Fix 5)
+  useEffect(() => {
+    const newXp = appState.user.totalXp;
+    const prevXp = prevXpRef.current;
+    if (Math.floor(newXp / 1000) > Math.floor(prevXp / 1000)) {
+      const newLevel = Math.floor(newXp / 1000) + 1;
+      setLevelUpToast(newLevel);
+      setTimeout(() => setLevelUpToast(null), 3000);
+    }
+    prevXpRef.current = newXp;
+  }, [appState.user.totalXp]);
+
+  // Fix 9: view navigation with brief loading bar
+  const navigateTo = useCallback((view: AppState['activeView']) => {
+    setViewLoading(true);
+    setTimeout(() => {
+      setViewLoading(false);
+      setAppState(prev => ({ ...prev, activeView: view, activeCourseId: null, activeTopicId: null, currentSession: null }));
+      setActiveSubject(null);
+      setMobileMenuOpen(false);
+    }, 150);
+  }, []);
+
   const toggleSidebar = () => {
     if (window.innerWidth >= 768) setDesktopSidebarOpen(d => !d);
     else setMobileMenuOpen(m => !m);
@@ -215,15 +289,39 @@ const App: React.FC = () => {
 
   const handleLogin = (userData: Partial<UserProfile>) => {
     const fullUser: UserProfile = { ...DEFAULT_USER, ...userData, progressMap: (userData as any).progressMap || {} } as UserProfile;
+    // Fix 2: recalculate streak immediately on login
+    const updatedStreak = calculateStreak(fullUser.streakDays, fullUser.lastActivityDate);
+    const userWithStreak = { ...fullUser, streakDays: updatedStreak };
+
     setAppState(prev => ({
       ...prev,
       isLoggedIn: true,
-      user: fullUser,
-      language: fullUser.preferredLanguage || prev.language
+      user: userWithStreak,
+      language: userWithStreak.preferredLanguage || prev.language
     }));
+
+    // Fix 2: merge server-side progress data (fail-silent, runs after login)
+    if (fullUser.id) {
+      fetch(`${API_BASE}/api/user/${fullUser.id}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(serverData => {
+          if (!serverData) return;
+          setAppState(prev => ({
+            ...prev,
+            user: {
+              ...prev.user,
+              progressMap: serverData.progressMap ?? prev.user.progressMap,
+              totalXp: serverData.totalXp ?? prev.user.totalXp,
+              streakDays: serverData.streakDays ?? prev.user.streakDays,
+            }
+          }));
+        })
+        .catch(() => {});
+    }
   };
 
   const handleLogout = () => {
+    setShowLogoutConfirm(false);
     setAppState(prev => ({ ...DEFAULT_STATE, theme: prev.theme, language: prev.language }));
   };
 
@@ -256,7 +354,9 @@ const App: React.FC = () => {
       uploadAnalysis: null,
       studyContext
     };
-    setExerciseSession(session);
+    // Fix 3: unmount ExercisePanel first so it remounts fresh with new session
+    setExerciseSession(null);
+    setTimeout(() => setExerciseSession(session), 0);
     setActiveSubject(subject);
     setAppState(prev => ({ ...prev, activeView: 'exercise', currentSession: session, activeCourseId: null, activeTopicId: topicId }));
     setMobileMenuOpen(false);
@@ -360,6 +460,7 @@ const App: React.FC = () => {
                 { view: 'dashboard' as const, label: t.dashboard, icon: <LayoutGrid size={18} /> },
                 { view: 'courses' as const, label: t.courses, icon: <Library size={18} /> },
                 { view: 'progress' as const, label: t.progress, icon: <BarChart2 size={18} /> },
+                { view: 'profile' as const, label: t.profile, icon: <UserIcon size={18} /> },
                 { view: 'settings' as const, label: t.settings, icon: <Settings size={18} /> },
                 { view: 'presentation' as const, label: t.presentationGenerator, icon: <PresentationIcon size={18} /> },
                 { view: 'codelab' as const, label: t.codeLab, icon: <Code2 size={18} /> },
@@ -370,7 +471,7 @@ const App: React.FC = () => {
               ].map(({ view, label, icon }) => (
                 <button
                   key={view}
-                  onClick={() => { setAppState(prev => ({ ...prev, activeView: view, activeCourseId: null, activeTopicId: null, currentSession: null })); setActiveSubject(null); setMobileMenuOpen(false); }}
+                  onClick={() => navigateTo(view)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm ${appState.activeView === view ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                 >
                   {icon}
@@ -423,7 +524,7 @@ const App: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={handleLogout}
+              onClick={() => setShowLogoutConfirm(true)}
               className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black text-gray-400 hover:text-red-500 uppercase tracking-widest transition-all"
             >
               <LogOut size={12} /> {t.signOut}
@@ -438,6 +539,8 @@ const App: React.FC = () => {
       {/* MAIN */}
       <main className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out ${desktopSidebarOpen ? 'md:ms-80' : 'md:ms-0'}`}>
         <header className="sticky top-0 h-20 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md border-b dark:border-gray-800 z-30 px-6 flex items-center justify-between">
+          {/* Fix 9: loading bar */}
+          {viewLoading && <div className="absolute bottom-0 start-0 end-0 h-0.5 bg-brand-200 dark:bg-brand-900 overflow-hidden"><div className="h-full bg-brand-600 animate-nav-loading" /></div>}
           <div className="flex items-center gap-6">
             <button onClick={toggleSidebar} className="p-2.5 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl bg-white dark:bg-gray-900 border dark:border-gray-700 shadow-sm transition-all">
               <Menu size={20} />
@@ -455,8 +558,13 @@ const App: React.FC = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex flex-col items-end px-4 border-e dark:border-gray-700">
-              <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest">{appState.user.totalXp} XP</span>
-              <div className="h-1 w-24 bg-gray-100 dark:bg-gray-800 rounded-full mt-1 overflow-hidden">
+              <div className="flex items-center gap-1.5">
+                <Trophy size={11} className="text-brand-500" />
+                <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest">
+                  Lv.{Math.floor(appState.user.totalXp / 1000) + 1} · {appState.user.totalXp} XP
+                </span>
+              </div>
+              <div className="h-1 w-28 bg-gray-100 dark:bg-gray-800 rounded-full mt-1 overflow-hidden">
                 <div className="h-full bg-brand-500 transition-all duration-1000" style={{ width: `${Math.min(100, (appState.user.totalXp % 1000) / 10)}%` }}></div>
               </div>
             </div>
@@ -552,6 +660,71 @@ const App: React.FC = () => {
               />
             )}
 
+            {/* Fix 10: Profile view */}
+            {appState.activeView === 'profile' && (
+              <div className="p-8 max-w-2xl mx-auto space-y-8">
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white">{t.profile}</h1>
+
+                {/* Avatar + name */}
+                <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
+                  <div className="w-20 h-20 rounded-2xl bg-brand-600 flex items-center justify-center text-white text-4xl font-black shadow-lg shadow-brand-500/30">
+                    {appState.user.name.charAt(0)}
+                  </div>
+                  <div className="text-center sm:text-start">
+                    <div className="text-2xl font-black text-gray-900 dark:text-white">{appState.user.name}</div>
+                    <div className="text-sm text-gray-400 font-bold">@{appState.user.username}</div>
+                    <div className="mt-1 text-xs text-brand-600 font-black uppercase tracking-widest">{t.grades[appState.user.gradeLevel]}</div>
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { icon: <Trophy size={20} className="text-yellow-500" />, label: 'Level', value: String(Math.floor(appState.user.totalXp / 1000) + 1) },
+                    { icon: <Star size={20} className="text-brand-500" />, label: t.xp, value: String(appState.user.totalXp) },
+                    { icon: <Flame size={20} className="text-orange-500" />, label: t.streak, value: `${appState.user.streakDays}d` },
+                  ].map(({ icon, label, value }) => (
+                    <div key={label} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 flex flex-col items-center gap-2 shadow-sm">
+                      {icon}
+                      <div className="text-2xl font-black text-gray-900 dark:text-white">{value}</div>
+                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* XP progress to next level */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-black text-gray-700 dark:text-gray-200">Progress to Level {Math.floor(appState.user.totalXp / 1000) + 2}</span>
+                    <span className="text-xs font-black text-brand-600">{appState.user.totalXp % 1000} / 1000 XP</span>
+                  </div>
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-brand-500 rounded-full transition-all duration-1000" style={{ width: `${(appState.user.totalXp % 1000) / 10}%` }} />
+                  </div>
+                </div>
+
+                {/* Enrolled courses */}
+                {Object.keys(appState.user.progressMap || {}).length > 0 && (
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
+                    <h3 className="font-black text-gray-900 dark:text-white mb-4">{t.mastery} by Topic</h3>
+                    <div className="space-y-3">
+                      {(Object.values(appState.user.progressMap) as import('./types').TopicProgress[]).slice(0, 5).map(tp => (
+                        <div key={tp.topicId}>
+                          <div className="flex justify-between text-xs font-bold text-gray-500 mb-1">
+                            <span className="truncate">{tp.topicId}</span>
+                            <span>{tp.mastery}%</span>
+                          </div>
+                          <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-brand-500 rounded-full" style={{ width: `${tp.mastery}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {appState.activeView === 'settings' && (
               <SettingsView
                 user={appState.user}
@@ -644,7 +817,46 @@ const App: React.FC = () => {
         context={appState.currentContext}
         translations={t}
         activeView={appState.activeView}
+        currentSession={appState.currentSession}
       />
+
+      {/* Fix 4: Logout confirmation modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-gray-800 max-w-sm w-full mx-4 animate-in slide-in-from-bottom-4 fade-in duration-200">
+            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-900/20 mx-auto mb-4">
+              <LogOut size={24} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-black text-center text-gray-900 dark:text-white mb-2">Sign out?</h3>
+            <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-6">Your progress is saved. You can sign back in anytime.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-700 text-sm font-black text-gray-600 dark:text-gray-300 hover:border-gray-300 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-black hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+              >
+                {t.signOut}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fix 5: Level-up toast */}
+      {levelUpToast !== null && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-toast-in">
+          <div className="flex items-center gap-3 bg-brand-600 text-white px-6 py-3 rounded-2xl shadow-2xl shadow-brand-500/30 font-black">
+            <Trophy size={20} />
+            <span>Level {levelUpToast} reached!</span>
+            <Star size={16} className="fill-white" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

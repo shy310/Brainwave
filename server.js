@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import Groq from 'groq-sdk';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -76,6 +77,53 @@ function convertMessages(messages) {
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+// ── User data persistence ──────────────────────────────────────────────────────
+const DATA_DIR = path.join(__dirname, 'data');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+
+function readUsersDb() {
+  try {
+    if (!fs.existsSync(USERS_FILE)) return {};
+    return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+  } catch { return {}; }
+}
+
+function writeUsersDb(db) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(db, null, 2));
+  } catch (err) { console.error('Failed to write users DB:', err); }
+}
+
+// Save or update a single user's data
+app.post('/api/user/save', (req, res) => {
+  const { userId, userData } = req.body;
+  if (!userId || typeof userId !== 'string' || !userData || typeof userData !== 'object') {
+    return res.status(400).json({ error: 'userId (string) and userData (object) are required.' });
+  }
+  try {
+    const db = readUsersDb();
+    db[userId] = { ...db[userId], ...userData };
+    writeUsersDb(db);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message ?? 'Failed to save user data.' });
+  }
+});
+
+// Load a single user's data
+app.get('/api/user/:userId', (req, res) => {
+  const { userId } = req.params;
+  try {
+    const db = readUsersDb();
+    const user = db[userId];
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message ?? 'Failed to read user data.' });
+  }
+});
 
 // ── AI proxy ──────────────────────────────────────────────────────────────────
 app.post('/api/claude', async (req, res) => {
