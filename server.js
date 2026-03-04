@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
+import 'dotenv/config';
 
 import express from 'express';
 import cors from 'cors';
@@ -9,12 +8,43 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// ── Startup guard ─────────────────────────────────────────────────────────────
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+if (!GROQ_API_KEY) {
+  console.error('\n✗ FATAL: GROQ_API_KEY is not set.\n  Add it to .env.local for local dev,\n  or to Railway Variables for production.\n');
+  process.exit(1);
+}
+
+const PORT = process.env.PORT ?? 3000;
+
+// ── CORS ──────────────────────────────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://brainwave.up.railway.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3000',
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Capacitor native WebView, curl, etc.)
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin not allowed — ${origin}`));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+};
+
 const app = express();
-app.use(cors());
+app.options('*', cors(corsOptions)); // preflight for all routes
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 
-// Text model for normal requests; vision model when images are attached
-const TEXT_MODEL  = 'llama-3.3-70b-versatile';
+// ── Models ────────────────────────────────────────────────────────────────────
+const TEXT_MODEL   = 'llama-3.3-70b-versatile';
 const VISION_MODEL = 'llama-3.2-90b-vision-preview';
 
 function hasImages(messages) {
@@ -25,34 +55,39 @@ function hasImages(messages) {
 }
 
 // Convert Anthropic-style content blocks → Groq/OpenAI format
-// - image  → image_url  (Groq vision model supports jpeg/png/gif/webp)
-// - document (PDF) → stripped; Groq has no PDF support, drop the binary
-// - text   → unchanged
+// - image    → image_url  (Groq vision supports jpeg/png/gif/webp)
+// - document → dropped    (Groq has no PDF support)
+// - text     → unchanged
 function convertMessages(messages) {
   return messages.map(msg => {
     if (typeof msg.content === 'string') return msg;
     const converted = msg.content
-      .filter(block => block.type !== 'document') // drop PDF blobs — Groq can't read them
+      .filter(block => block.type !== 'document')
       .map(block => {
         if (block.type === 'image') {
           const { media_type, data } = block.source;
           return { type: 'image_url', image_url: { url: `data:${media_type};base64,${data}` } };
         }
-        return block; // text blocks are identical
+        return block;
       });
     return { role: msg.role, content: converted };
   });
 }
 
+// ── Health check ──────────────────────────────────────────────────────────────
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+// ── AI proxy ──────────────────────────────────────────────────────────────────
 app.post('/api/claude', async (req, res) => {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'GROQ_API_KEY is not set in .env.local' });
+  const { messages, system, max_tokens } = req.body;
+
+  // Validate request body
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
   }
 
   try {
-    const groq = new Groq({ apiKey });
-    const { messages, system, max_tokens } = req.body;
+    const groq = new Groq({ apiKey: GROQ_API_KEY });
 
     const fullMessages = [
       ...(system ? [{ role: 'system', content: system }] : []),
@@ -68,7 +103,7 @@ app.post('/api/claude', async (req, res) => {
     });
 
     const text = response.choices[0]?.message?.content ?? '';
-    // Return in Anthropic-compatible format so the frontend needs no changes
+    // Return in Anthropic-compatible shape so the frontend needs no changes
     res.json({ content: [{ type: 'text', text }] });
   } catch (err) {
     console.error('Groq error:', err);
@@ -76,16 +111,11 @@ app.post('/api/claude', async (req, res) => {
   }
 });
 
-// Serve the built React app for every non-API route
+// ── Static frontend (after API routes) ───────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')));
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  const key = process.env.GROQ_API_KEY;
-  if (!key) {
-    console.warn('\n⚠  WARNING: GROQ_API_KEY is not set in .env.local\n   Add: GROQ_API_KEY=gsk_...\n');
-  } else {
-    console.log(`✓ Server running on port ${PORT}  (Groq · key: ...${key.slice(-6)})`);
-  }
+// ── Start ─────────────────────────────────────────────────────────────────────
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✓ Server running on port ${PORT}  (Groq · key: ...${GROQ_API_KEY.slice(-6)})`);
 });
