@@ -49,6 +49,7 @@ const PresentationView: React.FC<Props> = ({
   const [topic, setTopic] = useState('');
   const [subject, setSubject] = useState<Subject>(Subject.SCIENCE);
   const [slideCount, setSlideCount] = useState(8);
+  const [slideSize, setSlideSize] = useState<'16:9' | '4:3'>('16:9');
   const [audience, setAudience] = useState<PresentationAudience>('class');
   const [structure, setStructure] = useState<PresStructure>('informative');
   const [includes, setIncludes] = useState({ toc: false, summary: true, qa: false, references: false });
@@ -287,7 +288,7 @@ const PresentationView: React.FC<Props> = ({
     try {
       const pptxgen = (await import('pptxgenjs')).default;
       const prs = new pptxgen();
-      prs.layout = 'LAYOUT_WIDE'; // 13.33" x 7.5"
+      prs.layout = slideSize === '4:3' ? 'LAYOUT_4x3' : 'LAYOUT_WIDE';
 
       const th = autoTheme ?? FALLBACK_THEME;
       const isPaper = false;
@@ -297,7 +298,7 @@ const PresentationView: React.FC<Props> = ({
       const dk = th.darkHex;
       const txt = isPaper ? '1C1917' : 'FFFFFF';
       const muted = isPaper ? '78716C' : 'FFFFFF';
-      const W = 13.33;
+      const W = slideSize === '4:3' ? 10.0 : 13.33;
       const H = 7.5;
 
       for (const slide of presentation.slides) {
@@ -639,6 +640,26 @@ const PresentationView: React.FC<Props> = ({
                   }`}
                 >
                   {n}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Slide size */}
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Slide Size</label>
+            <div className="flex gap-2">
+              {(['16:9', '4:3'] as const).map(sz => (
+                <button
+                  key={sz}
+                  onClick={() => setSlideSize(sz)}
+                  className={`flex-1 py-2.5 rounded-xl font-black text-sm border-2 transition-all ${
+                    slideSize === sz
+                      ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  {sz}
                 </button>
               ))}
             </div>
