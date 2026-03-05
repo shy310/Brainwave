@@ -310,6 +310,103 @@ const PresentationView: React.FC<Props> = ({
   const slides = presentation?.slides ?? [];
   const slide = slides[currentSlide];
 
+  const renderSlide = (s: PresentationSlide, size: 'editor' | 'presenter') => {
+    const large = size === 'presenter';
+    const tc = themeInfo.text;
+    const isSplit = s.layout === 'split' && s.imageKeyword && !imgErrors[currentSlide];
+
+    if (s.layout === 'title') return (
+      <div className="flex flex-col items-center justify-center h-full text-center px-10 gap-5">
+        <div className={`w-20 h-1 rounded-full bg-${tc}/30`} />
+        <h1 className={`${large ? 'text-5xl sm:text-7xl' : 'text-3xl'} font-black text-${tc} leading-tight tracking-tight`}>
+          {s.title}
+        </h1>
+        {s.body && (
+          <p className={`${large ? 'text-2xl' : 'text-sm'} text-${tc}/60 max-w-2xl font-medium`}>
+            {s.body}
+          </p>
+        )}
+        {s.bullets[0] && (
+          <p className={`${large ? 'text-lg' : 'text-xs'} text-${tc}/40 italic mt-2 max-w-xl`}>
+            {s.bullets[0]}
+          </p>
+        )}
+        <div className={`w-20 h-1 rounded-full bg-${tc}/30 mt-2`} />
+      </div>
+    );
+
+    if (s.layout === 'quote') return (
+      <div className="flex flex-col justify-center h-full px-12 gap-4">
+        <span className={`${large ? 'text-9xl' : 'text-6xl'} text-${tc}/15 font-serif leading-none -mb-4 select-none`}>
+          &ldquo;
+        </span>
+        <p className={`${large ? 'text-3xl' : 'text-lg'} font-bold text-${tc}/90 italic leading-relaxed`}>
+          {s.body || s.bullets[0]}
+        </p>
+        <p className={`text-${tc}/50 ${large ? 'text-lg' : 'text-xs'} font-bold tracking-widest uppercase mt-2`}>
+          — {s.title}
+        </p>
+      </div>
+    );
+
+    if (isSplit) return (
+      <div className="flex h-full">
+        <div className="flex-1 flex flex-col justify-center p-8 sm:p-10 gap-4 overflow-hidden">
+          <div className={`flex items-center gap-2 text-${tc}/30 text-xs font-black tracking-widest uppercase mb-1`}>
+            <div className={`h-px flex-1 bg-${tc}/20`} />
+            <span>{String(s.slideNumber).padStart(2, '0')}</span>
+          </div>
+          <h2 className={`${large ? 'text-3xl sm:text-4xl' : 'text-xl'} font-black text-${tc} leading-tight`}>
+            {s.title}
+          </h2>
+          <ul className="space-y-2 flex-1 overflow-hidden">
+            {s.bullets.slice(0, large ? 5 : 4).map((b, i) => (
+              <li key={i} className={`flex items-start gap-2 ${large ? 'text-lg' : 'text-xs'} text-${tc}/85`}>
+                <span className={`text-${tc}/40 font-black mt-0.5 flex-shrink-0`}>→</span>
+                {b}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="w-2/5 flex-shrink-0 relative overflow-hidden">
+          <img
+            src={getImageUrl(s.imageKeyword!)}
+            alt={s.imageKeyword}
+            className="w-full h-full object-cover opacity-50"
+            onError={() => setImgErrors(prev => ({ ...prev, [currentSlide]: true }))}
+          />
+          <div className={`absolute inset-0 bg-gradient-to-r from-current to-transparent opacity-30`} />
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="flex flex-col justify-center h-full p-8 sm:p-12 gap-4">
+        <div className={`flex items-center gap-3 text-${tc}/30`}>
+          <span className="font-black text-xs tracking-widest">{String(s.slideNumber).padStart(2, '0')}</span>
+          <div className={`flex-1 h-px bg-${tc}/15`} />
+        </div>
+        <h2 className={`${large ? 'text-4xl sm:text-5xl' : 'text-2xl'} font-black text-${tc} leading-tight`}>
+          {s.title}
+        </h2>
+        <ul className="space-y-3 flex-1 overflow-hidden">
+          {s.bullets.slice(0, large ? 6 : 5).map((b, i) => (
+            <li key={i} className={`flex items-start gap-3 ${large ? 'text-xl' : 'text-sm'} text-${tc}/85 leading-snug`}>
+              <span className={`w-1.5 h-1.5 rounded-full bg-${tc}/40 mt-2 flex-shrink-0`} />
+              {b}
+            </li>
+          ))}
+        </ul>
+        {s.body && (
+          <p className={`text-${tc}/45 ${large ? 'text-base' : 'text-xs'} border-t border-${tc}/10 pt-3 leading-relaxed`}>
+            {s.body}
+          </p>
+        )}
+        <p className={`text-${tc}/20 text-xs text-right`}>{s.slideNumber} / {slides.length}</p>
+      </div>
+    );
+  };
+
   // ── SETUP PHASE ───────────────────────────────────────────────────────────────
   if (phase === 'setup') {
     return (
@@ -558,31 +655,8 @@ const PresentationView: React.FC<Props> = ({
                           <button onClick={() => setEditingSlide(null)} className="bg-white/20 text-white font-bold px-4 py-2 rounded-xl text-sm hover:bg-white/30">Cancel</button>
                         </div>
                       </div>
-                    ) : (
-                      <>
-                        <h2 className={`text-2xl sm:text-3xl font-black text-${themeInfo.text} mb-4 leading-tight`}>{slide.title}</h2>
-                        <ul className="space-y-2 flex-1 overflow-hidden">
-                          {slide.bullets.slice(0, 6).map((b, i) => (
-                            <li key={i} className={`flex items-start gap-2 text-sm sm:text-base text-${themeInfo.text}/90`}>
-                              <span className={`w-1.5 h-1.5 rounded-full bg-${themeInfo.text}/60 mt-2 flex-shrink-0`} />
-                              {b}
-                            </li>
-                          ))}
-                        </ul>
-                        <p className={`text-xs text-${themeInfo.text}/40 mt-2 text-right`}>{slide.slideNumber}/{slides.length}</p>
-                      </>
-                    )}
+                    ) : renderSlide(slide, 'editor')}
                   </div>
-                  {slide.layout === 'split' && slide.imageKeyword && !imgErrors[currentSlide] && (
-                    <div className="absolute right-0 top-0 bottom-0 w-2/5">
-                      <img
-                        src={getImageUrl(slide.imageKeyword)}
-                        alt={slide.imageKeyword}
-                        className="w-full h-full object-cover opacity-40"
-                        onError={() => setImgErrors(prev => ({ ...prev, [currentSlide]: true }))}
-                      />
-                    </div>
-                  )}
                 </div>
 
                 {/* Per-slide toolbar */}
@@ -708,22 +782,9 @@ const PresentationView: React.FC<Props> = ({
           {/* Slide area */}
           <div key={animKey} className="flex-1 flex items-center justify-center p-6">
             <div className={`w-full max-w-4xl aspect-video bg-gradient-to-br ${themeInfo.bg} rounded-2xl overflow-hidden relative shadow-2xl`}>
-              <div className="absolute inset-0 p-10 sm:p-16 flex flex-col justify-center">
-                <h1 className={`text-3xl sm:text-5xl font-black text-${themeInfo.text} mb-6 leading-tight`}>{slide.title}</h1>
-                <ul className="space-y-3">
-                  {slide.bullets.map((b, i) => (
-                    <li key={i} className={`flex items-start gap-3 text-base sm:text-xl text-${themeInfo.text}/90`}>
-                      <span className={`w-2 h-2 rounded-full bg-${themeInfo.text}/60 mt-2.5 flex-shrink-0`} />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
+              <div className="absolute inset-0">
+                {renderSlide(slide, 'presenter')}
               </div>
-              {slide.layout === 'split' && slide.imageKeyword && !imgErrors[currentSlide] && (
-                <div className="absolute right-0 top-0 bottom-0 w-2/5">
-                  <img src={getImageUrl(slide.imageKeyword)} alt="" className="w-full h-full object-cover opacity-30" onError={() => setImgErrors(prev => ({ ...prev, [currentSlide]: true }))} />
-                </div>
-              )}
             </div>
           </div>
         </div>

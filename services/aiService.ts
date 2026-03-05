@@ -1468,28 +1468,54 @@ export const generatePresentationV2 = async (
 
     const totalSlides = slideCount + (extras.length > 0 ? extras.length : 0);
 
-    const prompt = `Create a ${slideCount}-slide ${structureDesc} presentation about "${topic}" for a ${grade} student presenting to ${audienceDesc}.
-${extras.length > 0 ? `Also include: ${extras.join(', ')}.` : ''}
-Total slides: ${totalSlides}
-Return ONLY a JSON object (no markdown):
+    const prompt = `You are an expert presentation designer and educator.
+
+Generate a ${totalSlides}-slide ${structureDesc} presentation about "${topic}" for a ${audience} audience at grade level ${grade} in ${targetLang}.
+
+CONTENT RULES — enforce strictly:
+- Every bullet point must be a COMPLETE sentence of at least 8 words. Never use fragments like "Key factor" or "Important role".
+- Each slide covers exactly ONE specific idea in depth. No vague overview slides.
+- Slide 1 is always layout "title" with: a compelling subtitle (not the topic name repeated) in the body field, and one surprising hook sentence as the only bullet.
+- Slide 2 or 3 must be a surprising fact or provocative question that grabs attention.
+- Second-to-last slide must be a real-world case study or application example — not a generic summary.
+- Last slide must have 3 specific actionable takeaways. Never end with "Thank you" or "Questions?".
+- speakerNotes must be 3–4 sentences of what the presenter would actually say out loud. Never copy the bullets verbatim into the notes.
+- imageKeyword must be a specific, visually searchable phrase like "DNA double helix microscope" or "ancient Roman aqueduct ruins" — never generic words like "science" or "history".
+
+STRUCTURE-SPECIFIC RULES:
+- informative: build from foundational concept → mechanisms → evidence → implications
+- persuasive: include one slide presenting the strongest counterargument, followed by a rebuttal slide
+- how-to: each slide is one numbered step with exactly what to do and why
+- compare-contrast: use layout "split" for direct side-by-side comparison slides
+- timeline: each slide is a distinct time period with specific years or dates in the title
+
+LAYOUT RULES:
+- layout "title": only slide 1 (or section dividers if many slides)
+- layout "quote": any slide built around a single powerful statement or definition
+- layout "split": any slide with a visual example, comparison, or case study
+- layout "content": everything else
+
+${includes.toc ? 'Add a Table of Contents slide immediately after slide 1.' : ''}
+${includes.summary ? 'Add a Summary slide as the second-to-last slide.' : ''}
+${includes.qa ? 'Add a Q&A slide as the very last slide.' : ''}
+${includes.references ? 'Add a References slide with 3–5 real, plausible citations.' : ''}
+
+Respond ONLY with valid JSON. No markdown, no explanation, no code fences. Exact structure:
 {
-  "title": "Presentation title in ${targetLang}",
-  "subject": "${subject}",
+  "title": "string",
   "totalSlides": ${totalSlides},
   "slides": [
     {
       "slideNumber": 1,
-      "title": "Slide title in ${targetLang}",
       "layout": "title",
-      "bullets": ["Point 1 in ${targetLang}", "Point 2 in ${targetLang}"],
-      "body": "Optional body text in ${targetLang}",
-      "imageKeyword": "keyword for image search",
-      "speakerNotes": "Speaker notes in ${targetLang}"
+      "title": "string",
+      "bullets": ["complete sentence"],
+      "body": "optional subtitle or supporting paragraph",
+      "imageKeyword": "specific search term or omit",
+      "speakerNotes": "3-4 sentences of spoken talking points"
     }
   ]
-}
-Layouts: "title" for first slide, "content" for most slides, "split" when an image would help.
-Make it ${audience}-appropriate in tone and complexity. ALL text in ${targetLang}.`;
+}`;
 
     const text = await callClaude({ model: HAIKU, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] });
     if (!text) throw new Error('generatePresentationV2: empty response');

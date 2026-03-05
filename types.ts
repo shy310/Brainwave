@@ -209,7 +209,7 @@ export interface Exercise {
 export interface PresentationSlide {
   slideNumber: number;
   title: string;
-  layout?: 'title' | 'content' | 'split';
+  layout?: 'title' | 'content' | 'split' | 'quote';
   bullets: string[];
   body?: string;
   imageKeyword?: string;
