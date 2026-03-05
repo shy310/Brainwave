@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import {
   GradeLevel, Language, Translations, Subject, Presentation, PresentationSlide,
-  PresentationTheme, PresentationAudience, PresStructure
+  PresentationAudience, PresStructure
 } from '../types';
 import {
   generatePresentationV2, streamAI, regenerateSlide, adjustSlideComplexity, addSlideBetween
@@ -23,46 +23,34 @@ interface Props {
   onContextUpdate: (ctx: string) => void;
 }
 
-// ── Theme definitions ──────────────────────────────────────────────────────────
-const THEMES: Record<PresentationTheme, {
-  bg: string; text: string; accent: string; swatch: string; label: string;
-  bgHex: string; accentHex: string; lightHex: string; darkHex: string;
+// ── Subject-based automatic themes ────────────────────────────────────────────
+const SUBJECT_THEMES: Record<Subject, {
+  bg: string; text: string;
+  bgHex: string; accentHex: string; lightHex: string; darkHex: string; label: string;
 }> = {
-  vivid: {
-    bg: 'from-violet-600 via-indigo-600 to-purple-700',
-    text: 'white', accent: 'bg-white/20',
-    swatch: 'bg-gradient-to-br from-violet-600 to-indigo-700', label: 'Vivid',
-    bgHex: '4F46E5', accentHex: 'C4B5FD', lightHex: 'EDE9FE', darkHex: '312E81',
+  [Subject.MATH]: {
+    bg: 'from-blue-700 via-indigo-700 to-violet-800', text: 'white',
+    bgHex: '3730A3', accentHex: '818CF8', lightHex: 'C7D2FE', darkHex: '1E1B4B', label: 'Mathematics',
   },
-  ocean: {
-    bg: 'from-cyan-500 via-blue-600 to-indigo-700',
-    text: 'white', accent: 'bg-white/20',
-    swatch: 'bg-gradient-to-br from-cyan-500 to-blue-700', label: 'Ocean',
-    bgHex: '0284C7', accentHex: '7DD3FC', lightHex: 'E0F2FE', darkHex: '0C4A6E',
+  [Subject.SCIENCE]: {
+    bg: 'from-emerald-600 via-teal-600 to-cyan-700', text: 'white',
+    bgHex: '0D9488', accentHex: '5EEAD4', lightHex: 'CCFBF1', darkHex: '042F2E', label: 'Science',
   },
-  forest: {
-    bg: 'from-emerald-500 via-green-600 to-teal-700',
-    text: 'white', accent: 'bg-white/20',
-    swatch: 'bg-gradient-to-br from-emerald-500 to-teal-700', label: 'Forest',
-    bgHex: '059669', accentHex: '6EE7B7', lightHex: 'D1FAE5', darkHex: '064E3B',
+  [Subject.HISTORY]: {
+    bg: 'from-amber-700 via-orange-700 to-red-800', text: 'white',
+    bgHex: 'B45309', accentHex: 'FCD34D', lightHex: 'FEF3C7', darkHex: '451A03', label: 'History',
   },
-  sunset: {
-    bg: 'from-rose-500 via-orange-500 to-amber-500',
-    text: 'white', accent: 'bg-white/20',
-    swatch: 'bg-gradient-to-br from-rose-500 to-amber-500', label: 'Sunset',
-    bgHex: 'F97316', accentHex: 'FDE68A', lightHex: 'FEF3C7', darkHex: '7C2D12',
+  [Subject.LANGUAGE]: {
+    bg: 'from-rose-600 via-pink-600 to-fuchsia-700', text: 'white',
+    bgHex: 'BE185D', accentHex: 'F9A8D4', lightHex: 'FCE7F3', darkHex: '500724', label: 'Language',
   },
-  midnight: {
-    bg: 'from-slate-900 via-gray-900 to-zinc-900',
-    text: 'white', accent: 'bg-white/10',
-    swatch: 'bg-gradient-to-br from-gray-900 to-slate-800', label: 'Midnight',
-    bgHex: '0F172A', accentHex: '6366F1', lightHex: '818CF8', darkHex: '1E1B4B',
+  [Subject.CODING]: {
+    bg: 'from-gray-900 via-slate-800 to-zinc-900', text: 'white',
+    bgHex: '0F172A', accentHex: '38BDF8', lightHex: 'BAE6FD', darkHex: '020617', label: 'Coding',
   },
-  paper: {
-    bg: 'from-stone-50 via-amber-50 to-orange-50',
-    text: 'gray-900', accent: 'bg-black/5',
-    swatch: 'bg-gradient-to-br from-amber-50 to-stone-100 border border-gray-200', label: 'Paper',
-    bgHex: 'FFFBEB', accentHex: 'D97706', lightHex: 'FEF3C7', darkHex: '92400E',
+  [Subject.ECONOMICS]: {
+    bg: 'from-green-700 via-emerald-700 to-teal-800', text: 'white',
+    bgHex: '065F46', accentHex: '6EE7B7', lightHex: 'D1FAE5', darkHex: '022C22', label: 'Economics',
   },
 };
 
@@ -82,7 +70,6 @@ const PresentationView: React.FC<Props> = ({
   const [topic, setTopic] = useState('');
   const [subject, setSubject] = useState<Subject>(Subject.SCIENCE);
   const [slideCount, setSlideCount] = useState(8);
-  const [presTheme, setPresTheme] = useState<PresentationTheme>('vivid');
   const [audience, setAudience] = useState<PresentationAudience>('class');
   const [structure, setStructure] = useState<PresStructure>('informative');
   const [includes, setIncludes] = useState({ toc: false, summary: true, qa: false, references: false });
@@ -320,8 +307,8 @@ const PresentationView: React.FC<Props> = ({
       const prs = new pptxgen();
       prs.layout = 'LAYOUT_WIDE'; // 13.33" x 7.5"
 
-      const th = THEMES[presTheme];
-      const isPaper = presTheme === 'paper';
+      const th = SUBJECT_THEMES[subject];
+      const isPaper = false;
       const bg = th.bgHex;
       const acc = th.accentHex;
       const lt = th.lightHex;
@@ -439,14 +426,14 @@ const PresentationView: React.FC<Props> = ({
     } catch (e) { console.error('PPTX export failed:', e); }
   };
 
-  const themeInfo = THEMES[presTheme];
+  const themeInfo = SUBJECT_THEMES[subject];
   const slides = presentation?.slides ?? [];
   const slide = slides[currentSlide];
 
   const renderSlide = (s: PresentationSlide, size: 'editor' | 'presenter') => {
     const large = size === 'presenter';
     const tc = themeInfo.text;
-    const isPaper = presTheme === 'paper';
+    const isPaper = false;
     const isSplit = s.layout === 'split' && s.imageKeyword && !imgErrors[currentSlide];
     const accent = themeInfo.accentHex;
     const light = themeInfo.lightHex;
@@ -720,19 +707,16 @@ const PresentationView: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Theme picker */}
-          <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{t.visualTheme}</label>
-            <div className="flex gap-3 flex-wrap">
-              {(Object.keys(THEMES) as PresentationTheme[]).map(th => (
-                <button
-                  key={th}
-                  onClick={() => setPresTheme(th)}
-                  title={THEMES[th].label}
-                  className={`w-10 h-10 rounded-xl ${THEMES[th].swatch} transition-all ${
-                    presTheme === th ? 'ring-4 ring-brand-400 scale-110' : 'hover:scale-105'
-                  }`}
-                />
+          {/* Auto theme preview */}
+          <div className={`w-full h-12 rounded-xl bg-gradient-to-r ${SUBJECT_THEMES[subject].bg} flex items-center justify-between px-4 overflow-hidden relative`}>
+            <div className="absolute right-2 top-[-8px] w-10 h-10 rounded-full opacity-20" style={{ backgroundColor: `#${SUBJECT_THEMES[subject].lightHex}` }} />
+            <div className="absolute right-8 bottom-[-6px] w-7 h-7 rounded-full opacity-15" style={{ backgroundColor: `#${SUBJECT_THEMES[subject].accentHex}` }} />
+            <span className="text-white text-xs font-black uppercase tracking-widest z-10 drop-shadow">
+              {SUBJECT_THEMES[subject].label} Theme
+            </span>
+            <div className="flex gap-1.5 z-10">
+              {(['bgHex', 'accentHex', 'lightHex', 'darkHex'] as const).map(k => (
+                <div key={k} className="w-4 h-4 rounded-full border border-white/30 shadow" style={{ backgroundColor: `#${SUBJECT_THEMES[subject][k]}` }} />
               ))}
             </div>
           </div>
