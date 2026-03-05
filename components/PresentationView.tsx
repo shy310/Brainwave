@@ -24,13 +24,46 @@ interface Props {
 }
 
 // ── Theme definitions ──────────────────────────────────────────────────────────
-const THEMES: Record<PresentationTheme, { bg: string; text: string; accent: string; swatch: string; label: string; colorHex: string; accentHex: string; shapeOpacity: number }> = {
-  vivid:    { bg: 'from-violet-600 to-indigo-700',  text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-violet-600 to-indigo-700', label: 'Vivid',    colorHex: '4F46E5', accentHex: 'A78BFA', shapeOpacity: 0.15 },
-  ocean:    { bg: 'from-cyan-600 to-blue-700',       text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-cyan-600 to-blue-700',       label: 'Ocean',    colorHex: '0891B2', accentHex: '67E8F9', shapeOpacity: 0.15 },
-  forest:   { bg: 'from-green-600 to-emerald-700',   text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-green-600 to-emerald-700',   label: 'Forest',   colorHex: '059669', accentHex: '6EE7B7', shapeOpacity: 0.15 },
-  sunset:   { bg: 'from-orange-500 to-red-600',      text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-orange-500 to-red-600',      label: 'Sunset',   colorHex: 'EA580C', accentHex: 'FCD34D', shapeOpacity: 0.15 },
-  midnight: { bg: 'from-gray-900 to-slate-800',      text: 'white', accent: 'bg-white/10', swatch: 'bg-gradient-to-br from-gray-900 to-slate-800',      label: 'Midnight', colorHex: '1E293B', accentHex: '94A3B8', shapeOpacity: 0.10 },
-  paper:    { bg: 'from-amber-50 to-stone-100',      text: 'gray-900', accent: 'bg-black/5', swatch: 'bg-gradient-to-br from-amber-50 to-stone-100 border border-gray-200', label: 'Paper', colorHex: 'D97706', accentHex: 'FCD34D', shapeOpacity: 0.08 },
+const THEMES: Record<PresentationTheme, {
+  bg: string; text: string; accent: string; swatch: string; label: string;
+  bgHex: string; accentHex: string; lightHex: string; darkHex: string;
+}> = {
+  vivid: {
+    bg: 'from-violet-600 via-indigo-600 to-purple-700',
+    text: 'white', accent: 'bg-white/20',
+    swatch: 'bg-gradient-to-br from-violet-600 to-indigo-700', label: 'Vivid',
+    bgHex: '4F46E5', accentHex: 'C4B5FD', lightHex: 'EDE9FE', darkHex: '312E81',
+  },
+  ocean: {
+    bg: 'from-cyan-500 via-blue-600 to-indigo-700',
+    text: 'white', accent: 'bg-white/20',
+    swatch: 'bg-gradient-to-br from-cyan-500 to-blue-700', label: 'Ocean',
+    bgHex: '0284C7', accentHex: '7DD3FC', lightHex: 'E0F2FE', darkHex: '0C4A6E',
+  },
+  forest: {
+    bg: 'from-emerald-500 via-green-600 to-teal-700',
+    text: 'white', accent: 'bg-white/20',
+    swatch: 'bg-gradient-to-br from-emerald-500 to-teal-700', label: 'Forest',
+    bgHex: '059669', accentHex: '6EE7B7', lightHex: 'D1FAE5', darkHex: '064E3B',
+  },
+  sunset: {
+    bg: 'from-rose-500 via-orange-500 to-amber-500',
+    text: 'white', accent: 'bg-white/20',
+    swatch: 'bg-gradient-to-br from-rose-500 to-amber-500', label: 'Sunset',
+    bgHex: 'F97316', accentHex: 'FDE68A', lightHex: 'FEF3C7', darkHex: '7C2D12',
+  },
+  midnight: {
+    bg: 'from-slate-900 via-gray-900 to-zinc-900',
+    text: 'white', accent: 'bg-white/10',
+    swatch: 'bg-gradient-to-br from-gray-900 to-slate-800', label: 'Midnight',
+    bgHex: '0F172A', accentHex: '6366F1', lightHex: '818CF8', darkHex: '1E1B4B',
+  },
+  paper: {
+    bg: 'from-stone-50 via-amber-50 to-orange-50',
+    text: 'gray-900', accent: 'bg-black/5',
+    swatch: 'bg-gradient-to-br from-amber-50 to-stone-100 border border-gray-200', label: 'Paper',
+    bgHex: 'FFFBEB', accentHex: 'D97706', lightHex: 'FEF3C7', darkHex: '92400E',
+  },
 };
 
 const SLIDE_COUNTS = [5, 8, 10, 15, 20];
@@ -285,91 +318,119 @@ const PresentationView: React.FC<Props> = ({
     try {
       const pptxgen = (await import('pptxgenjs')).default;
       const prs = new pptxgen();
-      prs.layout = 'LAYOUT_WIDE';
+      prs.layout = 'LAYOUT_WIDE'; // 13.33" x 7.5"
 
-      const thInfo = THEMES[presTheme];
-      const bgColor = presTheme === 'paper' ? 'FEF3C7' : presTheme === 'midnight' ? '0F172A' : thInfo.colorHex;
-      const accentColor = thInfo.accentHex;
-      const textColor = presTheme === 'paper' ? '1C1917' : 'FFFFFF';
-      const mutedColor = presTheme === 'paper' ? '78716C' : 'FFFFFF80';
+      const th = THEMES[presTheme];
+      const isPaper = presTheme === 'paper';
+      const bg = th.bgHex;
+      const acc = th.accentHex;
+      const lt = th.lightHex;
+      const dk = th.darkHex;
+      const txt = isPaper ? '1C1917' : 'FFFFFF';
+      const muted = isPaper ? '78716C' : 'FFFFFF';
+      const W = 13.33;
+      const H = 7.5;
 
       for (const slide of presentation.slides) {
         const s = prs.addSlide();
-        s.background = { color: bgColor };
+        s.background = { color: bg };
 
         const isTitle = slide.layout === 'title';
         const isQuote = slide.layout === 'quote';
 
-        // Decorative shapes
+        // ── Shared decorative shapes ──
         s.addShape(prs.ShapeType.ellipse, {
-          x: 8.2, y: -1.2, w: 3.5, h: 3.5,
-          fill: { color: accentColor, transparency: 88 },
-          line: { color: accentColor, transparency: 100 },
+          x: W - 2.8, y: -1.4, w: 4.2, h: 4.2,
+          fill: { color: lt, transparency: 88 },
+          line: { color: lt, transparency: 100 },
         });
         s.addShape(prs.ShapeType.ellipse, {
-          x: -0.3, y: 5.8, w: 1.8, h: 1.8,
-          fill: { color: accentColor, transparency: 85 },
-          line: { color: accentColor, transparency: 100 },
+          x: W - 1.8, y: 0.3, w: 2.2, h: 2.2,
+          fill: { color: acc, transparency: 78 },
+          line: { color: acc, transparency: 100 },
+        });
+        s.addShape(prs.ShapeType.ellipse, {
+          x: -0.6, y: H - 1.5, w: 2.2, h: 2.2,
+          fill: { color: dk, transparency: 72 },
+          line: { color: dk, transparency: 100 },
         });
 
         if (isTitle) {
-          s.addShape(prs.ShapeType.rect, { x: 3.8, y: 2.4, w: 2.4, h: 0.05, fill: { color: textColor, transparency: 60 }, line: { color: textColor, transparency: 100 } });
-          s.addShape(prs.ShapeType.rect, { x: 3.8, y: 4.8, w: 2.4, h: 0.05, fill: { color: textColor, transparency: 60 }, line: { color: textColor, transparency: 100 } });
-          s.addText(slide.title, {
-            x: 0.8, y: 2.6, w: 8.4, h: 1.8,
-            fontSize: 40, bold: true, color: textColor,
-            align: 'center', valign: 'middle', wrap: true,
-          });
-          if (slide.body) {
-            s.addText(slide.body, {
-              x: 1.5, y: 4.3, w: 7, h: 0.6,
-              fontSize: 16, color: mutedColor, align: 'center', italic: true,
-            });
+          // Bottom accent bar
+          s.addShape(prs.ShapeType.rect, { x: 0, y: H - 0.18, w: W, h: 0.18, fill: { color: acc, transparency: 40 }, line: { color: acc, transparency: 100 } });
+          // Diagonal stripe
+          s.addShape(prs.ShapeType.rect, { x: 8.5, y: 0, w: 0.9, h: H, fill: { color: acc, transparency: 88 }, line: { color: acc, transparency: 100 } });
+          // Dot row
+          for (let i = 0; i < 5; i++) {
+            s.addShape(prs.ShapeType.ellipse, { x: 3.5 + i * 0.35, y: 1.9, w: 0.12, h: 0.12, fill: { color: txt, transparency: 55 }, line: { color: txt, transparency: 100 } });
           }
+          // Tag pill
+          s.addShape(prs.ShapeType.roundRect, { x: 3.8, y: 2.1, w: 2.8, h: 0.38, fill: { color: acc, transparency: 75 }, line: { color: acc, transparency: 60 }, rectRadius: 0.12 });
+          s.addText('✦  PRESENTATION', { x: 3.8, y: 2.1, w: 2.8, h: 0.38, fontSize: 8, bold: true, color: txt, align: 'center', valign: 'middle', charSpacing: 3 });
+          // Title
+          s.addText(slide.title, { x: 0.8, y: 2.6, w: W - 1.6, h: 2.0, fontSize: 48, bold: true, color: txt, align: 'center', valign: 'middle', wrap: true });
+          // Subtitle
+          if (slide.body) {
+            s.addText(slide.body, { x: 1.8, y: 4.7, w: W - 3.6, h: 0.7, fontSize: 16, color: muted, align: 'center', italic: true, transparency: 35 });
+          }
+          // Divider dots
+          s.addShape(prs.ShapeType.ellipse, { x: 5.9, y: 5.5, w: 0.1, h: 0.1, fill: { color: txt, transparency: 55 }, line: { color: txt, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 4.6, y: 5.53, w: 1.2, h: 0.04, fill: { color: txt, transparency: 60 }, line: { color: txt, transparency: 100 } });
+          s.addShape(prs.ShapeType.ellipse, { x: 6.1, y: 5.5, w: 0.1, h: 0.1, fill: { color: txt, transparency: 55 }, line: { color: txt, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 6.3, y: 5.53, w: 1.2, h: 0.04, fill: { color: txt, transparency: 60 }, line: { color: txt, transparency: 100 } });
+
         } else if (isQuote) {
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: 0.12, h: 7.5, fill: { color: accentColor, transparency: 50 }, line: { color: accentColor, transparency: 100 } });
-          s.addText('\u201C', { x: 0.5, y: 0.2, w: 2, h: 1.5, fontSize: 80, color: textColor, bold: true, transparency: 70 });
-          s.addText(slide.body || slide.bullets[0] || '', {
-            x: 0.7, y: 1.4, w: 8.6, h: 3,
-            fontSize: 22, color: textColor, italic: true, bold: true,
-            align: 'left', valign: 'middle', wrap: true,
-          });
-          s.addText(`— ${slide.title}`, {
-            x: 0.7, y: 4.5, w: 8, h: 0.4,
-            fontSize: 12, color: mutedColor, bold: true,
-          });
+          // Bold left bar (two layers)
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: 0.22, h: H, fill: { color: acc, transparency: 20 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 0.22, y: 0, w: 0.08, h: H, fill: { color: acc, transparency: 65 }, line: { color: acc, transparency: 100 } });
+          // Dot cluster top-right
+          for (let i = 0; i < 3; i++) {
+            s.addShape(prs.ShapeType.ellipse, { x: W - 1.2 + i * 0.28, y: 0.5, w: 0.16, h: 0.16, fill: { color: acc, transparency: 50 }, line: { color: acc, transparency: 100 } });
+          }
+          // Bottom accent line
+          s.addShape(prs.ShapeType.rect, { x: 0.6, y: H - 0.6, w: 3.0, h: 0.05, fill: { color: acc, transparency: 40 }, line: { color: acc, transparency: 100 } });
+          // Giant quote mark
+          s.addText('\u201C', { x: 0.5, y: 0.1, w: 2.5, h: 1.8, fontSize: 110, bold: true, color: txt, transparency: 80, fontFace: 'Georgia' });
+          // Quote body
+          s.addText(slide.body || slide.bullets[0] || '', { x: 0.7, y: 1.5, w: W - 1.4, h: 3.2, fontSize: 24, italic: true, bold: true, color: txt, align: 'left', valign: 'middle', wrap: true, lineSpacingMultiple: 1.3 });
+          // Attribution
+          s.addShape(prs.ShapeType.rect, { x: 0.7, y: 4.85, w: 0.6, h: 0.05, fill: { color: acc, transparency: 30 }, line: { color: acc, transparency: 100 } });
+          s.addText(`${slide.title}`, { x: 1.45, y: 4.75, w: 6, h: 0.35, fontSize: 12, bold: true, color: muted, charSpacing: 2, transparency: 30 });
+
         } else {
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0.6, w: 0.08, h: 6.3, fill: { color: accentColor, transparency: 55 }, line: { color: accentColor, transparency: 100 } });
-          s.addShape(prs.ShapeType.roundRect, { x: 0.3, y: 0.3, w: 0.5, h: 0.35, fill: { color: textColor, transparency: 80 }, line: { color: textColor, transparency: 100 }, rectRadius: 0.05 });
-          s.addText(String(slide.slideNumber).padStart(2, '0'), {
-            x: 0.3, y: 0.3, w: 0.5, h: 0.35,
-            fontSize: 9, color: textColor, bold: true, align: 'center',
-          });
-          s.addText(slide.title, {
-            x: 0.3, y: 0.75, w: slide.layout === 'split' ? 5 : 9.4, h: 1,
-            fontSize: 28, bold: true, color: textColor, wrap: true,
-          });
+          // Top accent bar
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.1, fill: { color: acc, transparency: 45 }, line: { color: acc, transparency: 100 } });
+          // Left sidebar (two layers)
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0.1, w: 0.14, h: H - 0.1, fill: { color: acc, transparency: 50 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 0.14, y: 0.1, w: 0.05, h: H - 0.1, fill: { color: acc, transparency: 78 }, line: { color: acc, transparency: 100 } });
+          // Right edge bar
+          s.addShape(prs.ShapeType.rect, { x: W - 0.12, y: 0, w: 0.12, h: H, fill: { color: acc, transparency: 82 }, line: { color: acc, transparency: 100 } });
+          // Dot grid bottom-right
+          for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 4; col++) {
+              s.addShape(prs.ShapeType.ellipse, { x: W - 2.2 + col * 0.4, y: H - 1.6 + row * 0.38, w: 0.1, h: 0.1, fill: { color: acc, transparency: 60 }, line: { color: acc, transparency: 100 } });
+            }
+          }
+          // Diamond accent
+          s.addShape(prs.ShapeType.rect, { x: W - 3.2, y: 0.6, w: 0.2, h: 0.2, fill: { color: lt, transparency: 55 }, line: { color: lt, transparency: 100 } });
+          // Slide number badge
+          s.addShape(prs.ShapeType.roundRect, { x: 0.4, y: 0.3, w: 0.65, h: 0.38, fill: { color: acc, transparency: 65 }, line: { color: acc, transparency: 85 }, rectRadius: 0.06 });
+          s.addText(String(slide.slideNumber).padStart(2, '0'), { x: 0.4, y: 0.3, w: 0.65, h: 0.38, fontSize: 11, bold: true, color: txt, align: 'center', valign: 'middle' });
+          // Horizontal rule
+          s.addShape(prs.ShapeType.rect, { x: 1.2, y: 0.47, w: W - 4.5, h: 0.025, fill: { color: txt, transparency: 82 }, line: { color: txt, transparency: 100 } });
+          // Title
+          const contentW = slide.layout === 'split' ? 6.0 : W - 1.2;
+          s.addText(slide.title, { x: 0.4, y: 0.8, w: contentW, h: 1.1, fontSize: 30, bold: true, color: txt, wrap: true, valign: 'top' });
+          // Bullets
           slide.bullets.slice(0, 5).forEach((b, i) => {
-            s.addShape(prs.ShapeType.roundRect, {
-              x: 0.3, y: 1.95 + i * 0.75, w: 0.28, h: 0.28,
-              fill: { color: accentColor, transparency: 70 },
-              line: { color: accentColor, transparency: 100 },
-              rectRadius: 0.04,
-            });
-            s.addText(String(i + 1), {
-              x: 0.3, y: 1.95 + i * 0.75, w: 0.28, h: 0.28,
-              fontSize: 8, color: textColor, bold: true, align: 'center',
-            });
-            s.addText(b, {
-              x: 0.7, y: 1.92 + i * 0.75, w: slide.layout === 'split' ? 4.7 : 8.9, h: 0.65,
-              fontSize: 13, color: textColor, wrap: true, valign: 'top',
-            });
+            const yPos = 2.05 + i * 0.88;
+            s.addShape(prs.ShapeType.roundRect, { x: 0.4, y: yPos, w: 0.32, h: 0.32, fill: { color: acc, transparency: 62 }, line: { color: acc, transparency: 78 }, rectRadius: 0.05 });
+            s.addText(String(i + 1), { x: 0.4, y: yPos, w: 0.32, h: 0.32, fontSize: 9, bold: true, color: txt, align: 'center', valign: 'middle' });
+            s.addText(b, { x: 0.85, y: yPos - 0.02, w: contentW - 0.5, h: 0.82, fontSize: 13, color: txt, wrap: true, valign: 'top', lineSpacingMultiple: 1.2 });
           });
-          s.addShape(prs.ShapeType.rect, { x: 0.3, y: 6.85, w: 9.4, h: 0.02, fill: { color: textColor, transparency: 80 }, line: { color: textColor, transparency: 100 } });
-          s.addText(`${presentation.title}  ·  ${slide.slideNumber} / ${presentation.slides.length}`, {
-            x: 0.3, y: 6.9, w: 9.4, h: 0.25,
-            fontSize: 8, color: mutedColor, align: 'right',
-          });
+          // Footer
+          s.addShape(prs.ShapeType.rect, { x: 0.4, y: H - 0.45, w: W - 0.8, h: 0.025, fill: { color: txt, transparency: 82 }, line: { color: txt, transparency: 100 } });
+          s.addText(`${presentation.title}  ·  ${slide.slideNumber} / ${presentation.slides.length}`, { x: 0.4, y: H - 0.42, w: W - 0.8, h: 0.28, fontSize: 8, color: muted, align: 'right', transparency: 30 });
         }
 
         if (slide.speakerNotes) s.addNotes(slide.speakerNotes);
@@ -385,142 +446,167 @@ const PresentationView: React.FC<Props> = ({
   const renderSlide = (s: PresentationSlide, size: 'editor' | 'presenter') => {
     const large = size === 'presenter';
     const tc = themeInfo.text;
-    const isSplit = s.layout === 'split' && s.imageKeyword && !imgErrors[currentSlide];
     const isPaper = presTheme === 'paper';
+    const isSplit = s.layout === 'split' && s.imageKeyword && !imgErrors[currentSlide];
+    const accent = themeInfo.accentHex;
+    const light = themeInfo.lightHex;
+    const dark = themeInfo.darkHex;
 
-    const DecoElements = () => (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="92%" cy="-5%" r="28%" fill="white" fillOpacity="0.05" />
-        <circle cx="5%" cy="95%" r="12%" fill="white" fillOpacity="0.07" />
-        <rect x="75%" y="0" width="4%" height="100%" fill="white" fillOpacity="0.04" transform="skewX(-8)" />
-        {[0,1,2].map(row => [0,1,2].map(col => (
-          <circle key={`${row}-${col}`} cx={`${6 + col * 3}%`} cy={`${8 + row * 6}%`} r="1.5" fill="white" fillOpacity="0.12" />
+    const TitleDeco = () => (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 800 450" preserveAspectRatio="none">
+        <circle cx="780" cy="-30" r="220" fill={`#${light}`} fillOpacity="0.15" />
+        <circle cx="720" cy="60" r="120" fill={`#${accent}`} fillOpacity="0.2" />
+        <circle cx="-40" cy="490" r="180" fill={`#${dark}`} fillOpacity="0.3" />
+        <rect x="520" y="0" width="60" height="450" fill={`#${accent}`} fillOpacity="0.08" transform="skewX(-15)" />
+        <rect x="600" y="0" width="25" height="450" fill={`#${light}`} fillOpacity="0.06" transform="skewX(-15)" />
+        <rect x="0" y="420" width="800" height="6" fill={`#${accent}`} fillOpacity="0.4" />
+        {[0,1,2,3,4].map(i => (
+          <circle key={i} cx={60 + i * 28} cy={390} r="4" fill={`#${light}`} fillOpacity="0.5" />
+        ))}
+      </svg>
+    );
+
+    const ContentDeco = () => (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 800 450" preserveAspectRatio="none">
+        <circle cx="760" cy="-60" r="200" fill={`#${light}`} fillOpacity="0.1" />
+        <circle cx="730" cy="40" r="80" fill={`#${accent}`} fillOpacity="0.15" />
+        <circle cx="30" cy="430" r="100" fill={`#${dark}`} fillOpacity="0.2" />
+        <rect x="0" y="0" width="800" height="5" fill={`#${accent}`} fillOpacity="0.5" />
+        <rect x="790" y="0" width="10" height="450" fill={`#${accent}`} fillOpacity="0.2" />
+        {[0,1,2].map(row => [0,1,2,3].map(col => (
+          <circle key={`${row}-${col}`} cx={680 + col * 20} cy={340 + row * 20} r="3" fill={`#${accent}`} fillOpacity="0.25" />
         )))}
       </svg>
     );
 
-    const DecoElementsPaper = () => (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="92%" cy="-5%" r="28%" fill="#D97706" fillOpacity="0.08" />
-        <circle cx="5%" cy="95%" r="12%" fill="#D97706" fillOpacity="0.06" />
-        <rect x="0" y="88%" width="100%" height="3" fill="#D97706" fillOpacity="0.15" />
+    const QuoteDeco = () => (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 800 450" preserveAspectRatio="none">
+        <rect x="0" y="0" width="12" height="450" fill={`#${accent}`} fillOpacity="0.9" />
+        <rect x="12" y="0" width="6" height="450" fill={`#${accent}`} fillOpacity="0.3" />
+        <circle cx="650" cy="225" r="280" fill={`#${light}`} fillOpacity="0.07" />
+        <circle cx="650" cy="225" r="180" fill={`#${accent}`} fillOpacity="0.08" />
+        {[0,1,2].map(i => (
+          <circle key={i} cx={710 + i * 22} cy={50} r="6" fill={`#${accent}`} fillOpacity="0.4" />
+        ))}
+        <rect x="60" y="400" width="200" height="3" fill={`#${accent}`} fillOpacity="0.6" />
       </svg>
     );
 
-    const Deco = isPaper ? <DecoElementsPaper /> : <DecoElements />;
-
+    // ── TITLE SLIDE ──────────────────────────────────────────────────────────
     if (s.layout === 'title') return (
-      <div className="relative flex flex-col items-center justify-center h-full text-center px-10 gap-4 overflow-hidden">
-        {Deco}
-        <div className="flex items-center gap-2 mb-2 z-10">
-          <div className={`w-2 h-2 rounded-full bg-${tc}/40`} />
-          <div className={`w-16 h-0.5 bg-${tc}/30`} />
-          <div className={`w-2 h-2 rounded-full bg-${tc}/40`} />
+      <div className="relative flex flex-col items-center justify-center h-full text-center px-12 gap-4 overflow-hidden">
+        <TitleDeco />
+        <div className={`relative z-10 px-5 py-1.5 rounded-full text-xs font-black uppercase tracking-[0.25em] border-2 ${
+          isPaper ? 'border-amber-400 bg-amber-100 text-amber-800' : 'border-white/30 bg-white/10 text-white/80'
+        }`}>
+          ✦ Presentation
         </div>
-        <div className={`px-4 py-1 rounded-full border border-${tc}/20 bg-${tc}/10 text-${tc}/70 text-xs font-black uppercase tracking-[0.2em] z-10`}>
-          {s.bullets[0]?.substring(0, 40) || 'Presentation'}
-        </div>
-        <h1 className={`${large ? 'text-5xl sm:text-7xl' : 'text-3xl'} font-black text-${tc} leading-tight tracking-tight z-10 max-w-3xl`}>
+        <h1 className={`relative z-10 ${large ? 'text-6xl sm:text-7xl' : 'text-4xl'} font-black leading-tight tracking-tight ${isPaper ? 'text-gray-900' : 'text-white'} max-w-3xl drop-shadow-sm`}>
           {s.title}
         </h1>
         {s.body && (
-          <p className={`${large ? 'text-xl' : 'text-sm'} text-${tc}/60 max-w-xl font-medium z-10`}>
+          <p className={`relative z-10 ${large ? 'text-xl' : 'text-sm'} max-w-xl font-medium ${isPaper ? 'text-gray-600' : 'text-white/65'}`}>
             {s.body}
           </p>
         )}
-        <div className="flex items-center gap-3 mt-2 z-10">
-          <div className={`w-8 h-0.5 bg-${tc}/20`} />
-          <div className={`w-3 h-3 rounded-full border-2 border-${tc}/30`} />
-          <div className={`w-8 h-0.5 bg-${tc}/20`} />
+        <div className="relative z-10 flex items-center gap-3 mt-1">
+          <div className={`w-12 h-0.5 ${isPaper ? 'bg-amber-400' : 'bg-white/30'}`} />
+          <div className={`w-2.5 h-2.5 rotate-45 ${isPaper ? 'bg-amber-400' : 'bg-white/40'}`} />
+          <div className={`w-12 h-0.5 ${isPaper ? 'bg-amber-400' : 'bg-white/30'}`} />
         </div>
       </div>
     );
 
+    // ── QUOTE SLIDE ──────────────────────────────────────────────────────────
     if (s.layout === 'quote') return (
       <div className="relative flex flex-col justify-center h-full overflow-hidden">
-        {Deco}
-        <div className={`absolute left-0 top-0 bottom-0 w-2 bg-${tc}/30 z-10`} />
-        <div className="px-12 sm:px-16 gap-5 flex flex-col z-10">
-          <span className={`${large ? 'text-8xl' : 'text-5xl'} text-${tc}/20 font-serif leading-none select-none`}>&ldquo;</span>
-          <p className={`${large ? 'text-2xl sm:text-3xl' : 'text-base'} font-bold text-${tc}/90 italic leading-relaxed -mt-4`}>
+        <QuoteDeco />
+        <div className="relative z-10 flex flex-col gap-4 pl-10 sm:pl-16 pr-12 sm:pr-20">
+          <span className={`${large ? 'text-[9rem]' : 'text-[5rem]'} leading-none select-none font-serif -mb-6 ${isPaper ? 'text-amber-400' : 'text-white/20'}`}>
+            &ldquo;
+          </span>
+          <p className={`${large ? 'text-2xl sm:text-3xl' : 'text-base sm:text-lg'} font-bold italic leading-relaxed ${isPaper ? 'text-gray-800' : 'text-white/90'}`}>
             {s.body || s.bullets[0]}
           </p>
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-0.5 bg-${tc}/40`} />
-            <p className={`text-${tc}/60 ${large ? 'text-base' : 'text-xs'} font-black uppercase tracking-widest`}>
+          <div className="flex items-center gap-3 mt-2">
+            <div className={`w-10 h-0.5 ${isPaper ? 'bg-amber-500' : 'bg-white/40'}`} />
+            <span className={`${large ? 'text-base' : 'text-xs'} font-black uppercase tracking-widest ${isPaper ? 'text-amber-700' : 'text-white/60'}`}>
               {s.title}
-            </p>
+            </span>
           </div>
         </div>
       </div>
     );
 
+    // ── SPLIT SLIDE ──────────────────────────────────────────────────────────
     if (isSplit) return (
       <div className="relative flex h-full overflow-hidden">
-        {Deco}
-        <div className="flex-1 flex flex-col justify-center p-8 sm:p-10 gap-4 z-10">
-          <div className="inline-flex items-center gap-2 self-start">
-            <span className={`w-7 h-7 rounded-lg bg-${tc}/15 flex items-center justify-center text-${tc}/50 text-xs font-black`}>
-              {s.slideNumber}
-            </span>
-            <div className={`h-px w-8 bg-${tc}/20`} />
+        <ContentDeco />
+        <div className="relative z-10 flex-1 flex flex-col justify-center pl-8 sm:pl-10 pr-4 py-8 gap-4">
+          <div className={`self-start px-3 py-1 rounded-lg text-xs font-black ${isPaper ? 'bg-amber-200 text-amber-800' : 'bg-white/15 text-white/70'}`}>
+            {String(s.slideNumber).padStart(2, '0')}
           </div>
-          <h2 className={`${large ? 'text-3xl sm:text-4xl' : 'text-xl'} font-black text-${tc} leading-tight`}>
+          <h2 className={`${large ? 'text-3xl sm:text-4xl' : 'text-xl'} font-black leading-tight ${isPaper ? 'text-gray-900' : 'text-white'}`}>
             {s.title}
           </h2>
-          <ul className="space-y-3 flex-1 overflow-hidden">
+          <ul className="space-y-2.5 flex-1 overflow-hidden">
             {s.bullets.slice(0, large ? 5 : 4).map((b, i) => (
-              <li key={i} className={`flex items-start gap-3 ${large ? 'text-lg' : 'text-xs'} text-${tc}/85`}>
-                <span className={`min-w-[20px] h-5 rounded-md bg-${tc}/15 flex items-center justify-center text-${tc}/60 text-xs font-black flex-shrink-0 mt-0.5`}>
-                  {i + 1}
-                </span>
-                {b}
+              <li key={i} className={`flex items-start gap-3 ${large ? 'text-base sm:text-lg' : 'text-xs'}`}>
+                <span className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black mt-0.5 ${
+                  isPaper ? 'bg-amber-200 text-amber-800' : 'bg-white/20 text-white/80'
+                }`}>{i + 1}</span>
+                <span className={isPaper ? 'text-gray-700' : 'text-white/85'}>{b}</span>
               </li>
             ))}
           </ul>
         </div>
-        <div className="w-2/5 flex-shrink-0 relative">
+        <div className="relative w-2/5 flex-shrink-0">
           <img
             src={getImageUrl(s.imageKeyword!)}
             alt={s.imageKeyword}
-            className="w-full h-full object-cover opacity-60"
+            className="w-full h-full object-cover"
             onError={() => setImgErrors(prev => ({ ...prev, [currentSlide]: true }))}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+          <div className={`absolute inset-0 bg-gradient-to-r ${themeInfo.bg} opacity-50`} />
         </div>
       </div>
     );
 
+    // ── CONTENT SLIDE ─────────────────────────────────────────────────────────
     return (
       <div className="relative flex h-full overflow-hidden">
-        {Deco}
-        <div className={`absolute left-0 top-8 bottom-8 w-1 bg-${tc}/20 rounded-full z-10`} />
-        <div className="flex flex-col justify-center h-full pl-6 pr-8 sm:pr-12 py-8 gap-4 w-full z-10">
+        <ContentDeco />
+        <div className={`absolute left-0 top-0 bottom-0 w-1.5 z-20 ${isPaper ? 'bg-amber-400' : 'bg-white/30'}`} />
+        <div className="relative z-10 flex flex-col justify-center w-full pl-7 sm:pl-10 pr-8 sm:pr-12 py-8 gap-3">
           <div className="flex items-center gap-3">
-            <span className={`text-${tc}/30 font-black text-xs tracking-widest`}>{String(s.slideNumber).padStart(2, '0')}</span>
-            <div className={`flex-1 h-px bg-${tc}/15`} />
-            <div className={`w-2 h-2 rounded-sm bg-${tc}/20 rotate-45`} />
+            <span className={`px-2.5 py-0.5 rounded-md text-xs font-black ${
+              isPaper ? 'bg-amber-200 text-amber-800' : 'bg-white/15 text-white/60'
+            }`}>
+              {String(s.slideNumber).padStart(2, '0')}
+            </span>
+            <div className={`flex-1 h-px ${isPaper ? 'bg-amber-200' : 'bg-white/15'}`} />
+            <div className={`w-2 h-2 rotate-45 ${isPaper ? 'bg-amber-300' : 'bg-white/20'}`} />
           </div>
-          <h2 className={`${large ? 'text-4xl sm:text-5xl' : 'text-2xl'} font-black text-${tc} leading-tight`}>
+          <h2 className={`${large ? 'text-4xl sm:text-5xl' : 'text-2xl sm:text-3xl'} font-black leading-tight ${isPaper ? 'text-gray-900' : 'text-white'}`}>
             {s.title}
           </h2>
-          <ul className="space-y-2.5 flex-1 overflow-hidden">
+          <ul className="space-y-2 flex-1 overflow-hidden">
             {s.bullets.slice(0, large ? 6 : 5).map((b, i) => (
-              <li key={i} className={`flex items-start gap-3 ${large ? 'text-lg sm:text-xl' : 'text-sm'} text-${tc}/85 leading-snug`}>
-                <span className={`min-w-[22px] h-[22px] rounded-md bg-${tc}/15 border border-${tc}/10 flex items-center justify-center text-${tc}/50 text-xs font-black flex-shrink-0 mt-0.5`}>
-                  {i + 1}
-                </span>
-                {b}
+              <li key={i} className={`flex items-start gap-3 ${large ? 'text-lg sm:text-xl' : 'text-sm'}`}>
+                <span className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black mt-0.5 border ${
+                  isPaper ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-white/10 border-white/20 text-white/60'
+                }`}>{i + 1}</span>
+                <span className={`leading-snug ${isPaper ? 'text-gray-700' : 'text-white/88'}`}>{b}</span>
               </li>
             ))}
           </ul>
           {s.body && (
-            <p className={`text-${tc}/45 ${large ? 'text-sm' : 'text-xs'} border-t border-${tc}/10 pt-3 leading-relaxed`}>
-              {s.body}
-            </p>
+            <p className={`${large ? 'text-sm' : 'text-xs'} leading-relaxed pt-2 border-t ${
+              isPaper ? 'border-amber-200 text-gray-500' : 'border-white/10 text-white/45'
+            }`}>{s.body}</p>
           )}
-          <div className={`flex items-center justify-between text-${tc}/20 text-xs`}>
-            <span className="font-bold">{slides[0]?.title}</span>
+          <div className={`flex items-center justify-between text-xs ${isPaper ? 'text-gray-400' : 'text-white/25'}`}>
+            <span className="font-bold truncate max-w-[50%]">{slides[0]?.title}</span>
             <span>{s.slideNumber} / {slides.length}</span>
           </div>
         </div>
