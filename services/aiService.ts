@@ -109,19 +109,50 @@ function closeIncomplete(text: string): string {
     const stack: string[] = [];
     let inStr = false;
     let esc = false;
-    for (const ch of text) {
+    // Track last "safe" position (just after a complete value was closed)
+    let lastSafe = 0;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
         if (esc) { esc = false; continue; }
         if (ch === '\\') { esc = true; continue; }
-        if (ch === '"') { inStr = !inStr; continue; }
+        if (ch === '"') {
+            inStr = !inStr;
+            if (!inStr) lastSafe = i + 1; // just closed a string
+            continue;
+        }
         if (!inStr) {
             if (ch === '{' || ch === '[') stack.push(ch);
-            else if ((ch === '}' || ch === ']') && stack.length) stack.pop();
+            else if (ch === '}' || ch === ']') {
+                if (stack.length) stack.pop();
+                if (stack.length === 0) lastSafe = i + 1;
+            } else if ((ch === ',' || ch === ':') && stack.length <= 1) {
+                lastSafe = i + 1;
+            }
         }
     }
-    let result = text;
-    if (inStr) result += '"'; // close an open string
-    for (let i = stack.length - 1; i >= 0; i--)
-        result += stack[i] === '{' ? '}' : ']';
+
+    // If we're mid-string (truncated inside a value), backtrack to lastSafe
+    // and close cleanly from there — avoids partial string becoming a corrupt element
+    let result = inStr ? text.slice(0, lastSafe) : text;
+
+    // Re-compute open stack on the trimmed result
+    const stack2: string[] = [];
+    let inStr2 = false;
+    let esc2 = false;
+    for (const ch of result) {
+        if (esc2) { esc2 = false; continue; }
+        if (ch === '\\') { esc2 = true; continue; }
+        if (ch === '"') { inStr2 = !inStr2; continue; }
+        if (!inStr2) {
+            if (ch === '{' || ch === '[') stack2.push(ch);
+            else if ((ch === '}' || ch === ']') && stack2.length) stack2.pop();
+        }
+    }
+
+    // Strip any dangling comma before we close
+    result = result.replace(/,(\s*)$/, '$1');
+    for (let i = stack2.length - 1; i >= 0; i--)
+        result += stack2[i] === '{' ? '}' : ']';
     return result;
 }
 
@@ -1460,7 +1491,7 @@ Return ONLY a JSON object (no markdown):
 Layouts: "title" for first slide, "content" for most slides, "split" when an image would help.
 Make it ${audience}-appropriate in tone and complexity. ALL text in ${targetLang}.`;
 
-    const text = await callClaude({ model: HAIKU, max_tokens: 6000, messages: [{ role: 'user', content: prompt }] });
+    const text = await callClaude({ model: HAIKU, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] });
     if (!text) throw new Error('generatePresentationV2: empty response');
     return parseJson(text) as Presentation;
 };
