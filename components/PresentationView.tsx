@@ -23,35 +23,14 @@ interface Props {
   onContextUpdate: (ctx: string) => void;
 }
 
-// ── Subject-based automatic themes ────────────────────────────────────────────
-const SUBJECT_THEMES: Record<Subject, {
-  bg: string; text: string;
-  bgHex: string; accentHex: string; lightHex: string; darkHex: string; label: string;
-}> = {
-  [Subject.MATH]: {
-    bg: 'from-blue-700 via-indigo-700 to-violet-800', text: 'white',
-    bgHex: '3730A3', accentHex: '818CF8', lightHex: 'C7D2FE', darkHex: '1E1B4B', label: 'Mathematics',
-  },
-  [Subject.SCIENCE]: {
-    bg: 'from-emerald-600 via-teal-600 to-cyan-700', text: 'white',
-    bgHex: '0D9488', accentHex: '5EEAD4', lightHex: 'CCFBF1', darkHex: '042F2E', label: 'Science',
-  },
-  [Subject.HISTORY]: {
-    bg: 'from-amber-700 via-orange-700 to-red-800', text: 'white',
-    bgHex: 'B45309', accentHex: 'FCD34D', lightHex: 'FEF3C7', darkHex: '451A03', label: 'History',
-  },
-  [Subject.LANGUAGE]: {
-    bg: 'from-rose-600 via-pink-600 to-fuchsia-700', text: 'white',
-    bgHex: 'BE185D', accentHex: 'F9A8D4', lightHex: 'FCE7F3', darkHex: '500724', label: 'Language',
-  },
-  [Subject.CODING]: {
-    bg: 'from-gray-900 via-slate-800 to-zinc-900', text: 'white',
-    bgHex: '0F172A', accentHex: '38BDF8', lightHex: 'BAE6FD', darkHex: '020617', label: 'Coding',
-  },
-  [Subject.ECONOMICS]: {
-    bg: 'from-green-700 via-emerald-700 to-teal-800', text: 'white',
-    bgHex: '065F46', accentHex: '6EE7B7', lightHex: 'D1FAE5', darkHex: '022C22', label: 'Economics',
-  },
+// ── Fallback theme (used before AI returns a topic-specific one) ───────────────
+const FALLBACK_THEME = {
+  bg: 'from-violet-700 via-indigo-700 to-purple-800',
+  text: 'white',
+  bgHex: '4338CA',
+  accentHex: '818CF8',
+  lightHex: 'C7D2FE',
+  darkHex: '1E1B4B',
 };
 
 const SLIDE_COUNTS = [5, 8, 10, 15, 20];
@@ -87,6 +66,7 @@ const PresentationView: React.FC<Props> = ({
   const [showNotes, setShowNotes] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
+  const [autoTheme, setAutoTheme] = useState<{ bg: string; bgHex: string; accentHex: string; lightHex: string; darkHex: string } | null>(null);
 
   // Editor
   const [editingSlide, setEditingSlide] = useState<number | null>(null);
@@ -188,6 +168,7 @@ const PresentationView: React.FC<Props> = ({
               topic, subject, userGrade, slideCount, audience, structure, includes, language
             );
             setPresentation(result);
+            setAutoTheme((result as any).theme ?? null);
             setCurrentSlide(0);
             setAnimKey(0);
             setImgErrors({});
@@ -207,6 +188,7 @@ const PresentationView: React.FC<Props> = ({
           topic, subject, userGrade, slideCount, audience, structure, includes, language
         );
         setPresentation(result);
+        setAutoTheme((result as any).theme ?? null);
         setCurrentSlide(0);
         setAnimKey(0);
         setImgErrors({});
@@ -307,7 +289,7 @@ const PresentationView: React.FC<Props> = ({
       const prs = new pptxgen();
       prs.layout = 'LAYOUT_WIDE'; // 13.33" x 7.5"
 
-      const th = SUBJECT_THEMES[subject];
+      const th = autoTheme ?? FALLBACK_THEME;
       const isPaper = false;
       const bg = th.bgHex;
       const acc = th.accentHex;
@@ -426,7 +408,7 @@ const PresentationView: React.FC<Props> = ({
     } catch (e) { console.error('PPTX export failed:', e); }
   };
 
-  const themeInfo = SUBJECT_THEMES[subject];
+  const themeInfo = autoTheme ?? FALLBACK_THEME;
   const slides = presentation?.slides ?? [];
   const slide = slides[currentSlide];
 
@@ -707,19 +689,10 @@ const PresentationView: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Auto theme preview */}
-          <div className={`w-full h-12 rounded-xl bg-gradient-to-r ${SUBJECT_THEMES[subject].bg} flex items-center justify-between px-4 overflow-hidden relative`}>
-            <div className="absolute right-2 top-[-8px] w-10 h-10 rounded-full opacity-20" style={{ backgroundColor: `#${SUBJECT_THEMES[subject].lightHex}` }} />
-            <div className="absolute right-8 bottom-[-6px] w-7 h-7 rounded-full opacity-15" style={{ backgroundColor: `#${SUBJECT_THEMES[subject].accentHex}` }} />
-            <span className="text-white text-xs font-black uppercase tracking-widest z-10 drop-shadow">
-              {SUBJECT_THEMES[subject].label} Theme
-            </span>
-            <div className="flex gap-1.5 z-10">
-              {(['bgHex', 'accentHex', 'lightHex', 'darkHex'] as const).map(k => (
-                <div key={k} className="w-4 h-4 rounded-full border border-white/30 shadow" style={{ backgroundColor: `#${SUBJECT_THEMES[subject][k]}` }} />
-              ))}
-            </div>
-          </div>
+          {/* Auto theme note */}
+          <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+            ✦ Colors will be automatically chosen to match your topic
+          </p>
 
           {/* Include toggles */}
           <div className="space-y-2">

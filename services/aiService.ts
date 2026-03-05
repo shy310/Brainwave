@@ -1470,7 +1470,14 @@ export const generatePresentationV2 = async (
 
     const prompt = `You are an expert presentation designer and educator.
 
-Generate a ${totalSlides}-slide ${structureDesc} presentation about "${topic}" for a ${audience} audience at grade level ${grade} in ${targetLang}.
+Generate a presentation about "${topic}" for a ${audience} audience at grade level ${grade} in ${targetLang}.
+
+SLIDE COUNT — CRITICAL HARD REQUIREMENT:
+You MUST generate EXACTLY ${slideCount} slides — no more, no fewer.
+The slides array in your JSON response must have exactly ${slideCount} items.
+Do not add extra slides for table of contents, summary, or Q&A unless they are counted within the ${slideCount} total.
+If requested count is 5, return exactly 5. If 8, return exactly 8. If 20, return exactly 20.
+This is a hard requirement — the wrong slide count will break the app.
 
 CONTENT RULES — enforce strictly:
 - Every bullet point must be a COMPLETE sentence of at least 8 words. Never use fragments like "Key factor" or "Important role".
@@ -1482,7 +1489,7 @@ CONTENT RULES — enforce strictly:
 - speakerNotes must be 3–4 sentences of what the presenter would actually say out loud. Never copy the bullets verbatim into the notes.
 - imageKeyword must be a specific, visually searchable phrase like "DNA double helix microscope" or "ancient Roman aqueduct ruins" — never generic words like "science" or "history".
 
-STRUCTURE-SPECIFIC RULES:
+STRUCTURE (${structureDesc}):
 - informative: build from foundational concept → mechanisms → evidence → implications
 - persuasive: include one slide presenting the strongest counterargument, followed by a rebuttal slide
 - how-to: each slide is one numbered step with exactly what to do and why
@@ -1490,20 +1497,24 @@ STRUCTURE-SPECIFIC RULES:
 - timeline: each slide is a distinct time period with specific years or dates in the title
 
 LAYOUT RULES:
-- layout "title": only slide 1 (or section dividers if many slides)
+- layout "title": only slide 1
 - layout "quote": any slide built around a single powerful statement or definition
 - layout "split": any slide with a visual example, comparison, or case study
 - layout "content": everything else
 
-${includes.toc ? 'Add a Table of Contents slide immediately after slide 1.' : ''}
-${includes.summary ? 'Add a Summary slide as the second-to-last slide.' : ''}
-${includes.qa ? 'Add a Q&A slide as the very last slide.' : ''}
-${includes.references ? 'Add a References slide with 3–5 real, plausible citations.' : ''}
+${includes.toc ? `Include a Table of Contents slide (counted within the ${slideCount} total).` : ''}
+${includes.summary ? `Include a Summary slide (counted within the ${slideCount} total).` : ''}
+${includes.qa ? `Include a Q&A slide (counted within the ${slideCount} total).` : ''}
+${includes.references ? `Include a References slide with 3–5 real citations (counted within the ${slideCount} total).` : ''}
 
-Respond ONLY with valid JSON. No markdown, no explanation, no code fences. Exact structure:
+THEME — pick colors that emotionally match the specific topic, not the subject category:
+Examples: "Rosa Parks" → warm reds/golds. "Ocean Ecosystems" → navy/turquoise. "The French Revolution" → deep navy/gold/red. "Photosynthesis" → rich greens/yellow. "World War II" → dark gray/olive. "Jazz Music" → deep purple/warm gold.
+Choose rich, saturated, visually striking colors. The bg must be a valid Tailwind gradient string (e.g. from-rose-700 via-red-800 to-stone-900).
+
+Respond ONLY with valid JSON. No markdown, no explanation, no code fences:
 {
   "title": "string",
-  "totalSlides": ${totalSlides},
+  "totalSlides": ${slideCount},
   "slides": [
     {
       "slideNumber": 1,
@@ -1511,15 +1522,27 @@ Respond ONLY with valid JSON. No markdown, no explanation, no code fences. Exact
       "title": "string",
       "bullets": ["complete sentence"],
       "body": "optional subtitle or supporting paragraph",
-      "imageKeyword": "specific search term or omit",
+      "imageKeyword": "specific search term",
       "speakerNotes": "3-4 sentences of spoken talking points"
     }
-  ]
+  ],
+  "theme": {
+    "bg": "from-[color]-[shade] via-[color]-[shade] to-[color]-[shade]",
+    "bgHex": "hexcode without #",
+    "accentHex": "hexcode without #",
+    "lightHex": "hexcode without #",
+    "darkHex": "hexcode without #"
+  }
 }`;
 
     const text = await callClaude({ model: HAIKU, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] });
     if (!text) throw new Error('generatePresentationV2: empty response');
-    return parseJson(text) as Presentation;
+    const result = parseJson(text) as Presentation & { theme?: any };
+    // Enforce slide count
+    result.slides = result.slides.slice(0, slideCount);
+    result.totalSlides = result.slides.length;
+    result.slides = result.slides.map((s, i) => ({ ...s, slideNumber: i + 1 }));
+    return result;
 };
 
 export const regenerateSlide = async (
