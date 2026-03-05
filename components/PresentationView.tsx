@@ -24,13 +24,13 @@ interface Props {
 }
 
 // ── Theme definitions ──────────────────────────────────────────────────────────
-const THEMES: Record<PresentationTheme, { bg: string; text: string; accent: string; swatch: string; label: string }> = {
-  vivid:    { bg: 'from-violet-600 to-indigo-700',  text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-violet-600 to-indigo-700', label: 'Vivid' },
-  ocean:    { bg: 'from-cyan-600 to-blue-700',       text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-cyan-600 to-blue-700',       label: 'Ocean' },
-  forest:   { bg: 'from-green-600 to-emerald-700',   text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-green-600 to-emerald-700',   label: 'Forest' },
-  sunset:   { bg: 'from-orange-500 to-red-600',      text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-orange-500 to-red-600',      label: 'Sunset' },
-  midnight: { bg: 'from-gray-900 to-slate-800',      text: 'white', accent: 'bg-white/10', swatch: 'bg-gradient-to-br from-gray-900 to-slate-800',      label: 'Midnight' },
-  paper:    { bg: 'from-amber-50 to-stone-100',      text: 'gray-900', accent: 'bg-black/5', swatch: 'bg-gradient-to-br from-amber-50 to-stone-100 border border-gray-200', label: 'Paper' },
+const THEMES: Record<PresentationTheme, { bg: string; text: string; accent: string; swatch: string; label: string; colorHex: string; accentHex: string; shapeOpacity: number }> = {
+  vivid:    { bg: 'from-violet-600 to-indigo-700',  text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-violet-600 to-indigo-700', label: 'Vivid',    colorHex: '4F46E5', accentHex: 'A78BFA', shapeOpacity: 0.15 },
+  ocean:    { bg: 'from-cyan-600 to-blue-700',       text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-cyan-600 to-blue-700',       label: 'Ocean',    colorHex: '0891B2', accentHex: '67E8F9', shapeOpacity: 0.15 },
+  forest:   { bg: 'from-green-600 to-emerald-700',   text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-green-600 to-emerald-700',   label: 'Forest',   colorHex: '059669', accentHex: '6EE7B7', shapeOpacity: 0.15 },
+  sunset:   { bg: 'from-orange-500 to-red-600',      text: 'white', accent: 'bg-white/20', swatch: 'bg-gradient-to-br from-orange-500 to-red-600',      label: 'Sunset',   colorHex: 'EA580C', accentHex: 'FCD34D', shapeOpacity: 0.15 },
+  midnight: { bg: 'from-gray-900 to-slate-800',      text: 'white', accent: 'bg-white/10', swatch: 'bg-gradient-to-br from-gray-900 to-slate-800',      label: 'Midnight', colorHex: '1E293B', accentHex: '94A3B8', shapeOpacity: 0.10 },
+  paper:    { bg: 'from-amber-50 to-stone-100',      text: 'gray-900', accent: 'bg-black/5', swatch: 'bg-gradient-to-br from-amber-50 to-stone-100 border border-gray-200', label: 'Paper', colorHex: 'D97706', accentHex: 'FCD34D', shapeOpacity: 0.08 },
 };
 
 const SLIDE_COUNTS = [5, 8, 10, 15, 20];
@@ -285,21 +285,93 @@ const PresentationView: React.FC<Props> = ({
     try {
       const pptxgen = (await import('pptxgenjs')).default;
       const prs = new pptxgen();
-      const themeInfo = THEMES[presTheme];
+      prs.layout = 'LAYOUT_WIDE';
+
+      const thInfo = THEMES[presTheme];
+      const bgColor = presTheme === 'paper' ? 'FEF3C7' : presTheme === 'midnight' ? '0F172A' : thInfo.colorHex;
+      const accentColor = thInfo.accentHex;
+      const textColor = presTheme === 'paper' ? '1C1917' : 'FFFFFF';
+      const mutedColor = presTheme === 'paper' ? '78716C' : 'FFFFFF80';
 
       for (const slide of presentation.slides) {
         const s = prs.addSlide();
-        // Background
-        s.background = { color: presTheme === 'paper' ? 'FFF8F0' : presTheme === 'midnight' ? '1e293b' : '4F46E5' };
-        const textColor = presTheme === 'paper' ? '1a1a1a' : 'FFFFFF';
-        s.addText(slide.title, {
-          x: 0.5, y: 0.3, w: 9, h: 1, fontSize: 28, bold: true, color: textColor, align: 'left',
+        s.background = { color: bgColor };
+
+        const isTitle = slide.layout === 'title';
+        const isQuote = slide.layout === 'quote';
+
+        // Decorative shapes
+        s.addShape(prs.ShapeType.ellipse, {
+          x: 8.2, y: -1.2, w: 3.5, h: 3.5,
+          fill: { color: accentColor, transparency: 88 },
+          line: { color: accentColor, transparency: 100 },
         });
-        slide.bullets.forEach((b, i) => {
-          s.addText(`• ${b}`, {
-            x: 0.5, y: 1.5 + i * 0.55, w: 9, h: 0.5, fontSize: 14, color: textColor, align: 'left',
+        s.addShape(prs.ShapeType.ellipse, {
+          x: -0.3, y: 5.8, w: 1.8, h: 1.8,
+          fill: { color: accentColor, transparency: 85 },
+          line: { color: accentColor, transparency: 100 },
+        });
+
+        if (isTitle) {
+          s.addShape(prs.ShapeType.rect, { x: 3.8, y: 2.4, w: 2.4, h: 0.05, fill: { color: textColor, transparency: 60 }, line: { color: textColor, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 3.8, y: 4.8, w: 2.4, h: 0.05, fill: { color: textColor, transparency: 60 }, line: { color: textColor, transparency: 100 } });
+          s.addText(slide.title, {
+            x: 0.8, y: 2.6, w: 8.4, h: 1.8,
+            fontSize: 40, bold: true, color: textColor,
+            align: 'center', valign: 'middle', wrap: true,
           });
-        });
+          if (slide.body) {
+            s.addText(slide.body, {
+              x: 1.5, y: 4.3, w: 7, h: 0.6,
+              fontSize: 16, color: mutedColor, align: 'center', italic: true,
+            });
+          }
+        } else if (isQuote) {
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: 0.12, h: 7.5, fill: { color: accentColor, transparency: 50 }, line: { color: accentColor, transparency: 100 } });
+          s.addText('\u201C', { x: 0.5, y: 0.2, w: 2, h: 1.5, fontSize: 80, color: textColor, bold: true, transparency: 70 });
+          s.addText(slide.body || slide.bullets[0] || '', {
+            x: 0.7, y: 1.4, w: 8.6, h: 3,
+            fontSize: 22, color: textColor, italic: true, bold: true,
+            align: 'left', valign: 'middle', wrap: true,
+          });
+          s.addText(`— ${slide.title}`, {
+            x: 0.7, y: 4.5, w: 8, h: 0.4,
+            fontSize: 12, color: mutedColor, bold: true,
+          });
+        } else {
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0.6, w: 0.08, h: 6.3, fill: { color: accentColor, transparency: 55 }, line: { color: accentColor, transparency: 100 } });
+          s.addShape(prs.ShapeType.roundRect, { x: 0.3, y: 0.3, w: 0.5, h: 0.35, fill: { color: textColor, transparency: 80 }, line: { color: textColor, transparency: 100 }, rectRadius: 0.05 });
+          s.addText(String(slide.slideNumber).padStart(2, '0'), {
+            x: 0.3, y: 0.3, w: 0.5, h: 0.35,
+            fontSize: 9, color: textColor, bold: true, align: 'center',
+          });
+          s.addText(slide.title, {
+            x: 0.3, y: 0.75, w: slide.layout === 'split' ? 5 : 9.4, h: 1,
+            fontSize: 28, bold: true, color: textColor, wrap: true,
+          });
+          slide.bullets.slice(0, 5).forEach((b, i) => {
+            s.addShape(prs.ShapeType.roundRect, {
+              x: 0.3, y: 1.95 + i * 0.75, w: 0.28, h: 0.28,
+              fill: { color: accentColor, transparency: 70 },
+              line: { color: accentColor, transparency: 100 },
+              rectRadius: 0.04,
+            });
+            s.addText(String(i + 1), {
+              x: 0.3, y: 1.95 + i * 0.75, w: 0.28, h: 0.28,
+              fontSize: 8, color: textColor, bold: true, align: 'center',
+            });
+            s.addText(b, {
+              x: 0.7, y: 1.92 + i * 0.75, w: slide.layout === 'split' ? 4.7 : 8.9, h: 0.65,
+              fontSize: 13, color: textColor, wrap: true, valign: 'top',
+            });
+          });
+          s.addShape(prs.ShapeType.rect, { x: 0.3, y: 6.85, w: 9.4, h: 0.02, fill: { color: textColor, transparency: 80 }, line: { color: textColor, transparency: 100 } });
+          s.addText(`${presentation.title}  ·  ${slide.slideNumber} / ${presentation.slides.length}`, {
+            x: 0.3, y: 6.9, w: 9.4, h: 0.25,
+            fontSize: 8, color: mutedColor, align: 'right',
+          });
+        }
+
         if (slide.speakerNotes) s.addNotes(slide.speakerNotes);
       }
       await prs.writeFile({ fileName: `${presentation.title.replace(/[^a-z0-9]/gi, '_')}.pptx` });
@@ -314,95 +386,144 @@ const PresentationView: React.FC<Props> = ({
     const large = size === 'presenter';
     const tc = themeInfo.text;
     const isSplit = s.layout === 'split' && s.imageKeyword && !imgErrors[currentSlide];
+    const isPaper = presTheme === 'paper';
+
+    const DecoElements = () => (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="92%" cy="-5%" r="28%" fill="white" fillOpacity="0.05" />
+        <circle cx="5%" cy="95%" r="12%" fill="white" fillOpacity="0.07" />
+        <rect x="75%" y="0" width="4%" height="100%" fill="white" fillOpacity="0.04" transform="skewX(-8)" />
+        {[0,1,2].map(row => [0,1,2].map(col => (
+          <circle key={`${row}-${col}`} cx={`${6 + col * 3}%`} cy={`${8 + row * 6}%`} r="1.5" fill="white" fillOpacity="0.12" />
+        )))}
+      </svg>
+    );
+
+    const DecoElementsPaper = () => (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="92%" cy="-5%" r="28%" fill="#D97706" fillOpacity="0.08" />
+        <circle cx="5%" cy="95%" r="12%" fill="#D97706" fillOpacity="0.06" />
+        <rect x="0" y="88%" width="100%" height="3" fill="#D97706" fillOpacity="0.15" />
+      </svg>
+    );
+
+    const Deco = isPaper ? <DecoElementsPaper /> : <DecoElements />;
 
     if (s.layout === 'title') return (
-      <div className="flex flex-col items-center justify-center h-full text-center px-10 gap-5">
-        <div className={`w-20 h-1 rounded-full bg-${tc}/30`} />
-        <h1 className={`${large ? 'text-5xl sm:text-7xl' : 'text-3xl'} font-black text-${tc} leading-tight tracking-tight`}>
+      <div className="relative flex flex-col items-center justify-center h-full text-center px-10 gap-4 overflow-hidden">
+        {Deco}
+        <div className="flex items-center gap-2 mb-2 z-10">
+          <div className={`w-2 h-2 rounded-full bg-${tc}/40`} />
+          <div className={`w-16 h-0.5 bg-${tc}/30`} />
+          <div className={`w-2 h-2 rounded-full bg-${tc}/40`} />
+        </div>
+        <div className={`px-4 py-1 rounded-full border border-${tc}/20 bg-${tc}/10 text-${tc}/70 text-xs font-black uppercase tracking-[0.2em] z-10`}>
+          {s.bullets[0]?.substring(0, 40) || 'Presentation'}
+        </div>
+        <h1 className={`${large ? 'text-5xl sm:text-7xl' : 'text-3xl'} font-black text-${tc} leading-tight tracking-tight z-10 max-w-3xl`}>
           {s.title}
         </h1>
         {s.body && (
-          <p className={`${large ? 'text-2xl' : 'text-sm'} text-${tc}/60 max-w-2xl font-medium`}>
+          <p className={`${large ? 'text-xl' : 'text-sm'} text-${tc}/60 max-w-xl font-medium z-10`}>
             {s.body}
           </p>
         )}
-        {s.bullets[0] && (
-          <p className={`${large ? 'text-lg' : 'text-xs'} text-${tc}/40 italic mt-2 max-w-xl`}>
-            {s.bullets[0]}
-          </p>
-        )}
-        <div className={`w-20 h-1 rounded-full bg-${tc}/30 mt-2`} />
+        <div className="flex items-center gap-3 mt-2 z-10">
+          <div className={`w-8 h-0.5 bg-${tc}/20`} />
+          <div className={`w-3 h-3 rounded-full border-2 border-${tc}/30`} />
+          <div className={`w-8 h-0.5 bg-${tc}/20`} />
+        </div>
       </div>
     );
 
     if (s.layout === 'quote') return (
-      <div className="flex flex-col justify-center h-full px-12 gap-4">
-        <span className={`${large ? 'text-9xl' : 'text-6xl'} text-${tc}/15 font-serif leading-none -mb-4 select-none`}>
-          &ldquo;
-        </span>
-        <p className={`${large ? 'text-3xl' : 'text-lg'} font-bold text-${tc}/90 italic leading-relaxed`}>
-          {s.body || s.bullets[0]}
-        </p>
-        <p className={`text-${tc}/50 ${large ? 'text-lg' : 'text-xs'} font-bold tracking-widest uppercase mt-2`}>
-          — {s.title}
-        </p>
+      <div className="relative flex flex-col justify-center h-full overflow-hidden">
+        {Deco}
+        <div className={`absolute left-0 top-0 bottom-0 w-2 bg-${tc}/30 z-10`} />
+        <div className="px-12 sm:px-16 gap-5 flex flex-col z-10">
+          <span className={`${large ? 'text-8xl' : 'text-5xl'} text-${tc}/20 font-serif leading-none select-none`}>&ldquo;</span>
+          <p className={`${large ? 'text-2xl sm:text-3xl' : 'text-base'} font-bold text-${tc}/90 italic leading-relaxed -mt-4`}>
+            {s.body || s.bullets[0]}
+          </p>
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-0.5 bg-${tc}/40`} />
+            <p className={`text-${tc}/60 ${large ? 'text-base' : 'text-xs'} font-black uppercase tracking-widest`}>
+              {s.title}
+            </p>
+          </div>
+        </div>
       </div>
     );
 
     if (isSplit) return (
-      <div className="flex h-full">
-        <div className="flex-1 flex flex-col justify-center p-8 sm:p-10 gap-4 overflow-hidden">
-          <div className={`flex items-center gap-2 text-${tc}/30 text-xs font-black tracking-widest uppercase mb-1`}>
-            <div className={`h-px flex-1 bg-${tc}/20`} />
-            <span>{String(s.slideNumber).padStart(2, '0')}</span>
+      <div className="relative flex h-full overflow-hidden">
+        {Deco}
+        <div className="flex-1 flex flex-col justify-center p-8 sm:p-10 gap-4 z-10">
+          <div className="inline-flex items-center gap-2 self-start">
+            <span className={`w-7 h-7 rounded-lg bg-${tc}/15 flex items-center justify-center text-${tc}/50 text-xs font-black`}>
+              {s.slideNumber}
+            </span>
+            <div className={`h-px w-8 bg-${tc}/20`} />
           </div>
           <h2 className={`${large ? 'text-3xl sm:text-4xl' : 'text-xl'} font-black text-${tc} leading-tight`}>
             {s.title}
           </h2>
-          <ul className="space-y-2 flex-1 overflow-hidden">
+          <ul className="space-y-3 flex-1 overflow-hidden">
             {s.bullets.slice(0, large ? 5 : 4).map((b, i) => (
-              <li key={i} className={`flex items-start gap-2 ${large ? 'text-lg' : 'text-xs'} text-${tc}/85`}>
-                <span className={`text-${tc}/40 font-black mt-0.5 flex-shrink-0`}>→</span>
+              <li key={i} className={`flex items-start gap-3 ${large ? 'text-lg' : 'text-xs'} text-${tc}/85`}>
+                <span className={`min-w-[20px] h-5 rounded-md bg-${tc}/15 flex items-center justify-center text-${tc}/60 text-xs font-black flex-shrink-0 mt-0.5`}>
+                  {i + 1}
+                </span>
                 {b}
               </li>
             ))}
           </ul>
         </div>
-        <div className="w-2/5 flex-shrink-0 relative overflow-hidden">
+        <div className="w-2/5 flex-shrink-0 relative">
           <img
             src={getImageUrl(s.imageKeyword!)}
             alt={s.imageKeyword}
-            className="w-full h-full object-cover opacity-50"
+            className="w-full h-full object-cover opacity-60"
             onError={() => setImgErrors(prev => ({ ...prev, [currentSlide]: true }))}
           />
-          <div className={`absolute inset-0 bg-gradient-to-r from-current to-transparent opacity-30`} />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
         </div>
       </div>
     );
 
     return (
-      <div className="flex flex-col justify-center h-full p-8 sm:p-12 gap-4">
-        <div className={`flex items-center gap-3 text-${tc}/30`}>
-          <span className="font-black text-xs tracking-widest">{String(s.slideNumber).padStart(2, '0')}</span>
-          <div className={`flex-1 h-px bg-${tc}/15`} />
+      <div className="relative flex h-full overflow-hidden">
+        {Deco}
+        <div className={`absolute left-0 top-8 bottom-8 w-1 bg-${tc}/20 rounded-full z-10`} />
+        <div className="flex flex-col justify-center h-full pl-6 pr-8 sm:pr-12 py-8 gap-4 w-full z-10">
+          <div className="flex items-center gap-3">
+            <span className={`text-${tc}/30 font-black text-xs tracking-widest`}>{String(s.slideNumber).padStart(2, '0')}</span>
+            <div className={`flex-1 h-px bg-${tc}/15`} />
+            <div className={`w-2 h-2 rounded-sm bg-${tc}/20 rotate-45`} />
+          </div>
+          <h2 className={`${large ? 'text-4xl sm:text-5xl' : 'text-2xl'} font-black text-${tc} leading-tight`}>
+            {s.title}
+          </h2>
+          <ul className="space-y-2.5 flex-1 overflow-hidden">
+            {s.bullets.slice(0, large ? 6 : 5).map((b, i) => (
+              <li key={i} className={`flex items-start gap-3 ${large ? 'text-lg sm:text-xl' : 'text-sm'} text-${tc}/85 leading-snug`}>
+                <span className={`min-w-[22px] h-[22px] rounded-md bg-${tc}/15 border border-${tc}/10 flex items-center justify-center text-${tc}/50 text-xs font-black flex-shrink-0 mt-0.5`}>
+                  {i + 1}
+                </span>
+                {b}
+              </li>
+            ))}
+          </ul>
+          {s.body && (
+            <p className={`text-${tc}/45 ${large ? 'text-sm' : 'text-xs'} border-t border-${tc}/10 pt-3 leading-relaxed`}>
+              {s.body}
+            </p>
+          )}
+          <div className={`flex items-center justify-between text-${tc}/20 text-xs`}>
+            <span className="font-bold">{slides[0]?.title}</span>
+            <span>{s.slideNumber} / {slides.length}</span>
+          </div>
         </div>
-        <h2 className={`${large ? 'text-4xl sm:text-5xl' : 'text-2xl'} font-black text-${tc} leading-tight`}>
-          {s.title}
-        </h2>
-        <ul className="space-y-3 flex-1 overflow-hidden">
-          {s.bullets.slice(0, large ? 6 : 5).map((b, i) => (
-            <li key={i} className={`flex items-start gap-3 ${large ? 'text-xl' : 'text-sm'} text-${tc}/85 leading-snug`}>
-              <span className={`w-1.5 h-1.5 rounded-full bg-${tc}/40 mt-2 flex-shrink-0`} />
-              {b}
-            </li>
-          ))}
-        </ul>
-        {s.body && (
-          <p className={`text-${tc}/45 ${large ? 'text-base' : 'text-xs'} border-t border-${tc}/10 pt-3 leading-relaxed`}>
-            {s.body}
-          </p>
-        )}
-        <p className={`text-${tc}/20 text-xs text-right`}>{s.slideNumber} / {slides.length}</p>
       </div>
     );
   };
