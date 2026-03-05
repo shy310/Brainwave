@@ -5,6 +5,7 @@ import {
   LearningSession, ProgressMap, TopicProgress, Course
 } from './types';
 import { TRANSLATIONS, CURRICULUM, getCurriculumCourse, buildCourseFromCurriculum } from './constants';
+import { Analytics } from '@vercel/analytics/react';
 
 // In production (Railway), frontend + backend share the same origin — relative URL is used.
 // In Capacitor or when VITE_API_URL is set, use that base.
@@ -868,6 +869,7 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+      <Analytics />
     </div>
   );
 };
