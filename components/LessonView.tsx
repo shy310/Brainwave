@@ -89,7 +89,7 @@ const LessonView: React.FC<Props> = ({
 
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.topicId, session.subject, session.phase, language]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session.topicId, session.subject, session.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
@@ -172,7 +172,7 @@ const LessonView: React.FC<Props> = ({
                 }}
                 className="text-xs font-bold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
               >
-                {selectedTopics.size === uploadAnalysis.topics.length ? 'Deselect All' : 'Select All'}
+                {selectedTopics.size === uploadAnalysis.topics.length ? translations.deselectAll : translations.selectAll}
               </button>
             </div>
             <ul className="space-y-3">

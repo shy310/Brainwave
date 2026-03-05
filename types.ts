@@ -546,4 +546,11 @@ export interface Translations {
   wordScrambleDesc: string;
   unscrambleWord: string;
   clickLetters: string;
+  // Upload topic selection
+  selectAll: string;
+  deselectAll: string;
+  // Exercise feedback heading
+  feedback: string;
+  // Auth
+  continueAsGuest: string;
 }

@@ -12,13 +12,13 @@ import MathText from './MathText';
 const MAX_ATTEMPTS = 3;
 
 // Module-level cache — persists across ALL remounts and re-renders.
-// Keyed by "subject::topicId::grade" — language is intentionally excluded.
+// Keyed by "subject::topicId::grade::language"
 const _quizCache = new Map<string, Exercise[]>();
 // Prevents concurrent generateQuiz calls for the same key.
 const _loadingKeys = new Set<string>();
 
 // localStorage key for persisting the quiz cache across HMR and page reloads.
-const LS_QUIZ_KEY = 'brainwave_quiz_cache_v1';
+const LS_QUIZ_KEY = 'brainwave_quiz_cache_v2';
 
 // Hydrate in-memory cache from localStorage on module load.
 try {
@@ -60,14 +60,14 @@ const ExercisePanel: React.FC<Props> = ({
   // This means language changes, prop updates, etc. can NEVER trigger a regeneration.
   const [quiz, setQuiz] = useState<Exercise[]>(() => {
     if (isUploadSession) return session.quiz ?? [];
-    const key = `${session.subject}::${session.topicId ?? ''}::${session.grade}`;
+    const key = `${session.subject}::${session.topicId ?? ''}::${session.grade}::${language}`;
     return _quizCache.get(key) ?? session.quiz ?? [];
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   // Start spinner immediately if no cached quiz, so there's no flash of empty state.
   const [loading, setLoading] = useState(() => {
     if (isUploadSession) return (session.quiz ?? []).length === 0;
-    const key = `${session.subject}::${session.topicId ?? ''}::${session.grade}`;
+    const key = `${session.subject}::${session.topicId ?? ''}::${session.grade}::${language}`;
     return (_quizCache.get(key) ?? session.quiz ?? []).length === 0;
   });
 
@@ -105,7 +105,7 @@ const ExercisePanel: React.FC<Props> = ({
     // Upload sessions get a unique key so they never collide with topic-based quiz cache
     const cacheKey = isUploadSession
       ? `upload::${session.studyContext.map(a => a.name).join(',')}`
-      : `${session.subject}::${session.topicId ?? ''}::${session.grade}`;
+      : `${session.subject}::${session.topicId ?? ''}::${session.grade}::${language}`;
     // Prevent concurrent loads for the same key (e.g. from double-effect invocations).
     if (!isExplicitNewSet && _loadingKeys.has(cacheKey)) return;
     _loadingKeys.add(cacheKey);
@@ -429,7 +429,7 @@ const ExercisePanel: React.FC<Props> = ({
               {/* AI feedback */}
               {evaluation?.feedback && (
                 <div>
-                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{translations.explanation}</h4>
+                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{translations.feedback}</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
                     <MathText>{evaluation.feedback}</MathText>
                   </p>

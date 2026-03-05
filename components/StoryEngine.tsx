@@ -18,6 +18,13 @@ const MIN_WORDS = 30;
 
 const GENRES = ['Adventure', 'Mystery', 'Science Fiction', 'Fantasy', 'Historical'];
 
+const GENRE_LABELS: Record<string, string[]> = {
+  en: ['Adventure', 'Mystery', 'Science Fiction', 'Fantasy', 'Historical'],
+  ru: ['Приключения', 'Детектив', 'Научная фантастика', 'Фэнтези', 'Исторический'],
+  he: ['הרפתקה', 'מסתורין', 'מדע בדיוני', 'פנטזיה', 'היסטורי'],
+  ar: ['مغامرة', 'غموض', 'خيال علمي', 'فانتازيا', 'تاريخي'],
+};
+
 function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(w => w.length > 0).length;
 }
@@ -99,6 +106,10 @@ const StoryEngine: React.FC<Props> = ({
       if (isLastChapter && result.evaluation) {
         setEvaluation(result.evaluation);
         setPhase('complete');
+        if (!xpAwarded) {
+          onXpEarned(Math.round(result.evaluation.overall * 1.5));
+          setXpAwarded(true);
+        }
       } else {
         setCurrentPrompt(result.nextPrompt ?? '');
         setChapter(c => c + 1);
@@ -110,10 +121,6 @@ const StoryEngine: React.FC<Props> = ({
   };
 
   const handlePlayAgain = () => {
-    if (evaluation && !xpAwarded) {
-      onXpEarned(Math.round(evaluation.overall * 1.5));
-      setXpAwarded(true);
-    }
     setPhase('setup');
     setChapters([]);
     setUserInput('');
@@ -158,14 +165,17 @@ const StoryEngine: React.FC<Props> = ({
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Genre</label>
             <div className="flex gap-2 flex-wrap">
-              {GENRES.map(g => (
-                <button key={g} onClick={() => setGenre(g)}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-                    genre === g ? 'bg-violet-600 border-violet-600 text-white' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-violet-400'
-                  }`}>
-                  {g}
-                </button>
-              ))}
+              {GENRES.map((g, i) => {
+                const labels = GENRE_LABELS[language] ?? GENRE_LABELS.en;
+                return (
+                  <button key={g} onClick={() => setGenre(g)}
+                    className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+                      genre === g ? 'bg-violet-600 border-violet-600 text-white' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-violet-400'
+                    }`}>
+                    {labels[i] ?? g}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

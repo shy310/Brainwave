@@ -270,7 +270,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                       )}
                   </button>
                   
-                  <button 
+                  <button
                     onClick={() => {
                         setMode(mode === 'login' ? 'register' : 'login');
                         setError(null);
@@ -278,6 +278,26 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                     className="w-full text-sm font-bold text-gray-400 hover:text-brand-600 transition-colors"
                   >
                       {mode === 'login' ? translations.noAccount : translations.hasAccount}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onLogin({
+                        id: `guest-${Date.now()}`,
+                        username: 'guest',
+                        name: 'Guest',
+                        gradeLevel: GradeLevel.HIGH_9_10,
+                        isRegistered: false,
+                        preferredLanguage: language,
+                        enrolledCourses: [],
+                        totalXp: 0,
+                        streakDays: 0,
+                        progressMap: {},
+                      });
+                    }}
+                    className="w-full text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors pt-1"
+                  >
+                    {translations.continueAsGuest}
                   </button>
               </div>
           </div>

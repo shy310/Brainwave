@@ -928,6 +928,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     wordScrambleDesc: "Unscramble the letters to spell the word! 45 seconds of letter chaos.",
     unscrambleWord: "Unscramble the word!",
     clickLetters: "Tap letters to build the word",
+    selectAll: "Select All",
+    deselectAll: "Deselect All",
+    feedback: "Feedback",
+    continueAsGuest: "Continue as Guest",
   },
   ru: {
     signIn: "Войти",
@@ -1177,6 +1181,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     wordScrambleDesc: "Собери перемешанные буквы в слово! 45 секунд.",
     unscrambleWord: "Собери слово из букв!",
     clickLetters: "Нажимай буквы по порядку",
+    selectAll: "Выбрать все",
+    deselectAll: "Снять выбор",
+    feedback: "Отзыв",
+    continueAsGuest: "Продолжить как гость",
   },
   he: {
     signIn: "התחברות",
@@ -1426,6 +1434,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     wordScrambleDesc: "סדר את האותיות לבניית מילה! 45 שניות של כאוס אותיות.",
     unscrambleWord: "סדר את האותיות!",
     clickLetters: "לחץ על אותיות לבנות את המילה",
+    selectAll: "בחר הכל",
+    deselectAll: "בטל בחירה",
+    feedback: "משוב",
+    continueAsGuest: "המשך כאורח",
   },
   ar: {
     signIn: "تسجيل الدخول",
@@ -1675,6 +1687,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     wordScrambleDesc: "رتب الحروف لتهجئة الكلمة! 45 ثانية من الفوضى الأبجدية.",
     unscrambleWord: "رتب الحروف لتشكيل الكلمة!",
     clickLetters: "انقر على الحروف لبناء الكلمة",
+    selectAll: "تحديد الكل",
+    deselectAll: "إلغاء التحديد",
+    feedback: "ملاحظات",
+    continueAsGuest: "المتابعة كضيف",
   }
 };
 

@@ -3,7 +3,7 @@ import Editor from '@monaco-editor/react';
 import type { editor as MonacoEditor } from 'monaco-editor';
 import {
   ArrowLeft, Play, RefreshCw, Loader2, Code2,
-  ChevronDown, ChevronUp, Send, Bot, Lightbulb, Trophy, Copy, Trash2, Clock, CheckCheck
+  ChevronDown, ChevronUp, Send, Bot, Lightbulb, Trophy, Copy, Trash2, Clock, CheckCheck, CheckCircle2
 } from 'lucide-react';
 import {
   GradeLevel, Language, Translations, CodeLanguage, CodingChallenge, PistonRunResult
@@ -65,6 +65,7 @@ const CodeLab: React.FC<Props> = ({
   const [chatLoading, setChatLoading] = useState(false);
   const [hintIndex, setHintIndex] = useState(0);
   const [showHints, setShowHints] = useState(false);
+  const [possiblyComplete, setPossiblyComplete] = useState(false);
   const [challengeComplete, setChallengeComplete] = useState(false);
   const [xpAwarded, setXpAwarded] = useState(false);
   const [execTime, setExecTime] = useState<number | null>(null);
@@ -92,6 +93,7 @@ const CodeLab: React.FC<Props> = ({
     setCode(STARTER_CODE[lang]);
     setOutput(null);
     setChallenge(null);
+    setPossiblyComplete(false);
     setChallengeComplete(false);
     setXpAwarded(false);
   };
@@ -99,6 +101,7 @@ const CodeLab: React.FC<Props> = ({
   const handleNewChallenge = async () => {
     setLoadingChallenge(true);
     setOutput(null);
+    setPossiblyComplete(false);
     setChallengeComplete(false);
     setXpAwarded(false);
     setHintIndex(0);
@@ -139,7 +142,7 @@ const CodeLab: React.FC<Props> = ({
       setExecTime(Math.round(performance.now() - t0));
       setOutput(result);
       if (challenge && result.stderr === '' && result.stdout.trim() !== '') {
-        setChallengeComplete(true);
+        setPossiblyComplete(true);
       }
     } catch (e: any) {
       setExecTime(Math.round(performance.now() - t0));
@@ -310,6 +313,25 @@ const CodeLab: React.FC<Props> = ({
               : <><Play size={18} /> {translations.runCode} <span className="ml-1 text-white/60 text-xs font-normal">Ctrl+Enter</span></>
             }
           </button>
+
+          {/* Possibly complete — prompt explicit submit */}
+          {possiblyComplete && !challengeComplete && (
+            <div className="rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-500 p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 size={28} className="text-white" />
+                <div>
+                  <p className="font-black text-white">Looks good! Ready to submit?</p>
+                  <p className="text-sm text-white/80">Submit your solution to claim XP</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setPossiblyComplete(false); setChallengeComplete(true); }}
+                className="bg-white text-teal-600 font-bold px-4 py-2 rounded-xl hover:bg-teal-50 transition-colors text-sm"
+              >
+                Submit Solution
+              </button>
+            </div>
+          )}
 
           {/* Challenge complete banner */}
           {challengeComplete && (

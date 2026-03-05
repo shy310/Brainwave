@@ -168,8 +168,8 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
         </section>
       )}
 
-      {/* Recommended (for users who have started) */}
-      {recommended.length > 0 && activeCourses.length > 0 && (
+      {/* Recommended */}
+      {recommended.length > 0 && (
         <section className="max-w-[1400px] mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center gap-3">
             <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">

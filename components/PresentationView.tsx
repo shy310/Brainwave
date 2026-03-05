@@ -337,18 +337,21 @@ ${slides.map((s, i) => `
             <ChevronLeft size={22} />
           </button>
 
-          <div className="flex gap-2">
-            {Array.from({ length: Math.min(total, 12) }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => navigate(i)}
-                className={`rounded-full transition-all ${
-                  i === currentSlide
-                    ? 'w-6 h-2.5 bg-indigo-600'
-                    : 'w-2.5 h-2.5 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'
-                }`}
-              />
-            ))}
+          <div className="flex gap-1.5 flex-wrap justify-center max-w-xs">
+            {Array.from({ length: total }).map((_, i) => {
+              const small = total > 12;
+              return (
+                <button
+                  key={i}
+                  onClick={() => navigate(i)}
+                  className={`rounded-full transition-all ${
+                    i === currentSlide
+                      ? `${small ? 'w-4 h-2' : 'w-6 h-2.5'} bg-indigo-600`
+                      : `${small ? 'w-2 h-2' : 'w-2.5 h-2.5'} bg-gray-300 dark:bg-gray-600 hover:bg-gray-400`
+                  }`}
+                />
+              );
+            })}
           </div>
 
           <button

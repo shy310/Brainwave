@@ -708,17 +708,28 @@ const App: React.FC = () => {
                   <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
                     <h3 className="font-black text-gray-900 dark:text-white mb-4">{t.mastery} by Topic</h3>
                     <div className="space-y-3">
-                      {(Object.values(appState.user.progressMap) as import('./types').TopicProgress[]).slice(0, 5).map(tp => (
+                      {(Object.values(appState.user.progressMap) as import('./types').TopicProgress[]).slice(0, 5).map(tp => {
+                        // Look up topic title from CURRICULUM
+                        let topicTitle = tp.topicId;
+                        for (const course of CURRICULUM) {
+                          for (const unit of course.units) {
+                            const found = unit.topics.find(t => t.id === tp.topicId);
+                            if (found) { topicTitle = found.title; break; }
+                          }
+                          if (topicTitle !== tp.topicId) break;
+                        }
+                        return (
                         <div key={tp.topicId}>
                           <div className="flex justify-between text-xs font-bold text-gray-500 mb-1">
-                            <span className="truncate">{tp.topicId}</span>
+                            <span className="truncate">{topicTitle}</span>
                             <span>{tp.mastery}%</span>
                           </div>
                           <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                             <div className="h-full bg-brand-500 rounded-full" style={{ width: `${tp.mastery}%` }} />
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
