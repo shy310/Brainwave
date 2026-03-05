@@ -159,6 +159,49 @@ app.post('/api/claude', async (req, res) => {
   }
 });
 
+// ── AI streaming proxy (SSE) ──────────────────────────────────────────────────
+app.post('/api/claude-stream', async (req, res) => {
+  const { messages, system, max_tokens } = req.body;
+
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  try {
+    const groq = new Groq({ apiKey: GROQ_API_KEY });
+
+    const fullMessages = [
+      ...(system ? [{ role: 'system', content: system }] : []),
+      ...convertMessages(messages),
+    ];
+
+    const stream = await groq.chat.completions.create({
+      model: TEXT_MODEL,
+      max_tokens: max_tokens ?? 4096,
+      messages: fullMessages,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content ?? '';
+      if (text) {
+        res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      }
+    }
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (err) {
+    console.error('Groq stream error:', err);
+    res.write(`data: ${JSON.stringify({ error: err.message ?? String(err) })}\n\n`);
+    res.end();
+  }
+});
+
 // ── Static frontend (after API routes) ───────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')));

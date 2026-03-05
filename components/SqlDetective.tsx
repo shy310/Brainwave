@@ -1,366 +1,469 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Loader2, Search, RefreshCw, Play, Database, Trophy, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
-import { GradeLevel, Language, Translations, Subject, MysteryCase, QueryResult } from '../types';
-import { generateMystery } from '../services/aiService';
-import { SUBJECTS_DATA } from '../constants';
+import React, { useState, useRef } from 'react';
+import {
+  ArrowLeft, Loader2, Search, Play, Database, Trophy,
+  AlertCircle, ChevronDown, ChevronUp, Lightbulb, FileText,
+  CheckCircle, RefreshCw, BookOpen
+} from 'lucide-react';
+import {
+  GradeLevel, Language, Translations, Subject, MysteryCase, QueryResult,
+  CaseDifficulty, CaseTheme
+} from '../types';
+import { generateMysteryV2, explainSqlQuery, evaluateSqlEfficiency } from '../services/aiService';
 
 interface Props {
   userGrade: GradeLevel;
   language: Language;
   translations: Translations;
+  theme: 'light' | 'dark';
   onBack: () => void;
   onXpEarned: (xp: number) => void;
   onContextUpdate: (ctx: string) => void;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL ?? '';
+interface MysteryV2 extends MysteryCase {
+  hints?: string[];
+  conceptTags?: string[];
+}
 
-async function runSqlQuery(pythonSetup: string, userQuery: string): Promise<QueryResult> {
-  const code = `import sqlite3
-conn = sqlite3.connect(':memory:')
-c = conn.cursor()
-${pythonSetup}
-conn.commit()
-try:
-    c.execute("""${userQuery.replace(/"""/g, "'''")}""")
-    rows = c.fetchall()
-    col_names = [desc[0] for desc in c.description] if c.description else []
-    if col_names:
-        print(' | '.join(col_names))
-        print('-' * (sum(len(n) for n in col_names) + 3 * (len(col_names) - 1)))
-    for row in rows:
-        print(' | '.join(str(v) if v is not None else 'NULL' for v in row))
-    if not rows:
-        print('(no rows returned)')
-except Exception as e:
-    print(f'Error: {e}')
-conn.close()
-`;
+type Phase = 'setup' | 'investigation' | 'results';
+
+const PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
+
+async function runSqlViaPiston(pythonSetup: string, userQuery: string): Promise<QueryResult> {
+  const fullCode = `${pythonSetup}\n\ntry:\n    cur.execute("""${userQuery.replace(/"""/g, "'''")}""")\n    rows = cur.fetchall()\n    if cur.description:\n        cols = [d[0] for d in cur.description]\n        print(' | '.join(cols))\n        print('-' * max(30, sum(len(c) for c in cols) + 3 * max(0, len(cols)-1)))\n        for row in rows:\n            print(' | '.join(str(v) for v in row))\n        print(f"\\n({len(rows)} row(s)")\n    else:\n        conn.commit()\n        print("Query executed. Rows affected:", cur.rowcount)\nexcept Exception as e:\n    import sys; print(f"SQL Error: {e}", file=sys.stderr)`;
 
   try {
-    const res = await fetch('https://emkc.org/api/v2/piston/execute', {
+    const res = await fetch(PISTON_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        language: 'python',
-        version: '*',
-        files: [{ name: 'query.py', content: code }],
-      }),
+      body: JSON.stringify({ language: 'python', version: '*', files: [{ name: 'main.py', content: fullCode }] }),
     });
     const data = await res.json();
-    const output = data?.run?.stdout ?? '';
-    const stderr = data?.run?.stderr ?? '';
-    return {
-      query: userQuery,
-      output: output.trim() || stderr.trim() || '(no output)',
-      isError: !!stderr && !output,
-    };
+    const stdout = data.run?.stdout ?? '';
+    const stderr = data.run?.stderr ?? '';
+    const isError = !!stderr || data.run?.code !== 0;
+    return { query: userQuery, output: isError ? stderr || stdout : stdout, isError };
   } catch (e: any) {
     return { query: userQuery, output: `Network error: ${e.message}`, isError: true };
   }
 }
 
 const SqlDetective: React.FC<Props> = ({
-  userGrade, language, translations, onBack, onXpEarned, onContextUpdate
+  userGrade, language, translations, theme, onBack, onXpEarned, onContextUpdate
 }) => {
-  const t = translations;
+  const [phase, setPhase] = useState<Phase>('setup');
 
-  const [subject, setSubject] = useState<Subject>(Subject.HISTORY);
-  const [phase, setPhase] = useState<'setup' | 'investigating' | 'verdict'>('setup');
-  const [loading, setLoading] = useState(false);
-  const [mystery, setMystery] = useState<MysteryCase | null>(null);
+  // Setup
+  const [difficulty, setDifficulty] = useState<CaseDifficulty>('detective');
+  const [caseTheme, setCaseTheme] = useState<CaseTheme>('crime');
+  const [loadingCase, setLoadingCase] = useState(false);
+
+  // Investigation
+  const [mystery, setMystery] = useState<MysteryV2 | null>(null);
   const [queryHistory, setQueryHistory] = useState<QueryResult[]>([]);
-  const [currentQuery, setCurrentQuery] = useState('');
-  const [isRunning, setIsRunning] = useState(false);
-  const [selectedSuspect, setSelectedSuspect] = useState<string | null>(null);
+  const [evidenceLog, setEvidenceLog] = useState<QueryResult[]>([]);
+  const [currentQuery, setCurrentQuery] = useState('SELECT ');
+  const [running, setRunning] = useState(false);
+  const [accusation, setAccusation] = useState('');
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [shownHints, setShownHints] = useState<string[]>([]);
+  const [showSchema, setShowSchema] = useState(false);
+  const [firstQuery, setFirstQuery] = useState(true);
+
+  // Query explainer
+  const [queryExplanation, setQueryExplanation] = useState<string | null>(null);
+  const [loadingExplain, setLoadingExplain] = useState(false);
+
+  // Results
+  const [efficiencyResult, setEfficiencyResult] = useState<{ score: number; optimalQuery: string; explanation: string } | null>(null);
   const [verdict, setVerdict] = useState<'correct' | 'wrong' | null>(null);
-  const [schemaOpen, setSchemaOpen] = useState(true);
-  const [cluesOpen, setCluesOpen] = useState(true);
-  const [xpAwarded, setXpAwarded] = useState(false);
 
-  const resultsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    resultsRef.current?.scrollTo({ top: resultsRef.current.scrollHeight, behavior: 'smooth' });
-  }, [queryHistory]);
-
-  const handleGenerateMystery = async () => {
-    setLoading(true);
-    onContextUpdate(`SQL Detective: ${subject}`);
+  const handleGenerateCase = async () => {
+    setLoadingCase(true);
+    onContextUpdate(`SQL Detective — ${difficulty} ${caseTheme}`);
     try {
-      const m = await generateMystery(subject, userGrade, language);
-      setMystery(m);
+      const data = await generateMysteryV2(Subject.SCIENCE, userGrade, difficulty, caseTheme, language) as MysteryV2;
+      setMystery(data);
+      setPhase('investigation');
       setQueryHistory([]);
-      setCurrentQuery('');
-      setSelectedSuspect(null);
-      setVerdict(null);
-      setXpAwarded(false);
-      setPhase('investigating');
-    } catch {
-      // stay on setup
-    }
-    setLoading(false);
+      setEvidenceLog([]);
+      setCurrentQuery('SELECT ');
+      setHintsUsed(0);
+      setShownHints([]);
+      setFirstQuery(true);
+      setQueryExplanation(null);
+    } catch (e) { console.error(e); }
+    finally { setLoadingCase(false); }
   };
 
   const handleRunQuery = async () => {
-    if (!currentQuery.trim() || isRunning || !mystery) return;
-    setIsRunning(true);
-    const result = await runSqlQuery(mystery.pythonSetup, currentQuery.trim());
+    if (!mystery || !currentQuery.trim() || running) return;
+    setRunning(true);
+    const result = await runSqlViaPiston(mystery.pythonSetup, currentQuery);
     setQueryHistory(prev => [...prev, result]);
-    setIsRunning(false);
-  };
-
-  const handleAccuse = (suspect: string) => {
-    if (!mystery) return;
-    setSelectedSuspect(suspect);
-    const correct = suspect === mystery.culprit;
-    setVerdict(correct ? 'correct' : 'wrong');
-    if (correct) {
-      setPhase('verdict');
-      if (!xpAwarded) { onXpEarned(150); setXpAwarded(true); }
+    if (!result.isError) {
+      setEvidenceLog(prev => [...prev, result]);
+      if (firstQuery) setFirstQuery(false);
     }
+    setRunning(false);
   };
 
-  const handleReset = () => {
-    if (!xpAwarded && verdict === 'correct') { onXpEarned(150); setXpAwarded(true); }
-    setPhase('setup');
-    setMystery(null);
-    setQueryHistory([]);
-    setCurrentQuery('');
-    setSelectedSuspect(null);
-    setVerdict(null);
+  const handleGetHint = () => {
+    if (!mystery?.hints || hintsUsed >= 3) return;
+    const hint = mystery.hints[hintsUsed] ?? `Hint ${hintsUsed + 1}: Try querying a different table.`;
+    setShownHints(prev => [...prev, hint]);
+    setHintsUsed(prev => prev + 1);
   };
 
-  // ── SETUP ───────────────────────────────────────────────────────────────────
+  const handleExplainQuery = async () => {
+    if (!mystery || !currentQuery.trim() || loadingExplain) return;
+    setLoadingExplain(true);
+    try {
+      const explanation = await explainSqlQuery(currentQuery, mystery.schemaDescription, userGrade, language);
+      setQueryExplanation(explanation);
+    } catch { /* ignore */ }
+    finally { setLoadingExplain(false); }
+  };
+
+  const handleAccuse = async () => {
+    if (!mystery || !accusation) return;
+    const isCorrect = accusation === mystery.culprit;
+    setVerdict(isCorrect ? 'correct' : 'wrong');
+
+    if (isCorrect) {
+      // Evaluate efficiency of last successful query
+      const lastGood = [...evidenceLog].reverse()[0];
+      if (lastGood) {
+        try {
+          const eff = await evaluateSqlEfficiency(lastGood.query, mystery.schemaDescription, language);
+          setEfficiencyResult(eff);
+        } catch { /* ignore */ }
+      }
+      const xp = Math.max(0, 80 + (firstQuery ? 30 : 0) - hintsUsed * 15);
+      onXpEarned(xp);
+    }
+    setPhase('results');
+  };
+
+  // ── SETUP ─────────────────────────────────────────────────────────────────────
   if (phase === 'setup') {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+      <div className="px-4 py-6 space-y-6 max-w-2xl mx-auto">
         <div className="flex items-center gap-4">
-          <button onClick={onBack}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors">
-            <ArrowLeft size={20} />
-          </button>
+          <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"><ArrowLeft size={20} /></button>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
               <Search size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white">{t.sqlDetective}</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t.sqlDetectiveDesc}</p>
+              <h1 className="text-2xl font-black text-gray-900 dark:text-white">{translations.sqlDetective}</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{translations.sqlDetectiveDesc}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700 shadow-sm space-y-6">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">{t.selectSubject}</label>
-            <div className="flex gap-2 flex-wrap">
-              {SUBJECTS_DATA.map(s => (
-                <button key={s.id} onClick={() => setSubject(s.id)}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-                    subject === s.id ? 'bg-cyan-600 border-cyan-600 text-white' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-cyan-400'
-                  }`}>
-                  {t.subjectsList[s.id]}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+          {/* Difficulty */}
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{translations.caseDifficulty}</label>
+            <div className="grid grid-cols-2 gap-3">
+              {([ ['rookie', translations.rookieCase, 'SELECT only'],
+                  ['detective', translations.detectiveCase, 'JOINs'],
+                  ['inspector', translations.inspectorCase, 'Subqueries'],
+                  ['chief', translations.chiefCase, 'Window fns'],
+              ] as [CaseDifficulty, string, string][]).map(([d, label, sub]) => (
+                <button
+                  key={d}
+                  onClick={() => setDifficulty(d)}
+                  className={`py-3 px-4 rounded-xl font-bold text-sm border-2 text-left transition-all ${
+                    difficulty === d
+                      ? 'border-slate-500 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  {label}
+                  <div className="text-xs font-normal text-gray-400 mt-0.5">{sub}</div>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="bg-cyan-50 dark:bg-cyan-950/30 rounded-2xl p-5 border border-cyan-100 dark:border-cyan-900/30">
-            <p className="text-sm text-cyan-800 dark:text-cyan-300 font-semibold mb-2">How it works:</p>
-            <ul className="text-sm text-cyan-700 dark:text-cyan-400 space-y-1 list-disc list-inside">
-              <li>AI creates a crime scene with a real SQLite database</li>
-              <li>Query the database using SQL to gather clues</li>
-              <li>When you have enough evidence, accuse the culprit</li>
-              <li>The database actually runs — real query results!</li>
-            </ul>
+          {/* Theme */}
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{translations.caseTheme}</label>
+            <div className="grid grid-cols-2 gap-3">
+              {([ ['crime', translations.crimeTheme, '🔍'],
+                  ['corporate', translations.corporateTheme, '🏢'],
+                  ['archaeological', translations.archaeologicalTheme, '🏺'],
+                  ['medical', translations.medicalTheme, '🏥'],
+              ] as [CaseTheme, string, string][]).map(([t, label, emoji]) => (
+                <button
+                  key={t}
+                  onClick={() => setCaseTheme(t)}
+                  className={`py-3 rounded-xl font-bold text-sm border-2 transition-all ${
+                    caseTheme === t
+                      ? 'border-slate-500 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  {emoji} {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <button onClick={handleGenerateMystery} disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-60 text-white font-black py-4 rounded-2xl text-lg shadow-lg transition-all">
-            {loading
-              ? <><Loader2 size={22} className="animate-spin" />{t.generatingMystery}</>
-              : <><Search size={22} />{t.sqlDetective}</>}
+          <button
+            onClick={handleGenerateCase}
+            disabled={loadingCase}
+            className="w-full py-4 bg-gradient-to-r from-slate-600 to-slate-800 text-white font-black rounded-2xl hover:from-slate-700 hover:to-slate-900 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg"
+          >
+            {loadingCase
+              ? <><Loader2 size={20} className="animate-spin" /> Generating case...</>
+              : <><Search size={20} /> Generate Case</>
+            }
           </button>
         </div>
       </div>
     );
   }
 
-  // ── VERDICT ──────────────────────────────────────────────────────────────────
-  if (phase === 'verdict' && mystery) {
+  // ── RESULTS ───────────────────────────────────────────────────────────────────
+  if (phase === 'results') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-8 px-4">
-        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-2xl">
-          <Trophy size={56} className="text-white" />
+      <div className="px-4 py-6 space-y-6 max-w-2xl mx-auto">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"><ArrowLeft size={20} /></button>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Case {verdict === 'correct' ? 'Solved!' : 'Review'}</h1>
         </div>
-        <div className="text-center space-y-3">
-          <h2 className="text-4xl font-black text-gray-900 dark:text-white">{t.caseSolved}</h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300">
-            The culprit was <span className="font-black text-cyan-600 text-2xl">{mystery.culprit}</span>
-          </p>
-          <p className="text-green-600 dark:text-green-400 font-bold text-xl">+150 XP</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{queryHistory.length} queries run</p>
+
+        <div className={`rounded-2xl p-5 text-center space-y-2 ${
+          verdict === 'correct'
+            ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+            : 'bg-gradient-to-r from-red-500 to-pink-600 text-white'
+        }`}>
+          {verdict === 'correct'
+            ? <><Trophy size={32} className="mx-auto mb-2" /><p className="font-black text-xl">Correct!</p></>
+            : <><AlertCircle size={32} className="mx-auto mb-2" /><p className="font-black text-xl">Not quite...</p></>
+          }
+          <p className="text-white/80">Culprit: <strong>{mystery?.culprit}</strong></p>
+          <p className="text-white/80 text-sm">You accused: <strong>{accusation}</strong></p>
         </div>
-        <div className="flex gap-3 flex-wrap justify-center">
-          <button onClick={handleReset}
-            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-black px-8 py-3 rounded-2xl shadow-lg transition-all">
-            <RefreshCw size={18} /> New Mystery
-          </button>
-          <button onClick={onBack}
-            className="flex items-center gap-2 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold px-8 py-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
-            {t.backToDashboard}
-          </button>
-        </div>
+
+        {efficiencyResult && (
+          <div className="space-y-3">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider">{translations.efficiencyScore}</p>
+                <span className="text-lg font-black text-gray-900 dark:text-white">{efficiencyResult.score}/100</span>
+              </div>
+              <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 mb-3">
+                <div className="h-2 rounded-full bg-blue-500" style={{ width: `${efficiencyResult.score}%` }} />
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{efficiencyResult.explanation}</p>
+            </div>
+            {efficiencyResult.optimalQuery && (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                <p className="text-xs font-black text-green-600 dark:text-green-400 uppercase tracking-wider mb-2">{translations.optimalSolution}</p>
+                <pre className="text-xs font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{efficiencyResult.optimalQuery}</pre>
+              </div>
+            )}
+          </div>
+        )}
+
+        {mystery?.conceptTags && mystery.conceptTags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {mystery.conceptTags.map(tag => (
+              <span key={tag} className="text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={() => { setPhase('setup'); setMystery(null); setVerdict(null); setEfficiencyResult(null); }}
+          className="w-full py-4 bg-gradient-to-r from-slate-600 to-slate-800 text-white font-black rounded-2xl hover:from-slate-700 hover:to-slate-900 transition-all flex items-center justify-center gap-2 shadow-lg"
+        >
+          <RefreshCw size={20} /> {translations.newCase}
+        </button>
       </div>
     );
   }
 
-  // ── INVESTIGATING ────────────────────────────────────────────────────────────
-  if (!mystery) return null;
-
+  // ── INVESTIGATION ─────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+    <div className="px-4 py-6 space-y-4 max-w-3xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setPhase('setup')}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors">
-            <ArrowLeft size={18} />
-          </button>
-          <div>
-            <h2 className="text-lg font-black text-gray-900 dark:text-white">{mystery.title}</h2>
-            <p className="text-xs text-cyan-600 dark:text-cyan-400 font-bold uppercase tracking-wide">{t.sqlDetective}</p>
-          </div>
+      <div className="flex items-center gap-4">
+        <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"><ArrowLeft size={20} /></button>
+        <div className="flex-1">
+          <h2 className="font-black text-gray-900 dark:text-white">{mystery?.title}</h2>
+          <p className="text-xs text-gray-500">SQL Detective — {difficulty}</p>
         </div>
-        <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full font-semibold">
-          {queryHistory.length} queries
-        </span>
+        <span className="text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full capitalize">{caseTheme}</span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* LEFT — Case info */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left: Case info + Evidence log */}
         <div className="space-y-3">
-          {/* Description */}
-          <div className="bg-amber-50 dark:bg-amber-950/30 rounded-2xl p-4 border border-amber-100 dark:border-amber-900/30">
-            <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">🔍 Case File</p>
-            <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">{mystery.description}</p>
+          {/* Case description */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+            <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">Case</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{mystery?.description}</p>
+            {mystery?.suspects && (
+              <div className="mt-3">
+                <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-1.5">Suspects</p>
+                <div className="flex flex-wrap gap-1">
+                  {mystery.suspects.map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setAccusation(s)}
+                      className={`text-xs font-bold px-2.5 py-1 rounded-full border-2 transition-all ${
+                        accusation === s
+                          ? 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                          : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-slate-400'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Schema (collapsible) */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+          {/* Schema */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <button
-              onClick={() => setSchemaOpen(o => !o)}
-              className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-              <span className="flex items-center gap-2"><Database size={16} />{t.caseSchema}</span>
-              {schemaOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              onClick={() => setShowSchema(s => !s)}
+              className="w-full flex items-center justify-between p-3 text-sm font-black text-gray-700 dark:text-gray-200"
+            >
+              <span className="flex items-center gap-2"><Database size={14} /> Schema</span>
+              {showSchema ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
-            {schemaOpen && (
+            {showSchema && (
               <div className="px-4 pb-4">
-                <pre className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap font-mono bg-gray-50 dark:bg-gray-900 rounded-xl p-3 overflow-auto max-h-48">
-                  {mystery.schemaDescription}
+                <pre className="text-xs font-mono text-gray-600 dark:text-gray-400 whitespace-pre-wrap bg-gray-50 dark:bg-gray-900 rounded-xl p-3">
+                  {mystery?.schemaDescription}
                 </pre>
               </div>
             )}
           </div>
 
-          {/* Clues (collapsible) */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <button
-              onClick={() => setCluesOpen(o => !o)}
-              className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-              <span className="flex items-center gap-2">💡 Clues</span>
-              {cluesOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-            {cluesOpen && (
-              <ul className="px-4 pb-4 space-y-2">
-                {mystery.clues.map((clue, i) => (
-                  <li key={i} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
-                    <span className="text-cyan-500 font-bold shrink-0">{i + 1}.</span>
-                    {clue}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Suspect lineup */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
-            <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">🕵️ Suspects — {t.accuseSuspect}:</p>
-            <div className="space-y-2">
-              {mystery.suspects.map(suspect => {
-                const isSelected = selectedSuspect === suspect;
-                const isWrong = isSelected && verdict === 'wrong';
-                return (
-                  <button key={suspect} onClick={() => !verdict && handleAccuse(suspect)}
-                    disabled={verdict === 'correct'}
-                    className={`w-full text-start px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
-                      isWrong
-                        ? 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
-                        : verdict === 'correct'
-                          ? 'border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed'
-                          : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-950/20'
-                    }`}>
-                    {suspect}
-                    {isWrong && (
-                      <span className="ms-2 text-xs text-red-500">✗ {t.wrongAccusation}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+          {/* Evidence log */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-3">
+            <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <FileText size={12} /> {translations.evidenceLog} ({evidenceLog.length})
+            </p>
+            {evidenceLog.length === 0 && <p className="text-xs text-gray-400">No evidence yet</p>}
+            {evidenceLog.slice(-3).map((e, i) => (
+              <div key={i} className="mb-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700">
+                <p className="text-xs font-mono text-slate-600 dark:text-slate-400 truncate">{e.query}</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-0.5 truncate">{e.output.split('\n')[0]}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* RIGHT — Query editor + results */}
-        <div className="space-y-3">
+        {/* Right: Query editor + output */}
+        <div className="lg:col-span-2 space-y-3">
+          {/* Clues */}
+          {mystery?.clues && mystery.clues.length > 0 && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800 p-4">
+              <p className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">Clues</p>
+              <ul className="space-y-1">
+                {mystery.clues.map((c, i) => <li key={i} className="text-xs text-amber-800 dark:text-amber-300">• {c}</li>)}
+              </ul>
+            </div>
+          )}
+
           {/* Query editor */}
-          <div className="bg-gray-900 rounded-2xl p-4 border border-gray-700">
-            <p className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-2 font-mono">SQL Query</p>
-            <textarea
-              value={currentQuery}
-              onChange={e => setCurrentQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleRunQuery(); } }}
-              placeholder={t.sqlPlaceholder}
-              rows={5}
-              className="w-full bg-transparent text-green-300 text-sm font-mono placeholder-gray-600 outline-none resize-none leading-relaxed"
-            />
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-gray-600 font-mono">Ctrl+Enter to run</span>
-              <button onClick={handleRunQuery} disabled={!currentQuery.trim() || isRunning}
-                className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white text-sm font-bold rounded-xl transition-all">
-                {isRunning ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
-                {t.runQuery}
+          <div className="bg-gray-900 rounded-2xl overflow-hidden border border-gray-700">
+            <div className="px-4 py-2.5 border-b border-gray-700 flex items-center gap-2">
+              <Database size={14} className="text-gray-400" />
+              <span className="text-xs font-mono text-gray-400 flex-1">SQL Query</span>
+            </div>
+            <div className="p-3">
+              <textarea
+                value={currentQuery}
+                onChange={e => setCurrentQuery(e.target.value)}
+                rows={4}
+                className="w-full bg-transparent font-mono text-sm text-green-400 outline-none resize-none"
+                placeholder="SELECT * FROM ..."
+                spellCheck={false}
+              />
+            </div>
+            <div className="px-3 pb-3 flex gap-2 flex-wrap">
+              <button
+                onClick={handleRunQuery}
+                disabled={running}
+                className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold text-sm px-4 py-2 rounded-xl transition-colors"
+              >
+                {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} Run
+              </button>
+              <button
+                onClick={handleExplainQuery}
+                disabled={loadingExplain}
+                className="flex items-center gap-1.5 text-sm font-bold text-blue-400 hover:text-blue-300 border border-blue-700 hover:border-blue-600 px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+              >
+                {loadingExplain ? <Loader2 size={14} className="animate-spin" /> : <BookOpen size={14} />} {translations.queryExplainer}
+              </button>
+              <button
+                onClick={handleGetHint}
+                disabled={hintsUsed >= 3}
+                className="flex items-center gap-1.5 text-sm font-bold text-amber-400 hover:text-amber-300 border border-amber-700 hover:border-amber-600 px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+              >
+                <Lightbulb size={14} /> Hint {3 - hintsUsed} left
               </button>
             </div>
           </div>
 
-          {/* Query results */}
-          <div ref={resultsRef} className="space-y-2 max-h-80 overflow-y-auto">
-            {queryHistory.length === 0 && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 text-center border border-gray-100 dark:border-gray-700">
-                <Search size={32} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">Run a query to see results</p>
-              </div>
-            )}
-            {[...queryHistory].reverse().map((r, i) => (
-              <div key={i} className={`rounded-2xl overflow-hidden border ${
-                r.isError ? 'border-red-200 dark:border-red-800' : 'border-gray-100 dark:border-gray-700'
-              }`}>
-                <div className="px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-inherit flex items-center gap-2">
-                  {r.isError
-                    ? <AlertCircle size={12} className="text-red-500" />
-                    : <Play size={12} className="text-green-500" />}
-                  <code className="text-xs text-gray-600 dark:text-gray-400 truncate">{r.query}</code>
+          {/* Query explanation */}
+          {queryExplanation && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 border border-blue-100 dark:border-blue-800">
+              <p className="text-xs font-black text-blue-600 dark:text-blue-400 mb-1">{translations.queryExplainer}</p>
+              <p className="text-xs text-blue-800 dark:text-blue-300">{queryExplanation}</p>
+            </div>
+          )}
+
+          {/* Hints */}
+          {shownHints.length > 0 && (
+            <div className="space-y-2">
+              {shownHints.map((h, i) => (
+                <div key={i} className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 border border-amber-100 dark:border-amber-800">
+                  <p className="text-xs font-black text-amber-600 dark:text-amber-400 mb-1">Hint {i + 1}</p>
+                  <p className="text-xs text-amber-800 dark:text-amber-300">{h}</p>
                 </div>
-                <div className="bg-white dark:bg-gray-900 px-3 py-3">
-                  <pre className={`text-xs font-mono whitespace-pre-wrap leading-relaxed overflow-auto max-h-40 ${
-                    r.isError ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-gray-200'
-                  }`}>{r.output}</pre>
-                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Query output */}
+          {queryHistory.length > 0 && (
+            <div className="bg-gray-900 rounded-2xl border border-gray-700 overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-gray-700">
+                <span className="text-xs text-gray-400 font-mono">Output</span>
               </div>
-            ))}
-          </div>
+              <div className="p-4 max-h-[200px] overflow-y-auto font-mono text-sm">
+                {queryHistory.slice(-1).map((r, i) => (
+                  <pre key={i} className={`whitespace-pre-wrap ${r.isError ? 'text-red-400' : 'text-green-400'}`}>
+                    {r.output || '(no output)'}
+                  </pre>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Accuse */}
+          {accusation && (
+            <button
+              onClick={handleAccuse}
+              className="w-full py-3.5 bg-gradient-to-r from-red-600 to-pink-600 text-white font-black rounded-2xl hover:from-red-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+            >
+              <CheckCircle size={18} /> Accuse: {accusation}
+            </button>
+          )}
+          {!accusation && (
+            <p className="text-center text-xs text-gray-400">Select a suspect above to make your accusation</p>
+          )}
         </div>
       </div>
     </div>

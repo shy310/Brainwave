@@ -23,6 +23,7 @@
     "groq-sdk": "^0.9.1",
     "katex": "^0.16.28",
     "lucide-react": "^0.563.0",
+    "pptxgenjs": "^4.0.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "recharts": "^3.7.0"

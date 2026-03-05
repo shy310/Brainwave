@@ -225,7 +225,7 @@ export interface Presentation {
 
 // ─── CODE LAB ────────────────────────────────────────────────────────────────
 
-export type CodeLanguage = 'python' | 'javascript' | 'java' | 'cpp';
+export type CodeLanguage = 'python' | 'javascript' | 'java' | 'cpp' | 'sql';
 
 export interface CodingChallenge {
   id: string;
@@ -300,6 +300,84 @@ export interface StoryEvaluation {
   narrative: number;
   overall: number;
   feedback: string;
+}
+
+// ─── CODE LAB (v2) ────────────────────────────────────────────────────────────
+
+export interface ChallengeTestResult {
+  passed: boolean;
+  testLabel: string;
+  actual: string;
+}
+
+export interface CodeReview {
+  suggestions: string[];
+  conceptTags: string[];
+}
+
+// ─── DEBATE ARENA (v2) ───────────────────────────────────────────────────────
+
+export type DebateFormat = 'classic' | 'devils-advocate' | 'steel-man' | 'socratic';
+export type DebateDifficulty = 'casual' | 'competitive' | 'academic';
+
+export interface ArgumentScore {
+  logic: number;
+  evidence: number;
+  persuasiveness: number;
+  relevance: number;
+  explanation: string;
+}
+
+// ─── STORY ENGINE (v2) ───────────────────────────────────────────────────────
+
+export type StoryMode = 'collaborative' | 'solo' | 'guided';
+export type StoryLength = 'short' | 'medium' | 'epic';
+export type WritingFocus = 'descriptive' | 'dialogue' | 'plot-twists' | 'character';
+
+export interface BranchChoice {
+  id: string;
+  text: string;
+  consequence: string;
+}
+
+export interface InlineSuggestion {
+  text: string;
+  type: 'sensory' | 'motivation' | 'tension' | 'vocabulary';
+}
+
+// ─── SQL DETECTIVE (v2) ──────────────────────────────────────────────────────
+
+export type CaseTheme = 'crime' | 'corporate' | 'archaeological' | 'medical';
+export type CaseDifficulty = 'rookie' | 'detective' | 'inspector' | 'chief';
+
+// ─── PRESENTATION (v2) ───────────────────────────────────────────────────────
+
+export type PresentationTheme = 'vivid' | 'ocean' | 'forest' | 'sunset' | 'midnight' | 'paper';
+export type PresentationAudience = 'class' | 'teacher' | 'parents' | 'competition';
+export type PresStructure = 'informative' | 'persuasive' | 'how-to' | 'compare-contrast' | 'timeline';
+
+// ─── GAMES (v2) ──────────────────────────────────────────────────────────────
+
+export interface FlashCard {
+  front: string;
+  back: string;
+}
+
+export interface ConceptNode {
+  id: string;
+  label: string;
+}
+
+export interface ConceptEdge {
+  fromId: string;
+  toId: string;
+  relationship: string;
+}
+
+export interface TrueFalseItem {
+  statement: string;
+  isTrue: boolean;
+  explanation: string;
 }
 
 // ─── SQL DETECTIVE ────────────────────────────────────────────────────────────
@@ -553,4 +631,132 @@ export interface Translations {
   feedback: string;
   // Auth
   continueAsGuest: string;
+  // ── Code Lab v2 ──────────────────────────────────────────────────────────
+  submitSolution: string;
+  testResults: string;
+  passedTests: string;
+  failedTests: string;
+  allTestsPassed: string;
+  explainError: string;
+  codeReview: string;
+  conceptTags: string;
+  difficultyTier: string;
+  nextChallenge: string;
+  hintsRemaining: string;
+  getHint: string;
+  // ── Debate Arena v2 ──────────────────────────────────────────────────────
+  debateFormat: string;
+  classicFormat: string;
+  devilsAdvocate: string;
+  steelMan: string;
+  socraticFormat: string;
+  debateDifficulty: string;
+  casualMode: string;
+  competitiveMode: string;
+  academicMode: string;
+  roundCount: string;
+  evidenceBtn: string;
+  rebuttalsBtn: string;
+  logic: string;
+  persuasiveness: string;
+  relevance: string;
+  strongestArg: string;
+  weakestArg: string;
+  whatOpponentSaid: string;
+  finalVerdict: string;
+  winVerdict: string;
+  drawVerdict: string;
+  lossVerdict: string;
+  // ── Story Engine v2 ──────────────────────────────────────────────────────
+  writingMode: string;
+  collaborativeMode: string;
+  soloMode: string;
+  guidedMode: string;
+  storyLength: string;
+  shortStory: string;
+  mediumStory: string;
+  epicStory: string;
+  writingFocus: string;
+  descriptiveFocus: string;
+  dialogueFocus: string;
+  plotTwistFocus: string;
+  characterFocus: string;
+  branchChoicePrompt: string;
+  suggestionLabel: string;
+  acceptSuggestion: string;
+  bestSentence: string;
+  vocabularyElevate: string;
+  readingLevel: string;
+  // ── SQL Detective v2 ─────────────────────────────────────────────────────
+  caseDifficulty: string;
+  rookieCase: string;
+  detectiveCase: string;
+  inspectorCase: string;
+  chiefCase: string;
+  caseTheme: string;
+  crimeTheme: string;
+  corporateTheme: string;
+  archaeologicalTheme: string;
+  medicalTheme: string;
+  evidenceLog: string;
+  queryExplainer: string;
+  optimalSolution: string;
+  efficiencyScore: string;
+  newCase: string;
+  // ── Educational Games v2 ─────────────────────────────────────────────────
+  flashcardBlitz: string;
+  flashcardBlitzDesc: string;
+  wordScramblePlus: string;
+  wordScramblePlusDesc: string;
+  bugHunt: string;
+  bugHuntDesc: string;
+  conceptConnector: string;
+  conceptConnectorDesc: string;
+  trueFalse: string;
+  trueFalseDesc: string;
+  pictureThis: string;
+  pictureThisDesc: string;
+  dailyChallenge: string;
+  highScore: string;
+  knowIt: string;
+  dontKnow: string;
+  connectConcepts: string;
+  selectRelationship: string;
+  causes: string;
+  requires: string;
+  opposes: string;
+  isTypeOf: string;
+  justifyConnection: string;
+  comboBonus: string;
+  cardsDeck: string;
+  timedMode: string;
+  relaxedMode: string;
+  coldFeedback: string;
+  warmFeedback: string;
+  hotFeedback: string;
+  fixItMode: string;
+  // ── Presentation Generator v2 ────────────────────────────────────────────
+  slideCount: string;
+  audiencePicker: string;
+  audienceClass: string;
+  audienceTeacher: string;
+  audienceParents: string;
+  audienceCompetition: string;
+  structureType: string;
+  informativeStructure: string;
+  persuasiveStructure: string;
+  howToStructure: string;
+  compareContrastStructure: string;
+  timelineStructure: string;
+  visualTheme: string;
+  editSlide: string;
+  regenerateSlide: string;
+  makeSimpler: string;
+  moreDetailed: string;
+  addSlide: string;
+  deleteSlide: string;
+  exportPptx: string;
+  presenterTimer: string;
+  generatingSlide: string;
+  includes: string;
 }

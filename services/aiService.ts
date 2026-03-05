@@ -1,5 +1,5 @@
 
-import { Message, Attachment, GradeLevel, Exercise, QuestionType, Lesson, AnswerEvaluation, UploadAnalysis, Subject, CodeLanguage, GameType, Presentation, CodingChallenge, GameQuestion, BuggyCode, DebateTurn, StoryChapter, StoryEvaluation, MysteryCase } from '../types';
+import { Message, Attachment, GradeLevel, Exercise, QuestionType, Lesson, AnswerEvaluation, UploadAnalysis, Subject, CodeLanguage, GameType, Presentation, PresentationSlide, CodingChallenge, GameQuestion, BuggyCode, DebateTurn, StoryChapter, StoryEvaluation, MysteryCase, ChallengeTestResult, CodeReview, ArgumentScore, BranchChoice, InlineSuggestion, CaseTheme, CaseDifficulty, PresentationAudience, PresStructure, ConceptNode, ConceptEdge, FlashCard, TrueFalseItem } from '../types';
 import { INITIAL_SYSTEM_INSTRUCTION } from '../constants';
 
 const HAIKU = 'claude-haiku-4-5-20251001';
@@ -493,9 +493,26 @@ export const generateCodingChallenge = async (
         javascript: 'JavaScript (Node.js)',
         java: 'Java',
         cpp: 'C++',
+        sql: 'SQL (SQLite)',
     };
 
-    const prompt = `Create a coding challenge in ${langNames[codeLanguage]} for a ${grade} student. Difficulty: ${difficulty}.
+    const isSql = codeLanguage === 'sql';
+    const prompt = isSql
+        ? `Create a SQL challenge for a ${grade} student. Difficulty: ${difficulty}.
+UI Language: ${targetLang} — write description and hints in ${targetLang}, SQL keywords in English.
+
+Return ONLY a JSON object (no markdown):
+{
+  "id": "ch-1",
+  "title": "challenge title in ${targetLang}",
+  "description": "2-3 sentence problem description in ${targetLang}. Describe the table schema and what query to write.",
+  "starterCode": "-- Write your SQL query here\\nSELECT ",
+  "expectedBehavior": "what columns/rows the query should return, in ${targetLang}",
+  "hints": ["hint 1 in ${targetLang}", "hint 2 in ${targetLang}"],
+  "xpValue": 75
+}
+Rules: challenge must involve 1-2 tables with clear column names; solvable in 1-3 SQL clauses; xpValue 50-150.`
+        : `Create a coding challenge in ${langNames[codeLanguage]} for a ${grade} student. Difficulty: ${difficulty}.
 Topic context: ${topic}
 UI Language: ${targetLang} — write description and hints in ${targetLang} but code in ${codeLanguage}.
 
@@ -814,4 +831,696 @@ Rules:
         messages: [{ role: 'user', content: prompt }] });
     if (!text) throw new Error('generateMystery: empty response');
     return parseJson(text) as MysteryCase;
+};
+
+// ─── STREAMING ────────────────────────────────────────────────────────────────
+
+export async function streamAI(
+    system: string,
+    userMessage: string,
+    onChunk: (text: string) => void,
+    onDone: (full: string) => void
+): Promise<void> {
+    const res = await fetch(`${API_BASE}/api/claude-stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            system,
+            messages: [{ role: 'user', content: userMessage }],
+            max_tokens: 4096,
+        }),
+    });
+    if (!res.ok || !res.body) throw new Error(`Stream failed: HTTP ${res.status}`);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let full = '';
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data:')) continue;
+            const data = trimmed.slice(5).trim();
+            if (data === '[DONE]') continue;
+            try {
+                const obj = JSON.parse(data);
+                if (obj.text) { full += obj.text; onChunk(obj.text); }
+            } catch { /* ignore parse errors */ }
+        }
+    }
+    onDone(full);
+}
+
+// ─── CODE LAB v2 ──────────────────────────────────────────────────────────────
+
+export const getSocraticHint = async (
+    code: string,
+    challengeDescription: string,
+    codeLanguage: string,
+    hintNumber: number,
+    grade: GradeLevel,
+    language: string
+): Promise<string> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `A ${grade} student is working on this coding challenge:
+"${challengeDescription}"
+
+Their current code:
+\`\`\`${codeLanguage}
+${code}
+\`\`\`
+
+This is hint #${hintNumber} of 3. Give a Socratic hint — ask a guiding question or give a very small nudge, NOT the full solution. Be encouraging. 1-2 sentences max. ALL text in ${targetLang}.`;
+    return await callClaude({ model: HAIKU, max_tokens: 256, messages: [{ role: 'user', content: prompt }] });
+};
+
+export const explainCodeError = async (
+    code: string,
+    stderr: string,
+    codeLanguage: string,
+    grade: GradeLevel,
+    language: string
+): Promise<string> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `A ${grade} student wrote this ${codeLanguage} code:
+\`\`\`
+${code}
+\`\`\`
+It produced this error:
+${stderr}
+
+Explain the error in plain language appropriate for a ${grade} student. Be encouraging and specific about what caused it and how to fix it. 3-4 sentences max. ALL text in ${targetLang}.`;
+    return await callClaude({ model: HAIKU, max_tokens: 512, messages: [{ role: 'user', content: prompt }] });
+};
+
+export const evaluateCodeSolution = async (
+    code: string,
+    codeLanguage: string,
+    expectedBehavior: string,
+    stdout: string
+): Promise<ChallengeTestResult[]> => {
+    const prompt = `A student wrote this ${codeLanguage} code to solve the following challenge:
+Expected behavior: "${expectedBehavior}"
+
+Student code:
+\`\`\`
+${code}
+\`\`\`
+
+Actual output:
+${stdout || '(no output)'}
+
+Evaluate against exactly 5 test cases relevant to this challenge. For each test case, determine if the student's code would likely pass based on the code logic and output.
+Return ONLY a JSON array (no markdown):
+[
+  { "passed": true, "testLabel": "Basic case", "actual": "Output matches" },
+  { "passed": false, "testLabel": "Edge case: empty input", "actual": "Would fail with empty list" },
+  { "passed": true, "testLabel": "Large numbers", "actual": "Handles correctly" },
+  { "passed": false, "testLabel": "Negative numbers", "actual": "No handling for negatives" },
+  { "passed": true, "testLabel": "Multiple values", "actual": "Works correctly" }
+]`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 1024, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return [];
+    try { return parseJson(text) as ChallengeTestResult[]; } catch { return []; }
+};
+
+export const reviewCode = async (
+    code: string,
+    codeLanguage: string,
+    grade: GradeLevel,
+    language: string
+): Promise<CodeReview> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Review this ${codeLanguage} code written by a ${grade} student and provide constructive feedback.
+\`\`\`
+${code}
+\`\`\`
+Return ONLY a JSON object (no markdown):
+{
+  "suggestions": [
+    "Specific improvement suggestion 1 in ${targetLang} — reference actual line or variable names",
+    "Specific improvement suggestion 2 in ${targetLang}",
+    "Specific improvement suggestion 3 in ${targetLang}"
+  ],
+  "conceptTags": ["loops", "variables", "functions"]
+}
+Suggestions must be constructive, specific (reference exact code), and grade-appropriate. Concept tags are English keywords. ALL suggestion text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 800, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return { suggestions: [], conceptTags: [] };
+    try { return parseJson(text) as CodeReview; } catch { return { suggestions: [], conceptTags: [] }; }
+};
+
+// ─── DEBATE ARENA v2 ──────────────────────────────────────────────────────────
+
+export const generateDebateTopicV2 = async (
+    subject: Subject,
+    format: string,
+    userSide: string,
+    difficulty: string,
+    grade: GradeLevel,
+    language: string
+): Promise<{ topic: string; aiSide: string; userSide: string; openingStatement: string }> => {
+    const targetLang = LANG_MAP[language] || language;
+    const aiSide = userSide === 'FOR' ? 'AGAINST' : 'FOR';
+    const formatDesc = {
+        'classic': `Classic debate: AI argues ${aiSide}, user argues ${userSide}`,
+        'devils-advocate': `Devil's Advocate: AI argues a position it might not actually support`,
+        'steel-man': `Steel Man: AI presents the absolute strongest possible argument for ${aiSide}`,
+        'socratic': `Socratic: AI only asks probing questions, never makes direct claims`,
+    }[format] || 'Classic debate';
+
+    const prompt = `Generate a ${difficulty} ${subject} debate topic for a ${grade} student.
+Format: ${formatDesc}
+Return ONLY a JSON object (no markdown):
+{
+  "topic": "A clear debatable statement under 15 words, topic text in ${targetLang}",
+  "aiSide": "${aiSide}",
+  "userSide": "${userSide}",
+  "openingStatement": "A compelling 2-3 sentence opening from the AI's perspective, in ${targetLang}"
+}
+Topic must be age-appropriate for ${grade}, with valid arguments on both sides. ALL text in ${targetLang}.`;
+
+    const text = await callClaude({ model: HAIKU, max_tokens: 600, messages: [{ role: 'user', content: prompt }] });
+    if (!text) throw new Error('generateDebateTopicV2: empty response');
+    return parseJson(text) as any;
+};
+
+export const evaluateDebateArgumentV2 = async (params: {
+    topic: string;
+    format: string;
+    difficulty: string;
+    aiSide: string;
+    userSide: string;
+    history: { role: string; text: string }[];
+    userArgument: string;
+    round: number;
+    totalRounds: number;
+    language: string;
+}): Promise<{ scores: ArgumentScore; counterArgument: string; overallFeedback?: string }> => {
+    const targetLang = LANG_MAP[params.language] || params.language;
+    const historyText = params.history.map(t => `${t.role}: ${t.text}`).join('\n');
+    const isLast = params.round >= params.totalRounds;
+
+    const prompt = `You are a ${params.difficulty} debate judge.
+Topic: "${params.topic}"
+Format: ${params.format} | AI argues: ${params.aiSide} | Student argues: ${params.userSide}
+Round: ${params.round}/${params.totalRounds}
+History:\n${historyText}
+Student's argument: "${params.userArgument}"
+
+Return ONLY a JSON object (no markdown):
+{
+  "scores": {
+    "logic": 7,
+    "evidence": 6,
+    "persuasiveness": 8,
+    "relevance": 7,
+    "explanation": "One sentence explaining the scores overall, in ${targetLang}"
+  },
+  "counterArgument": "Your 2-3 sentence response as the ${params.aiSide} side (${params.format === 'socratic' ? 'Ask 2 probing questions only, no claims' : 'Make a strong counter-argument'}), in ${targetLang}"${isLast ? `,
+  "overallFeedback": "2 sentence overall assessment of the student's debate performance, in ${targetLang}"` : ''}
+}
+Score 0-10 each: logic (reasoning quality), evidence (use of facts), persuasiveness (impact), relevance (stays on topic). ALL text in ${targetLang}.`;
+
+    const text = await callClaude({ model: HAIKU, max_tokens: 900, messages: [{ role: 'user', content: prompt }] });
+    if (!text) throw new Error('evaluateDebateArgumentV2: empty response');
+    return parseJson(text) as any;
+};
+
+export const suggestDebateEvidence = async (
+    topic: string,
+    side: string,
+    language: string
+): Promise<string[]> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `For the debate topic: "${topic}", suggest 3 real-world facts, studies, or examples that someone arguing ${side} could cite.
+Return ONLY a JSON array of 3 strings. Each string is one fact/evidence point, 1-2 sentences. Be specific and factual. ALL text in ${targetLang}.
+Example: ["Studies show X...", "In 2019, researchers found...", "A famous example is..."]`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 500, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return [];
+    try { return parseJson(text) as string[]; } catch { return []; }
+};
+
+export const identifyWeakPoint = async (
+    aiArgument: string,
+    language: string
+): Promise<string> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Identify the single weakest point in this argument WITHOUT writing a rebuttal for the student:
+"${aiArgument}"
+Return one sentence in ${targetLang} that identifies the vulnerability (e.g. "This argument assumes X without evidence" or "This overlooks the fact that..."). Do NOT write the rebuttal itself — just identify the weak point.`;
+    return await callClaude({ model: HAIKU, max_tokens: 200, messages: [{ role: 'user', content: prompt }] });
+};
+
+export const generateDebateSummary = async (
+    topic: string,
+    turns: { role: string; text: string; scores?: ArgumentScore }[],
+    language: string
+): Promise<{ strongestArg: string; weakestArg: string; whatOpponentCouldSay: string }> => {
+    const targetLang = LANG_MAP[language] || language;
+    const studentTurns = turns.filter(t => t.role === 'user').map(t => t.text).join('\n---\n');
+    const prompt = `Debate topic: "${topic}". Student's arguments: ${studentTurns}
+Return ONLY a JSON object (no markdown):
+{
+  "strongestArg": "Quote the student's best argument and explain in 1 sentence why it was effective, in ${targetLang}",
+  "weakestArg": "Quote the student's weakest argument and explain in 1 sentence what was missing, in ${targetLang}",
+  "whatOpponentCouldSay": "2-3 sentences showing what a strong opponent would have argued to counter the student, in ${targetLang}"
+}
+ALL text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 700, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return { strongestArg: '', weakestArg: '', whatOpponentCouldSay: '' };
+    try { return parseJson(text) as any; } catch { return { strongestArg: '', weakestArg: '', whatOpponentCouldSay: '' }; }
+};
+
+// ─── STORY ENGINE v2 ──────────────────────────────────────────────────────────
+
+export const generateStoryOpeningV2 = async (
+    subject: Subject,
+    genre: string,
+    mode: string,
+    writingFocus: string,
+    grade: GradeLevel,
+    language: string
+): Promise<{ title: string; opening: string; prompt: string; choices?: BranchChoice[] }> => {
+    const targetLang = LANG_MAP[language] || language;
+    const focusNote = writingFocus ? `Writing focus: emphasize ${writingFocus} throughout.` : '';
+    const guidedNote = mode === 'guided' ? 'Include 3 branching choices for the student to pick from.' : '';
+
+    const prompt = `Write a story opening for a ${grade} student. Subject: ${subject}. Genre: ${genre}. ${focusNote} ${guidedNote}
+Return ONLY a JSON object (no markdown):
+{
+  "title": "Story title in ${targetLang}",
+  "opening": "Gripping 120-160 word opening in ${targetLang} ending on a decision moment",
+  "prompt": "Short question asking what happens next, in ${targetLang}"${mode === 'guided' ? `,
+  "choices": [
+    { "id": "a", "text": "Choice A description (10-15 words) in ${targetLang}", "consequence": "This path leads to... (8 words) in ${targetLang}" },
+    { "id": "b", "text": "Choice B description in ${targetLang}", "consequence": "Consequence in ${targetLang}" },
+    { "id": "c", "text": "Choice C description in ${targetLang}", "consequence": "Consequence in ${targetLang}" }
+  ]` : ''}
+}
+ALL text in ${targetLang}.`;
+
+    const text = await callClaude({ model: HAIKU, max_tokens: 900, messages: [{ role: 'user', content: prompt }] });
+    if (!text) throw new Error('generateStoryOpeningV2: empty response');
+    return parseJson(text) as any;
+};
+
+export const continueStoryV2 = async (params: {
+    storyHistory: { role: string; text: string }[];
+    userContribution: string;
+    chapter: number;
+    totalChapters: number;
+    mode: string;
+    writingFocus: string;
+    acceptedSuggestions: string[];
+    language: string;
+}): Promise<{ continuation: string; nextPrompt?: string; suggestions?: InlineSuggestion[]; choices?: BranchChoice[]; evaluation?: StoryEvaluation }> => {
+    const targetLang = LANG_MAP[params.language] || params.language;
+    const isLast = params.chapter >= params.totalChapters;
+    const historyText = params.storyHistory.map(c => `[${c.role === 'ai' ? 'Story' : 'Student'}]: ${c.text}`).join('\n\n');
+    const focusNote = params.writingFocus ? `Coach for ${params.writingFocus}.` : '';
+    const branchEvery2 = params.chapter % 2 === 0 && !isLast && params.mode === 'collaborative';
+
+    const prompt = `You are a collaborative story writer. ${focusNote}
+Story so far:\n${historyText}
+Student wrote: "${params.userContribution}"
+Chapter: ${params.chapter}/${params.totalChapters}
+${params.acceptedSuggestions.length > 0 ? `Student accepted suggestions: ${params.acceptedSuggestions.join('; ')}` : ''}
+
+${isLast ? `Final chapter — write satisfying conclusion (100-140 words) and evaluate.
+Return ONLY JSON:
+{
+  "continuation": "Story conclusion in ${targetLang}",
+  "evaluation": {
+    "creativity": 75, "vocabulary": 80, "narrative": 70, "overall": 75,
+    "feedback": "2-3 sentence encouraging assessment in ${targetLang}"
+  }
+}` : `Continue story (100-130 words), incorporate student's contribution, end on cliffhanger.
+Return ONLY JSON:
+{
+  "continuation": "Next section in ${targetLang}",
+  "nextPrompt": "Short question in ${targetLang}",
+  "suggestions": [
+    { "text": "Coaching suggestion 1 (1 sentence) in ${targetLang}", "type": "sensory" },
+    { "text": "Coaching suggestion 2 in ${targetLang}", "type": "motivation" }
+  ]${branchEvery2 ? `,
+  "choices": [
+    { "id": "a", "text": "Branch choice A in ${targetLang}", "consequence": "Leads to... in ${targetLang}" },
+    { "id": "b", "text": "Branch choice B in ${targetLang}", "consequence": "Leads to... in ${targetLang}" },
+    { "id": "c", "text": "Branch choice C in ${targetLang}", "consequence": "Leads to... in ${targetLang}" }
+  ]` : ''}
+}`}
+ALL text in ${targetLang}.`;
+
+    const text = await callClaude({ model: HAIKU, max_tokens: 1200, messages: [{ role: 'user', content: prompt }] });
+    if (!text) throw new Error('continueStoryV2: empty response');
+    return parseJson(text) as any;
+};
+
+export const generateStorySummary = async (
+    userChapters: string[],
+    language: string
+): Promise<{ bestSentence: string; synopsis: string; vocabularyElevations: { word: string; suggestion: string }[] }> => {
+    const targetLang = LANG_MAP[language] || language;
+    const combined = userChapters.join('\n\n');
+    const prompt = `Analyze this student's story writing:
+${combined}
+
+Return ONLY a JSON object (no markdown):
+{
+  "bestSentence": "Quote the single best sentence the student wrote, then explain in 1 sentence why it works, in ${targetLang}",
+  "synopsis": "3-sentence story synopsis in ${targetLang}",
+  "vocabularyElevations": [
+    { "word": "big", "suggestion": "Consider 'enormous' or 'colossal'" },
+    { "word": "said", "suggestion": "Consider 'whispered' or 'exclaimed'" },
+    { "word": "good", "suggestion": "Consider 'exceptional' or 'remarkable'" }
+  ]
+}
+Vocabulary elevations: find 3 simple words in the student's writing that could be upgraded. ALL text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 700, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return { bestSentence: '', synopsis: '', vocabularyElevations: [] };
+    try { return parseJson(text) as any; } catch { return { bestSentence: '', synopsis: '', vocabularyElevations: [] }; }
+};
+
+// ─── SQL DETECTIVE v2 ─────────────────────────────────────────────────────────
+
+export const generateMysteryV2 = async (
+    subject: Subject,
+    grade: GradeLevel,
+    difficulty: CaseDifficulty,
+    theme: CaseTheme,
+    language: string
+): Promise<MysteryCase & { hints: [string, string, string]; conceptTags: string[] }> => {
+    const targetLang = LANG_MAP[language] || language;
+    const diffMap: Record<CaseDifficulty, string> = {
+        rookie: 'Use only SELECT, WHERE, and ORDER BY. 2 tables.',
+        detective: 'Use JOIN between 2-3 tables. Include GROUP BY.',
+        inspector: 'Use subqueries and complex WHERE conditions. 3-4 tables.',
+        chief: 'Use window functions (ROW_NUMBER, RANK), CTEs, or complex aggregations. 4-5 tables.',
+    };
+    const themeMap: Record<CaseTheme, string> = {
+        crime: 'crime/murder mystery with suspects, alibis, evidence',
+        corporate: 'corporate espionage with employees, projects, transactions',
+        archaeological: 'archaeological discovery with artifacts, excavation sites, researchers',
+        medical: 'medical mystery with patients, symptoms, treatments, doctors',
+    };
+
+    const prompt = `Create a ${theme} mystery case for a ${grade} student. ${diffMap[difficulty]}
+Theme: ${themeMap[theme]}
+Return ONLY a JSON object (no markdown):
+{
+  "title": "Mystery case title in ${targetLang}",
+  "description": "2-3 sentence case description in ${targetLang}",
+  "schemaDescription": "Human-readable schema description in ${targetLang} listing all tables and their purpose",
+  "pythonSetup": "Python 3 sqlite3 code: only c.execute() calls for CREATE TABLE and INSERT. No imports. Variables conn and c already exist.",
+  "suspects": ["Name1", "Name2", "Name3", "Name4", "Name5"],
+  "culprit": "Name1",
+  "clues": ["Clue 1 in ${targetLang}", "Clue 2 in ${targetLang}", "Clue 3 in ${targetLang}"],
+  "hints": [
+    "Tier 1 hint: which tables are relevant in ${targetLang}",
+    "Tier 2 hint: what JOIN or condition to use in ${targetLang}",
+    "Tier 3 hint: partial query structure like 'SELECT ... FROM table1 JOIN table2 ON ... WHERE ...'"
+  ],
+  "conceptTags": ["SELECT", "JOIN", "WHERE"]
+}
+ALL descriptive text in ${targetLang}. SQL code always in English.`;
+
+    const text = await callClaude({ model: HAIKU, max_tokens: 2500, messages: [{ role: 'user', content: prompt }] });
+    if (!text) throw new Error('generateMysteryV2: empty response');
+    return parseJson(text) as any;
+};
+
+export const explainSqlQuery = async (
+    query: string,
+    schemaDescription: string,
+    grade: GradeLevel,
+    language: string
+): Promise<string> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Explain this SQL query clause-by-clause for a ${grade} student. Schema: ${schemaDescription}
+Query: ${query}
+Write a plain English explanation (3-6 sentences) covering what each major clause does and what the result would look like. Be encouraging. ALL in ${targetLang}.`;
+    return await callClaude({ model: HAIKU, max_tokens: 500, messages: [{ role: 'user', content: prompt }] });
+};
+
+export const evaluateSqlEfficiency = async (
+    userQuery: string,
+    schemaDescription: string,
+    language: string
+): Promise<{ score: number; optimalQuery: string; explanation: string }> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Evaluate the efficiency of this SQL query against the schema: ${schemaDescription}
+User query: ${userQuery}
+Return ONLY a JSON object (no markdown):
+{
+  "score": 75,
+  "optimalQuery": "The most efficient SQL query for this task",
+  "explanation": "2-3 sentences comparing user's query to optimal, in ${targetLang}. Be encouraging."
+}
+Score 0-100: penalize SELECT *, unnecessary subqueries, missing indexes, redundant conditions. ALL text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 600, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return { score: 70, optimalQuery: userQuery, explanation: '' };
+    try { return parseJson(text) as any; } catch { return { score: 70, optimalQuery: userQuery, explanation: '' }; }
+};
+
+// ─── GAMES v2 ─────────────────────────────────────────────────────────────────
+
+export const generateWordScrambleItems = async (
+    subject: Subject,
+    grade: GradeLevel,
+    language: string
+): Promise<{ word: string; definition: string; etymology: string; mode: 'unscramble' | 'fill-blank' | 'anagram' }[]> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Generate 10 vocabulary word quiz items for a ${grade} student studying ${subject}.
+Each item has a word, definition, etymology note, and a rotation through 3 modes.
+Return ONLY a JSON array (no markdown):
+[
+  { "word": "photosynthesis", "definition": "Process plants use to make food from sunlight", "etymology": "Greek: photo=light, synthesis=putting together", "mode": "unscramble" },
+  { "word": "mitosis", "definition": "Cell division producing identical cells", "etymology": "Greek: mitos=thread", "mode": "fill-blank" },
+  { "word": "ecosystem", "definition": "All living and non-living things in an area", "etymology": "Greek: oikos=house, systema=system", "mode": "anagram" }
+]
+Rotate modes evenly. ALL text (except the word itself) in ${targetLang}. Pick grade-appropriate vocabulary.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 2000, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return [];
+    try { return parseJson(text); } catch { return []; }
+};
+
+export const generateFlashcards = async (
+    subject: Subject,
+    grade: GradeLevel,
+    language: string
+): Promise<FlashCard[]> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Generate 15 flashcards for ${subject} at ${grade} level.
+Return ONLY a JSON array (no markdown):
+[{ "front": "Term or concept in ${targetLang}", "back": "Clear definition in ${targetLang}" }]
+Use grade-appropriate vocabulary. ALL text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 2000, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return [];
+    try { return parseJson(text) as FlashCard[]; } catch { return []; }
+};
+
+export const generateTrueFalseItems = async (
+    subject: Subject,
+    grade: GradeLevel,
+    language: string
+): Promise<TrueFalseItem[]> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Generate 20 true/false statements about ${subject} for a ${grade} student. Mix of true and false (roughly half each).
+Return ONLY a JSON array (no markdown):
+[{ "statement": "Statement in ${targetLang}", "isTrue": true, "explanation": "Brief explanation in ${targetLang} (1 sentence)" }]
+ALL text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 3000, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return [];
+    try { return parseJson(text) as TrueFalseItem[]; } catch { return []; }
+};
+
+export const generateConceptMap = async (
+    subject: Subject,
+    grade: GradeLevel,
+    language: string
+): Promise<{ nodes: ConceptNode[]; idealEdges: ConceptEdge[] }> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Generate a concept map for ${subject} at ${grade} level with exactly 8 concepts and their relationships.
+Return ONLY a JSON object (no markdown):
+{
+  "nodes": [
+    { "id": "1", "label": "Concept name in ${targetLang}" },
+    ... (8 nodes total)
+  ],
+  "idealEdges": [
+    { "fromId": "1", "toId": "2", "relationship": "causes" },
+    ... (at least 6 edges, using: causes/requires/opposes/is-type-of/contributes)
+  ]
+}
+ALL node labels in ${targetLang}. Relationships always in English (causes/requires/opposes/is-type-of/contributes).`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 1500, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return { nodes: [], idealEdges: [] };
+    try { return parseJson(text) as any; } catch { return { nodes: [], idealEdges: [] }; }
+};
+
+export const evaluateConceptConnections = async (
+    nodes: ConceptNode[],
+    userEdges: (ConceptEdge & { justification: string })[],
+    idealEdges: ConceptEdge[],
+    language: string
+): Promise<{ edgeScores: { fromId: string; toId: string; score: number; feedback: string }[]; totalScore: number }> => {
+    const targetLang = LANG_MAP[language] || language;
+    const nodesDesc = nodes.map(n => `${n.id}: ${n.label}`).join(', ');
+    const userDesc = userEdges.map(e => `${e.fromId}→${e.toId} [${e.relationship}]: "${e.justification}"`).join('\n');
+    const idealDesc = idealEdges.map(e => `${e.fromId}→${e.toId} [${e.relationship}]`).join(', ');
+
+    const prompt = `Evaluate student's concept connections for ${nodesDesc}.
+Ideal connections: ${idealDesc}
+Student's connections:\n${userDesc}
+
+Return ONLY a JSON object (no markdown):
+{
+  "edgeScores": [
+    { "fromId": "1", "toId": "2", "score": 8, "feedback": "Correct connection. ${targetLang}" }
+  ],
+  "totalScore": 75
+}
+Score each edge 0-10: is relationship correct? Is justification valid? totalScore is 0-100. ALL feedback in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 1000, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return { edgeScores: [], totalScore: 0 };
+    try { return parseJson(text) as any; } catch { return { edgeScores: [], totalScore: 0 }; }
+};
+
+export const generatePictureThisQuestions = async (
+    subject: Subject,
+    grade: GradeLevel,
+    language: string
+): Promise<{ question: string; options: string[]; correctIndex: number; explanation: string }[]> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Generate 15 "Picture This" quiz questions for ${subject} at ${grade} level.
+Each question describes a concept visually and has 4 text-based option descriptions.
+Return ONLY a JSON array (no markdown):
+[{
+  "question": "Which of these best describes photosynthesis?",
+  "options": ["A process that breaks down food", "A process that uses sunlight to make food", "A process that pumps water", "A process that makes seeds"],
+  "correctIndex": 1,
+  "explanation": "Brief explanation in ${targetLang}"
+}]
+Use descriptive, visual language. Make wrong options plausible. ALL text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 3000, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return [];
+    try { return parseJson(text) as any[]; } catch { return []; }
+};
+
+// ─── PRESENTATION GENERATOR v2 ────────────────────────────────────────────────
+
+export const generatePresentationV2 = async (
+    topic: string,
+    subject: Subject,
+    grade: GradeLevel,
+    slideCount: number,
+    audience: PresentationAudience,
+    structure: PresStructure,
+    includes: { toc: boolean; summary: boolean; qa: boolean; references: boolean },
+    language: string
+): Promise<Presentation> => {
+    const targetLang = LANG_MAP[language] || language;
+    const audienceDesc = { class: 'classmates', teacher: 'a teacher', parents: 'parents', competition: 'a competition panel' }[audience];
+    const structureDesc = { informative: 'informative/educational', persuasive: 'persuasive/argumentative', 'how-to': 'step-by-step how-to guide', 'compare-contrast': 'compare and contrast', timeline: 'chronological timeline' }[structure];
+    const extras: string[] = [];
+    if (includes.toc) extras.push('table of contents slide');
+    if (includes.summary) extras.push('summary slide');
+    if (includes.qa) extras.push('Q&A slide');
+    if (includes.references) extras.push('references slide');
+
+    const totalSlides = slideCount + (extras.length > 0 ? extras.length : 0);
+
+    const prompt = `Create a ${slideCount}-slide ${structureDesc} presentation about "${topic}" for a ${grade} student presenting to ${audienceDesc}.
+${extras.length > 0 ? `Also include: ${extras.join(', ')}.` : ''}
+Total slides: ${totalSlides}
+Return ONLY a JSON object (no markdown):
+{
+  "title": "Presentation title in ${targetLang}",
+  "subject": "${subject}",
+  "totalSlides": ${totalSlides},
+  "slides": [
+    {
+      "slideNumber": 1,
+      "title": "Slide title in ${targetLang}",
+      "layout": "title",
+      "bullets": ["Point 1 in ${targetLang}", "Point 2 in ${targetLang}"],
+      "body": "Optional body text in ${targetLang}",
+      "imageKeyword": "keyword for image search",
+      "speakerNotes": "Speaker notes in ${targetLang}"
+    }
+  ]
+}
+Layouts: "title" for first slide, "content" for most slides, "split" when an image would help.
+Make it ${audience}-appropriate in tone and complexity. ALL text in ${targetLang}.`;
+
+    const text = await callClaude({ model: HAIKU, max_tokens: 6000, messages: [{ role: 'user', content: prompt }] });
+    if (!text) throw new Error('generatePresentationV2: empty response');
+    return parseJson(text) as Presentation;
+};
+
+export const regenerateSlide = async (
+    slide: PresentationSlide,
+    topic: string,
+    subject: Subject,
+    audience: string,
+    structure: string,
+    grade: GradeLevel,
+    language: string
+): Promise<PresentationSlide> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Rewrite this presentation slide about "${topic}" (${subject}, ${structure} structure, for ${audience}, ${grade} level).
+Current slide: ${JSON.stringify(slide)}
+Return ONLY a JSON object with the same structure as the input slide but with fresh content. ALL text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 800, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return slide;
+    try { return parseJson(text) as PresentationSlide; } catch { return slide; }
+};
+
+export const adjustSlideComplexity = async (
+    slide: PresentationSlide,
+    direction: 'simpler' | 'detailed',
+    grade: GradeLevel,
+    language: string
+): Promise<PresentationSlide> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Make this presentation slide ${direction === 'simpler' ? 'simpler and more accessible' : 'more detailed and comprehensive'} for a ${grade} student.
+Current slide: ${JSON.stringify(slide)}
+Return ONLY a JSON object with the same structure but ${direction === 'simpler' ? 'shorter bullets, simpler vocabulary' : 'more bullets, deeper explanations, more detail'}. ALL text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 800, messages: [{ role: 'user', content: prompt }] });
+    if (!text) return slide;
+    try { return parseJson(text) as PresentationSlide; } catch { return slide; }
+};
+
+export const addSlideBetween = async (
+    prevSlide: PresentationSlide,
+    nextSlide: PresentationSlide,
+    topic: string,
+    grade: GradeLevel,
+    language: string
+): Promise<PresentationSlide> => {
+    const targetLang = LANG_MAP[language] || language;
+    const prompt = `Create a new presentation slide that logically fits between these two slides about "${topic}" for a ${grade} student.
+Previous slide: "${prevSlide.title}" — ${prevSlide.bullets.join(', ')}
+Next slide: "${nextSlide.title}" — ${nextSlide.bullets.join(', ')}
+Return ONLY a JSON object:
+{
+  "slideNumber": ${prevSlide.slideNumber + 1},
+  "title": "Bridge slide title in ${targetLang}",
+  "layout": "content",
+  "bullets": ["3-4 bullet points in ${targetLang}"],
+  "body": "",
+  "imageKeyword": "keyword",
+  "speakerNotes": "Speaker notes in ${targetLang}"
+}
+ALL text in ${targetLang}.`;
+    const text = await callClaude({ model: HAIKU, max_tokens: 600, messages: [{ role: 'user', content: prompt }] });
+    if (!text) throw new Error('addSlideBetween: empty response');
+    return parseJson(text) as PresentationSlide;
 };
