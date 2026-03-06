@@ -146,7 +146,7 @@ app.post('/api/claude', async (req, res) => {
 
     const response = await groq.chat.completions.create({
       model,
-      max_tokens: max_tokens ?? 8192,
+      max_tokens: max_tokens ?? 12000,
       messages: fullMessages,
     });
 
@@ -182,7 +182,7 @@ app.post('/api/claude-stream', async (req, res) => {
 
     const stream = await groq.chat.completions.create({
       model: TEXT_MODEL,
-      max_tokens: max_tokens ?? 8192,
+      max_tokens: max_tokens ?? 12000,
       messages: fullMessages,
       stream: true,
     });

@@ -1505,16 +1505,47 @@ Theme examples by topic:
 - Health / medicine / biology → CCFBF1 / 042F2E / 0D9488 / 0F766E
 - Business / economy / finance → D1FAE5 / 022C22 / 065F46 / 047857
 
-SLIDE RULES:
-- Every bullet must be a complete sentence of 8+ words — never a fragment
-- Each slide covers ONE specific idea in depth
-- Slide 1: layout "title", compelling subtitle in body field, hook in first bullet
-- Use layout "quote" for powerful statements or famous quotes
-- Use layout "split" for slides that benefit from an image alongside content
-- Use layout "content" for all other slides
-- Second-to-last slide: real-world case study or concrete example
-- Last slide: 3 specific actionable takeaways
-- speakerNotes: 3-4 sentences of actual talking points per slide
+CONTENT RULES — this is the most important part:
+
+Every slide must feel like a mini-lesson, not a bullet list summary.
+Write like an expert who knows this topic deeply and wants to teach it properly.
+
+BULLETS:
+- Every bullet must be 15-25 words — a full, informative sentence with real substance
+- Never write a fragment like "Important impact on society" — always explain the what, why, or how
+- Each bullet must contain a specific fact, date, number, name, or concrete detail
+- Bad: "Rosa Parks refused to give up her seat"
+- Good: "On December 1, 1955, Rosa Parks refused to give her bus seat to a white passenger, triggering a 381-day boycott that crippled Montgomery's transit system financially."
+- Aim for 5-6 bullets per content slide, each one teaching something new and specific
+
+BODY FIELD:
+- For content slides: write 2-3 sentences of context or background that sets up the bullets
+- For title slides: write a compelling hook sentence that makes the audience want to keep watching
+- For quote slides: the full quote, not truncated
+
+SPEAKER NOTES:
+- Write 5-6 sentences of actual talking points an educator would say out loud
+- Include anecdotes, surprising facts, questions to ask the audience, or transitions to the next slide
+- These should feel like a real teacher's script, not a summary of the bullets
+
+SLIDE STRUCTURE for ${slideCount} slides:
+- Slide 1: title layout — bold hook subtitle, first bullet is a surprising or counterintuitive fact
+- Slides 2 to ${slideCount - 2}: content or split layouts — go deep on each subtopic, one idea per slide
+- Slide ${slideCount - 1}: real-world case study with specific names, dates, and outcomes
+- Slide ${slideCount}: 3 specific actionable takeaways written as full sentences with concrete next steps
+
+DEPTH REQUIREMENT:
+Each slide should contain enough information that someone could learn something genuinely new from it.
+Do not write generic overview content. Write specific, detailed, educational content.
+If the topic is "Rosa Parks", don't just say she was brave — explain the NAACP strategy, the specific laws, the economic impact, the names of other people involved.
+If the topic is "Photosynthesis", don't just say plants use sunlight — explain the light-dependent reactions, the Calvin cycle, the specific molecules involved.
+
+LAYOUT RULES:
+- layout "title": only slide 1
+- layout "quote": any slide built around a single powerful statement or famous quote
+- layout "split": any slide with a visual example, comparison, or case study
+- layout "content": everything else
+
 - imageKeyword: specific searchable 2-3 word term for split slides
 
 ${includes.toc ? `Include a Table of Contents slide (counted within the ${slideCount} total).` : ''}
@@ -1541,7 +1572,7 @@ Each slide object:
 
 Respond ONLY with valid JSON. No markdown, no explanation, no code fences.`;
 
-    const text = await callClaude({ model: HAIKU, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] });
+    const text = await callClaude({ model: HAIKU, max_tokens: 12000, messages: [{ role: 'user', content: prompt }] });
     if (!text) throw new Error('generatePresentationV2: empty response');
     const result = parseJson(text) as Presentation & { theme?: any };
     // Enforce slide count
