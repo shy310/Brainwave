@@ -25,13 +25,10 @@ interface Props {
 
 // ── Fallback theme (used before AI returns a topic-specific one) ───────────────
 const FALLBACK_THEME = {
-  bg: 'from-violet-700 via-indigo-700 to-purple-800',
-  text: 'white',
-  bgHex: '2E1065',
-  midHex: '3B0764',
-  accentHex: 'A78BFA',
-  lightHex: 'EDE9FE',
-  darkHex: '0D0621',
+  bgHex: 'DBEAFE',
+  textHex: '1E3A5F',
+  accentHex: '1D4ED8',
+  darkHex: '1E40AF',
 };
 
 const SLIDE_COUNTS = [5, 8, 10, 15, 20];
@@ -68,15 +65,11 @@ const PresentationView: React.FC<Props> = ({
   const [showNotes, setShowNotes] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
-  const [autoTheme, setAutoTheme] = useState<{ bg: string; bgHex: string; midHex?: string; accentHex: string; lightHex: string; darkHex: string } | null>(null);
+  const [autoTheme, setAutoTheme] = useState<{ bgHex: string; textHex: string; accentHex: string; darkHex: string } | null>(null);
 
   const applyTheme = (theme: any) => {
     if (!theme) { setAutoTheme(null); return; }
-    const r = parseInt(theme.bgHex.slice(0, 2), 16);
-    const g = parseInt(theme.bgHex.slice(2, 4), 16);
-    const b = parseInt(theme.bgHex.slice(4, 6), 16);
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    setAutoTheme(brightness > 180 ? FALLBACK_THEME : theme);
+    setAutoTheme(theme);
   };
 
   // Editor
@@ -299,142 +292,160 @@ const PresentationView: React.FC<Props> = ({
       const pptxgen = (await import('pptxgenjs')).default;
       const prs = new pptxgen();
       prs.layout = slideSize === '4:3' ? 'LAYOUT_4x3' : 'LAYOUT_WIDE';
-
-      const th = autoTheme ?? FALLBACK_THEME;
-      const bg = th.bgHex;
-      const mid = th.midHex ?? th.bgHex;
-      const acc = th.accentHex;
-      const lt = th.lightHex;
-      const dk = th.darkHex;
-      const txt = 'FFFFFF';
-      const muted = 'FFFFFF';
       const W = slideSize === '4:3' ? 10.0 : 13.33;
       const H = 7.5;
 
+      const bg = themeInfo.bgHex;
+      const acc = themeInfo.accentHex;
+      const txt = themeInfo.textHex;
+
       for (const slide of presentation.slides) {
         const s = prs.addSlide();
-        // pptxgenjs doesn't support gradient slide backgrounds — use flat darkest
-        // color as base, then layer a gradient rectangle as the first shape
-        s.background = { color: dk };
-
-        // ── Full-slide gradient rectangle (must be FIRST shape, behind everything) ──
-        s.addShape(prs.ShapeType.rect, {
-          x: 0, y: 0, w: W, h: H,
-          fill: {
-            type: 'gradient',
-            stops: [
-              { position: 0,   color: bg,  transparency: 0 },
-              { position: 50,  color: mid, transparency: 0 },
-              { position: 100, color: dk,  transparency: 0 },
-            ],
-            angle: 135,
-          } as any,
-          line: { type: 'none' },
-        });
+        s.background = { color: bg };
 
         const isTitle = slide.layout === 'title';
         const isQuote = slide.layout === 'quote';
 
-        // ── Shared decorative shapes (positions mirror SVG viewBox 800×450 → inches) ──
-        // Large circle top-right (SVG cx=780 cy=-30 r=220 → x=9.34 y=-4.17 w=7.33)
-        s.addShape(prs.ShapeType.ellipse, {
-          x: 9.34, y: -4.17, w: 7.33, h: 7.33,
-          fill: { color: lt, transparency: 88 },
-          line: { type: 'none' },
-        });
-        // Medium accent circle (SVG cx=720 cy=60 r=120 → x=9.2 y=-0.59 w=4.0)
-        s.addShape(prs.ShapeType.ellipse, {
-          x: 9.2, y: -0.59, w: 4.0, h: 4.0,
-          fill: { color: acc, transparency: 78 },
-          line: { type: 'none' },
-        });
-        // Bottom-left circle (SVG cx=-40 cy=490 r=180 → x=-3.67 y=5.17 w=6.0)
-        s.addShape(prs.ShapeType.ellipse, {
-          x: -3.67, y: 5.17, w: 6.0, h: 6.0,
-          fill: { color: dk, transparency: 72 },
-          line: { type: 'none' },
+        // ── CORNER ARCS (all slides) ──
+        const corners = [
+          { cx: 0, cy: 0 },
+          { cx: W, cy: 0 },
+          { cx: 0, cy: H },
+          { cx: W, cy: H },
+        ];
+        const radii   = [1.4, 1.0, 0.65];
+        const strokes = [25, 18, 12];
+
+        corners.forEach(({ cx, cy }) => {
+          radii.forEach((r, i) => {
+            s.addShape(prs.ShapeType.ellipse, {
+              x: cx - r, y: cy - r, w: r * 2, h: r * 2,
+              fill: { color: acc, transparency: 100 },
+              line: { color: acc, transparency: strokes[i], width: 16 },
+            });
+          });
         });
 
         if (isTitle) {
-          // Bottom accent bar (SVG x=0 y=420 w=800 h=6 → y=7.4 h=0.1)
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 7.4, w: W, h: 0.1, fill: { color: acc, transparency: 40 }, line: { type: 'none' } });
-          // Diagonal stripe (SVG x=520 w=60 → x=8.67 w=1.0)
-          s.addShape(prs.ShapeType.rect, { x: 8.67, y: 0, w: 1.0, h: H, fill: { color: acc, transparency: 88 }, line: { type: 'none' } });
-          // Dot row (SVG cx=60+i*28 cy=390 → x=1.0+i*0.47 y=6.5)
-          for (let i = 0; i < 5; i++) {
-            s.addShape(prs.ShapeType.ellipse, { x: 1.0 + i * 0.47, y: 6.5, w: 0.12, h: 0.12, fill: { color: lt, transparency: 50 }, line: { type: 'none' } });
-          }
           // Tag pill
-          s.addShape(prs.ShapeType.roundRect, { x: 3.8, y: 2.1, w: 2.8, h: 0.38, fill: { color: acc, transparency: 75 }, line: { color: acc, transparency: 60 }, rectRadius: 0.12 });
-          s.addText('✦  PRESENTATION', { x: 3.8, y: 2.1, w: 2.8, h: 0.38, fontSize: 8, bold: true, color: txt, align: 'center', valign: 'middle', charSpacing: 3 });
+          s.addShape(prs.ShapeType.roundRect, {
+            x: W/2 - 1.4, y: 1.8, w: 2.8, h: 0.38,
+            fill: { color: acc, transparency: 85 },
+            line: { color: acc, transparency: 60 },
+            rectRadius: 0.12,
+          });
+          s.addText('✦  PRESENTATION', {
+            x: W/2 - 1.4, y: 1.8, w: 2.8, h: 0.38,
+            fontSize: 8, bold: true, color: acc,
+            align: 'center', valign: 'middle', charSpacing: 3,
+          });
           // Title
-          s.addText(slide.title, { x: 0.8, y: 2.6, w: W - 1.6, h: 2.0, fontSize: 48, bold: true, color: txt, align: 'center', valign: 'middle', wrap: true });
+          s.addText(slide.title, {
+            x: 1.0, y: 2.3, w: W - 2.0, h: 2.2,
+            fontSize: 44, bold: true, color: txt,
+            align: 'center', valign: 'middle', wrap: true,
+          });
           // Subtitle
           if (slide.body) {
-            s.addText(slide.body, { x: 1.8, y: 4.7, w: W - 3.6, h: 0.7, fontSize: 16, color: muted, align: 'center', italic: true, transparency: 35 });
+            s.addText(slide.body, {
+              x: 2.0, y: 4.6, w: W - 4.0, h: 0.7,
+              fontSize: 16, color: txt, align: 'center', italic: true, transparency: 40,
+            });
           }
-          // Divider dots
-          s.addShape(prs.ShapeType.ellipse, { x: 5.9, y: 5.5, w: 0.1, h: 0.1, fill: { color: txt, transparency: 55 }, line: { type: 'none' } });
-          s.addShape(prs.ShapeType.rect, { x: 4.6, y: 5.53, w: 1.2, h: 0.04, fill: { color: txt, transparency: 60 }, line: { type: 'none' } });
-          s.addShape(prs.ShapeType.ellipse, { x: 6.1, y: 5.5, w: 0.1, h: 0.1, fill: { color: txt, transparency: 55 }, line: { type: 'none' } });
-          s.addShape(prs.ShapeType.rect, { x: 6.3, y: 5.53, w: 1.2, h: 0.04, fill: { color: txt, transparency: 60 }, line: { type: 'none' } });
+          // Divider
+          s.addShape(prs.ShapeType.rect, { x: W/2 - 1.2, y: 5.45, w: 1.0, h: 0.04, fill: { color: acc, transparency: 50 }, line: { type: 'none' } });
+          s.addShape(prs.ShapeType.rect, { x: W/2 + 0.25, y: 5.45, w: 1.0, h: 0.04, fill: { color: acc, transparency: 50 }, line: { type: 'none' } });
+          s.addShape(prs.ShapeType.ellipse, { x: W/2 - 0.08, y: 5.38, w: 0.18, h: 0.18, fill: { color: acc, transparency: 30 }, line: { type: 'none' } });
 
         } else if (isQuote) {
-          // Bold left bar (two layers)
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: 0.22, h: H, fill: { color: acc, transparency: 20 }, line: { type: 'none' } });
-          s.addShape(prs.ShapeType.rect, { x: 0.22, y: 0, w: 0.08, h: H, fill: { color: acc, transparency: 65 }, line: { type: 'none' } });
-          // Dot cluster top-right
-          for (let i = 0; i < 3; i++) {
-            s.addShape(prs.ShapeType.ellipse, { x: W - 1.2 + i * 0.28, y: 0.5, w: 0.16, h: 0.16, fill: { color: acc, transparency: 50 }, line: { type: 'none' } });
-          }
-          // Bottom accent line
-          s.addShape(prs.ShapeType.rect, { x: 0.6, y: H - 0.6, w: 3.0, h: 0.05, fill: { color: acc, transparency: 40 }, line: { type: 'none' } });
-          // Giant quote mark
-          s.addText('\u201C', { x: 0.5, y: 0.1, w: 2.5, h: 1.8, fontSize: 110, bold: true, color: txt, transparency: 80, fontFace: 'Georgia' });
+          // Left bar
+          s.addShape(prs.ShapeType.rect, {
+            x: 0, y: 0, w: 0.18, h: H,
+            fill: { color: acc, transparency: 0 },
+            line: { type: 'none' },
+          });
+          // Quote mark
+          s.addText('\u201C', {
+            x: 0.5, y: 0.2, w: 2.5, h: 1.8,
+            fontSize: 100, bold: true, color: acc,
+            transparency: 65, fontFace: 'Georgia',
+          });
           // Quote body
-          s.addText(slide.body || slide.bullets[0] || '', { x: 0.7, y: 1.5, w: W - 1.4, h: 3.2, fontSize: 24, italic: true, bold: true, color: txt, align: 'left', valign: 'middle', wrap: true, lineSpacingMultiple: 1.3 });
+          s.addText(slide.body || slide.bullets[0] || '', {
+            x: 0.7, y: 1.6, w: W - 1.4, h: 3.0,
+            fontSize: 22, italic: true, bold: true, color: txt,
+            align: 'left', valign: 'middle', wrap: true,
+          });
           // Attribution
-          s.addShape(prs.ShapeType.rect, { x: 0.7, y: 4.85, w: 0.6, h: 0.05, fill: { color: acc, transparency: 30 }, line: { type: 'none' } });
-          s.addText(`${slide.title}`, { x: 1.45, y: 4.75, w: 6, h: 0.35, fontSize: 12, bold: true, color: muted, charSpacing: 2, transparency: 30 });
+          s.addShape(prs.ShapeType.rect, { x: 0.7, y: 4.8, w: 0.5, h: 0.05, fill: { color: acc, transparency: 0 }, line: { type: 'none' } });
+          s.addText(slide.title, {
+            x: 1.35, y: 4.7, w: 6, h: 0.35,
+            fontSize: 12, bold: true, color: acc, charSpacing: 2,
+          });
 
         } else {
-          // Top accent bar (SVG y=0 h=5 → h=0.08)
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.08, fill: { color: acc, transparency: 45 }, line: { type: 'none' } });
-          // Left sidebar (two layers, SVG x=0 w=12 + x=12 w=6)
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: 0.2, h: H, fill: { color: acc, transparency: 50 }, line: { type: 'none' } });
-          s.addShape(prs.ShapeType.rect, { x: 0.2, y: 0, w: 0.1, h: H, fill: { color: acc, transparency: 78 }, line: { type: 'none' } });
-          // Right edge bar (SVG x=790 w=10 → x=13.17 w=0.17)
-          s.addShape(prs.ShapeType.rect, { x: W - 0.17, y: 0, w: 0.17, h: H, fill: { color: acc, transparency: 20 }, line: { type: 'none' } });
-          // Dot grid bottom-right (SVG cx=680+col*20 cy=340+row*20 → x=11.34+col*0.33 y=5.67+row*0.33)
-          for (let row = 0; row < 3; row++) {
-            for (let col = 0; col < 4; col++) {
-              s.addShape(prs.ShapeType.ellipse, { x: 11.34 + col * 0.33, y: 5.67 + row * 0.33, w: 0.1, h: 0.1, fill: { color: acc, transparency: 60 }, line: { type: 'none' } });
-            }
-          }
-          // Diamond accent
-          s.addShape(prs.ShapeType.rect, { x: W - 3.2, y: 0.6, w: 0.2, h: 0.2, fill: { color: lt, transparency: 55 }, line: { type: 'none' } });
+          // Top accent bar
+          s.addShape(prs.ShapeType.rect, {
+            x: 0, y: 0, w: W, h: 0.12,
+            fill: { color: acc, transparency: 0 },
+            line: { type: 'none' },
+          });
           // Slide number badge
-          s.addShape(prs.ShapeType.roundRect, { x: 0.4, y: 0.3, w: 0.65, h: 0.38, fill: { color: acc, transparency: 65 }, line: { color: acc, transparency: 85 }, rectRadius: 0.06 });
-          s.addText(String(slide.slideNumber).padStart(2, '0'), { x: 0.4, y: 0.3, w: 0.65, h: 0.38, fontSize: 11, bold: true, color: txt, align: 'center', valign: 'middle' });
-          // Horizontal rule
-          s.addShape(prs.ShapeType.rect, { x: 1.2, y: 0.47, w: W - 4.5, h: 0.025, fill: { color: txt, transparency: 82 }, line: { type: 'none' } });
+          s.addShape(prs.ShapeType.roundRect, {
+            x: 0.5, y: 0.3, w: 0.65, h: 0.38,
+            fill: { color: acc, transparency: 75 },
+            line: { type: 'none' },
+            rectRadius: 0.06,
+          });
+          s.addText(String(slide.slideNumber).padStart(2, '0'), {
+            x: 0.5, y: 0.3, w: 0.65, h: 0.38,
+            fontSize: 11, bold: true, color: acc, align: 'center', valign: 'middle',
+          });
+          // Rule
+          s.addShape(prs.ShapeType.rect, {
+            x: 1.3, y: 0.47, w: W - 4.0, h: 0.025,
+            fill: { color: acc, transparency: 65 },
+            line: { type: 'none' },
+          });
           // Title
           const contentW = slide.layout === 'split' ? 6.0 : W - 1.2;
-          s.addText(slide.title, { x: 0.4, y: 0.8, w: contentW, h: 1.1, fontSize: 30, bold: true, color: txt, wrap: true, valign: 'top' });
+          s.addText(slide.title, {
+            x: 0.5, y: 0.8, w: contentW, h: 1.1,
+            fontSize: 30, bold: true, color: txt, wrap: true, valign: 'top',
+          });
           // Bullets
           slide.bullets.slice(0, 5).forEach((b, i) => {
-            const yPos = 2.05 + i * 0.88;
-            s.addShape(prs.ShapeType.roundRect, { x: 0.4, y: yPos, w: 0.32, h: 0.32, fill: { color: acc, transparency: 62 }, line: { color: acc, transparency: 78 }, rectRadius: 0.05 });
-            s.addText(String(i + 1), { x: 0.4, y: yPos, w: 0.32, h: 0.32, fontSize: 9, bold: true, color: txt, align: 'center', valign: 'middle' });
-            s.addText(b, { x: 0.85, y: yPos - 0.02, w: contentW - 0.5, h: 0.82, fontSize: 13, color: txt, wrap: true, valign: 'top', lineSpacingMultiple: 1.2 });
+            const yPos = 2.1 + i * 0.88;
+            s.addShape(prs.ShapeType.roundRect, {
+              x: 0.5, y: yPos, w: 0.32, h: 0.32,
+              fill: { color: acc, transparency: 72 },
+              line: { type: 'none' },
+              rectRadius: 0.05,
+            });
+            s.addText(String(i + 1), {
+              x: 0.5, y: yPos, w: 0.32, h: 0.32,
+              fontSize: 9, bold: true, color: acc, align: 'center', valign: 'middle',
+            });
+            s.addText(b, {
+              x: 0.95, y: yPos - 0.02, w: contentW - 0.5, h: 0.82,
+              fontSize: 13, color: txt, wrap: true, valign: 'top',
+            });
           });
           // Footer
-          s.addShape(prs.ShapeType.rect, { x: 0.4, y: H - 0.45, w: W - 0.8, h: 0.025, fill: { color: txt, transparency: 82 }, line: { type: 'none' } });
-          s.addText(`${presentation.title}  ·  ${slide.slideNumber} / ${presentation.slides.length}`, { x: 0.4, y: H - 0.42, w: W - 0.8, h: 0.28, fontSize: 8, color: muted, align: 'right', transparency: 30 });
+          s.addShape(prs.ShapeType.rect, {
+            x: 0.5, y: H - 0.45, w: W - 1.0, h: 0.025,
+            fill: { color: acc, transparency: 70 },
+            line: { type: 'none' },
+          });
+          s.addText(`${presentation.title}  ·  ${slide.slideNumber} / ${presentation.slides.length}`, {
+            x: 0.5, y: H - 0.42, w: W - 1.0, h: 0.25,
+            fontSize: 8, color: txt, align: 'right', transparency: 60,
+          });
         }
 
         if (slide.speakerNotes) s.addNotes(slide.speakerNotes);
       }
+
       await prs.writeFile({ fileName: `${presentation.title.replace(/[^a-z0-9]/gi, '_')}.pptx` });
     } catch (e) { console.error('PPTX export failed:', e); }
   };
@@ -445,172 +456,204 @@ const PresentationView: React.FC<Props> = ({
 
   const renderSlide = (s: PresentationSlide, size: 'editor' | 'presenter') => {
     const large = size === 'presenter';
-    const tc = themeInfo.text;
-    const isPaper = false;
+    const bg = `#${themeInfo.bgHex}`;
+    const text = `#${themeInfo.textHex}`;
+    const accent = `#${themeInfo.accentHex}`;
     const isSplit = s.layout === 'split' && s.imageKeyword && !imgErrors[currentSlide];
-    const accent = themeInfo.accentHex;
-    const light = themeInfo.lightHex;
-    const dark = themeInfo.darkHex;
 
-    const TitleDeco = () => (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 800 450" preserveAspectRatio="none">
-        <circle cx="780" cy="-30" r="220" fill={`#${light}`} fillOpacity="0.15" />
-        <circle cx="720" cy="60" r="120" fill={`#${accent}`} fillOpacity="0.2" />
-        <circle cx="-40" cy="490" r="180" fill={`#${dark}`} fillOpacity="0.3" />
-        <rect x="520" y="0" width="60" height="450" fill={`#${accent}`} fillOpacity="0.08" transform="skewX(-15)" />
-        <rect x="600" y="0" width="25" height="450" fill={`#${light}`} fillOpacity="0.06" transform="skewX(-15)" />
-        <rect x="0" y="420" width="800" height="6" fill={`#${accent}`} fillOpacity="0.4" />
-        {[0,1,2,3,4].map(i => (
-          <circle key={i} cx={60 + i * 28} cy={390} r="4" fill={`#${light}`} fillOpacity="0.5" />
-        ))}
-      </svg>
-    );
+    const CornerArcs = ({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) => {
+      const isRight = position === 'tr' || position === 'br';
+      const isBottom = position === 'bl' || position === 'br';
+      const arcs = [110, 80, 50];
+      return (
+        <svg
+          className="absolute pointer-events-none"
+          style={{
+            width: large ? 160 : 90,
+            height: large ? 160 : 90,
+            top: isBottom ? 'auto' : 0,
+            bottom: isBottom ? 0 : 'auto',
+            left: isRight ? 'auto' : 0,
+            right: isRight ? 0 : 'auto',
+            overflow: 'hidden',
+          }}
+          viewBox="0 0 160 160"
+        >
+          {arcs.map((r, i) => (
+            <circle
+              key={i}
+              cx={isRight ? 160 : 0}
+              cy={isBottom ? 160 : 0}
+              r={r}
+              fill="none"
+              stroke={accent}
+              strokeWidth="18"
+              opacity={0.22 - i * 0.06}
+            />
+          ))}
+        </svg>
+      );
+    };
 
-    const ContentDeco = () => (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 800 450" preserveAspectRatio="none">
-        <circle cx="760" cy="-60" r="200" fill={`#${light}`} fillOpacity="0.1" />
-        <circle cx="730" cy="40" r="80" fill={`#${accent}`} fillOpacity="0.15" />
-        <circle cx="30" cy="430" r="100" fill={`#${dark}`} fillOpacity="0.2" />
-        <rect x="0" y="0" width="800" height="5" fill={`#${accent}`} fillOpacity="0.5" />
-        <rect x="790" y="0" width="10" height="450" fill={`#${accent}`} fillOpacity="0.2" />
-        {[0,1,2].map(row => [0,1,2,3].map(col => (
-          <circle key={`${row}-${col}`} cx={680 + col * 20} cy={340 + row * 20} r="3" fill={`#${accent}`} fillOpacity="0.25" />
-        )))}
-      </svg>
-    );
-
-    const QuoteDeco = () => (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 800 450" preserveAspectRatio="none">
-        <rect x="0" y="0" width="12" height="450" fill={`#${accent}`} fillOpacity="0.9" />
-        <rect x="12" y="0" width="6" height="450" fill={`#${accent}`} fillOpacity="0.3" />
-        <circle cx="650" cy="225" r="280" fill={`#${light}`} fillOpacity="0.07" />
-        <circle cx="650" cy="225" r="180" fill={`#${accent}`} fillOpacity="0.08" />
-        {[0,1,2].map(i => (
-          <circle key={i} cx={710 + i * 22} cy={50} r="6" fill={`#${accent}`} fillOpacity="0.4" />
-        ))}
-        <rect x="60" y="400" width="200" height="3" fill={`#${accent}`} fillOpacity="0.6" />
-      </svg>
-    );
-
-    // ── TITLE SLIDE ──────────────────────────────────────────────────────────
-    if (s.layout === 'title') return (
-      <div className="relative flex flex-col items-center justify-center h-full text-center px-12 gap-4 overflow-hidden">
-        <TitleDeco />
-        <div className={`relative z-10 px-5 py-1.5 rounded-full text-xs font-black uppercase tracking-[0.25em] border-2 ${
-          isPaper ? 'border-amber-400 bg-amber-100 text-amber-800' : 'border-white/30 bg-white/10 text-white/80'
-        }`}>
-          ✦ Presentation
-        </div>
-        <h1 className={`relative z-10 ${large ? 'text-6xl sm:text-7xl' : 'text-4xl'} font-black leading-tight tracking-tight ${isPaper ? 'text-gray-900' : 'text-white'} max-w-3xl drop-shadow-sm`}>
-          {s.title}
-        </h1>
-        {s.body && (
-          <p className={`relative z-10 ${large ? 'text-xl' : 'text-sm'} max-w-xl font-medium ${isPaper ? 'text-gray-600' : 'text-white/65'}`}>
-            {s.body}
-          </p>
-        )}
-        <div className="relative z-10 flex items-center gap-3 mt-1">
-          <div className={`w-12 h-0.5 ${isPaper ? 'bg-amber-400' : 'bg-white/30'}`} />
-          <div className={`w-2.5 h-2.5 rotate-45 ${isPaper ? 'bg-amber-400' : 'bg-white/40'}`} />
-          <div className={`w-12 h-0.5 ${isPaper ? 'bg-amber-400' : 'bg-white/30'}`} />
-        </div>
+    const SlideWrapper = ({ children }: { children: React.ReactNode }) => (
+      <div className="relative h-full overflow-hidden" style={{ backgroundColor: bg }}>
+        <CornerArcs position="tl" />
+        <CornerArcs position="tr" />
+        <CornerArcs position="bl" />
+        <CornerArcs position="br" />
+        {children}
       </div>
     );
 
-    // ── QUOTE SLIDE ──────────────────────────────────────────────────────────
+    if (s.layout === 'title') return (
+      <SlideWrapper>
+        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-12 gap-4">
+          <div
+            className="px-5 py-1.5 rounded-full text-xs font-black uppercase tracking-[0.2em] border-2"
+            style={{ borderColor: accent, color: accent, backgroundColor: `${accent}15` }}
+          >
+            ✦ Presentation
+          </div>
+          <h1
+            className={`${large ? 'text-5xl sm:text-7xl' : 'text-3xl sm:text-4xl'} font-black leading-tight tracking-tight max-w-3xl`}
+            style={{ color: text }}
+          >
+            {s.title}
+          </h1>
+          {s.body && (
+            <p
+              className={`${large ? 'text-xl' : 'text-sm'} max-w-xl font-medium`}
+              style={{ color: text, opacity: 0.6 }}
+            >
+              {s.body}
+            </p>
+          )}
+          <div className="flex items-center gap-3 mt-1">
+            <div className="w-12 h-0.5" style={{ backgroundColor: accent, opacity: 0.4 }} />
+            <div className="w-2.5 h-2.5 rotate-45" style={{ backgroundColor: accent }} />
+            <div className="w-12 h-0.5" style={{ backgroundColor: accent, opacity: 0.4 }} />
+          </div>
+        </div>
+      </SlideWrapper>
+    );
+
     if (s.layout === 'quote') return (
-      <div className="relative flex flex-col justify-center h-full overflow-hidden">
-        <QuoteDeco />
-        <div className="relative z-10 flex flex-col gap-4 pl-10 sm:pl-16 pr-12 sm:pr-20">
-          <span className={`${large ? 'text-[9rem]' : 'text-[5rem]'} leading-none select-none font-serif -mb-6 ${isPaper ? 'text-amber-400' : 'text-white/20'}`}>
+      <SlideWrapper>
+        <div className="absolute left-0 top-0 bottom-0 w-2 z-10" style={{ backgroundColor: accent }} />
+        <div className="relative z-10 flex flex-col justify-center h-full pl-12 sm:pl-16 pr-12 gap-4">
+          <span
+            className={`${large ? 'text-8xl' : 'text-5xl'} leading-none font-serif select-none -mb-4`}
+            style={{ color: accent, opacity: 0.3 }}
+          >
             &ldquo;
           </span>
-          <p className={`${large ? 'text-2xl sm:text-3xl' : 'text-base sm:text-lg'} font-bold italic leading-relaxed ${isPaper ? 'text-gray-800' : 'text-white/90'}`}>
+          <p
+            className={`${large ? 'text-2xl sm:text-3xl' : 'text-base sm:text-lg'} font-bold italic leading-relaxed`}
+            style={{ color: text }}
+          >
             {s.body || s.bullets[0]}
           </p>
           <div className="flex items-center gap-3 mt-2">
-            <div className={`w-10 h-0.5 ${isPaper ? 'bg-amber-500' : 'bg-white/40'}`} />
-            <span className={`${large ? 'text-base' : 'text-xs'} font-black uppercase tracking-widest ${isPaper ? 'text-amber-700' : 'text-white/60'}`}>
+            <div className="w-10 h-0.5" style={{ backgroundColor: accent }} />
+            <span
+              className={`${large ? 'text-base' : 'text-xs'} font-black uppercase tracking-widest`}
+              style={{ color: accent }}
+            >
               {s.title}
             </span>
           </div>
         </div>
-      </div>
+      </SlideWrapper>
     );
 
-    // ── SPLIT SLIDE ──────────────────────────────────────────────────────────
     if (isSplit) return (
-      <div className="relative flex h-full overflow-hidden">
-        <ContentDeco />
-        <div className="relative z-10 flex-1 flex flex-col justify-center pl-8 sm:pl-10 pr-4 py-8 gap-4">
-          <div className={`self-start px-3 py-1 rounded-lg text-xs font-black ${isPaper ? 'bg-amber-200 text-amber-800' : 'bg-white/15 text-white/70'}`}>
-            {String(s.slideNumber).padStart(2, '0')}
+      <SlideWrapper>
+        <div className="relative z-10 flex h-full">
+          <div className="flex-1 flex flex-col justify-center pl-8 sm:pl-10 pr-4 py-8 gap-3">
+            <div
+              className="self-start px-3 py-0.5 rounded-lg text-xs font-black"
+              style={{ backgroundColor: `${accent}20`, color: accent }}
+            >
+              {String(s.slideNumber).padStart(2, '0')}
+            </div>
+            <h2
+              className={`${large ? 'text-3xl sm:text-4xl' : 'text-xl'} font-black leading-tight`}
+              style={{ color: text }}
+            >
+              {s.title}
+            </h2>
+            <ul className="space-y-2.5">
+              {s.bullets.slice(0, large ? 5 : 4).map((b, i) => (
+                <li key={i} className={`flex items-start gap-3 ${large ? 'text-base' : 'text-xs'}`}>
+                  <span
+                    className="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black mt-0.5"
+                    style={{ backgroundColor: `${accent}25`, color: accent }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span style={{ color: text, opacity: 0.8 }}>{b}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <h2 className={`${large ? 'text-3xl sm:text-4xl' : 'text-xl'} font-black leading-tight ${isPaper ? 'text-gray-900' : 'text-white'}`}>
-            {s.title}
-          </h2>
-          <ul className="space-y-2.5 flex-1 overflow-hidden">
-            {s.bullets.slice(0, large ? 5 : 4).map((b, i) => (
-              <li key={i} className={`flex items-start gap-3 ${large ? 'text-base sm:text-lg' : 'text-xs'}`}>
-                <span className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black mt-0.5 ${
-                  isPaper ? 'bg-amber-200 text-amber-800' : 'bg-white/20 text-white/80'
-                }`}>{i + 1}</span>
-                <span className={isPaper ? 'text-gray-700' : 'text-white/85'}>{b}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="relative w-2/5 flex-shrink-0">
+            <img
+              src={getImageUrl(s.imageKeyword!)}
+              alt={s.imageKeyword}
+              className="w-full h-full object-cover"
+              onError={() => setImgErrors(prev => ({ ...prev, [currentSlide]: true }))}
+            />
+          </div>
         </div>
-        <div className="relative w-2/5 flex-shrink-0">
-          <img
-            src={getImageUrl(s.imageKeyword!)}
-            alt={s.imageKeyword}
-            className="w-full h-full object-cover"
-            onError={() => setImgErrors(prev => ({ ...prev, [currentSlide]: true }))}
-          />
-          <div className={`absolute inset-0 bg-gradient-to-r ${themeInfo.bg} opacity-50`} />
-        </div>
-      </div>
+      </SlideWrapper>
     );
 
-    // ── CONTENT SLIDE ─────────────────────────────────────────────────────────
     return (
-      <div className="relative flex h-full overflow-hidden">
-        <ContentDeco />
-        <div className={`absolute left-0 top-0 bottom-0 w-1.5 z-20 ${isPaper ? 'bg-amber-400' : 'bg-white/30'}`} />
-        <div className="relative z-10 flex flex-col justify-center w-full pl-7 sm:pl-10 pr-8 sm:pr-12 py-8 gap-3">
+      <SlideWrapper>
+        <div className="absolute top-0 left-0 right-0 h-1.5 z-20" style={{ backgroundColor: accent }} />
+        <div className="relative z-10 flex flex-col justify-center h-full pl-8 sm:pl-12 pr-8 sm:pr-12 py-10 gap-3">
           <div className="flex items-center gap-3">
-            <span className={`px-2.5 py-0.5 rounded-md text-xs font-black ${
-              isPaper ? 'bg-amber-200 text-amber-800' : 'bg-white/15 text-white/60'
-            }`}>
+            <span
+              className="px-2.5 py-0.5 rounded-md text-xs font-black"
+              style={{ backgroundColor: `${accent}20`, color: accent }}
+            >
               {String(s.slideNumber).padStart(2, '0')}
             </span>
-            <div className={`flex-1 h-px ${isPaper ? 'bg-amber-200' : 'bg-white/15'}`} />
-            <div className={`w-2 h-2 rotate-45 ${isPaper ? 'bg-amber-300' : 'bg-white/20'}`} />
+            <div className="flex-1 h-px" style={{ backgroundColor: accent, opacity: 0.2 }} />
           </div>
-          <h2 className={`${large ? 'text-4xl sm:text-5xl' : 'text-2xl sm:text-3xl'} font-black leading-tight ${isPaper ? 'text-gray-900' : 'text-white'}`}>
+          <h2
+            className={`${large ? 'text-4xl sm:text-5xl' : 'text-2xl sm:text-3xl'} font-black leading-tight`}
+            style={{ color: text }}
+          >
             {s.title}
           </h2>
-          <ul className="space-y-2 flex-1 overflow-hidden">
+          <ul className="space-y-2">
             {s.bullets.slice(0, large ? 6 : 5).map((b, i) => (
-              <li key={i} className={`flex items-start gap-3 ${large ? 'text-lg sm:text-xl' : 'text-sm'}`}>
-                <span className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black mt-0.5 border ${
-                  isPaper ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-white/10 border-white/20 text-white/60'
-                }`}>{i + 1}</span>
-                <span className={`leading-snug ${isPaper ? 'text-gray-700' : 'text-white/88'}`}>{b}</span>
+              <li key={i} className={`flex items-start gap-3 ${large ? 'text-lg' : 'text-sm'}`}>
+                <span
+                  className="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black mt-0.5 border"
+                  style={{ backgroundColor: `${accent}15`, borderColor: `${accent}40`, color: accent }}
+                >
+                  {i + 1}
+                </span>
+                <span className="leading-snug" style={{ color: text, opacity: 0.8 }}>{b}</span>
               </li>
             ))}
           </ul>
           {s.body && (
-            <p className={`${large ? 'text-sm' : 'text-xs'} leading-relaxed pt-2 border-t ${
-              isPaper ? 'border-amber-200 text-gray-500' : 'border-white/10 text-white/45'
-            }`}>{s.body}</p>
+            <p
+              className={`${large ? 'text-sm' : 'text-xs'} leading-relaxed pt-2 border-t`}
+              style={{ borderColor: `${accent}25`, color: text, opacity: 0.5 }}
+            >
+              {s.body}
+            </p>
           )}
-          <div className={`flex items-center justify-between text-xs ${isPaper ? 'text-gray-400' : 'text-white/25'}`}>
+          <div className="flex items-center justify-between text-xs" style={{ color: text, opacity: 0.3 }}>
             <span className="font-bold truncate max-w-[50%]">{slides[0]?.title}</span>
             <span>{s.slideNumber} / {slides.length}</span>
           </div>
         </div>
-      </div>
+      </SlideWrapper>
     );
   };
 
@@ -689,7 +732,7 @@ const PresentationView: React.FC<Props> = ({
                       : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300'
                   }`}
                 >
-                  {sz}
+                  {sz === '16:9' ? '⬛ Widescreen 16:9' : '🟦 Standard 4:3'}
                 </button>
               ))}
             </div>
@@ -831,8 +874,8 @@ const PresentationView: React.FC<Props> = ({
                     : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                 }`}
               >
-                <div className={`w-full h-12 rounded-lg bg-gradient-to-br ${themeInfo.bg} mb-2 flex items-center justify-center`}>
-                  <span className="text-white text-xs font-bold px-2 text-center truncate">{s.title}</span>
+                <div className="w-full h-12 rounded-lg mb-2 flex items-center justify-center" style={{ backgroundColor: `#${themeInfo.bgHex}` }}>
+                  <span className="text-xs font-bold px-2 text-center truncate" style={{ color: `#${themeInfo.textHex}` }}>{s.title}</span>
                 </div>
                 <p className="text-xs text-gray-500 truncate">{s.slideNumber}. {s.title}</p>
                 {/* Reorder controls */}
@@ -849,7 +892,7 @@ const PresentationView: React.FC<Props> = ({
             {slide && (
               <>
                 {/* Slide preview */}
-                <div className={`w-full aspect-video bg-gradient-to-br ${themeInfo.bg} rounded-2xl overflow-hidden relative`}>
+                <div className="w-full aspect-video rounded-2xl overflow-hidden relative" style={{ backgroundColor: `#${themeInfo.bgHex}` }}>
                   <div className="absolute inset-0 p-8 flex flex-col">
                     {editingSlide === currentSlide ? (
                       <div className="flex flex-col gap-3 h-full" onClick={e => e.stopPropagation()}>
@@ -986,8 +1029,8 @@ const PresentationView: React.FC<Props> = ({
                   onClick={() => navigate(i)}
                   className={`w-full aspect-video rounded-lg overflow-hidden border-2 transition-all ${i === currentSlide ? 'border-white' : 'border-transparent opacity-50 hover:opacity-70'}`}
                 >
-                  <div className={`w-full h-full bg-gradient-to-br ${themeInfo.bg} flex items-center justify-center p-1`}>
-                    <span className="text-white text-[8px] font-bold text-center leading-tight">{s.title}</span>
+                  <div className="w-full h-full flex items-center justify-center p-1" style={{ backgroundColor: `#${themeInfo.bgHex}` }}>
+                    <span className="text-[8px] font-bold text-center leading-tight" style={{ color: `#${themeInfo.textHex}` }}>{s.title}</span>
                   </div>
                 </button>
               ))}
@@ -996,7 +1039,7 @@ const PresentationView: React.FC<Props> = ({
 
           {/* Slide area */}
           <div key={animKey} className="flex-1 flex items-center justify-center p-6">
-            <div className={`w-full max-w-4xl aspect-video bg-gradient-to-br ${themeInfo.bg} rounded-2xl overflow-hidden relative shadow-2xl`}>
+            <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden relative shadow-2xl" style={{ backgroundColor: `#${themeInfo.bgHex}` }}>
               <div className="absolute inset-0">
                 {renderSlide(slide, 'presenter')}
               </div>

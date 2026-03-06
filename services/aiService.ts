@@ -1468,82 +1468,78 @@ export const generatePresentationV2 = async (
 
     const totalSlides = slideCount + (extras.length > 0 ? extras.length : 0);
 
-    const prompt = `You are an expert presentation designer and educator.
+    const prompt = `You are a professional presentation designer and educator. Generate a complete presentation as JSON.
 
-Generate a presentation about "${topic}" for a ${audience} audience at grade level ${grade} in ${targetLang}.
+CRITICAL: You MUST generate EXACTLY ${slideCount} slides. The slides array must contain exactly ${slideCount} items. Count before responding. Wrong slide count breaks the app.
 
-SLIDE COUNT — CRITICAL HARD REQUIREMENT:
-You MUST generate EXACTLY ${slideCount} slides — no more, no fewer.
-The slides array in your JSON response must have exactly ${slideCount} items.
-Do not add extra slides for table of contents, summary, or Q&A unless they are counted within the ${slideCount} total.
-If requested count is 5, return exactly 5. If 8, return exactly 8. If 20, return exactly 20.
-This is a hard requirement — the wrong slide count will break the app.
+Return ONLY valid JSON in this exact structure:
+{
+  "title": "presentation title",
+  "slides": [...],
+  "theme": {
+    "bgHex": "E0F2FE",
+    "textHex": "0C4A6E",
+    "accentHex": "0284C7",
+    "darkHex": "075985"
+  }
+}
 
-CONTENT RULES — enforce strictly:
-- Every bullet point must be a COMPLETE sentence of at least 8 words. Never use fragments like "Key factor" or "Important role".
-- Each slide covers exactly ONE specific idea in depth. No vague overview slides.
-- Slide 1 is always layout "title" with: a compelling subtitle (not the topic name repeated) in the body field, and one surprising hook sentence as the only bullet.
-- Slide 2 or 3 must be a surprising fact or provocative question that grabs attention.
-- Second-to-last slide must be a real-world case study or application example — not a generic summary.
-- Last slide must have 3 specific actionable takeaways. Never end with "Thank you" or "Questions?".
-- speakerNotes must be 3–4 sentences of what the presenter would actually say out loud. Never copy the bullets verbatim into the notes.
-- imageKeyword must be a specific, visually searchable phrase like "DNA double helix microscope" or "ancient Roman aqueduct ruins" — never generic words like "science" or "history".
+THEME RULES:
+- Pick colors that visually match the mood and subject of this specific topic
+- bgHex: light soft pastel background — NOT white, NOT dark, must be readable with dark text
+- textHex: dark version of same color family for headings and body text
+- accentHex: vivid saturated version for decorations and highlights
+- darkHex: deeper version of accentHex
+- All 4 colors must belong to the same color family
+- No # prefix, all exactly 6 hex characters
 
-STRUCTURE (${structureDesc}):
-- informative: build from foundational concept → mechanisms → evidence → implications
-- persuasive: include one slide presenting the strongest counterargument, followed by a rebuttal slide
-- how-to: each slide is one numbered step with exactly what to do and why
-- compare-contrast: use layout "split" for direct side-by-side comparison slides
-- timeline: each slide is a distinct time period with specific years or dates in the title
+Theme examples by topic:
+- Rosa Parks / civil rights / history → FDE8E8 / 7F1D1D / EF4444 / B91C1C
+- Ocean / marine / water → E0F2FE / 0C4A6E / 0284C7 / 075985
+- Space / astronomy / universe → EEF2FF / 1E1B4B / 4F46E5 / 3730A3
+- Ancient Egypt / archaeology → FEF3C7 / 78350F / D97706 / B45309
+- Nature / ecology / plants → D1FAE5 / 064E3B / 059669 / 047857
+- Music / jazz / art → FAE8FF / 500724 / A21CAF / 86198F
+- Technology / coding / AI → F0F9FF / 0C4A6E / 0369A1 / 075985
+- Math / equations → DBEAFE / 1E3A5F / 1D4ED8 / 1E40AF
+- Health / medicine / biology → CCFBF1 / 042F2E / 0D9488 / 0F766E
+- Business / economy / finance → D1FAE5 / 022C22 / 065F46 / 047857
 
-LAYOUT RULES:
-- layout "title": only slide 1
-- layout "quote": any slide built around a single powerful statement or definition
-- layout "split": any slide with a visual example, comparison, or case study
-- layout "content": everything else
+SLIDE RULES:
+- Every bullet must be a complete sentence of 8+ words — never a fragment
+- Each slide covers ONE specific idea in depth
+- Slide 1: layout "title", compelling subtitle in body field, hook in first bullet
+- Use layout "quote" for powerful statements or famous quotes
+- Use layout "split" for slides that benefit from an image alongside content
+- Use layout "content" for all other slides
+- Second-to-last slide: real-world case study or concrete example
+- Last slide: 3 specific actionable takeaways
+- speakerNotes: 3-4 sentences of actual talking points per slide
+- imageKeyword: specific searchable 2-3 word term for split slides
 
 ${includes.toc ? `Include a Table of Contents slide (counted within the ${slideCount} total).` : ''}
 ${includes.summary ? `Include a Summary slide (counted within the ${slideCount} total).` : ''}
 ${includes.qa ? `Include a Q&A slide (counted within the ${slideCount} total).` : ''}
 ${includes.references ? `Include a References slide with 3–5 real citations (counted within the ${slideCount} total).` : ''}
 
-THEME — pick colors that emotionally match the specific topic, not the subject category:
-Examples: "Rosa Parks" → warm reds/golds. "Ocean Ecosystems" → navy/turquoise. "The French Revolution" → deep navy/gold/red. "Photosynthesis" → rich greens/yellow. "World War II" → dark gray/olive. "Jazz Music" → deep purple/warm gold.
-Choose rich, saturated, visually striking colors. The bg must be a valid Tailwind gradient string (e.g. from-rose-700 via-red-800 to-stone-900).
+Presentation topic: "${topic}"
+Audience: ${audienceDesc}
+Grade level: ${grade}
+Language: ${targetLang}
+Structure: ${structureDesc}
 
-CRITICAL color rules:
-- bgHex MUST be a dark, rich color with brightness below 100 (e.g. deep red = B91C1C, deep navy = 1E3A5F, deep forest = 14532D)
-- midHex MUST be a slightly different shade of bgHex — close but distinct (e.g. if bgHex=7F1D1D then midHex=9B1C1C). This is the middle gradient stop.
-- Never generate beige, tan, cream, sand, ivory, or any light/pastel background color
-- The background must be dark enough that white text is clearly readable
-- accentHex should be noticeably brighter/lighter than bgHex (e.g. a mid-tone of the same hue)
-- lightHex should be a very light tint (brightness > 180), used only for subtle decorative shapes
-- darkHex should be very dark (brightness < 30), close to black, used for shadow/depth shapes
-
-Respond ONLY with valid JSON. No markdown, no explanation, no code fences:
+Each slide object:
 {
-  "title": "string",
-  "totalSlides": ${slideCount},
-  "slides": [
-    {
-      "slideNumber": 1,
-      "layout": "title",
-      "title": "string",
-      "bullets": ["complete sentence"],
-      "body": "optional subtitle or supporting paragraph",
-      "imageKeyword": "specific search term",
-      "speakerNotes": "3-4 sentences of spoken talking points"
-    }
-  ],
-  "theme": {
-    "bg": "from-[color]-[shade] via-[color]-[shade] to-[color]-[shade]",
-    "bgHex": "hexcode without # — start of gradient (dark)",
-    "midHex": "hexcode without # — middle gradient stop (slightly different shade of bgHex)",
-    "accentHex": "hexcode without # — bright accent color",
-    "lightHex": "hexcode without # — very light tint for decorations",
-    "darkHex": "hexcode without # — near-black for depth/shadows"
-  }
-}`;
+  "slideNumber": 1,
+  "layout": "title" | "content" | "quote" | "split",
+  "title": "slide title",
+  "bullets": ["complete sentence..."],
+  "body": "subtitle or quote text",
+  "speakerNotes": "talking points...",
+  "imageKeyword": "specific search term"
+}
+
+Respond ONLY with valid JSON. No markdown, no explanation, no code fences.`;
 
     const text = await callClaude({ model: HAIKU, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] });
     if (!text) throw new Error('generatePresentationV2: empty response');
