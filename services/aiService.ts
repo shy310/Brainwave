@@ -1577,7 +1577,7 @@ LAYOUT RULES:
 - layout "split": any slide with a visual example, comparison, or case study
 - layout "content": everything else
 
-- imageKeyword: specific searchable 2-3 word term for split slides
+- imageKeyword: for split slides, write a specific 2-4 word search term that would find a great editorial or documentary photo. Be specific: not "history" → use "civil rights march 1960s", not "science" → use "DNA double helix microscope", not "person" → use "Rosa Parks portrait", not "nature" → use "Amazon rainforest aerial". The imageKeyword directly determines photo quality — make it count.
 
 ${includes.toc ? `Include a Table of Contents slide (counted within the ${slideCount} total).` : ''}
 ${includes.summary ? `Include a Summary slide (counted within the ${slideCount} total).` : ''}

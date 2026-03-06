@@ -34,7 +34,7 @@ const FALLBACK_THEME = {
 const SLIDE_COUNTS = [5, 8, 10, 15, 20];
 
 const getImageUrl = (keyword: string) =>
-  `https://picsum.photos/seed/${encodeURIComponent(keyword.toLowerCase().replace(/\s+/g, '-'))}/600/400`;
+  `https://loremflickr.com/600/400/${encodeURIComponent(keyword.toLowerCase().replace(/\s+/g, ','))}`;
 
 type Phase = 'setup' | 'editor' | 'presenter';
 
