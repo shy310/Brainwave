@@ -156,9 +156,40 @@ function closeIncomplete(text: string): string {
     return result;
 }
 
+// Extract the outermost JSON object or array from text that may have preamble.
+function extractJson(text: string): string {
+    // Find first { or [
+    const start = Math.min(
+        text.indexOf('{') === -1 ? Infinity : text.indexOf('{'),
+        text.indexOf('[') === -1 ? Infinity : text.indexOf('['),
+    );
+    if (start === Infinity) return text;
+    const opener = text[start];
+    const closer = opener === '{' ? '}' : ']';
+    // Walk forward to find the matching closer
+    let depth = 0;
+    let inStr = false;
+    let esc = false;
+    let end = -1;
+    for (let i = start; i < text.length; i++) {
+        const ch = text[i];
+        if (esc) { esc = false; continue; }
+        if (ch === '\\') { esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === opener) depth++;
+        else if (ch === closer) { depth--; if (depth === 0) { end = i; break; } }
+    }
+    return end !== -1 ? text.slice(start, end + 1) : text.slice(start);
+}
+
 // Parse JSON from LLM output with multi-pass repair.
 function parseJson(text: string): any {
-    const stripped = text.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
+    // Strip markdown code fences, then extract the outermost JSON block
+    // (handles cases where the model adds a preamble like "Here is the JSON:")
+    const stripped = extractJson(
+        text.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim()
+    );
 
     // Fast path — valid JSON
     try { return JSON.parse(stripped); } catch { /* fall through */ }
