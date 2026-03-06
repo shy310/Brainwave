@@ -33,7 +33,7 @@ const FALLBACK_THEME = {
 
 const SLIDE_COUNTS = [5, 8, 10, 15, 20];
 
-const getImageUrl = (keyword: string) =>
+const getFallbackUrl = (keyword: string) =>
   `https://loremflickr.com/600/400/${encodeURIComponent(keyword.toLowerCase().replace(/\s+/g, ','))}`;
 
 type Phase = 'setup' | 'editor' | 'presenter';
@@ -65,7 +65,36 @@ const PresentationView: React.FC<Props> = ({
   const [showNotes, setShowNotes] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
+  const [imgCache, setImgCache] = useState<Record<string, string>>({});
+  const [resolvedImages, setResolvedImages] = useState<Record<string, string>>({});
   const [autoTheme, setAutoTheme] = useState<{ bgHex: string; textHex: string; accentHex: string; darkHex: string } | null>(null);
+
+  const getImageUrl = async (keyword: string): Promise<string> => {
+    if (imgCache[keyword]) return imgCache[keyword];
+    try {
+      const res = await fetch(
+        `https://api.pexels.com/v1/search?query=${encodeURIComponent(keyword)}&per_page=1&orientation=landscape`,
+        { headers: { Authorization: import.meta.env.VITE_PEXELS_API_KEY ?? '' } }
+      );
+      const data = await res.json();
+      const url = data.photos?.[0]?.src?.large ?? getFallbackUrl(keyword);
+      setImgCache(prev => ({ ...prev, [keyword]: url }));
+      return url;
+    } catch {
+      return getFallbackUrl(keyword);
+    }
+  };
+
+  useEffect(() => {
+    if (!presentation) return;
+    presentation.slides.forEach(slide => {
+      if (slide.imageKeyword && !resolvedImages[slide.imageKeyword]) {
+        getImageUrl(slide.imageKeyword).then(url => {
+          setResolvedImages(prev => ({ ...prev, [slide.imageKeyword!]: url }));
+        });
+      }
+    });
+  }, [presentation]);
 
   const applyTheme = (theme: any) => {
     if (!theme) { setAutoTheme(null); return; }
@@ -443,6 +472,18 @@ const PresentationView: React.FC<Props> = ({
           });
         }
 
+        // Add image for split slides
+        if (slide.layout === 'split' && slide.imageKeyword) {
+          const imageUrl = resolvedImages[slide.imageKeyword] ?? getFallbackUrl(slide.imageKeyword);
+          try {
+            s.addImage({
+              path: imageUrl,
+              x: W - (W * 0.4), y: 0, w: W * 0.4, h: H,
+              sizing: { type: 'cover', w: W * 0.4, h: H },
+            });
+          } catch { /* skip image if it fails */ }
+        }
+
         if (slide.speakerNotes) s.addNotes(slide.speakerNotes);
       }
 
@@ -598,7 +639,7 @@ const PresentationView: React.FC<Props> = ({
           </div>
           <div className="relative w-2/5 flex-shrink-0">
             <img
-              src={getImageUrl(s.imageKeyword!)}
+              src={resolvedImages[s.imageKeyword!] ?? getFallbackUrl(s.imageKeyword!)}
               alt={s.imageKeyword}
               className="w-full h-full object-cover"
               onError={() => setImgErrors(prev => ({ ...prev, [currentSlide]: true }))}
