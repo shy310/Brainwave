@@ -25,6 +25,7 @@ import EducationalGames from './components/EducationalGames';
 import DebateArena from './components/DebateArena';
 import StoryEngine from './components/StoryEngine';
 import SqlDetective from './components/SqlDetective';
+import MathTutorView from './components/MathTutorView';
 
 import {
   LayoutGrid, Library, Menu, X, Moon, Sun, Search,
@@ -468,6 +469,7 @@ const App: React.FC = () => {
                 { view: 'debate' as const, label: t.debateArena, icon: <Swords size={18} /> },
                 { view: 'story' as const, label: t.storyEngine, icon: <Feather size={18} /> },
                 { view: 'sql-detective' as const, label: t.sqlDetective, icon: <DatabaseIcon size={18} /> },
+                { view: 'math-tutor' as const, label: t.mathTutor ?? 'Math Tutor', icon: <span className="font-black text-base">∑</span> },
               ].map(({ view, label, icon }) => (
                 <button
                   key={view}
@@ -814,6 +816,18 @@ const App: React.FC = () => {
                 translations={t}
                 onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
                 onXpEarned={(xp) => handleExerciseComplete(xp, 1, 1, null, 'sql-detective')}
+                onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
+              />
+            )}
+
+            {appState.activeView === 'math-tutor' && (
+              <MathTutorView
+                userGrade={appState.user.gradeLevel}
+                language={appState.language}
+                translations={t}
+                theme={appState.theme}
+                onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
+                onXpEarned={(xp) => handleExerciseComplete(xp, 1, 1, null, 'math')}
                 onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
               />
             )}
