@@ -27,10 +27,11 @@ interface Props {
 const FALLBACK_THEME = {
   bg: 'from-violet-700 via-indigo-700 to-purple-800',
   text: 'white',
-  bgHex: '4338CA',
-  accentHex: '818CF8',
-  lightHex: 'C7D2FE',
-  darkHex: '1E1B4B',
+  bgHex: '2E1065',
+  midHex: '3B0764',
+  accentHex: 'A78BFA',
+  lightHex: 'EDE9FE',
+  darkHex: '0D0621',
 };
 
 const SLIDE_COUNTS = [5, 8, 10, 15, 20];
@@ -67,7 +68,7 @@ const PresentationView: React.FC<Props> = ({
   const [showNotes, setShowNotes] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
-  const [autoTheme, setAutoTheme] = useState<{ bg: string; bgHex: string; accentHex: string; lightHex: string; darkHex: string } | null>(null);
+  const [autoTheme, setAutoTheme] = useState<{ bg: string; bgHex: string; midHex?: string; accentHex: string; lightHex: string; darkHex: string } | null>(null);
 
   const applyTheme = (theme: any) => {
     if (!theme) { setAutoTheme(null); return; }
@@ -300,19 +301,36 @@ const PresentationView: React.FC<Props> = ({
       prs.layout = slideSize === '4:3' ? 'LAYOUT_4x3' : 'LAYOUT_WIDE';
 
       const th = autoTheme ?? FALLBACK_THEME;
-      const isPaper = false;
       const bg = th.bgHex;
+      const mid = th.midHex ?? th.bgHex;
       const acc = th.accentHex;
       const lt = th.lightHex;
       const dk = th.darkHex;
-      const txt = isPaper ? '1C1917' : 'FFFFFF';
-      const muted = isPaper ? '78716C' : 'FFFFFF';
+      const txt = 'FFFFFF';
+      const muted = 'FFFFFF';
       const W = slideSize === '4:3' ? 10.0 : 13.33;
       const H = 7.5;
 
       for (const slide of presentation.slides) {
         const s = prs.addSlide();
-        s.background = { fill: 'gradient', color: bg, color2: dk, angle: 135 } as any;
+        // pptxgenjs doesn't support gradient slide backgrounds — use flat darkest
+        // color as base, then layer a gradient rectangle as the first shape
+        s.background = { color: dk };
+
+        // ── Full-slide gradient rectangle (must be FIRST shape, behind everything) ──
+        s.addShape(prs.ShapeType.rect, {
+          x: 0, y: 0, w: W, h: H,
+          fill: {
+            type: 'gradient',
+            stops: [
+              { position: 0,   color: bg,  transparency: 0 },
+              { position: 50,  color: mid, transparency: 0 },
+              { position: 100, color: dk,  transparency: 0 },
+            ],
+            angle: 135,
+          } as any,
+          line: { type: 'none' },
+        });
 
         const isTitle = slide.layout === 'title';
         const isQuote = slide.layout === 'quote';

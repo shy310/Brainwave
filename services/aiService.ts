@@ -1513,6 +1513,7 @@ Choose rich, saturated, visually striking colors. The bg must be a valid Tailwin
 
 CRITICAL color rules:
 - bgHex MUST be a dark, rich color with brightness below 100 (e.g. deep red = B91C1C, deep navy = 1E3A5F, deep forest = 14532D)
+- midHex MUST be a slightly different shade of bgHex — close but distinct (e.g. if bgHex=7F1D1D then midHex=9B1C1C). This is the middle gradient stop.
 - Never generate beige, tan, cream, sand, ivory, or any light/pastel background color
 - The background must be dark enough that white text is clearly readable
 - accentHex should be noticeably brighter/lighter than bgHex (e.g. a mid-tone of the same hue)
@@ -1536,10 +1537,11 @@ Respond ONLY with valid JSON. No markdown, no explanation, no code fences:
   ],
   "theme": {
     "bg": "from-[color]-[shade] via-[color]-[shade] to-[color]-[shade]",
-    "bgHex": "hexcode without #",
-    "accentHex": "hexcode without #",
-    "lightHex": "hexcode without #",
-    "darkHex": "hexcode without #"
+    "bgHex": "hexcode without # — start of gradient (dark)",
+    "midHex": "hexcode without # — middle gradient stop (slightly different shade of bgHex)",
+    "accentHex": "hexcode without # — bright accent color",
+    "lightHex": "hexcode without # — very light tint for decorations",
+    "darkHex": "hexcode without # — near-black for depth/shadows"
   }
 }`;
 
