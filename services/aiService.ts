@@ -1511,6 +1511,14 @@ THEME — pick colors that emotionally match the specific topic, not the subject
 Examples: "Rosa Parks" → warm reds/golds. "Ocean Ecosystems" → navy/turquoise. "The French Revolution" → deep navy/gold/red. "Photosynthesis" → rich greens/yellow. "World War II" → dark gray/olive. "Jazz Music" → deep purple/warm gold.
 Choose rich, saturated, visually striking colors. The bg must be a valid Tailwind gradient string (e.g. from-rose-700 via-red-800 to-stone-900).
 
+CRITICAL color rules:
+- bgHex MUST be a dark, rich color with brightness below 100 (e.g. deep red = B91C1C, deep navy = 1E3A5F, deep forest = 14532D)
+- Never generate beige, tan, cream, sand, ivory, or any light/pastel background color
+- The background must be dark enough that white text is clearly readable
+- accentHex should be noticeably brighter/lighter than bgHex (e.g. a mid-tone of the same hue)
+- lightHex should be a very light tint (brightness > 180), used only for subtle decorative shapes
+- darkHex should be very dark (brightness < 30), close to black, used for shadow/depth shapes
+
 Respond ONLY with valid JSON. No markdown, no explanation, no code fences:
 {
   "title": "string",

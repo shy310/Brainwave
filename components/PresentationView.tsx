@@ -69,6 +69,15 @@ const PresentationView: React.FC<Props> = ({
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
   const [autoTheme, setAutoTheme] = useState<{ bg: string; bgHex: string; accentHex: string; lightHex: string; darkHex: string } | null>(null);
 
+  const applyTheme = (theme: any) => {
+    if (!theme) { setAutoTheme(null); return; }
+    const r = parseInt(theme.bgHex.slice(0, 2), 16);
+    const g = parseInt(theme.bgHex.slice(2, 4), 16);
+    const b = parseInt(theme.bgHex.slice(4, 6), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    setAutoTheme(brightness > 180 ? FALLBACK_THEME : theme);
+  };
+
   // Editor
   const [editingSlide, setEditingSlide] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -169,7 +178,7 @@ const PresentationView: React.FC<Props> = ({
               topic, subject, userGrade, slideCount, audience, structure, includes, language
             );
             setPresentation(result);
-            setAutoTheme((result as any).theme ?? null);
+            applyTheme((result as any).theme);
             setCurrentSlide(0);
             setAnimKey(0);
             setImgErrors({});
@@ -189,7 +198,7 @@ const PresentationView: React.FC<Props> = ({
           topic, subject, userGrade, slideCount, audience, structure, includes, language
         );
         setPresentation(result);
-        setAutoTheme((result as any).theme ?? null);
+        applyTheme((result as any).theme);
         setCurrentSlide(0);
         setAnimKey(0);
         setImgErrors({});
@@ -303,36 +312,39 @@ const PresentationView: React.FC<Props> = ({
 
       for (const slide of presentation.slides) {
         const s = prs.addSlide();
-        s.background = { color: bg };
+        s.background = { fill: 'gradient', color: bg, color2: dk, angle: 135 } as any;
 
         const isTitle = slide.layout === 'title';
         const isQuote = slide.layout === 'quote';
 
-        // ── Shared decorative shapes ──
+        // ── Shared decorative shapes (positions mirror SVG viewBox 800×450 → inches) ──
+        // Large circle top-right (SVG cx=780 cy=-30 r=220 → x=9.34 y=-4.17 w=7.33)
         s.addShape(prs.ShapeType.ellipse, {
-          x: W - 2.8, y: -1.4, w: 4.2, h: 4.2,
+          x: 9.34, y: -4.17, w: 7.33, h: 7.33,
           fill: { color: lt, transparency: 88 },
           line: { type: 'none' },
         });
+        // Medium accent circle (SVG cx=720 cy=60 r=120 → x=9.2 y=-0.59 w=4.0)
         s.addShape(prs.ShapeType.ellipse, {
-          x: W - 1.8, y: 0.3, w: 2.2, h: 2.2,
+          x: 9.2, y: -0.59, w: 4.0, h: 4.0,
           fill: { color: acc, transparency: 78 },
           line: { type: 'none' },
         });
+        // Bottom-left circle (SVG cx=-40 cy=490 r=180 → x=-3.67 y=5.17 w=6.0)
         s.addShape(prs.ShapeType.ellipse, {
-          x: -0.6, y: H - 1.5, w: 2.2, h: 2.2,
+          x: -3.67, y: 5.17, w: 6.0, h: 6.0,
           fill: { color: dk, transparency: 72 },
           line: { type: 'none' },
         });
 
         if (isTitle) {
-          // Bottom accent bar
-          s.addShape(prs.ShapeType.rect, { x: 0, y: H - 0.18, w: W, h: 0.18, fill: { color: acc, transparency: 40 }, line: { type: 'none' } });
-          // Diagonal stripe
-          s.addShape(prs.ShapeType.rect, { x: 8.5, y: 0, w: 0.9, h: H, fill: { color: acc, transparency: 88 }, line: { type: 'none' } });
-          // Dot row
+          // Bottom accent bar (SVG x=0 y=420 w=800 h=6 → y=7.4 h=0.1)
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 7.4, w: W, h: 0.1, fill: { color: acc, transparency: 40 }, line: { type: 'none' } });
+          // Diagonal stripe (SVG x=520 w=60 → x=8.67 w=1.0)
+          s.addShape(prs.ShapeType.rect, { x: 8.67, y: 0, w: 1.0, h: H, fill: { color: acc, transparency: 88 }, line: { type: 'none' } });
+          // Dot row (SVG cx=60+i*28 cy=390 → x=1.0+i*0.47 y=6.5)
           for (let i = 0; i < 5; i++) {
-            s.addShape(prs.ShapeType.ellipse, { x: 3.5 + i * 0.35, y: 1.9, w: 0.12, h: 0.12, fill: { color: txt, transparency: 55 }, line: { type: 'none' } });
+            s.addShape(prs.ShapeType.ellipse, { x: 1.0 + i * 0.47, y: 6.5, w: 0.12, h: 0.12, fill: { color: lt, transparency: 50 }, line: { type: 'none' } });
           }
           // Tag pill
           s.addShape(prs.ShapeType.roundRect, { x: 3.8, y: 2.1, w: 2.8, h: 0.38, fill: { color: acc, transparency: 75 }, line: { color: acc, transparency: 60 }, rectRadius: 0.12 });
@@ -368,17 +380,17 @@ const PresentationView: React.FC<Props> = ({
           s.addText(`${slide.title}`, { x: 1.45, y: 4.75, w: 6, h: 0.35, fontSize: 12, bold: true, color: muted, charSpacing: 2, transparency: 30 });
 
         } else {
-          // Top accent bar
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.1, fill: { color: acc, transparency: 45 }, line: { type: 'none' } });
-          // Left sidebar (two layers)
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0.1, w: 0.14, h: H - 0.1, fill: { color: acc, transparency: 50 }, line: { type: 'none' } });
-          s.addShape(prs.ShapeType.rect, { x: 0.14, y: 0.1, w: 0.05, h: H - 0.1, fill: { color: acc, transparency: 78 }, line: { type: 'none' } });
-          // Right edge bar
-          s.addShape(prs.ShapeType.rect, { x: W - 0.12, y: 0, w: 0.12, h: H, fill: { color: acc, transparency: 82 }, line: { type: 'none' } });
-          // Dot grid bottom-right
+          // Top accent bar (SVG y=0 h=5 → h=0.08)
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.08, fill: { color: acc, transparency: 45 }, line: { type: 'none' } });
+          // Left sidebar (two layers, SVG x=0 w=12 + x=12 w=6)
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: 0.2, h: H, fill: { color: acc, transparency: 50 }, line: { type: 'none' } });
+          s.addShape(prs.ShapeType.rect, { x: 0.2, y: 0, w: 0.1, h: H, fill: { color: acc, transparency: 78 }, line: { type: 'none' } });
+          // Right edge bar (SVG x=790 w=10 → x=13.17 w=0.17)
+          s.addShape(prs.ShapeType.rect, { x: W - 0.17, y: 0, w: 0.17, h: H, fill: { color: acc, transparency: 20 }, line: { type: 'none' } });
+          // Dot grid bottom-right (SVG cx=680+col*20 cy=340+row*20 → x=11.34+col*0.33 y=5.67+row*0.33)
           for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 4; col++) {
-              s.addShape(prs.ShapeType.ellipse, { x: W - 2.2 + col * 0.4, y: H - 1.6 + row * 0.38, w: 0.1, h: 0.1, fill: { color: acc, transparency: 60 }, line: { type: 'none' } });
+              s.addShape(prs.ShapeType.ellipse, { x: 11.34 + col * 0.33, y: 5.67 + row * 0.33, w: 0.1, h: 0.1, fill: { color: acc, transparency: 60 }, line: { type: 'none' } });
             }
           }
           // Diamond accent
