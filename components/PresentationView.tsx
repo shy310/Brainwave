@@ -312,27 +312,27 @@ const PresentationView: React.FC<Props> = ({
         s.addShape(prs.ShapeType.ellipse, {
           x: W - 2.8, y: -1.4, w: 4.2, h: 4.2,
           fill: { color: lt, transparency: 88 },
-          line: { color: lt, transparency: 100 },
+          line: { type: 'none' },
         });
         s.addShape(prs.ShapeType.ellipse, {
           x: W - 1.8, y: 0.3, w: 2.2, h: 2.2,
           fill: { color: acc, transparency: 78 },
-          line: { color: acc, transparency: 100 },
+          line: { type: 'none' },
         });
         s.addShape(prs.ShapeType.ellipse, {
           x: -0.6, y: H - 1.5, w: 2.2, h: 2.2,
           fill: { color: dk, transparency: 72 },
-          line: { color: dk, transparency: 100 },
+          line: { type: 'none' },
         });
 
         if (isTitle) {
           // Bottom accent bar
-          s.addShape(prs.ShapeType.rect, { x: 0, y: H - 0.18, w: W, h: 0.18, fill: { color: acc, transparency: 40 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 0, y: H - 0.18, w: W, h: 0.18, fill: { color: acc, transparency: 40 }, line: { type: 'none' } });
           // Diagonal stripe
-          s.addShape(prs.ShapeType.rect, { x: 8.5, y: 0, w: 0.9, h: H, fill: { color: acc, transparency: 88 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 8.5, y: 0, w: 0.9, h: H, fill: { color: acc, transparency: 88 }, line: { type: 'none' } });
           // Dot row
           for (let i = 0; i < 5; i++) {
-            s.addShape(prs.ShapeType.ellipse, { x: 3.5 + i * 0.35, y: 1.9, w: 0.12, h: 0.12, fill: { color: txt, transparency: 55 }, line: { color: txt, transparency: 100 } });
+            s.addShape(prs.ShapeType.ellipse, { x: 3.5 + i * 0.35, y: 1.9, w: 0.12, h: 0.12, fill: { color: txt, transparency: 55 }, line: { type: 'none' } });
           }
           // Tag pill
           s.addShape(prs.ShapeType.roundRect, { x: 3.8, y: 2.1, w: 2.8, h: 0.38, fill: { color: acc, transparency: 75 }, line: { color: acc, transparency: 60 }, rectRadius: 0.12 });
@@ -344,50 +344,50 @@ const PresentationView: React.FC<Props> = ({
             s.addText(slide.body, { x: 1.8, y: 4.7, w: W - 3.6, h: 0.7, fontSize: 16, color: muted, align: 'center', italic: true, transparency: 35 });
           }
           // Divider dots
-          s.addShape(prs.ShapeType.ellipse, { x: 5.9, y: 5.5, w: 0.1, h: 0.1, fill: { color: txt, transparency: 55 }, line: { color: txt, transparency: 100 } });
-          s.addShape(prs.ShapeType.rect, { x: 4.6, y: 5.53, w: 1.2, h: 0.04, fill: { color: txt, transparency: 60 }, line: { color: txt, transparency: 100 } });
-          s.addShape(prs.ShapeType.ellipse, { x: 6.1, y: 5.5, w: 0.1, h: 0.1, fill: { color: txt, transparency: 55 }, line: { color: txt, transparency: 100 } });
-          s.addShape(prs.ShapeType.rect, { x: 6.3, y: 5.53, w: 1.2, h: 0.04, fill: { color: txt, transparency: 60 }, line: { color: txt, transparency: 100 } });
+          s.addShape(prs.ShapeType.ellipse, { x: 5.9, y: 5.5, w: 0.1, h: 0.1, fill: { color: txt, transparency: 55 }, line: { type: 'none' } });
+          s.addShape(prs.ShapeType.rect, { x: 4.6, y: 5.53, w: 1.2, h: 0.04, fill: { color: txt, transparency: 60 }, line: { type: 'none' } });
+          s.addShape(prs.ShapeType.ellipse, { x: 6.1, y: 5.5, w: 0.1, h: 0.1, fill: { color: txt, transparency: 55 }, line: { type: 'none' } });
+          s.addShape(prs.ShapeType.rect, { x: 6.3, y: 5.53, w: 1.2, h: 0.04, fill: { color: txt, transparency: 60 }, line: { type: 'none' } });
 
         } else if (isQuote) {
           // Bold left bar (two layers)
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: 0.22, h: H, fill: { color: acc, transparency: 20 }, line: { color: acc, transparency: 100 } });
-          s.addShape(prs.ShapeType.rect, { x: 0.22, y: 0, w: 0.08, h: H, fill: { color: acc, transparency: 65 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: 0.22, h: H, fill: { color: acc, transparency: 20 }, line: { type: 'none' } });
+          s.addShape(prs.ShapeType.rect, { x: 0.22, y: 0, w: 0.08, h: H, fill: { color: acc, transparency: 65 }, line: { type: 'none' } });
           // Dot cluster top-right
           for (let i = 0; i < 3; i++) {
-            s.addShape(prs.ShapeType.ellipse, { x: W - 1.2 + i * 0.28, y: 0.5, w: 0.16, h: 0.16, fill: { color: acc, transparency: 50 }, line: { color: acc, transparency: 100 } });
+            s.addShape(prs.ShapeType.ellipse, { x: W - 1.2 + i * 0.28, y: 0.5, w: 0.16, h: 0.16, fill: { color: acc, transparency: 50 }, line: { type: 'none' } });
           }
           // Bottom accent line
-          s.addShape(prs.ShapeType.rect, { x: 0.6, y: H - 0.6, w: 3.0, h: 0.05, fill: { color: acc, transparency: 40 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 0.6, y: H - 0.6, w: 3.0, h: 0.05, fill: { color: acc, transparency: 40 }, line: { type: 'none' } });
           // Giant quote mark
           s.addText('\u201C', { x: 0.5, y: 0.1, w: 2.5, h: 1.8, fontSize: 110, bold: true, color: txt, transparency: 80, fontFace: 'Georgia' });
           // Quote body
           s.addText(slide.body || slide.bullets[0] || '', { x: 0.7, y: 1.5, w: W - 1.4, h: 3.2, fontSize: 24, italic: true, bold: true, color: txt, align: 'left', valign: 'middle', wrap: true, lineSpacingMultiple: 1.3 });
           // Attribution
-          s.addShape(prs.ShapeType.rect, { x: 0.7, y: 4.85, w: 0.6, h: 0.05, fill: { color: acc, transparency: 30 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 0.7, y: 4.85, w: 0.6, h: 0.05, fill: { color: acc, transparency: 30 }, line: { type: 'none' } });
           s.addText(`${slide.title}`, { x: 1.45, y: 4.75, w: 6, h: 0.35, fontSize: 12, bold: true, color: muted, charSpacing: 2, transparency: 30 });
 
         } else {
           // Top accent bar
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.1, fill: { color: acc, transparency: 45 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0, w: W, h: 0.1, fill: { color: acc, transparency: 45 }, line: { type: 'none' } });
           // Left sidebar (two layers)
-          s.addShape(prs.ShapeType.rect, { x: 0, y: 0.1, w: 0.14, h: H - 0.1, fill: { color: acc, transparency: 50 }, line: { color: acc, transparency: 100 } });
-          s.addShape(prs.ShapeType.rect, { x: 0.14, y: 0.1, w: 0.05, h: H - 0.1, fill: { color: acc, transparency: 78 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 0, y: 0.1, w: 0.14, h: H - 0.1, fill: { color: acc, transparency: 50 }, line: { type: 'none' } });
+          s.addShape(prs.ShapeType.rect, { x: 0.14, y: 0.1, w: 0.05, h: H - 0.1, fill: { color: acc, transparency: 78 }, line: { type: 'none' } });
           // Right edge bar
-          s.addShape(prs.ShapeType.rect, { x: W - 0.12, y: 0, w: 0.12, h: H, fill: { color: acc, transparency: 82 }, line: { color: acc, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: W - 0.12, y: 0, w: 0.12, h: H, fill: { color: acc, transparency: 82 }, line: { type: 'none' } });
           // Dot grid bottom-right
           for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 4; col++) {
-              s.addShape(prs.ShapeType.ellipse, { x: W - 2.2 + col * 0.4, y: H - 1.6 + row * 0.38, w: 0.1, h: 0.1, fill: { color: acc, transparency: 60 }, line: { color: acc, transparency: 100 } });
+              s.addShape(prs.ShapeType.ellipse, { x: W - 2.2 + col * 0.4, y: H - 1.6 + row * 0.38, w: 0.1, h: 0.1, fill: { color: acc, transparency: 60 }, line: { type: 'none' } });
             }
           }
           // Diamond accent
-          s.addShape(prs.ShapeType.rect, { x: W - 3.2, y: 0.6, w: 0.2, h: 0.2, fill: { color: lt, transparency: 55 }, line: { color: lt, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: W - 3.2, y: 0.6, w: 0.2, h: 0.2, fill: { color: lt, transparency: 55 }, line: { type: 'none' } });
           // Slide number badge
           s.addShape(prs.ShapeType.roundRect, { x: 0.4, y: 0.3, w: 0.65, h: 0.38, fill: { color: acc, transparency: 65 }, line: { color: acc, transparency: 85 }, rectRadius: 0.06 });
           s.addText(String(slide.slideNumber).padStart(2, '0'), { x: 0.4, y: 0.3, w: 0.65, h: 0.38, fontSize: 11, bold: true, color: txt, align: 'center', valign: 'middle' });
           // Horizontal rule
-          s.addShape(prs.ShapeType.rect, { x: 1.2, y: 0.47, w: W - 4.5, h: 0.025, fill: { color: txt, transparency: 82 }, line: { color: txt, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 1.2, y: 0.47, w: W - 4.5, h: 0.025, fill: { color: txt, transparency: 82 }, line: { type: 'none' } });
           // Title
           const contentW = slide.layout === 'split' ? 6.0 : W - 1.2;
           s.addText(slide.title, { x: 0.4, y: 0.8, w: contentW, h: 1.1, fontSize: 30, bold: true, color: txt, wrap: true, valign: 'top' });
@@ -399,7 +399,7 @@ const PresentationView: React.FC<Props> = ({
             s.addText(b, { x: 0.85, y: yPos - 0.02, w: contentW - 0.5, h: 0.82, fontSize: 13, color: txt, wrap: true, valign: 'top', lineSpacingMultiple: 1.2 });
           });
           // Footer
-          s.addShape(prs.ShapeType.rect, { x: 0.4, y: H - 0.45, w: W - 0.8, h: 0.025, fill: { color: txt, transparency: 82 }, line: { color: txt, transparency: 100 } });
+          s.addShape(prs.ShapeType.rect, { x: 0.4, y: H - 0.45, w: W - 0.8, h: 0.025, fill: { color: txt, transparency: 82 }, line: { type: 'none' } });
           s.addText(`${presentation.title}  ·  ${slide.slideNumber} / ${presentation.slides.length}`, { x: 0.4, y: H - 0.42, w: W - 0.8, h: 0.28, fontSize: 8, color: muted, align: 'right', transparency: 30 });
         }
 
