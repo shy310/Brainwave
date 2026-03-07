@@ -1,5 +1,44 @@
 /* Base styles — Tailwind is loaded via CDN in index.html */
 
+/* ── Design System Tokens ─────────────────────────────────────────────────── */
+:root {
+  --brand: #6366f1;
+  --brand-light: #e0e7ff;
+  --brand-dark: #4338ca;
+  --violet: #8b5cf6;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #f1f5f9;
+  --border: #e2e8f0;
+  --text-1: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+}
+
+.dark {
+  --brand: #818cf8;
+  --brand-light: #1e1b4b;
+  --brand-dark: #6366f1;
+  --violet: #a78bfa;
+  --surface: #0f172a;
+  --surface-2: #1e293b;
+  --surface-3: #334155;
+  --border: #334155;
+  --text-1: #f1f5f9;
+  --text-2: #94a3b8;
+  --text-3: #475569;
+}
+
 *,
 *::before,
 *::after {
@@ -12,10 +51,11 @@ html {
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }
 
 /* Hide scrollbar while preserving scroll */
@@ -27,7 +67,44 @@ body {
   display: none;
 }
 
-/* Progress bar loading animation */
+/* Hebrew font — Heebo is designed for Hebrew/Latin bilingual text */
+:lang(he), :lang(he) * {
+  font-family: 'Heebo', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── FLASHCARD FLIP ANIMATION ─────────────────────────────────────────────── */
+.flashcard-container {
+  width: 100%;
+  min-height: 200px;
+}
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flashcard-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard-front,
+.flashcard-back {
+  position: absolute;
+  width: 100%;
+  min-height: 200px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 24px;
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+}
+
+/* ── Progress bar loading animation ─────────────────────────────────────────── */
 @keyframes progress-fill {
   0%   { width: 0%; }
   30%  { width: 40%; }
@@ -42,24 +119,6 @@ body {
 @keyframes progress-shimmer {
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
-}
-.progress-shimmer {
-  background: linear-gradient(
-    90deg,
-    #1d4ed8 0%,
-    #2563eb 40%,
-    #60a5fa 50%,
-    #2563eb 60%,
-    #1d4ed8 100%
-  );
-  background-size: 200% auto;
-  animation: progress-fill 4s cubic-bezier(0.1, 0.4, 0.6, 1) forwards,
-             progress-shimmer 1.5s linear infinite;
-}
-
-/* Hebrew font — Heebo is designed for Hebrew/Latin bilingual text */
-:lang(he), :lang(he) * {
-  font-family: 'Heebo', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Subtle bounce animation for the chat button */
@@ -80,7 +139,6 @@ body {
 
 /* ── GAME ANIMATIONS ─────────────────────────────────────────── */
 
-/* Balloon gently bobs and sways */
 @keyframes balloon-bob {
   0%, 100% { transform: translateY(0px) rotate(-1.5deg); }
   50%       { transform: translateY(-18px) rotate(1.5deg); }
@@ -90,7 +148,6 @@ body {
 .animate-balloon-bob-3 { animation: balloon-bob 1.9s ease-in-out infinite 0.8s; }
 .animate-balloon-bob-4 { animation: balloon-bob 2.6s ease-in-out infinite 0.2s; }
 
-/* Balloon pop — scale up then vanish */
 @keyframes balloon-pop {
   0%   { transform: scale(1);   opacity: 1; }
   55%  { transform: scale(1.5); opacity: 0.8; }
@@ -101,7 +158,6 @@ body {
   pointer-events: none;
 }
 
-/* Score point flying up */
 @keyframes score-fly {
   0%   { transform: translateY(0);    opacity: 1; }
   100% { transform: translateY(-70px); opacity: 0; }
@@ -112,7 +168,6 @@ body {
   pointer-events: none;
 }
 
-/* Heart breaks when a life is lost */
 @keyframes heartbreak {
   0%   { transform: scale(1) rotate(0deg);   opacity: 1; }
   40%  { transform: scale(1.5) rotate(-20deg); opacity: 0.8; }
@@ -120,7 +175,6 @@ body {
 }
 .animate-heartbreak { animation: heartbreak 0.5s ease-in forwards; }
 
-/* Quick screen colour flash on correct / wrong */
 @keyframes flash-green {
   0%, 100% { opacity: 0; }
   30%       { opacity: 0.25; }
@@ -132,7 +186,6 @@ body {
 .animate-flash-green { animation: flash-green 0.4s ease-out forwards; }
 .animate-flash-red   { animation: flash-red   0.4s ease-out forwards; }
 
-/* Tile wrong-answer shake (stronger than default) */
 @keyframes tile-shake {
   0%, 100% { transform: translateX(0); }
   20%       { transform: translateX(-10px); }
@@ -142,16 +195,12 @@ body {
 }
 .animate-tile-shake { animation: tile-shake 0.4s ease-in-out; }
 
-/* Game over trophy bounce */
 @keyframes trophy-bounce {
   0%, 100% { transform: translateY(0) scale(1); }
   50%       { transform: translateY(-20px) scale(1.1); }
 }
 .animate-trophy { animation: trophy-bounce 1.2s ease-in-out infinite; }
 
-/* ── NEW GAME ANIMATIONS ──────────────────────────────────────────────────── */
-
-/* Balloon flies upward and exits the screen */
 @keyframes balloon-fly-up {
   0%   { transform: translateY(0);      opacity: 1; }
   85%  { opacity: 1; }
@@ -159,14 +208,12 @@ body {
 }
 .animate-balloon-fly { animation: balloon-fly-up linear forwards; }
 
-/* Minecart slides from left to right */
 @keyframes cart-slide {
   from { left: -18%; }
   to   { left: 108%; }
 }
 .animate-cart { animation: cart-slide linear forwards; }
 
-/* Cart enters cave (shrinks away) */
 @keyframes cart-enter {
   0%   { transform: scale(1) translateY(0);    opacity: 1; }
   60%  { transform: scale(0.5) translateY(8px); opacity: 0.6; }
@@ -174,7 +221,6 @@ body {
 }
 .animate-cart-enter { animation: cart-enter 0.45s ease-in forwards; }
 
-/* Explosion for bug-fix failure */
 @keyframes explode {
   0%   { transform: scale(0.3); opacity: 0; }
   15%  { transform: scale(1.3); opacity: 1; }
@@ -184,7 +230,6 @@ body {
 }
 .animate-explode { animation: explode 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
 
-/* World saved celebration */
 @keyframes world-saved {
   0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
   55%  { transform: scale(1.15) rotate(5deg); opacity: 1; }
@@ -192,7 +237,6 @@ body {
 }
 .animate-world-saved { animation: world-saved 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
-/* Glitch effect for system compromised */
 @keyframes glitch {
   0%, 100% { transform: translateX(0) skewX(0deg); }
   20%       { transform: translateX(-4px) skewX(-2deg); }
@@ -202,7 +246,6 @@ body {
 }
 .animate-glitch { animation: glitch 0.55s ease-in-out infinite; }
 
-/* Bug line fixed pulse */
 @keyframes bug-fixed {
   0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
   50%  { box-shadow: 0 0 20px 6px rgba(34,197,94,0.6); }
@@ -210,14 +253,12 @@ body {
 }
 .animate-bug-fixed { animation: bug-fixed 0.8s ease-out forwards; }
 
-/* Detonation timer critical pulse */
 @keyframes detonate-pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
 }
 .animate-detonate { animation: detonate-pulse 0.45s ease-in-out infinite; }
 
-/* Letter tile pop on click (Word Scramble) */
 @keyframes letter-pop {
   0%   { transform: scale(1); }
   35%  { transform: scale(0.82); }
@@ -226,7 +267,6 @@ body {
 }
 .animate-letter-pop { animation: letter-pop 0.22s cubic-bezier(0.34,1.56,0.64,1); }
 
-/* Picture tap tile correct bounce */
 @keyframes pic-correct {
   0%   { transform: scale(1); }
   35%  { transform: scale(1.2); }
@@ -237,7 +277,6 @@ body {
 
 /* ── PRESENTATION SLIDE TRANSITION ──────────────────────────────────────────── */
 
-/* Slide glides in from the right each time a new slide is shown */
 @keyframes slide-in {
   from { transform: translateX(32px); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
@@ -246,7 +285,6 @@ body {
   animation: slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Word answer slot filled celebration */
 @keyframes slot-fill {
   0%   { transform: translateY(0) scale(1); }
   40%  { transform: translateY(-8px) scale(1.15); }
@@ -271,3 +309,146 @@ body {
   100% { transform: translateY(0)     scale(1);    opacity: 1; }
 }
 .animate-toast-in { animation: toast-in 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+/* ── Slide-up entry ──────────────────────────────────────────────────────────── */
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slide-up-fade 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ── Pulse ring (speaking indicator) ─────────────────────────────────────────── */
+@keyframes pulse-ring {
+  0%   { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(99,102,241,0.7); }
+  70%  { transform: scale(1);   box-shadow: 0 0 0 16px rgba(99,102,241,0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+}
+.animate-pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+
+/* ── Card hover lift ─────────────────────────────────────────────────────── */
+.card-hover {
+  transition: box-shadow 200ms, transform 200ms;
+}
+.card-hover:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+/* ── Brand button ────────────────────────────────────────────────────────── */
+.btn-brand {
+  background: #6366f1;
+  color: white;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: background 150ms, transform 100ms, box-shadow 150ms;
+  box-shadow: 0 4px 20px rgba(99,102,241,0.35);
+}
+.btn-brand:hover { background: #4f46e5; }
+.btn-brand:active { transform: scale(0.98); }
+
+/* ── Smooth page transitions ─────────────────────────────────────────────── */
+.view-enter {
+  animation: view-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes view-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Progress shimmer (brand colors) ─────────────────────────────────────── */
+.progress-shimmer {
+  background: linear-gradient(
+    90deg,
+    #4338ca 0%,
+    #6366f1 40%,
+    #818cf8 50%,
+    #6366f1 60%,
+    #4338ca 100%
+  );
+  background-size: 200% auto;
+  animation: progress-fill 4s cubic-bezier(0.1, 0.4, 0.6, 1) forwards,
+             progress-shimmer 1.5s linear infinite;
+}
+
+/* ── Sidebar nav item active indicator ──────────────────────────────────── */
+.nav-item-active {
+  background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%);
+  color: #6366f1;
+}
+
+.dark .nav-item-active {
+  background: linear-gradient(135deg, rgba(129,140,248,0.15) 0%, rgba(167,139,250,0.1) 100%);
+  color: #818cf8;
+}
+
+/* ── Glassmorphism card ──────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+.dark .glass-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+}
+
+/* ── Stat card gradient border ───────────────────────────────────────────── */
+.stat-card {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ── Gradient text ───────────────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Note section entry animation ────────────────────────────────────────── */
+@keyframes note-section-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.note-section-enter {
+  animation: note-section-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Floating chart canvas ───────────────────────────────────────────────── */
+.graph-canvas {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+/* ── Sidebar smooth scroll ───────────────────────────────────────────────── */
+.sidebar-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99,102,241,0.2) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(99,102,241,0.2);
+  border-radius: 2px;
+}

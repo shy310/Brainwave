@@ -27,6 +27,13 @@ const SECTION_ICONS: Record<string, React.ReactNode> = {
   summary: <Layers size={18} className="text-purple-500" />,
 };
 
+const SECTION_BADGE: Record<string, string> = {
+  intro: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  concept: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  example: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  summary: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+};
+
 const LessonView: React.FC<Props> = ({
   session, userGrade, language, translations, onStartExercises, onBack, onContextUpdate
 }) => {
@@ -120,7 +127,7 @@ const LessonView: React.FC<Props> = ({
           </pre>
         )}
         <div className="flex gap-4 justify-center">
-          <button onClick={onBack} className="px-6 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold">
+          <button onClick={onBack} className="px-6 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold transition-all duration-150">
             {translations.backToDashboard}
           </button>
         </div>
@@ -131,36 +138,40 @@ const LessonView: React.FC<Props> = ({
   // ── UPLOAD ANALYSIS VIEW ──────────────────────────────────────────────────
   if (isUploadMode && uploadAnalysis) {
     return (
-      <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-8 animate-in fade-in duration-500">
+      <div className="max-w-3xl mx-auto px-6 py-8 view-enter space-y-8">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
-            <ArrowLeft size={20} className="rtl:rotate-180" />
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          >
+            <ArrowLeft size={18} className="rtl:rotate-180" />
+            {translations.backToDashboard}
           </button>
-          <div>
-            <p className="text-xs font-black text-brand-600 uppercase tracking-widest mb-1">{translations.uploadAnalysisReady}</p>
-            <h1 className="text-2xl font-black text-gray-900 dark:text-white">
-              {session.studyContext.map(a => a.name).join(', ')}
-            </h1>
-          </div>
+        </div>
+        <div>
+          <p className="text-xs font-bold text-brand-600 uppercase tracking-widest mb-1">{translations.uploadAnalysisReady}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {session.studyContext.map(a => a.name).join(', ')}
+          </h1>
         </div>
 
         {/* Summary */}
-        <div className="bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-900/30 rounded-3xl p-8">
+        <div className="bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-900/30 rounded-2xl p-8">
           <div className="flex items-center gap-2 mb-4">
             <FileText size={20} className="text-brand-600" />
-            <h2 className="font-black text-brand-900 dark:text-brand-100">{translations.uploadMaterial}</h2>
+            <h2 className="font-bold text-brand-900 dark:text-brand-100">{translations.uploadMaterial}</h2>
           </div>
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{uploadAnalysis.summary}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Detected Topics with checkboxes */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 shadow-card">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <Tag size={18} className="text-amber-500" />
-                <h3 className="font-black text-gray-900 dark:text-white">{translations.detectedTopics}</h3>
+                <h3 className="font-bold text-gray-900 dark:text-white">{translations.detectedTopics}</h3>
               </div>
               <button
                 onClick={() => {
@@ -225,10 +236,10 @@ const LessonView: React.FC<Props> = ({
           </div>
 
           {/* Detected Info */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 shadow-card">
             <div className="flex items-center gap-2 mb-6">
               <GraduationCap size={18} className="text-purple-500" />
-              <h3 className="font-black text-gray-900 dark:text-white">{translations.recommended}</h3>
+              <h3 className="font-bold text-gray-900 dark:text-white">{translations.recommended}</h3>
             </div>
             {uploadAnalysis.detectedSubject && (
               <div className="mb-4">
@@ -247,7 +258,7 @@ const LessonView: React.FC<Props> = ({
               <ul className="mt-2 space-y-2">
                 {uploadAnalysis.suggestedExercises.map((ex, i) => (
                   <li key={i} className="text-sm text-gray-600 dark:text-gray-400 font-medium flex items-start gap-2">
-                    <span className="text-brand-500 font-black">{i + 1}.</span> {ex}
+                    <span className="text-brand-500 font-bold">{i + 1}.</span> {ex}
                   </li>
                 ))}
               </ul>
@@ -264,7 +275,7 @@ const LessonView: React.FC<Props> = ({
               selectedTopics.size > 0 ? [...selectedTopics] : uploadAnalysis.topics
             )}
             disabled={selectedTopics.size === 0}
-            className="flex-1 py-5 bg-brand-600 text-white rounded-2xl font-black text-lg hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xl flex items-center justify-center gap-3"
+            className="flex-1 py-4 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl font-semibold shadow-brand transition-all duration-150 active:scale-[0.98] text-base disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3"
           >
             <Zap size={22} fill="currentColor" />
             {translations.generateQuiz}
@@ -274,7 +285,7 @@ const LessonView: React.FC<Props> = ({
           </button>
           <button
             onClick={onBack}
-            className="flex-1 py-5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-black hover:bg-gray-200 transition-all"
+            className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold hover:bg-gray-200 transition-all duration-150"
           >
             {translations.backToDashboard}
           </button>
@@ -291,33 +302,39 @@ const LessonView: React.FC<Props> = ({
   const isLastSection = activeSection === sections.length - 1;
 
   return (
-    <div className="max-w-[1200px] mx-auto p-6 md:p-12 animate-in fade-in duration-500">
+    <div className="max-w-3xl mx-auto px-6 py-8 view-enter">
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 mb-6 transition-colors"
+      >
+        <ArrowLeft size={16} className="rtl:rotate-180" />
+        {translations.backToDashboard}
+      </button>
+
       {/* Header */}
-      <div className="flex items-center gap-4 mb-10">
-        <button onClick={onBack} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
-          <ArrowLeft size={20} className="rtl:rotate-180" />
-        </button>
+      <div className="flex items-center gap-4 mb-6">
         <div className="flex-1">
-          <p className="text-xs font-black text-brand-600 uppercase tracking-widest mb-1">{session.subject}</p>
-          <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">{lesson.topicTitle}</h1>
+          <p className="text-xs font-bold text-brand-600 uppercase tracking-widest mb-1">{session.subject}</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{lesson.topicTitle}</h1>
         </div>
         <button
           onClick={() => onStartExercises(session.studyContext)}
-          className="hidden sm:flex items-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-xl font-black hover:bg-brand-700 transition-all shadow-lg"
+          className="hidden sm:flex items-center gap-2 px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold shadow-brand transition-all duration-150 active:scale-[0.98]"
         >
           <Play size={16} /> {translations.startPractice}
         </button>
       </div>
 
       {/* Progress Steps */}
-      <div className="flex items-center gap-2 mb-10 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
         {sections.map((sec, i) => (
           <button
             key={i}
             onClick={() => setActiveSection(i)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-150 whitespace-nowrap flex-shrink-0 ${
               i === activeSection
-                ? 'bg-brand-600 text-white shadow-md'
+                ? 'bg-brand-500 text-white shadow-brand'
                 : i < activeSection
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
@@ -329,23 +346,22 @@ const LessonView: React.FC<Props> = ({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {currentSection && (
-            <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-700 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-xl bg-brand-50 dark:bg-brand-900/20">
-                  {SECTION_ICONS[currentSection.type] || <BookOpen size={18} />}
-                </div>
-                <h2 className="text-xl font-black text-gray-900 dark:text-white">{currentSection.heading}</h2>
-              </div>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 mb-4 shadow-card animate-in fade-in slide-in-from-bottom-4 duration-300">
+              {/* Section type badge */}
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full inline-block mb-3 ${SECTION_BADGE[currentSection.type] || SECTION_BADGE['intro']}`}>
+                {currentSection.type.charAt(0).toUpperCase() + currentSection.type.slice(1)}
+              </span>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">{currentSection.heading}</h2>
               <div className="prose dark:prose-invert max-w-none">
                 {currentSection.body.split('\n').map((line, i) => {
                   if (!line.trim()) return <br key={i} />;
                   if (line.startsWith('**') && line.endsWith('**')) {
                     return (
-                      <p key={i} className="font-bold text-gray-900 dark:text-white text-lg">
+                      <p key={i} className="font-bold text-gray-900 dark:text-white text-base">
                         <MathText>{line.replace(/\*\*/g, '')}</MathText>
                       </p>
                     );
@@ -353,8 +369,8 @@ const LessonView: React.FC<Props> = ({
                   if (line.match(/^\d+\./)) {
                     return (
                       <div key={i} className="flex gap-3 my-2">
-                        <span className="text-brand-600 font-black flex-shrink-0">{line.match(/^\d+/)?.[0]}.</span>
-                        <MathText className="text-gray-700 dark:text-gray-300">{line.replace(/^\d+\./, '').trim()}</MathText>
+                        <span className="text-brand-600 font-bold flex-shrink-0">{line.match(/^\d+/)?.[0]}.</span>
+                        <MathText className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{line.replace(/^\d+\./, '').trim()}</MathText>
                       </div>
                     );
                   }
@@ -362,12 +378,12 @@ const LessonView: React.FC<Props> = ({
                     return (
                       <div key={i} className="flex gap-3 my-2">
                         <span className="text-brand-600 flex-shrink-0">•</span>
-                        <MathText className="text-gray-700 dark:text-gray-300">{line.replace(/^[-•]\s/, '')}</MathText>
+                        <MathText className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{line.replace(/^[-•]\s/, '')}</MathText>
                       </div>
                     );
                   }
                   return (
-                    <p key={i} className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    <p key={i} className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                       <MathText>{line}</MathText>
                     </p>
                   );
@@ -381,7 +397,7 @@ const LessonView: React.FC<Props> = ({
             {activeSection > 0 && (
               <button
                 onClick={() => setActiveSection(activeSection - 1)}
-                className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-black hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold hover:bg-gray-200 transition-all duration-150 flex items-center justify-center gap-2"
               >
                 <ChevronRight size={20} className="rotate-180 rtl:rotate-0" />
                 {translations.backToLesson}
@@ -390,14 +406,14 @@ const LessonView: React.FC<Props> = ({
             {!isLastSection ? (
               <button
                 onClick={() => setActiveSection(activeSection + 1)}
-                className="flex-1 py-4 bg-brand-600 text-white rounded-2xl font-black hover:bg-brand-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+                className="flex-1 py-4 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl font-semibold shadow-brand transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 {translations.next} <ChevronRight size={20} className="rtl:rotate-180" />
               </button>
             ) : (
               <button
                 onClick={() => onStartExercises(session.studyContext)}
-                className="flex-1 py-4 bg-brand-600 text-white rounded-2xl font-black hover:bg-brand-700 transition-all flex items-center justify-center gap-2 shadow-xl"
+                className="w-full py-4 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl font-semibold shadow-brand transition-all duration-150 active:scale-[0.98] mt-6 text-base flex items-center justify-center gap-2"
               >
                 <Play size={20} /> {translations.startPractice}
               </button>
@@ -407,26 +423,30 @@ const LessonView: React.FC<Props> = ({
 
         {/* Sidebar: Key Points */}
         <div className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm sticky top-6">
-            <div className="flex items-center gap-2 mb-6">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-card sticky top-6">
+            <div className="flex items-center gap-2 mb-4">
               <Lightbulb size={18} className="text-amber-500" />
-              <h3 className="font-black text-gray-900 dark:text-white text-sm uppercase tracking-widest">{translations.keyPoints}</h3>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm uppercase tracking-widest">{translations.keyPoints}</h3>
             </div>
-            <ul className="space-y-4">
-              {(lesson.keyPoints || []).map((point, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center text-xs font-black flex-shrink-0 mt-0.5">
-                    {i + 1}
-                  </div>
-                  <MathText className="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">{point}</MathText>
-                </li>
-              ))}
-            </ul>
 
-            <div className="mt-8 pt-6 border-t dark:border-gray-700">
+            {/* Key points box */}
+            <div className="bg-brand-50 dark:bg-brand-900/20 rounded-xl p-4 border border-brand-100 dark:border-brand-900/40 mt-4">
+              <ul className="space-y-2">
+                {(lesson.keyPoints || []).map((point, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    <div className="w-5 h-5 rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                      {i + 1}
+                    </div>
+                    <MathText className="leading-relaxed">{point}</MathText>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
               <button
                 onClick={() => onStartExercises(session.studyContext)}
-                className="w-full py-4 bg-brand-600 text-white rounded-2xl font-black hover:bg-brand-700 transition-all shadow-lg flex items-center justify-center gap-2"
+                className="w-full py-4 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl font-semibold shadow-brand transition-all duration-150 active:scale-[0.98] mt-6 text-base flex items-center justify-center gap-2"
               >
                 <Zap size={18} fill="currentColor" />
                 {translations.startPractice}

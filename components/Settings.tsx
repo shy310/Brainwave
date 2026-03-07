@@ -83,10 +83,10 @@ const Settings: React.FC<Props> = ({
   };
 
   return (
-    <div className="p-6 md:p-12 lg:p-16 max-w-2xl mx-auto space-y-8 overflow-y-auto h-full scrollbar-hide pb-20">
+    <div className="max-w-2xl mx-auto px-6 py-8 view-enter overflow-y-auto h-full scrollbar-hide pb-20">
 
-      <header>
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
           {translations.settings}
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">
@@ -95,13 +95,13 @@ const Settings: React.FC<Props> = ({
       </header>
 
       {/* ── Profile Section ── */}
-      <section className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 border border-gray-100 dark:border-gray-800 space-y-5">
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-card mb-4 space-y-5">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-brand-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-brand-500/30 shrink-0">
+          <div className="w-16 h-16 rounded-2xl bg-brand-600 flex items-center justify-center text-white font-bold text-2xl shadow-brand shrink-0">
             {(name.trim() || user.name).charAt(0).toUpperCase()}
           </div>
           <div>
-            <div className="text-xl font-black text-gray-900 dark:text-white">{user.name}</div>
+            <div className="text-xl font-bold text-gray-900 dark:text-white">{user.name}</div>
             <div className="text-sm text-gray-400 font-medium">@{user.username}</div>
             <div className="text-xs text-brand-600 dark:text-brand-400 font-bold mt-0.5">
               {translations.grades[user.gradeLevel]}
@@ -111,21 +111,21 @@ const Settings: React.FC<Props> = ({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-brand-600">{user.totalXp}</div>
-            <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">{translations.xp}</div>
+            <div className="text-2xl font-bold text-brand-600">{user.totalXp}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400 mb-3 mt-1">{translations.xp}</div>
           </div>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-black text-orange-500">{user.streakDays}</div>
-            <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">{translations.streak}</div>
+            <div className="text-2xl font-bold text-orange-500">{user.streakDays}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400 mb-3 mt-1">{translations.streak}</div>
           </div>
         </div>
 
         <div className="border-t dark:border-gray-800 pt-5 space-y-4">
-          <h2 className="text-base font-black text-gray-900 dark:text-white">Edit Profile</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit Profile</h2>
 
           {/* Display Name */}
           <div className="space-y-1.5">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
               Display Name
             </label>
             <div className="relative group">
@@ -137,7 +137,7 @@ const Settings: React.FC<Props> = ({
                 type="text"
                 value={name}
                 onChange={(e) => { setName(e.target.value); setProfileError(null); setProfileSaved(false); }}
-                className="w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-500 rounded-xl outline-none font-bold text-gray-900 dark:text-white transition-all text-sm"
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all font-bold text-gray-900 dark:text-white"
                 placeholder="Your name"
               />
             </div>
@@ -145,7 +145,7 @@ const Settings: React.FC<Props> = ({
 
           {/* Username */}
           <div className="space-y-1.5">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
               Username
             </label>
             <div className="relative group">
@@ -157,7 +157,7 @@ const Settings: React.FC<Props> = ({
                 type="text"
                 value={username}
                 onChange={(e) => { setUsername(e.target.value); setProfileError(null); setProfileSaved(false); }}
-                className="w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-brand-500 rounded-xl outline-none font-bold text-gray-900 dark:text-white transition-all text-sm"
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all font-bold text-gray-900 dark:text-white"
                 placeholder="student_123"
               />
             </div>
@@ -175,7 +175,7 @@ const Settings: React.FC<Props> = ({
           <button
             onClick={handleProfileSave}
             disabled={!profileDirty}
-            className="w-full py-3.5 bg-brand-600 text-white rounded-xl font-black text-sm hover:bg-brand-700 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-brand-500/20 active:scale-95"
+            className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold shadow-brand transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed w-full"
           >
             {profileSaved ? (
               <><Check size={18} /> Profile saved!</>
@@ -187,9 +187,9 @@ const Settings: React.FC<Props> = ({
       </section>
 
       {/* ── Grade Level ── */}
-      <section className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 border border-gray-100 dark:border-gray-800 space-y-5">
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-card mb-4 space-y-5">
         <div>
-          <h2 className="text-lg font-black text-gray-900 dark:text-white">{translations.selectGrade}</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">{translations.selectGrade}</h2>
           <p className="text-sm text-gray-400 font-medium mt-1">
             Currently: <span className="text-brand-600 dark:text-brand-400 font-bold">{translations.grades[user.gradeLevel]}</span>
           </p>
@@ -223,8 +223,8 @@ const Settings: React.FC<Props> = ({
                         onClick={() => setSelectedGrade(g)}
                         className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           selectedGrade === g
-                            ? 'bg-brand-600 text-white'
-                            : 'text-gray-500 dark:text-gray-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 hover:text-brand-600'
+                            ? 'border-brand-500 bg-brand-500 text-white shadow-brand'
+                            : 'px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-brand-400 transition-all'
                         }`}
                       >
                         <span>{translations.grades[g]}</span>
@@ -241,7 +241,7 @@ const Settings: React.FC<Props> = ({
         <button
           onClick={handleGradeSave}
           disabled={selectedGrade === user.gradeLevel}
-          className="w-full py-3.5 bg-brand-600 text-white rounded-xl font-black text-sm hover:bg-brand-700 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-brand-500/20 active:scale-95"
+          className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold shadow-brand transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed w-full"
         >
           {gradeSaved ? (
             <><Check size={18} /> Grade saved!</>
@@ -252,8 +252,8 @@ const Settings: React.FC<Props> = ({
       </section>
 
       {/* ── Appearance ── */}
-      <section className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 border border-gray-100 dark:border-gray-800 space-y-5">
-        <h2 className="text-lg font-black text-gray-900 dark:text-white">
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-card mb-4 space-y-5">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
           {translations.theme} &amp; {translations.language}
         </h2>
 

@@ -1,8 +1,12 @@
-
 import React, { useState, useMemo } from 'react';
 import { UserProfile, Course, Topic, Subject, GradeLevel, Translations } from '../types';
 import { ICON_MAP, SUBJECTS_DATA, CURRICULUM, getCurriculumCourse } from '../constants';
-import { Play, Flame, BookOpen, X, ChevronRight, ChevronDown, Zap, GraduationCap, BarChart2, Presentation, Code2, Gamepad2, Sparkles, Swords, Feather, DatabaseIcon } from 'lucide-react';
+import {
+  Play, Flame, BookOpen, X, ChevronRight, ChevronDown, Zap, GraduationCap,
+  BarChart2, Presentation, Code2, Gamepad2, Swords, Feather, DatabaseIcon,
+  Trophy, Star, FileText, Brain, TrendingUp, Calculator, FlaskConical,
+  Globe, Laptop, ArrowRight, Sparkles
+} from 'lucide-react';
 
 interface Props {
   user: UserProfile;
@@ -12,10 +16,9 @@ interface Props {
   onSelectCourse: (courseId: string) => void;
   onResumeTopic: (courseId: string, topicId: string) => void;
   onSelectSubjectGrade: (subject: Subject, grade: GradeLevel) => void;
-  onNavigate: (view: 'presentation' | 'codelab' | 'games' | 'debate' | 'story' | 'sql-detective') => void;
+  onNavigate: (view: string) => void;
 }
 
-// Grades that are grouped ranges (legacy) — these users still need to pick a specific grade
 const LEGACY_GROUPED_GRADES = new Set<GradeLevel>([
   GradeLevel.ELEMENTARY_1_3,
   GradeLevel.ELEMENTARY_4_6,
@@ -24,12 +27,34 @@ const LEGACY_GROUPED_GRADES = new Set<GradeLevel>([
   GradeLevel.HIGH_11_12,
 ]);
 
-const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery = '', onSelectCourse, onResumeTopic, onSelectSubjectGrade, onNavigate }) => {
+const SUBJECT_COLOR_MAP: Record<Subject, string> = {
+  [Subject.MATH]: 'from-blue-500 to-indigo-600',
+  [Subject.SCIENCE]: 'from-emerald-500 to-teal-600',
+  [Subject.LANGUAGE]: 'from-violet-500 to-purple-600',
+  [Subject.HISTORY]: 'from-amber-500 to-orange-500',
+  [Subject.CODING]: 'from-cyan-500 to-blue-600',
+  [Subject.ECONOMICS]: 'from-rose-500 to-pink-600',
+};
+
+const SUBJECT_ICON_MAP: Record<Subject, React.ElementType> = {
+  [Subject.MATH]: Calculator,
+  [Subject.SCIENCE]: FlaskConical,
+  [Subject.LANGUAGE]: Globe,
+  [Subject.HISTORY]: BookOpen,
+  [Subject.CODING]: Laptop,
+  [Subject.ECONOMICS]: TrendingUp,
+};
+
+const Dashboard: React.FC<Props> = ({
+  user, courses, translations, searchQuery = '',
+  onSelectCourse, onResumeTopic, onSelectSubjectGrade, onNavigate
+}) => {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [openGradeFolder, setOpenGradeFolder] = useState<string | null>(null);
 
-  // If the user already has a specific grade, skip the picker and start directly
   const hasSpecificGrade = !LEGACY_GROUPED_GRADES.has(user.gradeLevel);
+  const level = Math.floor(user.totalXp / 1000) + 1;
+  const xpInLevel = user.totalXp % 1000;
 
   const handleSubjectClick = (subject: Subject) => {
     if (hasSpecificGrade) {
@@ -44,7 +69,7 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
     { id: 'elementary', emoji: '🏫', label: 'Elementary School', grades: [GradeLevel.GRADE_1, GradeLevel.GRADE_2, GradeLevel.GRADE_3, GradeLevel.GRADE_4, GradeLevel.GRADE_5, GradeLevel.GRADE_6] },
     { id: 'middle',     emoji: '📚', label: 'Middle School',    grades: [GradeLevel.GRADE_7, GradeLevel.GRADE_8, GradeLevel.GRADE_9] },
     { id: 'high',       emoji: '🎓', label: 'High School',      grades: [GradeLevel.GRADE_10, GradeLevel.GRADE_11, GradeLevel.GRADE_12] },
-    { id: 'college',    emoji: '🏛️', label: 'College',          grades: [GradeLevel.COLLEGE_FRESHMAN, GradeLevel.COLLEGE_ADVANCED] },
+    { id: 'college',    emoji: '🏛', label: 'College',          grades: [GradeLevel.COLLEGE_FRESHMAN, GradeLevel.COLLEGE_ADVANCED] },
   ];
 
   const getNextTopic = (course: Course): { topic: Topic; unitTitle: string } | null => {
@@ -58,7 +83,6 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
     return null;
   };
 
-  // Courses that have any progress (at least one topic attempted)
   const activeCourses = useMemo(() => {
     const progressMap = user.progressMap || {};
     return courses.filter(course => {
@@ -67,7 +91,6 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
     });
   }, [courses, user.progressMap]);
 
-  // Recommended: subjects with low mastery or not yet started
   const recommended = useMemo(() => {
     const progressMap = user.progressMap || {};
     return Object.values(Subject).map(subject => {
@@ -100,66 +123,132 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
     }
   };
 
+  const totalTopicsDone = Object.values(user.progressMap || {}).filter(tp => tp.mastery >= 70).length;
+
+  const AI_TOOLS = [
+    { view: 'notes', icon: FileText, label: 'AI Notes', desc: 'Generate notes from any topic or YouTube', grad: 'from-violet-500 to-purple-600' },
+    { view: 'math-tutor', icon: Brain, label: 'Math Tutor', desc: 'AI tutor, solver & graph generator', grad: 'from-blue-500 to-indigo-600' },
+    { view: 'presentation', icon: Presentation, label: 'Presentations', desc: 'AI slide generator', grad: 'from-pink-500 to-rose-500' },
+    { view: 'codelab', icon: Code2, label: 'Code Lab', desc: 'AI coding challenges', grad: 'from-orange-500 to-red-500' },
+    { view: 'games', icon: Gamepad2, label: 'Games', desc: 'Educational mini-games', grad: 'from-emerald-500 to-teal-600' },
+    { view: 'debate', icon: Swords, label: 'Debate', desc: 'Practice argumentation', grad: 'from-rose-500 to-red-600' },
+    { view: 'story', icon: Feather, label: 'Stories', desc: 'Collaborative storytelling', grad: 'from-violet-500 to-purple-600' },
+    { view: 'sql-detective', icon: DatabaseIcon, label: 'SQL Detective', desc: 'Solve database mysteries', grad: 'from-cyan-500 to-teal-600' },
+  ];
+
   return (
-    <div className="p-6 md:p-12 lg:p-16 max-w-full space-y-12 relative h-full overflow-y-auto scrollbar-hide">
+    <div className="view-enter p-5 md:p-8 lg:p-10 max-w-full space-y-8 overflow-y-auto scrollbar-hide min-h-full">
 
-      {/* Welcome Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 max-w-[1400px] mx-auto">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-3 tracking-tight">
-            {translations.welcome} {user.name}
-          </h1>
-          <p className="text-lg text-gray-500 dark:text-gray-400 font-medium">
-            {translations.readyToLearn}
-          </p>
-        </div>
-        {user.streakDays > 0 && (
-          <div className="hidden lg:flex items-center gap-2 bg-orange-50 dark:bg-orange-900/20 px-6 py-3 rounded-2xl text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-800 shadow-sm">
-            <Flame size={20} fill="currentColor" />
-            <span className="font-bold">
-              {translations.dayStreakBadge.replace('{days}', user.streakDays.toString())}
-            </span>
+      {/* ── Hero + Stats ────────────────────────────────────────────────────── */}
+      <div className="max-w-[1400px] mx-auto">
+        {/* Hero greeting */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-500 to-violet-600 rounded-3xl p-7 text-white mb-6 shadow-brand">
+          {/* Background decoration */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-8 -right-8 w-48 h-48 bg-white/5 rounded-full" />
+            <div className="absolute -bottom-12 -left-6 w-36 h-36 bg-white/5 rounded-full" />
+            <div className="absolute top-4 right-24 w-3 h-3 bg-white/20 rounded-full" />
+            <div className="absolute bottom-6 right-16 w-2 h-2 bg-white/30 rounded-full" />
           </div>
-        )}
-      </header>
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles size={14} className="text-brand-200" />
+                <span className="text-brand-200 text-xs font-semibold uppercase tracking-widest">BrainWave AI</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                {translations.welcome}, {user.name}!
+              </h1>
+              <p className="text-brand-200 text-sm">{translations.readyToLearn}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {user.streakDays > 0 && (
+                  <span className="bg-white/15 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5">
+                    <Flame size={11} fill="currentColor" />
+                    {translations.dayStreakBadge.replace('{days}', user.streakDays.toString())}
+                  </span>
+                )}
+                <span className="bg-white/15 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5">
+                  <Trophy size={11} />
+                  Level {level}
+                </span>
+                {totalTopicsDone > 0 && (
+                  <span className="bg-white/15 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5">
+                    <Star size={11} fill="currentColor" />
+                    {totalTopicsDone} topics mastered
+                  </span>
+                )}
+              </div>
+            </div>
+            {/* XP progress */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-w-[140px] text-center">
+              <div className="text-2xl font-bold text-white mb-1">{user.totalXp}</div>
+              <div className="text-brand-200 text-xs mb-2">Total XP</div>
+              <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-white rounded-full transition-all" style={{ width: `${xpInLevel / 10}%` }} />
+              </div>
+              <div className="text-brand-200 text-[10px] mt-1">{xpInLevel}/1000 to Level {level + 1}</div>
+            </div>
+          </div>
+        </div>
 
-      {/* Continue Learning */}
+        {/* Quick stats row */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          {[
+            { label: 'Level', value: String(level), icon: <Trophy size={16} className="text-yellow-500" />, bg: 'bg-yellow-50 dark:bg-yellow-900/10', text: 'text-yellow-600 dark:text-yellow-400' },
+            { label: 'XP Earned', value: String(user.totalXp), icon: <Zap size={16} className="text-brand-500" />, bg: 'bg-brand-50 dark:bg-brand-900/10', text: 'text-brand-600 dark:text-brand-400' },
+            { label: 'Day Streak', value: `${user.streakDays}d`, icon: <Flame size={16} className="text-orange-500" />, bg: 'bg-orange-50 dark:bg-orange-900/10', text: 'text-orange-600 dark:text-orange-400' },
+            { label: 'Mastered', value: String(totalTopicsDone), icon: <Star size={16} className="text-emerald-500" />, bg: 'bg-emerald-50 dark:bg-emerald-900/10', text: 'text-emerald-600 dark:text-emerald-400' },
+          ].map(({ label, value, icon, bg, text }) => (
+            <div key={label} className={`${bg} rounded-2xl p-4 flex items-center gap-3`}>
+              <div className={`w-9 h-9 rounded-xl bg-white dark:bg-gray-900 flex items-center justify-center shadow-sm`}>{icon}</div>
+              <div>
+                <div className={`text-xl font-bold ${text}`}>{value}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">{label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Continue Learning ────────────────────────────────────────────────── */}
       {filteredCourses.length > 0 && (
         <section className="max-w-[1400px] mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center gap-3">
-            <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-lg">
-              <Play className="fill-current text-brand-600 rtl:rotate-180" size={20} />
-            </div>
-            {translations.continueLearning}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <Play size={16} className="fill-brand-500 text-brand-500" />
+              {translations.continueLearning}
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredCourses.map(course => {
               const next = getNextTopic(course);
               const Icon = ICON_MAP[course.iconName] || BookOpen;
+              const grad = SUBJECT_COLOR_MAP[course.subject as Subject] || 'from-brand-500 to-brand-700';
               return (
-                <div key={course.id} className="group bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="p-4 rounded-2xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400">
-                      <Icon size={32} />
+                <div key={course.id} className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 card-hover">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center shadow-sm`}>
+                      <Icon size={18} className="text-white" />
                     </div>
-                    <div className="text-sm font-bold text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900/50 px-3 py-1 rounded-full uppercase tracking-wider">
-                      {course.progress}%
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-1.5 w-16 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-brand-500 rounded-full" style={{ width: `${course.progress}%` }} />
+                      </div>
+                      <span className="text-xs font-bold text-gray-400">{course.progress}%</span>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors text-sm">
                     {course.title}
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400 mb-8 line-clamp-2 h-10">
-                    {next ? `${next.unitTitle}: ${next.topic.title}` : translations.courseCompleted}
+                  <p className="text-xs text-gray-500 mb-4 line-clamp-2">
+                    {next ? `Next: ${next.unitTitle} → ${next.topic.title}` : translations.courseCompleted}
                   </p>
-                  <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full mb-8 overflow-hidden">
-                    <div className="h-full bg-brand-500 rounded-full transition-all duration-700" style={{ width: `${course.progress}%` }}></div>
-                  </div>
                   <button
                     onClick={() => next ? onResumeTopic(course.id, next.topic.id) : onSelectCourse(course.id)}
-                    className="w-full py-4 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-base hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg active:scale-95"
+                    className="w-full py-2 bg-gray-50 dark:bg-gray-800 hover:bg-brand-500 hover:text-white text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5"
                   >
                     {next ? translations.resume : translations.start}
+                    <ArrowRight size={12} />
                   </button>
                 </div>
               );
@@ -168,34 +257,60 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
         </section>
       )}
 
-      {/* Recommended */}
+      {/* ── AI Tools ─────────────────────────────────────────────────────────── */}
+      <section className="max-w-[1400px] mx-auto">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles size={16} className="text-violet-500" />
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">{translations.tools ?? 'AI Tools'}</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+          {AI_TOOLS.map(({ view, icon: Icon, label, desc, grad }) => (
+            <button
+              key={view}
+              onClick={() => onNavigate(view)}
+              className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col items-center gap-2.5 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-md transition-all duration-150 cursor-pointer text-center"
+            >
+              <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-150`}>
+                <Icon size={20} className="text-white" />
+              </div>
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-300 leading-tight">{label}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Recommended ──────────────────────────────────────────────────────── */}
       {recommended.length > 0 && (
         <section className="max-w-[1400px] mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center gap-3">
-            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-              <Zap className="fill-current text-amber-600" size={20} />
-            </div>
-            {translations.recommended}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp size={16} className="text-amber-500" />
+            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">{translations.recommended}</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {recommended.map(({ subject, mastery }) => {
-              const subjectData = SUBJECTS_DATA.find(s => s.id === subject);
+              const Icon = SUBJECT_ICON_MAP[subject];
+              const grad = SUBJECT_COLOR_MAP[subject] || 'from-brand-500 to-brand-700';
               return (
                 <button
                   key={subject}
                   onClick={() => handleSubjectClick(subject)}
-                  className="bg-white dark:bg-gray-800 rounded-[2rem] p-6 border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-brand-200 dark:hover:border-brand-800 transition-all text-start group"
+                  className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 hover:shadow-md hover:-translate-y-0.5 hover:border-brand-200 dark:hover:border-brand-800 transition-all duration-200 text-start group"
                 >
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${subjectData?.color || ''}`}>
-                    <GraduationCap size={24} />
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center shadow-sm`}>
+                      <Icon size={18} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">{translations.subjectsList[subject]}</h3>
+                      <p className="text-xs text-gray-400">{mastery}% {translations.mastery}</p>
+                    </div>
                   </div>
-                  <h3 className="font-black text-gray-900 dark:text-white mb-1">{translations.subjectsList[subject]}</h3>
-                  <p className="text-xs text-gray-400 mb-3">{mastery}% {translations.mastery}</p>
-                  <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-500 rounded-full" style={{ width: `${mastery}%` }}></div>
+                  <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-3">
+                    <div className={`h-full bg-gradient-to-r ${grad} rounded-full transition-all`} style={{ width: `${mastery}%` }} />
                   </div>
-                  <p className="text-xs text-brand-600 dark:text-brand-400 font-bold mt-3 group-hover:underline">
-                    {mastery < 30 ? translations.startLesson : translations.practiceMore} →
+                  <p className="text-xs text-brand-600 dark:text-brand-400 font-bold group-hover:underline flex items-center gap-1">
+                    {mastery < 30 ? translations.startLesson : translations.practiceMore}
+                    <ArrowRight size={11} />
                   </p>
                 </button>
               );
@@ -204,12 +319,13 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
         </section>
       )}
 
-      {/* Browse Subjects */}
+      {/* ── Browse Subjects ───────────────────────────────────────────────────── */}
       <section className="max-w-[1400px] mx-auto pb-12">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{translations.selectSubject}</h2>
+        <div className="flex items-center gap-2 mb-4">
+          <GraduationCap size={16} className="text-brand-500" />
+          <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">{translations.selectSubject}</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
           {filteredSubjects.map((subject) => {
             const Icon = ICON_MAP[subject.icon] || BookOpen;
             const progressMap = user.progressMap || {};
@@ -219,36 +335,31 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
             const avgMastery = masteries.length > 0
               ? Math.round(masteries.reduce((a, b) => a + b, 0) / masteries.length)
               : 0;
+            const grad = SUBJECT_COLOR_MAP[subject.id as Subject] || 'from-brand-500 to-brand-700';
 
             return (
               <div
                 key={subject.id}
                 onClick={() => handleSubjectClick(subject.id)}
-                className="bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:border-brand-200 dark:hover:border-brand-900 transition-all cursor-pointer group flex flex-col items-center text-center"
+                className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-brand-200 dark:hover:border-brand-800 transition-all duration-200 cursor-pointer group card-hover flex flex-col items-center text-center"
               >
-                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 ${subject.color}`}>
-                  <Icon size={40} />
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform duration-150`}>
+                  <Icon size={22} className="text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-1 text-sm">
                   {translations.subjectsList[subject.id]}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  {translations.masterFundamentals} {translations.subjectsList[subject.id].toLowerCase()}.
-                </p>
                 {avgMastery > 0 && (
-                  <div className="w-full mb-4">
-                    <div className="flex justify-between text-xs text-gray-400 mb-1.5">
-                      <span>{translations.mastery}</span>
-                      <span>{avgMastery}%</span>
+                  <>
+                    <p className="text-xs text-gray-400 mb-2">{avgMastery}% mastered</p>
+                    <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                      <div className={`h-full bg-gradient-to-r ${grad} rounded-full`} style={{ width: `${avgMastery}%` }} />
                     </div>
-                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${avgMastery}%` }}></div>
-                    </div>
-                  </div>
+                  </>
                 )}
-                <div className="mt-auto w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 group-hover:bg-brand-600 group-hover:text-white transition-colors font-bold text-sm text-gray-700 dark:text-gray-300">
+                <div className="mt-auto pt-3 w-full flex items-center justify-center gap-1 py-1.5 rounded-xl bg-gray-50 dark:bg-gray-800/60 group-hover:bg-brand-500 group-hover:text-white transition-all duration-150 font-bold text-xs text-gray-600 dark:text-gray-300">
                   {avgMastery > 0 ? translations.resume : translations.start}
-                  <ChevronRight size={16} className="rtl:rotate-180" />
+                  <ChevronRight size={12} />
                 </div>
               </div>
             );
@@ -259,105 +370,33 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
         )}
       </section>
 
-      {/* Feature Tools */}
-      <section className="max-w-[1400px] mx-auto pb-4">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center gap-3">
-          <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-lg">
-            <Sparkles className="text-brand-600" size={20} />
-          </div>
-          {translations.tools}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            {
-              view: 'presentation' as const,
-              icon: Presentation,
-              title: translations.presentationGenerator,
-              desc: translations.presentationGeneratorDesc,
-              grad: 'from-purple-500 to-indigo-600',
-            },
-            {
-              view: 'codelab' as const,
-              icon: Code2,
-              title: translations.codeLab,
-              desc: translations.codeLabDesc,
-              grad: 'from-orange-500 to-red-500',
-            },
-            {
-              view: 'games' as const,
-              icon: Gamepad2,
-              title: translations.educationalGames,
-              desc: translations.educationalGamesDesc,
-              grad: 'from-emerald-500 to-teal-600',
-            },
-            {
-              view: 'debate' as const,
-              icon: Swords,
-              title: translations.debateArena,
-              desc: translations.debateArenaDesc,
-              grad: 'from-rose-500 to-red-600',
-            },
-            {
-              view: 'story' as const,
-              icon: Feather,
-              title: translations.storyEngine,
-              desc: translations.storyEngineDesc,
-              grad: 'from-violet-500 to-purple-600',
-            },
-            {
-              view: 'sql-detective' as const,
-              icon: DatabaseIcon,
-              title: translations.sqlDetective,
-              desc: translations.sqlDetectiveDesc,
-              grad: 'from-cyan-500 to-teal-600',
-            },
-          ].map(({ view, icon: Icon, title, desc, grad }) => (
-            <button
-              key={view}
-              onClick={() => onNavigate(view)}
-              className="text-start bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group"
-            >
-              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                <Icon size={32} className="text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6">{desc}</p>
-              <div className="flex items-center gap-2 text-brand-600 font-bold text-sm">
-                {translations.launchTool}
-                <ChevronRight size={16} className="rtl:rotate-180" />
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* Level Selection Modal */}
+      {/* ── Level Selection Modal ──────────────────────────────────────────── */}
       {selectedSubject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-gray-900/40 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20">
-            <div className="p-8 border-b dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-800/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-gray-900/50 backdrop-blur-md">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 animate-slide-up">
+            <div className="p-6 border-b dark:border-gray-800 flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white">{translations.selectLevel}</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{translations.chooseCurriculumHint}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{translations.selectLevel}</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{translations.chooseCurriculumHint}</p>
               </div>
               <button
                 onClick={() => setSelectedSubject(null)}
-                className="p-3 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-all"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </div>
-            <div className="p-6 max-h-[60vh] overflow-y-auto space-y-3">
+            <div className="p-5 max-h-[60vh] overflow-y-auto space-y-2">
               {gradeFolders.map((folder) => {
                 const isOpen = openGradeFolder === folder.id;
                 return (
-                  <div key={folder.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">
+                  <div key={folder.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
                     <button
                       onClick={() => setOpenGradeFolder(isOpen ? null : folder.id)}
-                      className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      className="w-full flex items-center justify-between px-5 py-3.5 bg-gray-50 dark:bg-gray-800/60 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
                     >
-                      <span className="font-bold text-base text-gray-700 dark:text-gray-200">{folder.emoji} {folder.label}</span>
-                      <ChevronDown size={18} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      <span className="font-bold text-sm text-gray-700 dark:text-gray-200">{folder.emoji} {folder.label}</span>
+                      <ChevronDown size={16} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isOpen && (
                       <div className="flex flex-col gap-1 p-3 bg-white dark:bg-gray-900">
@@ -365,14 +404,12 @@ const Dashboard: React.FC<Props> = ({ user, courses, translations, searchQuery =
                           <button
                             key={grade}
                             onClick={() => handleGradeSelect(grade)}
-                            className="w-full text-left px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/10 dark:hover:border-brand-700 transition-all flex items-center justify-between group"
+                            className="w-full text-left px-4 py-2.5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/10 dark:hover:border-brand-700 transition-all flex items-center justify-between group"
                           >
-                            <span className="font-bold text-gray-700 dark:text-gray-200 group-hover:text-brand-700 dark:group-hover:text-brand-400">
+                            <span className="font-semibold text-sm text-gray-700 dark:text-gray-200 group-hover:text-brand-700 dark:group-hover:text-brand-400">
                               {translations.grades[grade]}
                             </span>
-                            <div className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 transition-colors">
-                              <ChevronRight size={16} className="text-gray-400 group-hover:text-brand-600 rtl:rotate-180" />
-                            </div>
+                            <ChevronRight size={14} className="text-gray-400 group-hover:text-brand-600" />
                           </button>
                         ))}
                       </div>

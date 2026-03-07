@@ -160,7 +160,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   language: Language;
   user: UserProfile;
-  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'tools' | 'profile' | 'lesson' | 'progress' | 'review' | 'presentation' | 'codelab' | 'games' | 'debate' | 'story' | 'sql-detective' | 'math-tutor';
+  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'tools' | 'profile' | 'lesson' | 'progress' | 'review' | 'presentation' | 'codelab' | 'games' | 'debate' | 'story' | 'sql-detective' | 'math-tutor' | 'notes';
   activeCourseId: string | null;
   activeTopicId: string | null;
   currentSession: LearningSession | null;

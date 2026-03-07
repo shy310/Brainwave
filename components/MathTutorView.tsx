@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowLeft, Send, Loader2, Mic, Camera, Pencil, Lightbulb,
-  RotateCcw, ChevronDown, ChevronRight, Clock, Star, BookOpen, X
+  RotateCcw, ChevronDown, ChevronRight, Clock, Star, BookOpen, X,
+  BarChart2, TrendingUp, ZoomIn, ZoomOut
 } from 'lucide-react';
 import { GradeLevel, Language, Translations } from '../types';
 import { streamAI } from '../services/aiService';
@@ -106,6 +107,209 @@ interface Props {
   onContextUpdate: (ctx: string) => void;
 }
 
+// ── Function Graph ─────────────────────────────────────────────────────────────
+
+interface GraphProps {
+  fnStr: string;
+  xMin?: number;
+  xMax?: number;
+}
+
+const FunctionGraph: React.FC<GraphProps> = ({ fnStr, xMin = -10, xMax = 10 }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [range, setRange] = useState({ xMin, xMax });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const padding = 40;
+    const plotW = W - 2 * padding;
+    const plotH = H - 2 * padding;
+
+    // Evaluate function safely
+    let evalFn: (x: number) => number;
+    try {
+      // Sanitize: allow only safe math expressions
+      const safe = fnStr
+        .replace(/\^/g, '**')
+        .replace(/sin/g, 'Math.sin')
+        .replace(/cos/g, 'Math.cos')
+        .replace(/tan/g, 'Math.tan')
+        .replace(/sqrt/g, 'Math.sqrt')
+        .replace(/abs/g, 'Math.abs')
+        .replace(/log/g, 'Math.log')
+        .replace(/exp/g, 'Math.exp')
+        .replace(/PI/g, 'Math.PI')
+        .replace(/pi/g, 'Math.PI')
+        .replace(/e\b/g, 'Math.E');
+      evalFn = new Function('x', `"use strict"; return (${safe});`) as (x: number) => number;
+      // Test it
+      const test = evalFn(1);
+      if (typeof test !== 'number') throw new Error('Not a number');
+      setError(null);
+    } catch {
+      setError('Could not parse function. Use format: x^2 + 2*x - 1');
+      return;
+    }
+
+    // Sample function
+    const steps = plotW;
+    const points: { px: number; py: number }[] = [];
+    const xStep = (range.xMax - range.xMin) / steps;
+
+    let yMin = Infinity, yMax = -Infinity;
+    const ys: number[] = [];
+    for (let i = 0; i <= steps; i++) {
+      const x = range.xMin + i * xStep;
+      try {
+        const y = evalFn(x);
+        ys.push(isFinite(y) ? y : NaN);
+        if (isFinite(y)) { yMin = Math.min(yMin, y); yMax = Math.max(yMax, y); }
+      } catch { ys.push(NaN); }
+    }
+
+    if (!isFinite(yMin) || !isFinite(yMax)) { setError('Function produces no valid values in range'); return; }
+
+    // Add 10% padding to y range
+    const yPad = (yMax - yMin) * 0.1 || 1;
+    const yLow = yMin - yPad;
+    const yHigh = yMax + yPad;
+
+    const toCanvas = (x: number, y: number) => ({
+      px: padding + ((x - range.xMin) / (range.xMax - range.xMin)) * plotW,
+      py: padding + ((yHigh - y) / (yHigh - yLow)) * plotH,
+    });
+
+    // Clear
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid lines
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    const xTicks = 10;
+    const yTicks = 8;
+    for (let i = 0; i <= xTicks; i++) {
+      const x = range.xMin + i * (range.xMax - range.xMin) / xTicks;
+      const { px } = toCanvas(x, yLow);
+      ctx.beginPath();
+      ctx.moveTo(px, padding);
+      ctx.lineTo(px, H - padding);
+      ctx.stroke();
+    }
+    for (let i = 0; i <= yTicks; i++) {
+      const y = yLow + i * (yHigh - yLow) / yTicks;
+      const { py } = toCanvas(range.xMin, y);
+      ctx.beginPath();
+      ctx.moveTo(padding, py);
+      ctx.lineTo(W - padding, py);
+      ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    // X axis (y=0 if in range)
+    if (yLow <= 0 && yHigh >= 0) {
+      const { py } = toCanvas(0, 0);
+      ctx.beginPath();
+      ctx.moveTo(padding, py);
+      ctx.lineTo(W - padding, py);
+      ctx.stroke();
+    }
+    // Y axis (x=0 if in range)
+    if (range.xMin <= 0 && range.xMax >= 0) {
+      const { px } = toCanvas(0, yLow);
+      ctx.beginPath();
+      ctx.moveTo(px, padding);
+      ctx.lineTo(px, H - padding);
+      ctx.stroke();
+    }
+
+    // Axis labels
+    ctx.fillStyle = '#475569';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    for (let i = 0; i <= xTicks; i += 2) {
+      const xVal = range.xMin + i * (range.xMax - range.xMin) / xTicks;
+      const { px } = toCanvas(xVal, yLow);
+      ctx.fillText(xVal.toFixed(1), px, H - padding + 16);
+    }
+    ctx.textAlign = 'end';
+    for (let i = 0; i <= yTicks; i += 2) {
+      const yVal = yLow + i * (yHigh - yLow) / yTicks;
+      const { py } = toCanvas(range.xMin, yVal);
+      ctx.fillText(yVal.toFixed(1), padding - 6, py + 4);
+    }
+
+    // Plot function
+    ctx.strokeStyle = '#6366f1';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i <= steps; i++) {
+      const x = range.xMin + i * xStep;
+      const y = ys[i];
+      if (isNaN(y)) { started = false; continue; }
+      const { px, py } = toCanvas(x, y);
+      if (!started) { ctx.moveTo(px, py); started = true; }
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Function label
+    ctx.fillStyle = '#6366f1';
+    ctx.font = 'bold 13px Inter, sans-serif';
+    ctx.textAlign = 'start';
+    ctx.fillText(`y = ${fnStr}`, padding + 4, padding - 10);
+
+  }, [fnStr, range]);
+
+  const zoom = (factor: number) => {
+    const mid = (range.xMin + range.xMax) / 2;
+    const half = (range.xMax - range.xMin) / 2 * factor;
+    setRange({ xMin: mid - half, xMax: mid + half });
+  };
+
+  return (
+    <div className="mt-3 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-gray-50 dark:bg-gray-800/40">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={14} className="text-brand-500" />
+          <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Graph: y = {fnStr}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={() => zoom(1.5)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-all" title="Zoom out">
+            <ZoomOut size={13} />
+          </button>
+          <button onClick={() => zoom(0.67)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-all" title="Zoom in">
+            <ZoomIn size={13} />
+          </button>
+          <button onClick={() => setRange({ xMin: -10, xMax: 10 })} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 text-[10px] font-bold transition-all" title="Reset">
+            Reset
+          </button>
+        </div>
+      </div>
+      {error ? (
+        <div className="px-4 py-3 text-xs text-red-500">{error}</div>
+      ) : (
+        <canvas ref={canvasRef} width={520} height={300} className="w-full block" />
+      )}
+    </div>
+  );
+};
+
 // ── Step Card ──────────────────────────────────────────────────────────────────
 
 const StepCard: React.FC<{ step: string; index: number }> = ({ step, index }) => {
@@ -129,15 +333,15 @@ const StepCard: React.FC<{ step: string; index: number }> = ({ step, index }) =>
   };
 
   return (
-    <div className="border-l-4 border-brand-400 pl-4 py-2 mb-3 bg-gray-50 dark:bg-gray-800/50 rounded-r-xl">
+    <div className="border-l-4 border-brand-500 bg-white dark:bg-gray-900 rounded-r-xl px-5 py-4 mb-3 shadow-card">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-start gap-2">
-          <span className="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">{index + 1}</span>
-          <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{step}</p>
+          <span className="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{index + 1}</span>
+          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{step}</p>
         </div>
         <button
           onClick={explain}
-          className="flex-shrink-0 text-xs text-brand-500 hover:text-brand-600 font-bold flex items-center gap-1 mt-0.5"
+          className="flex-shrink-0 text-xs text-brand-500 hover:text-brand-600 mt-2 font-medium transition-colors flex items-center gap-1 mt-0.5"
         >
           {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           Explain more
@@ -173,6 +377,8 @@ const MathTutorView: React.FC<Props> = ({
   const [expandedSessions, setExpandedSessions] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [gradingIdx, setGradingIdx] = useState<number | null>(null);
+  const [graphFn, setGraphFn] = useState<string | null>(null);
+  const [generatingGraph, setGeneratingGraph] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -245,6 +451,7 @@ const MathTutorView: React.FC<Props> = ({
     setPracticeQuestions([]);
     setPracticeScore(null);
     setImgBase64(null);
+    setGraphFn(null);
     startSession(m);
     onContextUpdate(`Math Tutor — ${m} mode`);
   };
@@ -336,6 +543,24 @@ const MathTutorView: React.FC<Props> = ({
       setMessages(prev => [...prev, hintMsg]);
     } catch { /* silent */ }
     finally { setLoading(false); }
+  };
+
+  // ── Generate Graph ──────────────────────────────────────────────────────────
+  const generateGraph = async () => {
+    const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant');
+    if (!lastAssistant) return;
+    setGeneratingGraph(true);
+    setGraphFn(null);
+    try {
+      const raw = await callAI(
+        'You are a math function extractor. Reply with ONLY the right-hand side of a y = f(x) function. No "y =", no explanation, no markdown. Just the expression, e.g.: x**2 + 2*x - 1',
+        `Extract the primary mathematical function from this solution. Reply with ONLY the expression for f(x) where y = f(x), using ** for powers, * for multiplication. If there is no graphable function, reply with "x".\n\nSolution:\n${lastAssistant.content.slice(0, 800)}`,
+        80
+      );
+      const fn = raw.trim().replace(/^y\s*=\s*/i, '').replace(/f\(x\)\s*=\s*/i, '').trim();
+      setGraphFn(fn || 'x');
+    } catch { setGraphFn('x'); }
+    finally { setGeneratingGraph(false); }
   };
 
   // ── Main submit ──────────────────────────────────────────────────────────────
@@ -535,7 +760,7 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
     const isUser = msg.role === 'user';
     if (isUser) return (
       <div key={i} className="flex justify-end mb-3">
-        <div className="max-w-[75%] bg-brand-500 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm shadow-sm">
+        <div className="bg-brand-500 text-white text-sm px-4 py-3 rounded-2xl rounded-br-sm max-w-[80%]">
           {msg.isImage && <span className="text-xs opacity-70 block mb-1">📷 Image attached</span>}
           {msg.content}
         </div>
@@ -545,7 +770,7 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
     // Assistant — solver with steps
     if (msg.steps && msg.steps.length > 1) return (
       <div key={i} className="mb-4">
-        <div className="text-xs text-brand-400 font-black uppercase tracking-widest mb-2">Solution</div>
+        <div className="text-xs text-brand-400 font-bold uppercase tracking-widest mb-2">Solution</div>
         {msg.steps.map((step, si) => <StepCard key={si} step={step} index={si} />)}
       </div>
     );
@@ -565,8 +790,8 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
     // Regular assistant
     return (
       <div key={i} className="flex gap-2 mb-3">
-        <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0 text-sm font-black text-brand-600 dark:text-brand-400">∑</div>
-        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 max-w-[80%] shadow-sm whitespace-pre-wrap">
+        <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0 text-sm font-bold text-brand-600 dark:text-brand-400">∑</div>
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-gray-800 dark:text-gray-200 text-sm px-4 py-3 rounded-2xl rounded-bl-sm max-w-[80%] shadow-card whitespace-pre-wrap">
           {msg.content}
         </div>
       </div>
@@ -575,86 +800,85 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
 
   // ── MAIN RENDER ──────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full min-h-0 bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-full view-enter">
 
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">
-            <ArrowLeft size={18} />
-          </button>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-lg">∑</div>
-          <div>
-            <h1 className="font-black text-gray-900 dark:text-white text-base leading-none">Math Tutor</h1>
-            <p className="text-xs text-gray-400 truncate max-w-[180px]">{sessionTopic}</p>
-          </div>
+      {/* Sessions Sidebar */}
+      <div className="w-56 shrink-0 border-e border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto hidden md:flex flex-col">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400 px-4 py-3">
+          History
         </div>
-        <div className="flex items-center gap-2">
-          {mode === 'practice' && practiceScore && (
-            <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-black">
-              {practiceScore} ⭐
-            </span>
+        <div className="flex-1 overflow-y-auto px-0 py-1">
+          {sessions.length === 0 && (
+            <p className="text-xs text-gray-400 text-center py-4">No sessions yet</p>
           )}
-          {/* Mode tabs */}
-          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-xl p-0.5 gap-0.5">
-            {(['tutor','solver','practice'] as TutorMode[]).map(m => (
-              <button
-                key={m}
-                onClick={() => switchMode(m)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black capitalize transition-all ${mode === m ? 'bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
+          {sessions.map(s => (
+            <button
+              key={s.id}
+              onClick={() => restoreSession(s)}
+              className={`w-full text-left px-3 py-2.5 mx-2 rounded-xl cursor-pointer hover:bg-white dark:hover:bg-gray-800 transition-all duration-150 mb-1 ${currentSessionId === s.id ? 'bg-white dark:bg-gray-800 shadow-sm' : ''}`}
+              style={{ width: 'calc(100% - 1rem)' }}
+            >
+              <div className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{s.topic}</div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${s.mode === 'tutor' ? 'bg-brand-100 text-brand-600' : s.mode === 'solver' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {s.mode}
+                </span>
+                {s.score && <span className="text-yellow-500 font-bold">{s.score}</span>}
+              </div>
+              <div className="text-[10px] text-gray-400 mt-0.5">{new Date(s.createdAt).toLocaleDateString()}</div>
+            </button>
+          ))}
         </div>
+        <button
+          onClick={() => switchMode(mode)}
+          className="w-full px-3 py-2 text-xs font-semibold text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-xl transition-all m-2 mt-auto"
+        >
+          + New Session
+        </button>
       </div>
 
-      {/* Body */}
-      <div className="flex flex-1 min-h-0">
+      {/* Main area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* Sessions Sidebar */}
-        <div className="w-52 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col hidden lg:flex">
-          <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-            <span className="text-xs font-black text-gray-400 uppercase tracking-widest">History</span>
-            <button
-              onClick={() => switchMode(mode)}
-              className="text-xs text-brand-500 hover:text-brand-600 font-bold"
-            >
-              + New
-            </button>
+        {/* Header */}
+        <div className="flex items-center gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 flex-shrink-0">
+          <button onClick={onBack} className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+            <ArrowLeft size={18} />
+          </button>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">∑</div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base font-semibold text-gray-900 dark:text-gray-100 leading-none">Math Tutor</h1>
+            <p className="text-xs text-gray-400 truncate max-w-[180px]">{sessionTopic}</p>
           </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {sessions.length === 0 && (
-              <p className="text-xs text-gray-400 text-center py-4">No sessions yet</p>
+          <div className="flex items-center gap-2">
+            {mode === 'practice' && practiceScore && (
+              <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold">
+                {practiceScore} ⭐
+              </span>
             )}
-            {sessions.map(s => (
-              <button
-                key={s.id}
-                onClick={() => restoreSession(s)}
-                className={`w-full text-left px-2.5 py-2 rounded-lg transition-all text-xs ${currentSessionId === s.id ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400' : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'}`}
-              >
-                <div className="font-bold truncate">{s.topic}</div>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${s.mode === 'tutor' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : s.mode === 'solver' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
-                    {s.mode}
-                  </span>
-                  {s.score && <span className="text-yellow-500 font-black">{s.score}</span>}
-                </div>
-                <div className="text-[9px] text-gray-400 mt-0.5">{new Date(s.createdAt).toLocaleDateString()}</div>
-              </button>
-            ))}
+            {/* Mode tabs */}
+            <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+              {(['tutor','solver','practice'] as TutorMode[]).map(m => (
+                <button
+                  key={m}
+                  onClick={() => switchMode(m)}
+                  className={`capitalize transition-all ${mode === m ? 'bg-white dark:bg-gray-900 shadow-sm text-brand-600 font-semibold rounded-lg px-5 py-2 text-sm transition-all' : 'text-gray-500 px-5 py-2 text-sm font-medium hover:text-gray-700 dark:hover:text-gray-300 transition-all'}`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-0">
+        {/* Body */}
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
 
           {/* Practice Mode Setup */}
           {mode === 'practice' && practiceQuestions.length === 0 && (
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-10">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-black mb-4">∑</div>
-              <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2">Practice Problems</h2>
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold mb-4">∑</div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Practice Problems</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 text-center max-w-xs">Enter a math topic and get 5 practice problems with instant grading.</p>
               <div className="w-full max-w-sm space-y-3">
                 <input
@@ -662,12 +886,12 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
                   onChange={e => setPracticeTopic(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && generatePractice()}
                   placeholder="e.g. quadratic equations, derivatives, fractions…"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-brand-400"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
                 />
                 <button
                   onClick={generatePractice}
                   disabled={loading || !practiceTopic.trim()}
-                  className="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-black text-sm hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl font-semibold shadow-brand flex items-center justify-center gap-2 transition-all duration-150 active:scale-[0.98] disabled:opacity-50"
                 >
                   {loading ? <Loader2 size={16} className="animate-spin" /> : <BookOpen size={16} />}
                   Generate Practice
@@ -678,24 +902,24 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
 
           {/* Practice Questions */}
           {mode === 'practice' && practiceQuestions.length > 0 && (
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {practiceScore && (
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-4 text-center">
-                  <div className="text-3xl font-black text-green-700 dark:text-green-400">{practiceScore}</div>
+                  <div className="text-3xl font-bold text-green-700 dark:text-green-400">{practiceScore}</div>
                   <div className="text-sm text-green-600 dark:text-green-500 font-bold">
                     {practiceScore === '5/5' ? '🎉 Perfect score!' : 'Keep practicing!'}
                   </div>
                 </div>
               )}
               {practiceQuestions.map((q, idx) => (
-                <div key={idx} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                <div key={idx} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-card mb-3">
                   <div className="flex items-start gap-3 mb-3">
-                    <span className="w-7 h-7 rounded-full bg-brand-500 text-white text-xs font-black flex items-center justify-center flex-shrink-0">{idx + 1}</span>
+                    <span className="w-7 h-7 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{idx + 1}</span>
                     <p className="text-sm font-bold text-gray-900 dark:text-white">{q.problem}</p>
                   </div>
                   {q.result ? (
-                    <div className={`rounded-xl p-3 text-sm ${q.result.correct ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
-                      <div className="font-black mb-1">{q.result.correct ? '✓ Correct!' : '✗ Not quite'}</div>
+                    <div className={`rounded-xl p-4 mt-2 text-sm ${q.result.correct ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
+                      <div className={`font-bold mb-1 ${q.result.correct ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>{q.result.correct ? '✓ Correct!' : '✗ Not quite'}</div>
                       <div className="text-xs opacity-80">{q.result.explanation}</div>
                       {!q.result.correct && <div className="text-xs mt-1 font-bold">Answer: {q.answer}</div>}
                     </div>
@@ -710,12 +934,12 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
                           }}
                           onKeyDown={e => e.key === 'Enter' && gradeAnswer(idx)}
                           placeholder="Your answer…"
-                          className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-brand-400"
+                          className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all mt-3"
                         />
                         <button
                           onClick={() => gradeAnswer(idx)}
                           disabled={gradingIdx === idx || !q.userAnswer.trim()}
-                          className="px-4 py-2 bg-brand-500 text-white rounded-xl text-sm font-black hover:bg-brand-600 disabled:opacity-50"
+                          className="px-4 py-2 bg-brand-500 text-white rounded-xl text-sm font-bold hover:bg-brand-600 disabled:opacity-50 transition-all duration-150 mt-3"
                         >
                           {gradingIdx === idx ? <Loader2 size={14} className="animate-spin" /> : 'Check'}
                         </button>
@@ -726,7 +950,7 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
                             const updated = practiceQuestions.map((pq, i) => i === idx ? { ...pq, revealed: true } : pq);
                             setPracticeQuestions(updated);
                           }}
-                          className="text-xs text-gray-400 hover:text-brand-500 flex items-center gap-1"
+                          className="text-xs text-gray-400 hover:text-brand-500 flex items-center gap-1 transition-all duration-150"
                         >
                           <Lightbulb size={11} /> Hint: {q.hint}
                         </button>
@@ -737,7 +961,7 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
               ))}
               <button
                 onClick={() => { setPracticeQuestions([]); setPracticeScore(null); }}
-                className="w-full py-2.5 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-sm text-gray-500 hover:border-brand-400 hover:text-brand-500 font-bold flex items-center justify-center gap-2"
+                className="w-full py-2.5 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-sm text-gray-500 hover:border-brand-400 hover:text-brand-500 font-bold flex items-center justify-center gap-2 transition-all duration-150"
               >
                 <RotateCcw size={14} /> New Topic
               </button>
@@ -750,8 +974,8 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
               {/* Welcome state */}
               {messages.length === 0 && !streamingText && (
                 <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-black mb-4">∑</div>
-                  <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold mb-4">∑</div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                     {mode === 'tutor' ? 'Ask me anything' : 'What do you need solved?'}
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
@@ -764,12 +988,37 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
 
               {/* Messages */}
               {(messages.length > 0 || streamingText) && (
-                <div className="flex-1 overflow-y-auto px-4 py-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
                   {messages.map(renderMessage)}
+                  {/* Graph section (solver mode) */}
+                  {mode === 'solver' && messages.some(m => m.role === 'assistant') && (
+                    <div className="mb-2">
+                      {graphFn ? (
+                        <FunctionGraph fnStr={graphFn} />
+                      ) : (
+                        <button
+                          onClick={generateGraph}
+                          disabled={generatingGraph}
+                          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 border border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400 rounded-xl text-xs font-bold hover:from-brand-100 hover:to-violet-100 dark:hover:from-brand-900/30 dark:hover:to-violet-900/30 transition-all disabled:opacity-50"
+                        >
+                          {generatingGraph ? <Loader2 size={13} className="animate-spin" /> : <BarChart2 size={13} />}
+                          {generatingGraph ? 'Generating Graph…' : 'Graph this function'}
+                        </button>
+                      )}
+                      {graphFn && (
+                        <button
+                          onClick={() => setGraphFn(null)}
+                          className="mt-1 text-[10px] text-gray-400 hover:text-red-500 flex items-center gap-1 transition-all"
+                        >
+                          <X size={10} /> Close graph
+                        </button>
+                      )}
+                    </div>
+                  )}
                   {streamingText && (
                     <div className="flex gap-2 mb-3">
-                      <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0 text-sm font-black text-brand-600 dark:text-brand-400">∑</div>
-                      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 max-w-[80%] shadow-sm whitespace-pre-wrap">
+                      <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0 text-sm font-bold text-brand-600 dark:text-brand-400">∑</div>
+                      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-gray-800 dark:text-gray-200 text-sm px-4 py-3 rounded-2xl rounded-bl-sm max-w-[80%] shadow-card whitespace-pre-wrap">
                         {streamingText}
                         <span className="inline-block w-1.5 h-4 bg-brand-400 ml-0.5 animate-pulse align-middle" />
                       </div>
@@ -781,16 +1030,16 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
             </>
           )}
 
-          {/* Input area (tutor + solver only) */}
+          {/* Input area footer (tutor + solver only) */}
           {mode !== 'practice' && (
-            <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 px-3 pb-3 pt-2">
+            <div className="border-t border-gray-100 dark:border-gray-800 p-4 bg-white dark:bg-gray-900 flex-shrink-0">
               {/* Symbol toolbar */}
-              <div className="flex gap-1 overflow-x-auto pb-1.5 mb-2 scrollbar-none">
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-2 mb-3">
                 {SYMBOLS.map(sym => (
                   <button
                     key={sym}
                     onClick={() => insertSymbol(sym)}
-                    className="flex-shrink-0 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-600 dark:hover:text-brand-400 font-mono transition-colors"
+                    className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-mono hover:bg-brand-50 hover:border-brand-300 hover:text-brand-600 dark:hover:bg-brand-900/20 cursor-pointer transition-all duration-150 shrink-0"
                   >
                     {sym}
                   </button>
@@ -804,13 +1053,13 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
                     <img src={`data:image/png;base64,${imgBase64}`} alt="attached" className="w-full h-full object-cover" />
                   </div>
                   <span className="text-xs text-gray-500">Image attached</span>
-                  <button onClick={() => setImgBase64(null)} className="ml-auto text-gray-400 hover:text-red-500">
+                  <button onClick={() => setImgBase64(null)} className="ml-auto text-gray-400 hover:text-red-500 transition-all duration-150">
                     <X size={14} />
                   </button>
                 </div>
               )}
 
-              {/* Textarea row */}
+              {/* Input row */}
               <div className="flex gap-2 items-end">
                 <textarea
                   ref={textareaRef}
@@ -819,13 +1068,13 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
                   onKeyDown={handleKeyDown}
                   placeholder={mode === 'tutor' ? 'Ask a math question…' : 'Enter a problem to solve…'}
                   rows={2}
-                  className="flex-1 resize-none px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-brand-400 min-h-[60px] max-h-[120px]"
+                  className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all resize-none min-h-[60px] max-h-[120px] text-gray-900 dark:text-white placeholder-gray-400"
                 />
                 <div className="flex flex-col gap-1.5 flex-shrink-0">
                   <button
                     onClick={() => handleSubmit()}
                     disabled={loading || (!input.trim() && !imgBase64)}
-                    className="w-9 h-9 bg-brand-500 hover:bg-brand-600 disabled:opacity-40 text-white rounded-xl flex items-center justify-center transition-colors"
+                    className="p-2.5 bg-brand-500 text-white rounded-xl hover:bg-brand-600 transition-all duration-150 shrink-0 disabled:opacity-40"
                   >
                     {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                   </button>
@@ -837,7 +1086,7 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
                 {/* Upload image */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                  className="p-2.5 rounded-xl text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all"
                   title="Upload image"
                 >
                   <Camera size={16} />
@@ -847,7 +1096,7 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
                 {/* Voice */}
                 <button
                   onClick={handleVoice}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                  className="p-2.5 rounded-xl text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all"
                   title="Voice input"
                 >
                   <Mic size={16} />
@@ -856,7 +1105,7 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
                 {/* Draw */}
                 <button
                   onClick={() => setShowCanvas(true)}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                  className="p-2.5 rounded-xl text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all"
                   title="Draw problem"
                 >
                   <Pencil size={16} />
@@ -867,7 +1116,7 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
                   <button
                     onClick={handleHint}
                     disabled={loading}
-                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-xl text-xs font-black hover:bg-yellow-200 dark:hover:bg-yellow-900/40 disabled:opacity-50 transition-colors"
+                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-xl text-xs font-bold hover:bg-yellow-200 dark:hover:bg-yellow-900/40 disabled:opacity-50 transition-all duration-150"
                   >
                     <Lightbulb size={13} /> Hint
                   </button>
@@ -881,10 +1130,10 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
       {/* Draw Canvas Modal */}
       {showCanvas && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 w-full max-w-lg">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-4 w-full max-w-lg">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-black text-gray-900 dark:text-white">Draw your problem</h3>
-              <button onClick={() => setShowCanvas(false)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500">
+              <h3 className="font-bold text-gray-900 dark:text-white">Draw your problem</h3>
+              <button onClick={() => setShowCanvas(false)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-all duration-150">
                 <X size={18} />
               </button>
             </div>
@@ -901,13 +1150,13 @@ Return ONLY a raw JSON array with no markdown, no backticks, no explanation:
             <div className="flex gap-2 mt-3">
               <button
                 onClick={clearCanvas}
-                className="flex-1 py-2 border-2 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded-xl text-sm font-bold hover:border-gray-300"
+                className="flex-1 py-2 border-2 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded-xl text-sm font-bold hover:border-gray-300 transition-all duration-150"
               >
                 Clear
               </button>
               <button
                 onClick={submitCanvas}
-                className="flex-1 py-2 bg-brand-500 text-white rounded-xl text-sm font-black hover:bg-brand-600"
+                className="flex-1 py-2 bg-brand-500 text-white rounded-xl text-sm font-bold hover:bg-brand-600 transition-all duration-150"
               >
                 Submit drawing
               </button>
