@@ -192,6 +192,8 @@ const App: React.FC = () => {
   const [levelUpToast, setLevelUpToast] = useState<number | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
   const prevXpRef = useRef(appState.user.totalXp);
+  const serverSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestUserRef = useRef(appState.user);
 
   // Build courses
   useEffect(() => {
@@ -243,20 +245,28 @@ const App: React.FC = () => {
       } catch (e) {
         console.error("Failed to save user data to localStorage", e);
       }
-      fetch(`${API_BASE}/api/user/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: appState.user.id, userData: appState.user }),
-      }).catch(() => {});
+      latestUserRef.current = appState.user;
+      if (serverSyncTimerRef.current) clearTimeout(serverSyncTimerRef.current);
+      serverSyncTimerRef.current = setTimeout(() => {
+        const u = latestUserRef.current;
+        fetch(`${API_BASE}/api/user/save`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: u.id, userData: u }),
+        }).catch(() => {});
+      }, 2000);
     }
+  }, [appState.isLoggedIn, appState.user, appState.language]);
 
+  // Theme + RTL/LTR direction
+  useEffect(() => {
     if (appState.theme === 'dark') document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
 
     const isRtl = appState.language === 'he' || appState.language === 'ar';
     document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
     document.documentElement.lang = appState.language;
-  }, [appState.theme, appState.language, appState.user, appState.isLoggedIn]);
+  }, [appState.theme, appState.language]);
 
   // Level-up detection
   useEffect(() => {
@@ -265,7 +275,9 @@ const App: React.FC = () => {
     if (Math.floor(newXp / 1000) > Math.floor(prevXp / 1000)) {
       const newLevel = Math.floor(newXp / 1000) + 1;
       setLevelUpToast(newLevel);
-      setTimeout(() => setLevelUpToast(null), 3000);
+      const timer = setTimeout(() => setLevelUpToast(null), 3000);
+      prevXpRef.current = newXp;
+      return () => clearTimeout(timer);
     }
     prevXpRef.current = newXp;
   }, [appState.user.totalXp]);
@@ -280,7 +292,7 @@ const App: React.FC = () => {
     }, 150);
   }, []);
 
-  const handleLogin = (userData: Partial<UserProfile>) => {
+  const handleLogin = useCallback((userData: Partial<UserProfile>) => {
     const fullUser: UserProfile = { ...DEFAULT_USER, ...userData, progressMap: (userData as any).progressMap || {} } as UserProfile;
     const updatedStreak = calculateStreak(fullUser.streakDays, fullUser.lastActivityDate);
     const userWithStreak = { ...fullUser, streakDays: updatedStreak };
@@ -309,7 +321,7 @@ const App: React.FC = () => {
         })
         .catch(() => {});
     }
-  };
+  }, []);
 
   const handleLogout = () => {
     setShowLogoutConfirm(false);
@@ -379,21 +391,21 @@ const App: React.FC = () => {
   const handleGamesXp = useCallback((xp: number) => handleExerciseComplete(xp, 1, 1, null, 'games'), [handleExerciseComplete]);
   const handleNotesXp = useCallback((xp: number) => handleExerciseComplete(xp, 1, 1, null, 'notes'), [handleExerciseComplete]);
 
-  const startSubjectPractice = (s: Subject) => {
+  const startSubjectPractice = useCallback((s: Subject) => {
     const grade = appState.user.gradeLevel;
     const cc = getCurriculumCourse(s, grade);
     const firstTopic = cc?.units[0]?.topics[0];
     handleStartExercises(s, grade, firstTopic?.id || null, firstTopic?.title || 'General Practice');
-  };
+  }, [appState.user.gradeLevel, handleStartExercises]);
 
-  const handleMaterialStart = (s: Subject, attachments: Attachment[]) => {
+  const handleMaterialStart = useCallback((s: Subject, attachments: Attachment[]) => {
     const grade = appState.user.gradeLevel;
     if (attachments.length > 0) {
       handleUploadAnalysis(attachments);
     } else {
       handleStartExercises(s, grade, null, 'General Practice');
     }
-  };
+  }, [appState.user.gradeLevel, handleUploadAnalysis, handleStartExercises]);
 
   const t = TRANSLATIONS[appState.language];
   const isRtl = appState.language === 'he' || appState.language === 'ar';

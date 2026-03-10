@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { UserProfile, Course, Topic, Subject, GradeLevel, Translations } from '../types';
+import { UserProfile, Course, Topic, Subject, GradeLevel, Translations, TopicProgress } from '../types';
 import { ICON_MAP, SUBJECTS_DATA, CURRICULUM, getCurriculumCourse } from '../constants';
 import {
   Play, Flame, BookOpen, X, ChevronRight, ChevronDown, Zap, GraduationCap,
@@ -123,7 +123,7 @@ const Dashboard: React.FC<Props> = ({
     }
   };
 
-  const totalTopicsDone = Object.values(user.progressMap || {}).filter(tp => tp.mastery >= 70).length;
+  const totalTopicsDone = (Object.values(user.progressMap || {}) as TopicProgress[]).filter(tp => tp.mastery >= 70).length;
 
   const AI_TOOLS = [
     { view: 'notes', icon: FileText, label: 'AI Notes', desc: 'Generate notes from any topic or YouTube', grad: 'from-violet-500 to-purple-600' },
