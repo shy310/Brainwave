@@ -1,17 +1,15 @@
-import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import Groq from 'groq-sdk';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY is not set');
+if (!GROQ_API_KEY) {
+  console.error('GROQ_API_KEY is not set in environment variables');
+}
 
-const groq = new Groq({ apiKey: GROQ_API_KEY });
+const groq = GROQ_API_KEY ? new Groq({ apiKey: GROQ_API_KEY }) : null;
 
 const TEXT_MODEL   = 'llama-3.3-70b-versatile';
 const VISION_MODEL = 'llama-3.2-90b-vision-preview';
@@ -52,10 +50,10 @@ app.use((_req, res, next) => {
 });
 
 // ── Health ────────────────────────────────────────────────────────────────────
-app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+app.get('/api/health', (_req, res) => res.json({ status: 'ok', hasKey: !!GROQ_API_KEY }));
 
 // ── User data (ephemeral /tmp on Vercel) ──────────────────────────────────────
-const DATA_DIR   = process.env.VERCEL ? '/tmp' : path.join(__dirname, '..', 'data');
+const DATA_DIR   = '/tmp';
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
 async function readUsersDb() {
@@ -102,6 +100,7 @@ app.get('/api/user/:userId', async (req, res) => {
 
 // ── AI proxy ──────────────────────────────────────────────────────────────────
 app.post('/api/claude', async (req, res) => {
+  if (!groq) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
   const { messages, system, max_tokens } = req.body;
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
@@ -127,6 +126,7 @@ app.post('/api/claude', async (req, res) => {
 
 // ── AI streaming proxy (SSE) ──────────────────────────────────────────────────
 app.post('/api/claude-stream', async (req, res) => {
+  if (!groq) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
   const { messages, system, max_tokens } = req.body;
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
