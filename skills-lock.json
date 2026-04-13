@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "skills": {
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "25872a21881a950edc3db1f3329664d60405d539660ce05b3265db2de06a7dfd"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
+    },
+    "fullstack-developer": {
+      "source": "shubhamsaboo/awesome-llm-apps",
+      "sourceType": "github",
+      "computedHash": "92f6f4f9bbdde529237f1840d94c4269abb62ad1d5e41d9c76bd14266001cbe8"
+    },
+    "pptx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "2275e4d8dba1790d52f6619b3e2fed04edc948beef545a2ad18e4a1be644426d"
+    },
+    "sleek-design-mobile-apps": {
+      "source": "sleekdotdesign/agent-skills",
+      "sourceType": "github",
+      "computedHash": "3886ddabb4e56f93a18fd6da9c51181f8bce953e543a55e480757e3980af1d8f"
+    },
+    "video-production": {
+      "source": "supercent-io/skills-template",
+      "sourceType": "github",
+      "computedHash": "0facfeaac7cc3fbbcd5d2443c89563f9c81bec4e8c0da0adb2238e1c7ce5b8e1"
+    },
+    "code-review-excellence": {
+      "source": "awesome-skills/code-review-skill",
+      "sourceType": "github",
+      "computedHash": "55bec5ed247ca0d5fe5086d11a2a4e1431c0a52ac6028f105906fbd9ab22af7d"
+    },
+    "mastering-typescript": {
+      "source": "SpillwaveSolutions/mastering-typescript-skill",
+      "sourceType": "github",
+      "computedHash": "349d0780f62f5f3bd09fb29f0e9bd05b8a003212fdb1a78d526c3f6e740e5fb5"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "50b55178a2da8ee931850193596601fa0517cd800e171366a903769f25bf4dda"
+    }
+  }
+}

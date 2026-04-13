@@ -17,21 +17,13 @@ import LessonView from './components/LessonView';
 import ProgressDashboard from './components/ProgressDashboard';
 import SettingsView from './components/Settings';
 import Logo from './components/Logo';
-import PresentationView from './components/PresentationView';
-import CodeLab from './components/CodeLab';
-import EducationalGames from './components/EducationalGames';
-import DebateArena from './components/DebateArena';
-import StoryEngine from './components/StoryEngine';
-import SqlDetective from './components/SqlDetective';
-import MathTutorView from './components/MathTutorView';
-import NotesView from './components/NotesView';
 
 import {
   LayoutGrid, Library, Menu, X, Moon, Sun, Search,
   Calculator, FlaskConical, Globe, Laptop, BookOpen, TrendingUp,
-  LogOut, BarChart2, Settings, FileText, GraduationCap,
-  Presentation as PresentationIcon, Code2, Gamepad2, Swords, Feather, DatabaseIcon,
-  User as UserIcon, Trophy, Flame, Star, ChevronLeft, ChevronRight
+  LogOut, BarChart2, Settings,
+  GraduationCap, User as UserIcon, Trophy, Flame, Star,
+  ChevronLeft, ChevronRight, Sparkles, Zap
 } from 'lucide-react';
 
 const SESSION_KEY = 'brainwave_session_v2';
@@ -157,7 +149,7 @@ interface NavItem {
   view: NavView;
   label: string;
   icon: React.ReactNode;
-  section: 'learn' | 'tools' | 'account';
+  section: 'learn' | 'account';
 }
 
 // ─── APP COMPONENT ────────────────────────────────────────────────────────────
@@ -387,10 +379,6 @@ const App: React.FC = () => {
     });
   }, []);
 
-  const handleCodeLabXp = useCallback((xp: number) => handleExerciseComplete(xp, 1, 1, null, 'coding'), [handleExerciseComplete]);
-  const handleGamesXp = useCallback((xp: number) => handleExerciseComplete(xp, 1, 1, null, 'games'), [handleExerciseComplete]);
-  const handleNotesXp = useCallback((xp: number) => handleExerciseComplete(xp, 1, 1, null, 'notes'), [handleExerciseComplete]);
-
   const startSubjectPractice = useCallback((s: Subject) => {
     const grade = appState.user.gradeLevel;
     const cc = getCurriculumCourse(s, grade);
@@ -428,16 +416,8 @@ const App: React.FC = () => {
 
   const NAV_ITEMS: NavItem[] = [
     { view: 'dashboard', label: t.dashboard, icon: <LayoutGrid size={18} />, section: 'learn' },
-    { view: 'notes', label: 'AI Notes', icon: <FileText size={18} />, section: 'learn' },
     { view: 'courses', label: t.courses, icon: <Library size={18} />, section: 'learn' },
     { view: 'progress', label: t.progress, icon: <BarChart2 size={18} />, section: 'learn' },
-    { view: 'math-tutor', label: 'Math Tutor', icon: <span className="font-bold text-[15px] leading-none">∑</span>, section: 'tools' },
-    { view: 'presentation', label: t.presentationGenerator, icon: <PresentationIcon size={18} />, section: 'tools' },
-    { view: 'codelab', label: t.codeLab, icon: <Code2 size={18} />, section: 'tools' },
-    { view: 'games', label: t.educationalGames, icon: <Gamepad2 size={18} />, section: 'tools' },
-    { view: 'debate', label: t.debateArena, icon: <Swords size={18} />, section: 'tools' },
-    { view: 'story', label: t.storyEngine, icon: <Feather size={18} />, section: 'tools' },
-    { view: 'sql-detective', label: t.sqlDetective, icon: <DatabaseIcon size={18} />, section: 'tools' },
     { view: 'profile', label: t.profile, icon: <UserIcon size={18} />, section: 'account' },
     { view: 'settings', label: t.settings, icon: <Settings size={18} />, section: 'account' },
   ];
@@ -446,54 +426,61 @@ const App: React.FC = () => {
   const xpInLevel = appState.user.totalXp % 1000;
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300 font-sans overflow-hidden text-gray-900 dark:text-gray-100">
+    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 font-sans overflow-hidden text-zinc-900 dark:text-zinc-100">
 
       {/* ── SIDEBAR ──────────────────────────────────────────────────────────── */}
       <aside
-        className={`fixed inset-y-0 start-0 z-50 bg-white dark:bg-gray-900 border-e border-gray-100 dark:border-gray-800 flex flex-col transform transition-all duration-300 ease-in-out
+        className={`fixed inset-y-0 start-0 z-50 bg-white dark:bg-zinc-900 border-e border-zinc-100 dark:border-zinc-800/80 flex flex-col transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
           ${mobileMenuOpen ? 'translate-x-0' : sidebarHiddenClass}
-          ${sidebarCollapsed ? 'md:w-[72px]' : 'md:w-60'}
-          md:translate-x-0 w-60`}
+          ${sidebarCollapsed ? 'md:w-[72px]' : 'md:w-[240px]'}
+          md:translate-x-0 w-[240px]`}
       >
-        {/* Logo */}
-        <div className={`flex items-center py-5 border-b border-gray-100 dark:border-gray-800 flex-shrink-0 ${sidebarCollapsed ? 'px-4 justify-center' : 'px-4 justify-between'}`}>
+        {/* Logo area */}
+        <div className={`flex items-center h-[60px] border-b border-zinc-100 dark:border-zinc-800/80 flex-shrink-0 ${sidebarCollapsed ? 'px-3 justify-center' : 'px-4 justify-between'}`}>
           {!sidebarCollapsed ? (
             <>
-              <Logo showText={true} size={32} layout="horizontal" />
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="md:hidden text-gray-400 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
-              >
-                <X size={16} />
-              </button>
-              <button
-                onClick={() => setSidebarCollapsed(true)}
-                className="hidden md:block text-gray-400 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
-                title="Collapse sidebar"
-              >
-                <ChevronLeft size={16} />
-              </button>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-brand">
+                  <Sparkles size={15} className="text-white" />
+                </div>
+                <span className="font-bold text-base tracking-tight text-zinc-900 dark:text-white">BrainWave</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="md:hidden text-zinc-400 p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                >
+                  <X size={16} />
+                </button>
+                <button
+                  onClick={() => setSidebarCollapsed(true)}
+                  className="hidden md:flex text-zinc-400 p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                  title="Collapse sidebar"
+                >
+                  <ChevronLeft size={15} />
+                </button>
+              </div>
             </>
           ) : (
             <button
               onClick={() => setSidebarCollapsed(false)}
-              className="text-gray-400 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
+              className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-brand hover:shadow-glow transition-shadow"
               title="Expand sidebar"
             >
-              <ChevronRight size={16} />
+              <Sparkles size={15} className="text-white" />
             </button>
           )}
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 py-3 overflow-y-auto sidebar-scroll px-2">
+        {/* Navigation */}
+        <nav className="flex-1 py-4 overflow-y-auto sidebar-scroll px-2.5">
           {/* LEARN section */}
           {!sidebarCollapsed && (
-            <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-gray-400 px-2 mb-1.5 mt-1">
+            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 px-2.5 mb-2">
               {t.learning}
             </div>
           )}
-          <div className="space-y-0.5 mb-3">
+          <div className="space-y-0.5 mb-4">
             {NAV_ITEMS.filter(i => i.section === 'learn').map(({ view, label, icon }) => {
               const isActive = appState.activeView === view;
               return (
@@ -501,47 +488,18 @@ const App: React.FC = () => {
                   key={view}
                   onClick={() => navigateTo(view)}
                   title={sidebarCollapsed ? label : undefined}
-                  className={`w-full flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-150 group
-                    ${sidebarCollapsed ? 'px-2 py-2.5 justify-center' : 'px-3 py-2'}
+                  className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all duration-200
+                    ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2.5'}
                     ${isActive
-                      ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100'
+                      ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 shadow-sm'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-800 dark:hover:text-zinc-200'
                     }`}
                 >
-                  <span className={`flex-shrink-0 ${isActive ? 'text-brand-500' : ''}`}>{icon}</span>
+                  <span className={`flex-shrink-0 transition-colors duration-200 ${isActive ? 'text-brand-500' : ''}`}>{icon}</span>
                   {!sidebarCollapsed && <span className="truncate">{label}</span>}
                   {isActive && !sidebarCollapsed && (
-                    <span className="ms-auto w-1.5 h-1.5 rounded-full bg-brand-500" />
+                    <span className="ms-auto w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
                   )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* AI TOOLS section */}
-          {!sidebarCollapsed && (
-            <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-gray-400 px-2 mb-1.5 mt-2">
-              {t.aiTools ?? 'AI Tools'}
-            </div>
-          )}
-          {sidebarCollapsed && <div className="h-px bg-gray-100 dark:bg-gray-800 my-2 mx-2" />}
-          <div className="space-y-0.5 mb-3">
-            {NAV_ITEMS.filter(i => i.section === 'tools').map(({ view, label, icon }) => {
-              const isActive = appState.activeView === view;
-              return (
-                <button
-                  key={view}
-                  onClick={() => navigateTo(view)}
-                  title={sidebarCollapsed ? label : undefined}
-                  className={`w-full flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-150
-                    ${sidebarCollapsed ? 'px-2 py-2.5 justify-center' : 'px-3 py-2'}
-                    ${isActive
-                      ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100'
-                    }`}
-                >
-                  <span className={`flex-shrink-0 ${isActive ? 'text-brand-500' : ''}`}>{icon}</span>
-                  {!sidebarCollapsed && <span className="truncate">{label}</span>}
                 </button>
               );
             })}
@@ -550,10 +508,10 @@ const App: React.FC = () => {
           {/* Subjects quick access */}
           {!sidebarCollapsed && (
             <>
-              <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-gray-400 px-2 mb-1.5 mt-2">
+              <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 px-2.5 mb-2 mt-3">
                 {t.subjects}
               </div>
-              <div className="space-y-0.5 mb-3">
+              <div className="space-y-0.5 mb-4">
                 {Object.values(Subject).map(s => {
                   const Icon = SUBJECT_ICONS[s];
                   const isActive = activeSubject === s && (appState.activeView === 'exercise' || appState.activeView === 'lesson');
@@ -561,13 +519,13 @@ const App: React.FC = () => {
                     <button
                       key={s}
                       onClick={() => startSubjectPractice(s)}
-                      className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-150 ${
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                         isActive
-                          ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
-                          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100'
+                          ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400'
+                          : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-800 dark:hover:text-zinc-200'
                       }`}
                     >
-                      <Icon size={14} />
+                      <Icon size={15} />
                       <span className="truncate">{t.subjectsList[s]}</span>
                     </button>
                   );
@@ -576,13 +534,16 @@ const App: React.FC = () => {
             </>
           )}
 
-          {/* Account section */}
-          {!sidebarCollapsed && (
-            <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-gray-400 px-2 mb-1.5 mt-2">
+          {/* Divider */}
+          {sidebarCollapsed ? (
+            <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-3 mx-2" />
+          ) : (
+            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 px-2.5 mb-2 mt-3">
               Account
             </div>
           )}
-          {sidebarCollapsed && <div className="h-px bg-gray-100 dark:bg-gray-800 my-2 mx-2" />}
+
+          {/* Account section */}
           <div className="space-y-0.5">
             {NAV_ITEMS.filter(i => i.section === 'account').map(({ view, label, icon }) => {
               const isActive = appState.activeView === view;
@@ -591,11 +552,11 @@ const App: React.FC = () => {
                   key={view}
                   onClick={() => navigateTo(view)}
                   title={sidebarCollapsed ? label : undefined}
-                  className={`w-full flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-150
-                    ${sidebarCollapsed ? 'px-2 py-2.5 justify-center' : 'px-3 py-2'}
+                  className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all duration-200
+                    ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2.5'}
                     ${isActive
-                      ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-100'
+                      ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 shadow-sm'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-800 dark:hover:text-zinc-200'
                     }`}
                 >
                   <span className="flex-shrink-0">{icon}</span>
@@ -607,21 +568,24 @@ const App: React.FC = () => {
         </nav>
 
         {/* User card */}
-        <div className={`border-t border-gray-100 dark:border-gray-800 py-3 flex-shrink-0 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
+        <div className={`border-t border-zinc-100 dark:border-zinc-800/80 py-3 flex-shrink-0 ${sidebarCollapsed ? 'px-2.5' : 'px-3'}`}>
           {!sidebarCollapsed ? (
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shrink-0 shadow-brand">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shrink-0 shadow-brand ring-2 ring-brand-200/30 dark:ring-brand-800/30">
                 {appState.user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate leading-none mb-0.5">{appState.user.name}</div>
-                <div className="text-[10px] text-gray-400 leading-none">Lv.{level} · {appState.user.totalXp} XP</div>
+                <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 truncate leading-tight">{appState.user.name}</div>
+                <div className="text-[10px] text-zinc-400 leading-tight mt-0.5 flex items-center gap-1">
+                  <Zap size={9} className="text-brand-500" />
+                  Lv.{level} · {appState.user.totalXp} XP
+                </div>
               </div>
               <div className="flex items-center gap-0.5">
                 <LanguageSelector currentLang={appState.language} onChange={(l) => setAppState(prev => ({ ...prev, language: l }))} disabled={appState.activeView === 'exercise' || appState.activeView === 'lesson'} />
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
-                  className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="p-1.5 text-zinc-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"
                   title={t.signOut}
                 >
                   <LogOut size={14} />
@@ -630,12 +594,12 @@ const App: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shadow-brand">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shadow-brand ring-2 ring-brand-200/30 dark:ring-brand-800/30">
                 {appState.user.name.charAt(0).toUpperCase()}
               </div>
               <button
                 onClick={() => setShowLogoutConfirm(true)}
-                className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                className="p-1.5 text-zinc-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"
               >
                 <LogOut size={14} />
               </button>
@@ -646,18 +610,18 @@ const App: React.FC = () => {
 
       {/* Mobile Backdrop */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-40 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+        <div className="fixed inset-0 bg-zinc-900/60 backdrop-blur-sm z-40 md:hidden transition-opacity" onClick={() => setMobileMenuOpen(false)} />
       )}
 
       {/* ── MAIN ─────────────────────────────────────────────────────────────── */}
-      <main className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out
-        ${sidebarCollapsed ? 'md:ms-[72px]' : 'md:ms-60'}`}
+      <main className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+        ${sidebarCollapsed ? 'md:ms-[72px]' : 'md:ms-[240px]'}`}
       >
         {/* HEADER */}
-        <header className="sticky top-0 h-14 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 z-30 px-4 flex items-center justify-between flex-shrink-0">
+        <header className="sticky top-0 h-[56px] glass border-b border-zinc-100 dark:border-zinc-800/80 z-30 px-4 flex items-center justify-between flex-shrink-0">
           {viewLoading && (
-            <div className="absolute bottom-0 start-0 end-0 h-0.5 bg-brand-100 dark:bg-brand-900 overflow-hidden">
-              <div className="h-full bg-brand-500 animate-nav-loading" />
+            <div className="absolute bottom-0 start-0 end-0 h-[2px] bg-brand-100 dark:bg-brand-900/40 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-brand-500 to-violet-500 animate-nav-loading rounded-full" />
             </div>
           )}
           <div className="flex items-center gap-3">
@@ -666,18 +630,18 @@ const App: React.FC = () => {
                 if (window.innerWidth >= 768) setSidebarCollapsed(c => !c);
                 else setMobileMenuOpen(m => !m);
               }}
-              className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-150"
+              className="p-2 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
             >
               <Menu size={18} />
             </button>
-            <div className="hidden lg:flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2">
-              <Search size={14} className="text-gray-400 shrink-0" />
+            <div className="hidden lg:flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60 rounded-xl px-3.5 py-2 focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-500/10 transition-all">
+              <Search size={14} className="text-zinc-400 shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t.search}
-                className="bg-transparent border-none text-sm w-56 outline-none text-gray-700 dark:text-gray-200 placeholder-gray-400"
+                className="bg-transparent border-none text-sm w-52 outline-none text-zinc-700 dark:text-zinc-200 placeholder-zinc-400"
               />
             </div>
           </div>
@@ -685,41 +649,43 @@ const App: React.FC = () => {
           <div className="flex items-center gap-2">
             {/* Streak badge */}
             {appState.user.streakDays > 0 && (
-              <div className="hidden sm:flex items-center gap-1 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full text-xs font-bold">
-                <Flame size={11} fill="currentColor" />
+              <div className="hidden sm:flex items-center gap-1.5 bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-orange-100 dark:border-orange-900/40 transition-all">
+                <Flame size={12} fill="currentColor" />
                 <span>{appState.user.streakDays}d</span>
               </div>
             )}
             {/* XP badge */}
-            <div className="hidden sm:flex items-center gap-1 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 px-2.5 py-1 rounded-full text-xs font-bold">
-              <Trophy size={11} />
-              <span>Lv.{level} · {appState.user.totalXp} XP</span>
+            <div className="hidden sm:flex items-center gap-1.5 bg-brand-50 dark:bg-brand-950/30 text-brand-600 dark:text-brand-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-brand-100 dark:border-brand-900/40 transition-all">
+              <Trophy size={12} />
+              <span>Lv.{level}</span>
+              <span className="text-brand-400 dark:text-brand-500">·</span>
+              <span>{appState.user.totalXp} XP</span>
             </div>
             {/* XP mini progress */}
             <div className="hidden md:flex items-center gap-1.5 w-20">
-              <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${xpInLevel / 10}%` }} />
+              <div className="flex-1 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-brand-500 to-violet-500 rounded-full transition-all duration-700 ease-out" style={{ width: `${xpInLevel / 10}%` }} />
               </div>
             </div>
             {/* Theme toggle */}
             <button
               onClick={() => setAppState(prev => ({ ...prev, theme: prev.theme === 'light' ? 'dark' : 'light' }))}
-              className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-150"
+              className="p-2 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
             >
               {appState.theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
             </button>
             {/* Avatar */}
-            <div
+            <button
               onClick={() => navigateTo('profile')}
-              className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center cursor-pointer shadow-brand"
+              className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shadow-brand hover:shadow-glow transition-shadow duration-300"
             >
               {appState.user.name.charAt(0).toUpperCase()}
-            </div>
+            </button>
           </div>
         </header>
 
         {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide bg-gray-50 dark:bg-gray-950">
+        <div className="flex-1 overflow-y-auto scrollbar-hide bg-zinc-50 dark:bg-zinc-950">
           <div className="max-w-[1600px] mx-auto w-full h-full">
 
             {appState.activeView === 'dashboard' && (
@@ -739,21 +705,6 @@ const App: React.FC = () => {
                     setAppState(prev => ({ ...prev, user: { ...prev.user, gradeLevel: g } }));
                     handleStartLesson(s, g, null, 'General Practice');
                   }}
-                  onNavigate={(view) => navigateTo(view as AppState['activeView'])}
-                />
-              </div>
-            )}
-
-            {appState.activeView === 'notes' && (
-              <div className="view-enter h-full">
-                <NotesView
-                  userGrade={appState.user.gradeLevel}
-                  language={appState.language}
-                  translations={t}
-                  theme={appState.theme}
-                  onBack={() => navigateTo('dashboard')}
-                  onXpEarned={handleNotesXp}
-                  onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
                 />
               </div>
             )}
@@ -829,18 +780,18 @@ const App: React.FC = () => {
 
             {appState.activeView === 'profile' && (
               <div className="view-enter p-6 md:p-10 max-w-2xl mx-auto space-y-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.profile}</h1>
+                <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{t.profile}</h1>
 
                 {/* Avatar + name */}
-                <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
-                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center text-white text-4xl font-bold shadow-brand">
+                <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 p-8 flex flex-col sm:flex-row items-center gap-6 shadow-card">
+                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center text-white text-4xl font-bold shadow-brand ring-4 ring-brand-100 dark:ring-brand-900/30">
                     {appState.user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="text-center sm:text-start">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{appState.user.name}</div>
-                    <div className="text-sm text-gray-400 font-medium">@{appState.user.username}</div>
-                    <div className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-1 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-full text-xs font-bold">
-                      <GraduationCap size={11} />
+                    <div className="text-2xl font-bold text-zinc-900 dark:text-white">{appState.user.name}</div>
+                    <div className="text-sm text-zinc-400 font-medium">@{appState.user.username}</div>
+                    <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-brand-50 dark:bg-brand-950/30 text-brand-600 dark:text-brand-400 rounded-xl text-xs font-bold border border-brand-100 dark:border-brand-900/40">
+                      <GraduationCap size={12} />
                       {t.grades[appState.user.gradeLevel]}
                     </div>
                   </div>
@@ -849,34 +800,34 @@ const App: React.FC = () => {
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-4">
                   {[
-                    { icon: <Trophy size={20} className="text-yellow-500" />, label: 'Level', value: String(level), bg: 'bg-yellow-50 dark:bg-yellow-900/10' },
-                    { icon: <Star size={20} className="text-brand-500" />, label: t.xp, value: String(appState.user.totalXp), bg: 'bg-brand-50 dark:bg-brand-900/10' },
-                    { icon: <Flame size={20} className="text-orange-500" />, label: t.streak, value: `${appState.user.streakDays}d`, bg: 'bg-orange-50 dark:bg-orange-900/10' },
-                  ].map(({ icon, label, value, bg }) => (
-                    <div key={label} className={`${bg} rounded-2xl p-5 flex flex-col items-center gap-2`}>
+                    { icon: <Trophy size={22} className="text-yellow-500" />, label: 'Level', value: String(level), bg: 'bg-yellow-50 dark:bg-yellow-950/20', border: 'border-yellow-100 dark:border-yellow-900/30' },
+                    { icon: <Star size={22} className="text-brand-500" />, label: t.xp, value: String(appState.user.totalXp), bg: 'bg-brand-50 dark:bg-brand-950/20', border: 'border-brand-100 dark:border-brand-900/30' },
+                    { icon: <Flame size={22} className="text-orange-500" />, label: t.streak, value: `${appState.user.streakDays}d`, bg: 'bg-orange-50 dark:bg-orange-950/20', border: 'border-orange-100 dark:border-orange-900/30' },
+                  ].map(({ icon, label, value, bg, border }) => (
+                    <div key={label} className={`${bg} rounded-2xl p-5 flex flex-col items-center gap-2.5 border ${border}`}>
                       {icon}
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white">{value}</div>
-                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{label}</div>
+                      <div className="text-2xl font-bold text-zinc-900 dark:text-white count-in">{value}</div>
+                      <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{label}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* XP progress */}
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-card">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Progress to Level {level + 1}</span>
+                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Progress to Level {level + 1}</span>
                     <span className="text-xs font-bold text-brand-600">{xpInLevel} / 1000 XP</span>
                   </div>
-                  <div className="h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-3 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-brand-500 to-violet-500 rounded-full transition-all duration-1000" style={{ width: `${xpInLevel / 10}%` }} />
                   </div>
                 </div>
 
                 {/* Topic mastery */}
                 {Object.keys(appState.user.progressMap || {}).length > 0 && (
-                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-4">{t.mastery} by Topic</h3>
-                    <div className="space-y-3">
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-card">
+                    <h3 className="font-bold text-zinc-900 dark:text-white mb-4">{t.mastery} by Topic</h3>
+                    <div className="space-y-4">
                       {(Object.values(appState.user.progressMap) as TopicProgress[]).slice(0, 5).map(tp => {
                         let topicTitle = tp.topicId;
                         for (const course of CURRICULUM) {
@@ -888,11 +839,11 @@ const App: React.FC = () => {
                         }
                         return (
                           <div key={tp.topicId}>
-                            <div className="flex justify-between text-xs font-medium text-gray-500 mb-1.5">
+                            <div className="flex justify-between text-xs font-medium text-zinc-500 mb-2">
                               <span className="truncate">{topicTitle}</span>
                               <span className="font-bold text-brand-600">{tp.mastery}%</span>
                             </div>
-                            <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                               <div className="h-full bg-gradient-to-r from-brand-500 to-violet-500 rounded-full transition-all" style={{ width: `${tp.mastery}%` }} />
                             </div>
                           </div>
@@ -921,99 +872,6 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {appState.activeView === 'presentation' && (
-              <div className="view-enter">
-                <PresentationView
-                  userGrade={appState.user.gradeLevel}
-                  language={appState.language}
-                  translations={t}
-                  theme={appState.theme}
-                  onBack={() => navigateTo('dashboard')}
-                  onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
-                />
-              </div>
-            )}
-
-            {appState.activeView === 'codelab' && (
-              <div className="view-enter">
-                <CodeLab
-                  userGrade={appState.user.gradeLevel}
-                  language={appState.language}
-                  translations={t}
-                  theme={appState.theme}
-                  onBack={() => navigateTo('dashboard')}
-                  onXpEarned={handleCodeLabXp}
-                  onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
-                />
-              </div>
-            )}
-
-            {appState.activeView === 'games' && (
-              <div className="view-enter">
-                <EducationalGames
-                  userGrade={appState.user.gradeLevel}
-                  language={appState.language}
-                  translations={t}
-                  onBack={() => navigateTo('dashboard')}
-                  onXpEarned={handleGamesXp}
-                  onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
-                />
-              </div>
-            )}
-
-            {appState.activeView === 'debate' && (
-              <div className="view-enter">
-                <DebateArena
-                  userGrade={appState.user.gradeLevel}
-                  language={appState.language}
-                  translations={t}
-                  onBack={() => navigateTo('dashboard')}
-                  onXpEarned={(xp) => handleExerciseComplete(xp, 1, 1, null, 'debate')}
-                  onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
-                />
-              </div>
-            )}
-
-            {appState.activeView === 'story' && (
-              <div className="view-enter">
-                <StoryEngine
-                  userGrade={appState.user.gradeLevel}
-                  language={appState.language}
-                  translations={t}
-                  onBack={() => navigateTo('dashboard')}
-                  onXpEarned={(xp) => handleExerciseComplete(xp, 1, 1, null, 'story')}
-                  onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
-                />
-              </div>
-            )}
-
-            {appState.activeView === 'sql-detective' && (
-              <div className="view-enter">
-                <SqlDetective
-                  userGrade={appState.user.gradeLevel}
-                  language={appState.language}
-                  translations={t}
-                  onBack={() => navigateTo('dashboard')}
-                  onXpEarned={(xp) => handleExerciseComplete(xp, 1, 1, null, 'sql-detective')}
-                  onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
-                />
-              </div>
-            )}
-
-            {appState.activeView === 'math-tutor' && (
-              <div className="view-enter">
-                <MathTutorView
-                  userGrade={appState.user.gradeLevel}
-                  language={appState.language}
-                  translations={t}
-                  theme={appState.theme}
-                  onBack={() => navigateTo('dashboard')}
-                  onXpEarned={(xp) => handleExerciseComplete(xp, 1, 1, null, 'math')}
-                  onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
-                />
-              </div>
-            )}
-
           </div>
         </div>
       </main>
@@ -1029,17 +887,17 @@ const App: React.FC = () => {
 
       {/* Logout confirmation */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-gray-800 max-w-sm w-full mx-4 animate-slide-up">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-900/20 mx-auto mb-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-900/60 backdrop-blur-md">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 shadow-xl border border-zinc-100 dark:border-zinc-800 max-w-sm w-full mx-4 animate-pop">
+            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-950/30 mx-auto mb-4">
               <LogOut size={24} className="text-red-500" />
             </div>
-            <h3 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">Sign out?</h3>
-            <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-6">Your progress is saved. You can sign back in anytime.</p>
+            <h3 className="text-xl font-bold text-center text-zinc-900 dark:text-white mb-2">Sign out?</h3>
+            <p className="text-sm text-center text-zinc-500 dark:text-zinc-400 mb-6">Your progress is saved. You can sign back in anytime.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:border-gray-300 transition-all"
+                className="flex-1 py-3 rounded-2xl border-2 border-zinc-200 dark:border-zinc-700 text-sm font-semibold text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all"
               >
                 Cancel
               </button>
@@ -1057,7 +915,7 @@ const App: React.FC = () => {
       {/* Level-up toast */}
       {levelUpToast !== null && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-toast-in">
-          <div className="flex items-center gap-3 bg-gradient-to-r from-brand-500 to-violet-500 text-white px-6 py-3 rounded-2xl shadow-2xl font-bold">
+          <div className="flex items-center gap-3 bg-gradient-to-r from-brand-500 to-violet-500 text-white px-6 py-3.5 rounded-2xl shadow-2xl shadow-brand-500/30 font-bold border border-white/20">
             <Trophy size={18} />
             <span>Level {levelUpToast} reached!</span>
             <Star size={14} className="fill-white" />
