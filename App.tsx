@@ -416,7 +416,7 @@ const App: React.FC = () => {
 
   const NAV_ITEMS: NavItem[] = [
     { view: 'dashboard', label: t.dashboard, icon: <LayoutGrid size={18} />, section: 'learn' },
-    { view: 'courses', label: t.courses, icon: <Library size={18} />, section: 'learn' },
+    { view: 'courses', label: t.courses ?? 'Study Materials', icon: <Library size={18} />, section: 'learn' },
     { view: 'progress', label: t.progress, icon: <BarChart2 size={18} />, section: 'learn' },
     { view: 'profile', label: t.profile, icon: <UserIcon size={18} />, section: 'account' },
     { view: 'settings', label: t.settings, icon: <Settings size={18} />, section: 'account' },
@@ -430,31 +430,31 @@ const App: React.FC = () => {
 
       {/* ── SIDEBAR ──────────────────────────────────────────────────────────── */}
       <aside
-        className={`fixed inset-y-0 start-0 z-50 bg-white dark:bg-zinc-900 border-e border-zinc-100 dark:border-zinc-800/80 flex flex-col transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+        className={`fixed inset-y-0 start-0 z-50 bg-zinc-950 flex flex-col transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
           ${mobileMenuOpen ? 'translate-x-0' : sidebarHiddenClass}
           ${sidebarCollapsed ? 'md:w-[72px]' : 'md:w-[240px]'}
           md:translate-x-0 w-[240px]`}
       >
         {/* Logo area */}
-        <div className={`flex items-center h-[60px] border-b border-zinc-100 dark:border-zinc-800/80 flex-shrink-0 ${sidebarCollapsed ? 'px-3 justify-center' : 'px-4 justify-between'}`}>
+        <div className={`flex items-center h-[60px] border-b border-white/[0.06] flex-shrink-0 ${sidebarCollapsed ? 'px-3 justify-center' : 'px-4 justify-between'}`}>
           {!sidebarCollapsed ? (
             <>
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-brand">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                   <Sparkles size={15} className="text-white" />
                 </div>
-                <span className="font-bold text-base tracking-tight text-zinc-900 dark:text-white">BrainWave</span>
+                <span className="font-bold text-base tracking-tight text-white">BrainWave</span>
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="md:hidden text-zinc-400 p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                  className="md:hidden text-zinc-500 p-1.5 hover:bg-white/10 rounded-lg transition-colors"
                 >
                   <X size={16} />
                 </button>
                 <button
                   onClick={() => setSidebarCollapsed(true)}
-                  className="hidden md:flex text-zinc-400 p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                  className="hidden md:flex text-zinc-500 p-1.5 hover:bg-white/10 rounded-lg transition-colors"
                   title="Collapse sidebar"
                 >
                   <ChevronLeft size={15} />
@@ -464,7 +464,7 @@ const App: React.FC = () => {
           ) : (
             <button
               onClick={() => setSidebarCollapsed(false)}
-              className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-brand hover:shadow-glow transition-shadow"
+              className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30"
               title="Expand sidebar"
             >
               <Sparkles size={15} className="text-white" />
@@ -476,7 +476,7 @@ const App: React.FC = () => {
         <nav className="flex-1 py-4 overflow-y-auto sidebar-scroll px-2.5">
           {/* LEARN section */}
           {!sidebarCollapsed && (
-            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 px-2.5 mb-2">
+            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600 px-2.5 mb-2">
               {t.learning}
             </div>
           )}
@@ -491,14 +491,14 @@ const App: React.FC = () => {
                   className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all duration-200
                     ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2.5'}
                     ${isActive
-                      ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 shadow-sm'
-                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-800 dark:hover:text-zinc-200'
+                      ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/10 text-white'
+                      : 'text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-300'
                     }`}
                 >
-                  <span className={`flex-shrink-0 transition-colors duration-200 ${isActive ? 'text-brand-500' : ''}`}>{icon}</span>
+                  <span className={`flex-shrink-0 ${isActive ? 'text-indigo-400' : ''}`}>{icon}</span>
                   {!sidebarCollapsed && <span className="truncate">{label}</span>}
                   {isActive && !sidebarCollapsed && (
-                    <span className="ms-auto w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
+                    <span className="ms-auto w-1.5 h-1.5 rounded-full bg-indigo-400" />
                   )}
                 </button>
               );
@@ -508,7 +508,7 @@ const App: React.FC = () => {
           {/* Subjects quick access */}
           {!sidebarCollapsed && (
             <>
-              <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 px-2.5 mb-2 mt-3">
+              <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600 px-2.5 mb-2 mt-3">
                 {t.subjects}
               </div>
               <div className="space-y-0.5 mb-4">
@@ -521,8 +521,8 @@ const App: React.FC = () => {
                       onClick={() => startSubjectPractice(s)}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                         isActive
-                          ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400'
-                          : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-800 dark:hover:text-zinc-200'
+                          ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/10 text-white'
+                          : 'text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-300'
                       }`}
                     >
                       <Icon size={15} />
@@ -536,9 +536,9 @@ const App: React.FC = () => {
 
           {/* Divider */}
           {sidebarCollapsed ? (
-            <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-3 mx-2" />
+            <div className="h-px bg-white/[0.06] my-3 mx-2" />
           ) : (
-            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 px-2.5 mb-2 mt-3">
+            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600 px-2.5 mb-2 mt-3">
               Account
             </div>
           )}
@@ -555,8 +555,8 @@ const App: React.FC = () => {
                   className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all duration-200
                     ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2.5'}
                     ${isActive
-                      ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 shadow-sm'
-                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-800 dark:hover:text-zinc-200'
+                      ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/10 text-white'
+                      : 'text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-300'
                     }`}
                 >
                   <span className="flex-shrink-0">{icon}</span>
@@ -568,16 +568,16 @@ const App: React.FC = () => {
         </nav>
 
         {/* User card */}
-        <div className={`border-t border-zinc-100 dark:border-zinc-800/80 py-3 flex-shrink-0 ${sidebarCollapsed ? 'px-2.5' : 'px-3'}`}>
+        <div className={`border-t border-white/[0.06] py-3 flex-shrink-0 ${sidebarCollapsed ? 'px-2.5' : 'px-3'}`}>
           {!sidebarCollapsed ? (
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shrink-0 shadow-brand ring-2 ring-brand-200/30 dark:ring-brand-800/30">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/20">
                 {appState.user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 truncate leading-tight">{appState.user.name}</div>
-                <div className="text-[10px] text-zinc-400 leading-tight mt-0.5 flex items-center gap-1">
-                  <Zap size={9} className="text-brand-500" />
+                <div className="text-sm font-semibold text-white truncate leading-tight">{appState.user.name}</div>
+                <div className="text-[10px] text-zinc-500 leading-tight mt-0.5 flex items-center gap-1">
+                  <Zap size={9} className="text-indigo-400" />
                   Lv.{level} · {appState.user.totalXp} XP
                 </div>
               </div>
@@ -585,7 +585,7 @@ const App: React.FC = () => {
                 <LanguageSelector currentLang={appState.language} onChange={(l) => setAppState(prev => ({ ...prev, language: l }))} disabled={appState.activeView === 'exercise' || appState.activeView === 'lesson'} />
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
-                  className="p-1.5 text-zinc-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"
+                  className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
                   title={t.signOut}
                 >
                   <LogOut size={14} />
@@ -594,12 +594,12 @@ const App: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shadow-brand ring-2 ring-brand-200/30 dark:ring-brand-800/30">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 {appState.user.name.charAt(0).toUpperCase()}
               </div>
               <button
                 onClick={() => setShowLogoutConfirm(true)}
-                className="p-1.5 text-zinc-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"
+                className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
               >
                 <LogOut size={14} />
               </button>
