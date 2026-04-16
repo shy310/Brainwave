@@ -263,32 +263,47 @@ export const generateLesson = async (
 ): Promise<Lesson | null> => {
     const targetLang = LANG_MAP[language] || language;
 
-    const prompt = `You are an expert educator. Generate a comprehensive lesson in valid JSON format.
+    const prompt = `You are a world-class educator and subject matter expert. Generate an in-depth, accurate lesson.
 
 Subject: ${subject}
 Grade Level: ${grade}
 Topic: ${topicTitle}
 Description: ${topicDescription}
-Language: ${targetLang} — ALL text values in the JSON must be written in ${targetLang}.
+Language: ${targetLang} — ALL text values must be in ${targetLang}.
 
-Return ONLY a JSON object with this exact structure (no markdown, no code blocks):
+CRITICAL ACCURACY RULES:
+- Every fact, definition, formula, and date MUST be 100% correct. Do not guess or fabricate.
+- If the topic is mathematical, show correct derivations and formulas step by step.
+- If the topic is historical, use correct dates, names, and events.
+- If the topic is scientific, use correct terminology and explain mechanisms accurately.
+- Double-check all numerical examples — verify your arithmetic is correct before including it.
+
+Return ONLY a JSON object (no markdown, no code blocks):
 {
   "topicTitle": "string",
   "sections": [
-    { "type": "intro", "heading": "string", "body": "string" },
-    { "type": "concept", "heading": "string", "body": "string" },
-    { "type": "example", "heading": "string", "body": "string" },
-    { "type": "summary", "heading": "string", "body": "string" }
+    { "type": "intro", "heading": "string", "body": "string (3-5 paragraphs introducing the topic with real-world context and why it matters)" },
+    { "type": "concept", "heading": "string", "body": "string (thorough explanation of core concepts with definitions, 4-6 paragraphs)" },
+    { "type": "concept", "heading": "string", "body": "string (deeper exploration of secondary concepts, building on the first)" },
+    { "type": "example", "heading": "string", "body": "string (3 detailed worked examples with step-by-step solutions)" },
+    { "type": "example", "heading": "string", "body": "string (real-world applications and practice problems)" },
+    { "type": "summary", "heading": "string", "body": "string (key takeaways, common mistakes to avoid, what to study next)" }
   ],
-  "keyPoints": ["string", "string", "string", "string"],
-  "diagramPrompt": "optional short English description for a diagram, or empty string"
+  "keyPoints": ["point1", "point2", "point3", "point4", "point5", "point6"],
+  "diagramPrompt": "optional short English description for a diagram"
 }
 
-Make the lesson age-appropriate, clear, and pedagogically sound. Use numbered steps or bullet points within body text where helpful.
+QUALITY REQUIREMENTS:
+- Write at the depth of a real textbook, not a Wikipedia summary
+- Each section body should be substantial — at least 150 words per section
+- Include specific facts, numbers, dates, formulas — not vague generalizations
+- Use numbered steps for processes, bullet points for lists
+- Connect concepts to prior knowledge the student likely has at this grade level
+- Include common misconceptions and explicitly correct them
+
 For ALL mathematical expressions use LaTeX: inline $...$ or display $$...$$.
-CRITICAL — this output is JSON, so every LaTeX backslash must be doubled: write \\\\frac not \\frac, \\\\sqrt not \\sqrt, \\\\alpha not \\alpha, etc.
-Example of correct display math in a JSON string: "$$\\\\frac{-b \\\\pm \\\\sqrt{b^2-4ac}}{2a}$$"
-Example of correct inline math in a JSON string: "the slope is $m = \\\\frac{\\\\Delta y}{\\\\Delta x}$"`;
+CRITICAL — this is JSON, so double every backslash: \\\\frac not \\frac, \\\\sqrt not \\sqrt.
+Example: "$$\\\\frac{-b \\\\pm \\\\sqrt{b^2-4ac}}{2a}$$"`;
 
     const content: object[] = [];
     if (attachments?.length) attachments.forEach(att => content.push(contentBlock(att)));
@@ -296,7 +311,7 @@ Example of correct inline math in a JSON string: "the slope is $m = \\\\frac{\\\
 
     const text = await callClaude({
         model: HAIKU,
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [{ role: 'user', content }],
     });
 
@@ -410,10 +425,22 @@ export const generateQuiz = async (
     const types = questionTypes || [QuestionType.MULTIPLE_CHOICE];
     const typeList = types.join(', ');
 
-    let prompt = `Generate ${count} diverse exercises as a JSON array. Language: ${targetLang} — ALL text must be in ${targetLang}.
+    // Add timestamp seed to force unique questions each time
+    const seed = Date.now() % 10000;
+    let prompt = `Generate ${count} UNIQUE exercises as a JSON array. Language: ${targetLang} — ALL text must be in ${targetLang}.
 
 Subject: ${subject}, Grade: ${grade}, Topic: "${topic}"
 Question types to use: ${typeList}
+Uniqueness seed: ${seed} — use this to vary your question selection. Generate DIFFERENT questions than you would normally default to.
+
+CRITICAL QUALITY RULES:
+- Every question must be factually correct with a verified correct answer
+- For math: double-check your arithmetic — wrong answers destroy student trust
+- Use specific, concrete scenarios — not generic textbook templates
+- Vary the style: some word problems, some direct questions, some applied scenarios
+- Make distractors (wrong options) plausible but clearly wrong to someone who understands the concept
+- Each question should test a DIFFERENT aspect or skill within the topic
+- NEVER repeat the same question structure with different numbers — each question must feel fresh
 
 Return ONLY a JSON array (no markdown, no code blocks):
 [
@@ -426,21 +453,21 @@ Return ONLY a JSON array (no markdown, no code blocks):
     "correctOptionId": "a",
     "sampleAnswer": "",
     "steps": [],
-    "skillTag": "skill name",
+    "skillTag": "specific skill being tested",
     "xpValue": 20,
-    "explanation": "why the answer is correct",
-    "hint": "helpful hint"
+    "explanation": "clear, educational explanation of WHY the answer is correct — teach, don't just state",
+    "hint": "a genuinely helpful hint that guides thinking without giving the answer"
   }
 ]
 
 Rules:
 - For MULTIPLE_CHOICE: fill options and correctOptionId; leave sampleAnswer and steps empty
-- For SHORT_ANSWER: fill sampleAnswer; leave options and correctOptionId empty
+- For SHORT_ANSWER: fill sampleAnswer with a thorough model answer; leave options empty
 - For FILL_IN_BLANK: use ___ in the question for the blank; fill sampleAnswer
 - For MULTI_STEP: fill steps array with expected steps; fill sampleAnswer with final answer
-- Vary difficulty 1-5 across questions
+- Difficulty distribution: 2 easy (1-2), 4 medium (3), 2 hard (4), 2 challenging (5)
 - xpValue = difficulty * 10
-- For math use LaTeX: inline $...$ or display $$...$$. CRITICAL: this is JSON — double every backslash. Write \\\\frac, \\\\sqrt, \\\\alpha, etc. Example: "Solve $$\\\\frac{x}{2} = 5$$"`;
+- For math use LaTeX: inline $...$ or display $$...$$. CRITICAL: this is JSON — double every backslash. Write \\\\frac, \\\\sqrt, \\\\alpha, etc.`;
 
     if (context) prompt += `\nAdditional Context: ${context}`;
 

@@ -11,30 +11,15 @@ import MathText from './MathText';
 
 const MAX_ATTEMPTS = 3;
 
-// Module-level cache — persists across ALL remounts and re-renders.
-// Keyed by "subject::topicId::grade::language"
+// Module-level cache — session-only, NOT persisted to localStorage.
+// This ensures students get fresh questions each time they restart the app.
 const _quizCache = new Map<string, Exercise[]>();
-// Prevents concurrent generateQuiz calls for the same key.
 const _loadingKeys = new Set<string>();
 
-// localStorage key for persisting the quiz cache across HMR and page reloads.
-const LS_QUIZ_KEY = 'brainwave_quiz_cache_v2';
+// Clear any old persisted quiz cache from previous versions
+try { localStorage.removeItem('brainwave_quiz_cache_v2'); } catch {}
 
-// Hydrate in-memory cache from localStorage on module load.
-try {
-  const saved = JSON.parse(localStorage.getItem(LS_QUIZ_KEY) || '{}');
-  for (const [k, v] of Object.entries(saved)) {
-    if (Array.isArray(v) && v.length > 0) _quizCache.set(k, v as Exercise[]);
-  }
-} catch { /* ignore malformed data */ }
-
-function saveQuizCache() {
-  try {
-    const toSave: Record<string, Exercise[]> = {};
-    _quizCache.forEach((v, k) => { toSave[k] = v; });
-    localStorage.setItem(LS_QUIZ_KEY, JSON.stringify(toSave));
-  } catch { /* ignore quota errors */ }
-}
+function saveQuizCache() { /* no-op: quiz cache is session-only now */ }
 
 interface Props {
   session: LearningSession;
