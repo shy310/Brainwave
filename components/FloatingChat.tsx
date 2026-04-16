@@ -169,7 +169,7 @@ function renderInline(text: string): React.ReactNode[] {
 }
 
 function MarkdownMessage({ text, isUser }: { text: string; isUser: boolean }) {
-  const codeBlockStyle = "bg-gray-900 text-green-300 rounded-xl p-3 text-[11px] overflow-x-auto my-2 font-mono leading-relaxed";
+  const codeBlockStyle = "bg-zinc-900 text-green-300 rounded-xl p-3 text-[11px] overflow-x-auto my-2 font-mono leading-relaxed";
   const accentColor = isUser ? 'text-white/70' : 'text-brand-500';
 
   const blocks = text.split(/(```[\s\S]*?```)/g);
@@ -337,7 +337,7 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full shadow-2xl shadow-brand-500/40 flex items-center justify-center transition-all hover:scale-110 z-50 rtl:left-6 rtl:right-auto"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-brand-500 to-violet-600 text-white rounded-2xl shadow-2xl shadow-brand-500/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-glow z-50 rtl:left-6 rtl:right-auto animate-bounce-subtle"
       >
         <MessageCircle size={26} />
       </button>
@@ -348,11 +348,11 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
 
   // ── OPEN STATE ───────────────────────────────────────────────────────────────
   return (
-    <div className={`fixed bottom-6 right-6 bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col z-50 transition-all duration-300 rtl:left-6 rtl:right-auto overflow-hidden
+    <div className={`fixed bottom-6 right-6 bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-100 dark:border-zinc-800/80 flex flex-col z-50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] rtl:left-6 rtl:right-auto overflow-hidden animate-pop
       ${isExpanded ? 'w-[780px] h-[82vh] max-w-[calc(100vw-48px)]' : 'w-96 h-[560px] max-w-[calc(100vw-48px)]'}`}
     >
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-5 py-4 bg-brand-600 text-white flex-shrink-0">
+      <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-brand-600 to-violet-600 text-white flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
             <Brain size={17} />
@@ -379,14 +379,14 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
       </div>
 
       {/* ── Messages ── */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-950">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-50 dark:bg-zinc-950">
         {messages.map((msg) => {
           const isUser = msg.role === 'user';
           return (
             <div key={msg.id} className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : ''}`}>
               <div className={`w-7 h-7 rounded-xl flex-shrink-0 flex items-center justify-center mt-1
                 ${isUser
-                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                  ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300'
                   : 'bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400'
                 }`}
               >
@@ -396,7 +396,7 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
               <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm
                 ${isUser
                   ? 'bg-brand-600 text-white rounded-tr-sm'
-                  : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 shadow-sm rounded-tl-sm'
+                  : 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 border border-zinc-100 dark:border-zinc-700 shadow-sm rounded-tl-sm'
                 }`}
               >
                 <MarkdownMessage text={msg.text || '…'} isUser={isUser} />
@@ -422,7 +422,7 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
             <div className="w-7 h-7 rounded-xl flex-shrink-0 flex items-center justify-center bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400">
               <Brain size={13} />
             </div>
-            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+            <div className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
               <div className="flex gap-1 items-center h-4">
                 <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -436,9 +436,9 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
       </div>
 
       {/* ── Input ── */}
-      <div className="p-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 flex-shrink-0">
+      <div className="p-3 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800 flex-shrink-0">
 
-        <div className="flex items-end gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-3 py-2">
+        <div className="flex items-end gap-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-3 py-2">
           <FileUpload onAttach={setAttachments} translations={translations} />
           <textarea
             ref={textareaRef}
@@ -446,7 +446,7 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
             onChange={handleInputChange}
             placeholder={currentCfg.placeholder}
             rows={1}
-            className="flex-1 bg-transparent border-none resize-none focus:ring-0 outline-none py-1.5 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400"
+            className="flex-1 bg-transparent border-none resize-none focus:ring-0 outline-none py-1.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
             }}

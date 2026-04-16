@@ -234,12 +234,12 @@ const ExercisePanel: React.FC<Props> = ({
         <div className="w-full max-w-sm space-y-4">
           <div className="flex items-center gap-3 mb-2">
             <Logo size={28} showText={false} />
-            <span className="text-base font-bold text-gray-700 dark:text-gray-200">{translations.loading}</span>
+            <span className="text-base font-bold text-zinc-700 dark:text-zinc-200">{translations.loading}</span>
           </div>
-          <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div className="w-full h-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
             <div className="h-full rounded-full progress-shimmer animate-progress"></div>
           </div>
-          <p className="text-xs text-gray-400 font-medium">{translations.preparingExercises}</p>
+          <p className="text-xs text-zinc-400 font-medium">{translations.preparingExercises}</p>
         </div>
       </div>
     );
@@ -255,15 +255,15 @@ const ExercisePanel: React.FC<Props> = ({
         </div>
         <div>
           <h2 className="text-4xl font-bold dark:text-white mb-2">{translations.courseCompleted}</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-lg">
+          <p className="text-zinc-500 dark:text-zinc-400 text-lg">
             {translations.scoredOutOf
               .replace('{score}', score.toString())
               .replace('{total}', quiz.length.toString())}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-card space-y-3">
+        <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-zinc-100 dark:border-zinc-800 shadow-sm space-y-3">
           <div className="text-5xl font-bold text-brand-600 mb-2">{percent}%</div>
-          <div className="text-sm font-bold text-gray-400 uppercase tracking-widest">{translations.mastery}</div>
+          <div className="text-sm font-bold text-zinc-400 uppercase tracking-widest">{translations.mastery}</div>
           <div className="flex items-center justify-center gap-2 text-amber-500 font-bold">
             <Zap size={18} fill="currentColor" /> +{totalXp} XP
           </div>
@@ -273,11 +273,11 @@ const ExercisePanel: React.FC<Props> = ({
             <RefreshCw size={20} /> {translations.tryNewSet}
           </button>
           {onGoToLesson && (
-            <button onClick={onGoToLesson} className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold hover:bg-gray-200 transition-all duration-150 flex items-center justify-center gap-2">
+            <button onClick={onGoToLesson} className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 rounded-2xl font-bold hover:bg-zinc-200 transition-all duration-150 flex items-center justify-center gap-2">
               <BookOpen size={18} /> {translations.continueLesson}
             </button>
           )}
-          <button onClick={onBack} className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl font-bold hover:bg-gray-200 transition-all duration-150">
+          <button onClick={onBack} className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 rounded-2xl font-bold hover:bg-zinc-200 transition-all duration-150">
             {translations.backToDashboard}
           </button>
         </div>
@@ -297,7 +297,7 @@ const ExercisePanel: React.FC<Props> = ({
       {/* Back button */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 mb-6 transition-colors"
+        className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 mb-6 transition-colors"
       >
         <ChevronRight size={16} className="rotate-180 rtl:rotate-0" />
         {translations.backToDashboard}
@@ -305,10 +305,10 @@ const ExercisePanel: React.FC<Props> = ({
 
       {/* Progress bar */}
       <div className="flex items-center gap-3 mb-6">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-zinc-500">
           {translations.questions} {currentIndex + 1} / {quiz.length}
         </span>
-        <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+        <div className="flex-1 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
           <div
             className="h-full bg-brand-500 rounded-full transition-all duration-500"
             style={{ width: `${((currentIndex + 1) / quiz.length) * 100}%` }}
@@ -325,7 +325,7 @@ const ExercisePanel: React.FC<Props> = ({
         {/* Question */}
         <div className="lg:col-span-8 space-y-4">
           {/* Question card */}
-          <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-8 shadow-card">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 p-8 shadow-sm">
             {/* Question type badge */}
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full inline-block mb-4 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
               {currentExercise.questionType === QuestionType.MULTIPLE_CHOICE ? 'Multiple Choice' :
@@ -345,18 +345,18 @@ const ExercisePanel: React.FC<Props> = ({
               {translations.difficulty}: {currentExercise.difficulty}/5
             </div>
 
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 leading-relaxed">
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-6 leading-relaxed">
               <MathText>{currentExercise.question}</MathText>
             </h2>
 
             {/* Multi-step scaffolding */}
             {currentExercise.questionType === QuestionType.MULTI_STEP && currentExercise.steps && currentExercise.steps.length > 0 && (
               <div className="mt-4 space-y-2">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{translations.stepByStep}</p>
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{translations.stepByStep}</p>
                 {currentExercise.steps.map((step, i) => (
-                  <div key={i} className="flex gap-3 items-start p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                  <div key={i} className="flex gap-3 items-start p-3 bg-zinc-50 dark:bg-zinc-800 rounded-xl">
                     <span className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</span>
-                    <MathText className="text-sm text-gray-600 dark:text-gray-400">{step}</MathText>
+                    <MathText className="text-sm text-zinc-600 dark:text-zinc-400">{step}</MathText>
                   </div>
                 ))}
               </div>
@@ -367,11 +367,11 @@ const ExercisePanel: React.FC<Props> = ({
           {isMultipleChoice && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {currentExercise.options.map((option) => {
-                let stateStyle = "border-gray-100 dark:border-gray-800 hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-900/10";
+                let stateStyle = "border-zinc-100 dark:border-zinc-800 hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-900/10";
                 if (isSubmitted) {
                   if (option.id === currentExercise.correctOptionId) stateStyle = "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300";
                   else if (option.id === selectedOption) stateStyle = "border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300";
-                  else stateStyle = "opacity-40 border-gray-100 dark:border-gray-800";
+                  else stateStyle = "opacity-40 border-zinc-100 dark:border-zinc-800";
                 } else if (selectedOption === option.id) {
                   stateStyle = "border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300";
                 }
@@ -380,16 +380,16 @@ const ExercisePanel: React.FC<Props> = ({
                     key={option.id}
                     onClick={() => !isSubmitted && setSelectedOption(option.id)}
                     disabled={isSubmitted}
-                    className={`w-full text-left px-5 py-4 rounded-xl border-2 font-medium text-gray-700 dark:text-gray-300 transition-all duration-150 hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-900/10 mb-2 flex items-center gap-4 ${stateStyle}`}
+                    className={`w-full text-left px-5 py-4 rounded-xl border-2 font-medium text-zinc-700 dark:text-zinc-300 transition-all duration-150 hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-900/10 mb-2 flex items-center gap-4 ${stateStyle}`}
                   >
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold border-2 transition-colors ${
                       isSubmitted && option.id === currentExercise.correctOptionId ? 'bg-green-500 text-white border-green-500' :
                       isSubmitted && option.id === selectedOption ? 'bg-red-400 text-white border-red-400' :
-                      selectedOption === option.id ? 'bg-brand-500 text-white border-brand-500' : 'text-gray-400 dark:text-gray-500 border-gray-100 dark:border-gray-700'
+                      selectedOption === option.id ? 'bg-brand-500 text-white border-brand-500' : 'text-zinc-400 dark:text-zinc-500 border-zinc-100 dark:border-zinc-700'
                     }`}>
                       {String.fromCharCode(65 + currentExercise.options.indexOf(option))}
                     </div>
-                    <MathText className="font-medium dark:text-gray-200">{option.text}</MathText>
+                    <MathText className="font-medium dark:text-zinc-200">{option.text}</MathText>
                   </button>
                 );
               })}
@@ -398,14 +398,14 @@ const ExercisePanel: React.FC<Props> = ({
 
           {/* ── OPEN ANSWER INPUT ──────────────────────────────────── */}
           {isOpenType && !isSubmitted && (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card p-6 space-y-4">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm p-6 space-y-4">
               <textarea
                 ref={textAreaRef}
                 value={openAnswer}
                 onChange={e => setOpenAnswer(e.target.value)}
                 placeholder={translations.typeYourAnswer}
                 rows={4}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all text-gray-800 dark:text-gray-200 resize-none"
+                className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all text-zinc-800 dark:text-zinc-200 resize-none"
               />
               {/* Evaluation feedback (before full submission) */}
               {evaluation && !isSubmitted && (
@@ -426,19 +426,19 @@ const ExercisePanel: React.FC<Props> = ({
 
           {/* ── POST-SUBMISSION FEEDBACK ───────────────────────────── */}
           {isSubmitted && (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
               {/* Result badge */}
               <div className={`p-4 rounded-2xl text-center font-bold text-lg flex items-center justify-center gap-3 ${
                 (isMultipleChoice ? selectedOption === currentExercise.correctOptionId : (evaluation?.isCorrect || (evaluation?.score ?? 0) >= 80))
                   ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
                   : solutionRevealed
-                    ? 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
+                    ? 'bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700'
                     : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
               }`}>
                 {(isMultipleChoice ? selectedOption === currentExercise.correctOptionId : (evaluation?.isCorrect || (evaluation?.score ?? 0) >= 80))
                   ? <><CheckCircle size={22} className="text-green-600 dark:text-green-400" /> <span className="text-green-700 dark:text-green-300">{translations.correct}</span></>
                   : solutionRevealed
-                    ? <><Eye size={22} className="text-gray-500" /> <span className="text-gray-600 dark:text-gray-400">{translations.revealSolution}</span></>
+                    ? <><Eye size={22} className="text-zinc-500" /> <span className="text-zinc-600 dark:text-zinc-400">{translations.revealSolution}</span></>
                     : <><XCircle size={22} className="text-red-500" /> <span className="text-red-700 dark:text-red-400">{translations.incorrect}</span></>
                 }
               </div>
@@ -476,7 +476,7 @@ const ExercisePanel: React.FC<Props> = ({
 
         {/* Sidebar */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card p-6">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm p-6">
             {!isSubmitted ? (
               <div className="space-y-4">
                 <h3 className="font-bold dark:text-white uppercase tracking-widest text-sm flex items-center gap-2">
@@ -509,14 +509,14 @@ const ExercisePanel: React.FC<Props> = ({
                       )}
                     </button>
                     {attempts > 0 && attempts < MAX_ATTEMPTS && (
-                      <p className="text-center text-xs text-gray-400 font-bold">
+                      <p className="text-center text-xs text-zinc-400 font-bold">
                         {translations.tryAgain} ({MAX_ATTEMPTS - attempts} left)
                       </p>
                     )}
                     {attempts >= MAX_ATTEMPTS && !isSubmitted && (
                       <button
                         onClick={handleRevealSolution}
-                        className="w-full py-3 text-gray-500 dark:text-gray-400 font-bold hover:text-brand-600 flex items-center justify-center gap-2 transition-colors border border-gray-200 dark:border-gray-700 rounded-xl"
+                        className="w-full py-3 text-zinc-500 dark:text-zinc-400 font-bold hover:text-brand-600 flex items-center justify-center gap-2 transition-colors border border-zinc-200 dark:border-zinc-700 rounded-xl"
                       >
                         <Eye size={18} /> {translations.revealSolution}
                       </button>
@@ -525,7 +525,7 @@ const ExercisePanel: React.FC<Props> = ({
                 )}
 
                 {/* Hint */}
-                <button onClick={() => setShowHint(true)} className="w-full py-3 text-gray-500 dark:text-gray-400 font-bold hover:text-brand-600 flex items-center justify-center gap-2 transition-colors duration-150">
+                <button onClick={() => setShowHint(true)} className="w-full py-3 text-zinc-500 dark:text-zinc-400 font-bold hover:text-brand-600 flex items-center justify-center gap-2 transition-colors duration-150">
                   <Lightbulb size={18} /> {translations.hint}
                 </button>
                 {showHint && (
@@ -538,9 +538,9 @@ const ExercisePanel: React.FC<Props> = ({
                 {isOpenType && attempts > 0 && (
                   <div className="flex items-center gap-1 justify-center">
                     {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
-                      <div key={i} className={`w-2 h-2 rounded-full ${i < attempts ? 'bg-amber-400' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
+                      <div key={i} className={`w-2 h-2 rounded-full ${i < attempts ? 'bg-amber-400' : 'bg-zinc-200 dark:bg-zinc-700'}`}></div>
                     ))}
-                    <span className="text-xs text-gray-400 ms-2">{attempts}/{MAX_ATTEMPTS} attempts</span>
+                    <span className="text-xs text-zinc-400 ms-2">{attempts}/{MAX_ATTEMPTS} attempts</span>
                   </div>
                 )}
               </div>
@@ -551,7 +551,7 @@ const ExercisePanel: React.FC<Props> = ({
                   <ArrowRight size={20} className="rtl:rotate-180" />
                 </button>
                 {onGoToLesson && (
-                  <button onClick={onGoToLesson} className="w-full py-3 text-gray-500 dark:text-gray-400 font-bold hover:text-brand-600 flex items-center justify-center gap-2 transition-colors duration-150">
+                  <button onClick={onGoToLesson} className="w-full py-3 text-zinc-500 dark:text-zinc-400 font-bold hover:text-brand-600 flex items-center justify-center gap-2 transition-colors duration-150">
                     <BookOpen size={16} /> {translations.backToLesson}
                   </button>
                 )}
@@ -560,14 +560,14 @@ const ExercisePanel: React.FC<Props> = ({
           </div>
 
           {/* Score tracker */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card p-6">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm p-6">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{translations.xp}</span>
+              <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{translations.xp}</span>
               <span className="text-brand-600 font-bold">+{totalXp}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{translations.mastery}</span>
-              <span className="font-bold text-gray-700 dark:text-gray-300">{score}/{quiz.length > 0 ? quiz.length : '?'}</span>
+              <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{translations.mastery}</span>
+              <span className="font-bold text-zinc-700 dark:text-zinc-300">{score}/{quiz.length > 0 ? quiz.length : '?'}</span>
             </div>
           </div>
         </div>

@@ -95,11 +95,11 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
   const hasAnyProgress = Object.keys(progressMap).length > 0;
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8 view-enter">
+    <div className="max-w-5xl mx-auto px-6 py-8 view-enter space-y-6">
       {/* Header */}
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">{translations.progress}</h1>
-        <p className="text-gray-500 dark:text-gray-400 font-medium">{translations.overallMastery}: {overallMastery}%</p>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">{translations.progress}</h1>
+        <p className="text-zinc-500 dark:text-zinc-400 font-medium">{translations.overallMastery}: {overallMastery}%</p>
       </header>
 
       {/* Stats row */}
@@ -110,27 +110,27 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
           { label: translations.overallMastery, value: `${overallMastery}%`, icon: <Target size={20} className="text-brand-500" />, color: 'bg-brand-50 dark:bg-brand-900/20' },
           { label: translations.topics, value: Object.keys(progressMap).length, icon: <BookOpen size={20} className="text-purple-500" />, color: 'bg-purple-50 dark:bg-purple-900/20' },
         ].map(({ label, value, icon, color }) => (
-          <div key={label} className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 shadow-card">
+          <div key={label} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-100 dark:border-zinc-800 shadow-sm">
             <div className="mb-3">{icon}</div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">{value}</div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400 mb-3 mt-1">{label}</div>
+            <div className="text-3xl font-bold text-zinc-900 dark:text-white">{value}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 mb-3 mt-1">{label}</div>
           </div>
         ))}
       </div>
 
       {!hasAnyProgress ? (
         <div className="text-center py-20 space-y-4">
-          <TrendingUp size={64} className="text-gray-200 dark:text-gray-700 mx-auto" />
-          <h2 className="text-2xl font-bold text-gray-500 dark:text-gray-400">{translations.readyToLearn}</h2>
-          <p className="text-gray-400">{translations.exploreLibrary}</p>
+          <TrendingUp size={64} className="text-zinc-200 dark:text-zinc-700 mx-auto" />
+          <h2 className="text-2xl font-bold text-zinc-500 dark:text-zinc-400">{translations.readyToLearn}</h2>
+          <p className="text-zinc-400">{translations.exploreLibrary}</p>
         </div>
       ) : (
         <>
           {/* Charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Radar */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-card mb-4">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">{translations.subjectsList[Subject.MATH].replace('Mathematics', translations.subjects)}</h2>
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm mb-4">
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">{translations.subjectsList[Subject.MATH].replace('Mathematics', translations.subjects)}</h2>
               <ResponsiveContainer width="100%" height={280}>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke="#e5e7eb" />
@@ -148,8 +148,8 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
             </div>
 
             {/* Bar chart */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-card mb-4">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">{translations.mastery} %</h2>
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm mb-4">
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">{translations.mastery} %</h2>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={barData} barSize={32}>
                   <XAxis dataKey="name" tick={{ fontSize: 11, fontWeight: 700, fill: '#6b7280' }} axisLine={false} tickLine={false} />
@@ -172,20 +172,20 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Weak areas */}
             {weakTopics.length > 0 && (
-              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-card mb-4">
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm mb-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{translations.weakAreas}</h2>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400">{translations.reviewWeakness}</span>
+                  <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{translations.weakAreas}</h2>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400">{translations.reviewWeakness}</span>
                 </div>
                 <ul className="space-y-2">
                   {weakTopics.map(topic => (
-                    <li key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
+                    <li key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors">
                       <div className="flex-1">
                         <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-1 truncate">{topic.topicTitle}</span>
+                          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex-1 truncate">{topic.topicTitle}</span>
                           <span className="text-xs font-bold text-red-500">{topic.mastery}%</span>
                         </div>
-                        <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div className="h-2 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
                           <div className="h-full bg-red-400 rounded-full transition-all" style={{ width: `${topic.mastery}%` }}></div>
                         </div>
                       </div>
@@ -204,17 +204,17 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
 
             {/* Strong areas */}
             {strongTopics.length > 0 && (
-              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-card mb-4">
-                <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">{translations.strongAreas}</h2>
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm mb-4">
+                <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">{translations.strongAreas}</h2>
                 <ul className="space-y-2">
                   {strongTopics.map(topic => (
-                    <li key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
+                    <li key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors">
                       <div className="flex-1">
                         <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-1 truncate">{topic.topicTitle}</span>
+                          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex-1 truncate">{topic.topicTitle}</span>
                           <span className="text-xs font-bold text-green-500">{topic.mastery}%</span>
                         </div>
-                        <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div className="h-2 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
                           <div className="h-full bg-green-400 rounded-full transition-all" style={{ width: `${topic.mastery}%` }}></div>
                         </div>
                       </div>
@@ -226,29 +226,29 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
           </div>
 
           {/* Subject detail table */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-card mb-4">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">{translations.subjects}</h2>
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm mb-4">
+            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">{translations.subjects}</h2>
             <div className="space-y-4">
               {subjectMastery.map(({ subject, mastery, attempted, total }) => {
                 const subjectData = SUBJECTS_DATA.find(s => s.id === subject);
                 return (
                   <div key={subject} className="flex items-center gap-6">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${subjectData?.color || 'bg-gray-50'}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${subjectData?.color || 'bg-zinc-50'}`}>
                       <span className="text-xs font-bold">{translations.subjectsList[subject].charAt(0)}</span>
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between mb-1.5">
-                        <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">{translations.subjectsList[subject]}</span>
-                        <span className="text-xs text-gray-400 font-bold">{attempted}/{total} {translations.topics}</span>
+                        <span className="font-bold text-zinc-800 dark:text-zinc-200 text-sm">{translations.subjectsList[subject]}</span>
+                        <span className="text-xs text-zinc-400 font-bold">{attempted}/{total} {translations.topics}</span>
                       </div>
-                      <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                      <div className="h-2 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-700"
                           style={{ width: `${mastery}%`, backgroundColor: SUBJECT_COLORS[subject] }}
                         ></div>
                       </div>
                     </div>
-                    <span className="text-lg font-bold text-gray-700 dark:text-gray-300 w-14 text-end">{mastery}%</span>
+                    <span className="text-lg font-bold text-zinc-700 dark:text-zinc-300 w-14 text-end">{mastery}%</span>
                     <button
                       onClick={() => onStartPractice(subject, null, translations.subjectsList[subject])}
                       className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 hover:bg-brand-100 transition-all duration-150"
