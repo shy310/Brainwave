@@ -91,19 +91,19 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
   };
 
   return (
-    <div className="h-full flex flex-col bg-zinc-50 dark:bg-zinc-950 overflow-y-auto scrollbar-hide view-enter">
+    <div className="h-full flex flex-col bg-cream-50 dark:bg-ink-50 overflow-y-auto scrollbar-hide view-enter">
       <div className="max-w-[1200px] mx-auto w-full p-8 md:p-16 space-y-12">
         
         {/* Header */}
         <header className="space-y-4">
-            <button onClick={onBack} className="flex items-center gap-2 text-zinc-400 hover:text-brand-600 font-bold transition-all mb-4">
+            <button onClick={onBack} className="flex items-center gap-2 text-ink-400 hover:text-moss-600 font-bold transition-all mb-4">
                 <ChevronLeft size={20} className="rtl:rotate-180" />
                 {translations.backToDashboard}
             </button>
-            <h1 className="text-4xl md:text-5xl font-black text-zinc-900 dark:text-white tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-black text-ink-700 dark:text-white tracking-tight">
                 {translations.uploadMaterial}
             </h1>
-            <p className="text-xl text-zinc-500 dark:text-zinc-400 max-w-2xl font-medium">
+            <p className="text-xl text-ink-400 dark:text-ink-400 max-w-2xl font-medium">
                 {translations.uploadDesc}
             </p>
         </header>
@@ -117,20 +117,20 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`bg-white dark:bg-zinc-900 rounded-[2.5rem] border-4 border-dashed p-12 flex flex-col items-center text-center space-y-6 transition-all group relative cursor-pointer ${
+                    className={`bg-white dark:bg-ink-100 rounded-[2.5rem] border-4 border-dashed p-12 flex flex-col items-center text-center space-y-6 transition-all group relative cursor-pointer ${
                         isDragging 
-                        ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-900/20' 
-                        : 'border-zinc-100 dark:border-zinc-800 hover:border-brand-300 dark:hover:border-brand-900'
+                        ? 'border-moss-500 bg-moss-50/50 dark:bg-moss-light/20' 
+                        : 'border-ink-100 dark:border-ink-200 hover:border-moss-300 dark:hover:border-moss-light'
                     }`}
                 >
                     <div className={`w-24 h-24 rounded-[2rem] flex items-center justify-center transition-transform group-hover:scale-110 ${
-                        isDragging ? 'bg-brand-600 text-white' : 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                        isDragging ? 'bg-moss-600 text-white' : 'bg-moss-50 dark:bg-moss-light/20 text-moss-600'
                     }`}>
                         <UploadCloud size={48} />
                     </div>
                     <div>
-                        <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-2">{translations.dropFiles}</h3>
-                        <p className="text-zinc-400 font-bold uppercase tracking-widest text-xs">{translations.fileTypeHint}</p>
+                        <h3 className="text-2xl font-black text-ink-700 dark:text-white mb-2">{translations.dropFiles}</h3>
+                        <p className="text-ink-400 font-bold uppercase tracking-widest text-xs">{translations.fileTypeHint}</p>
                     </div>
                     
                     <input 
@@ -153,22 +153,22 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
                 {/* File List */}
                 {attachments.length > 0 && (
                     <div className="space-y-4 animate-in slide-in-from-top-4 duration-300">
-                        <h4 className="text-xs font-black text-zinc-400 uppercase tracking-[0.2em] px-2">{translations.uploadedDocs} ({attachments.length})</h4>
+                        <h4 className="text-xs font-black text-ink-400 uppercase tracking-[0.2em] px-2">{translations.uploadedDocs} ({attachments.length})</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {attachments.map((file, idx) => (
-                                <div key={idx} className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center justify-between group">
+                                <div key={idx} className="bg-white dark:bg-ink-100 p-4 rounded-2xl border border-ink-100 dark:border-ink-200 flex items-center justify-between group">
                                     <div className="flex items-center gap-3 min-w-0">
-                                        <div className="w-10 h-10 bg-zinc-50 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-brand-600">
+                                        <div className="w-10 h-10 bg-cream-50 dark:bg-ink-100 rounded-xl flex items-center justify-center text-moss-600">
                                             <FileText size={20} />
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="text-sm font-bold text-zinc-900 dark:text-white truncate">{file.name}</div>
-                                            <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{file.mimeType.split('/')[1]}</div>
+                                            <div className="text-sm font-bold text-ink-700 dark:text-white truncate">{file.name}</div>
+                                            <div className="text-[10px] text-ink-400 font-bold uppercase tracking-widest">{file.mimeType.split('/')[1]}</div>
                                         </div>
                                     </div>
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); removeAttachment(idx); }} 
-                                        className="p-2 text-zinc-300 hover:text-red-500 transition-colors"
+                                        className="p-2 text-ink-300 hover:text-red-500 transition-colors"
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -181,10 +181,10 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
 
             {/* Right Column: Subject & Start */}
             <div className="lg:col-span-5 space-y-8">
-                <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-10 border border-zinc-100 dark:border-zinc-800 shadow-xl space-y-8">
+                <div className="bg-white dark:bg-ink-100 rounded-[2.5rem] p-10 border border-ink-100 dark:border-ink-200 shadow-xl space-y-8">
                     <div className="space-y-2">
-                        <h3 className="text-xl font-black text-zinc-900 dark:text-white">{translations.selectSubject}</h3>
-                        <p className="text-sm text-zinc-500">{translations.domainChoiceDesc}</p>
+                        <h3 className="text-xl font-black text-ink-700 dark:text-white">{translations.selectSubject}</h3>
+                        <p className="text-sm text-ink-400">{translations.domainChoiceDesc}</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -192,7 +192,7 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
                             <button 
                                 key={s}
                                 onClick={() => setSelectedSubject(s)}
-                                className={`p-4 rounded-2xl border-2 text-sm font-black transition-all text-center ${selectedSubject === s ? 'border-brand-600 bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400' : 'border-zinc-50 dark:border-zinc-800 text-zinc-400 hover:border-brand-100 dark:hover:border-brand-900'}`}
+                                className={`p-4 rounded-2xl border-2 text-sm font-black transition-all text-center ${selectedSubject === s ? 'border-moss-600 bg-moss-50 dark:bg-moss-light/30 text-moss-700 dark:text-moss-400' : 'border-cream-50 dark:border-ink-200 text-ink-400 hover:border-moss-100 dark:hover:border-moss-light'}`}
                             >
                                 {translations.subjectsList[s]}
                             </button>
@@ -209,14 +209,14 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
                             {translations.generateQuiz}
                             <ArrowRight size={22} className="rtl:rotate-180" />
                         </button>
-                        <p className="text-center text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-4">
+                        <p className="text-center text-[10px] text-ink-400 font-bold uppercase tracking-widest mt-4">
                             {translations.genQuizDesc}
                         </p>
                     </div>
                 </div>
 
                 {/* Info Card */}
-                <div className="bg-brand-600 rounded-[2rem] p-8 text-white space-y-4 shadow-xl shadow-brand-500/20">
+                <div className="bg-moss-600 rounded-[2rem] p-8 text-white space-y-4 shadow-xl shadow-moss-500/20">
                     <div className="flex items-center gap-3">
                         <CheckCircle size={24} />
                         <h4 className="font-black">{translations.howItWorks}</h4>

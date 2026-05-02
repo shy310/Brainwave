@@ -86,58 +86,58 @@ const Settings: React.FC<Props> = ({
     <div className="max-w-2xl mx-auto px-6 py-8 view-enter overflow-y-auto h-full scrollbar-hide pb-20">
 
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+        <h1 className="text-2xl font-bold text-ink-700 dark:text-ink-700 mb-6">
           {translations.settings}
         </h1>
-        <p className="text-zinc-500 dark:text-zinc-400 mt-2 font-medium">
+        <p className="text-ink-400 dark:text-ink-400 mt-2 font-medium">
           Manage your profile and learning preferences.
         </p>
       </header>
 
       {/* ── Profile Section ── */}
-      <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm mb-4 space-y-5">
+      <section className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 shadow-sm mb-4 space-y-5">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-brand-600 flex items-center justify-center text-white font-bold text-2xl shadow-brand shrink-0">
+          <div className="w-16 h-16 rounded-2xl bg-moss-600 flex items-center justify-center text-white font-bold text-2xl shadow-moss shrink-0">
             {(name.trim() || user.name).charAt(0).toUpperCase()}
           </div>
           <div>
-            <div className="text-xl font-bold text-zinc-900 dark:text-white">{user.name}</div>
-            <div className="text-sm text-zinc-400 font-medium">@{user.username}</div>
-            <div className="text-xs text-brand-600 dark:text-brand-400 font-bold mt-0.5">
+            <div className="text-xl font-bold text-ink-700 dark:text-white">{user.name}</div>
+            <div className="text-sm text-ink-400 font-medium">@{user.username}</div>
+            <div className="text-xs text-moss-600 dark:text-moss-400 font-bold mt-0.5">
               {translations.grades[user.gradeLevel]}
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-brand-600">{user.totalXp}</div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 mb-3 mt-1">{translations.xp}</div>
+          <div className="bg-cream-50 dark:bg-ink-100 rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-moss-600">{user.totalXp}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-ink-400 mb-3 mt-1">{translations.xp}</div>
           </div>
-          <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-4 text-center">
+          <div className="bg-cream-50 dark:bg-ink-100 rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-orange-500">{user.streakDays}</div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400 mb-3 mt-1">{translations.streak}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-ink-400 mb-3 mt-1">{translations.streak}</div>
           </div>
         </div>
 
-        <div className="border-t dark:border-zinc-800 pt-5 space-y-4">
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Edit Profile</h2>
+        <div className="border-t dark:border-ink-200 pt-5 space-y-4">
+          <h2 className="text-base font-semibold text-ink-700 dark:text-ink-700 mb-4">Edit Profile</h2>
 
           {/* Display Name */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1.5">
+            <label className="block text-xs font-semibold text-ink-400 uppercase tracking-wide mb-1.5">
               Display Name
             </label>
             <div className="relative group">
               <User
                 size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-brand-600 transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 group-focus-within:text-moss-600 transition-colors"
               />
               <input
                 type="text"
                 value={name}
                 onChange={(e) => { setName(e.target.value); setProfileError(null); setProfileSaved(false); }}
-                className="w-full pl-11 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all font-bold text-zinc-900 dark:text-white"
+                className="w-full pl-11 pr-4 py-3 bg-cream-50 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-xl text-sm outline-none focus:border-moss-500 focus:ring-2 focus:ring-moss-500/20 transition-all font-bold text-ink-700 dark:text-white"
                 placeholder="Your name"
               />
             </div>
@@ -145,23 +145,23 @@ const Settings: React.FC<Props> = ({
 
           {/* Username */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1.5">
+            <label className="block text-xs font-semibold text-ink-400 uppercase tracking-wide mb-1.5">
               Username
             </label>
             <div className="relative group">
               <AtSign
                 size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-brand-600 transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 group-focus-within:text-moss-600 transition-colors"
               />
               <input
                 type="text"
                 value={username}
                 onChange={(e) => { setUsername(e.target.value); setProfileError(null); setProfileSaved(false); }}
-                className="w-full pl-11 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all font-bold text-zinc-900 dark:text-white"
+                className="w-full pl-11 pr-4 py-3 bg-cream-50 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-xl text-sm outline-none focus:border-moss-500 focus:ring-2 focus:ring-moss-500/20 transition-all font-bold text-ink-700 dark:text-white"
                 placeholder="student_123"
               />
             </div>
-            <p className="text-[11px] text-zinc-400 ml-1">Letters, numbers, and underscores only.</p>
+            <p className="text-[11px] text-ink-400 ml-1">Letters, numbers, and underscores only.</p>
           </div>
 
           {/* Error */}
@@ -175,7 +175,7 @@ const Settings: React.FC<Props> = ({
           <button
             onClick={handleProfileSave}
             disabled={!profileDirty}
-            className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold shadow-brand transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed w-full"
+            className="px-5 py-2.5 bg-moss-500 hover:bg-moss-600 text-white rounded-xl font-semibold shadow-moss transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed w-full"
           >
             {profileSaved ? (
               <><Check size={18} /> Profile saved!</>
@@ -187,11 +187,11 @@ const Settings: React.FC<Props> = ({
       </section>
 
       {/* ── Grade Level ── */}
-      <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm mb-4 space-y-5">
+      <section className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 shadow-sm mb-4 space-y-5">
         <div>
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">{translations.selectGrade}</h2>
-          <p className="text-sm text-zinc-400 font-medium mt-1">
-            Currently: <span className="text-brand-600 dark:text-brand-400 font-bold">{translations.grades[user.gradeLevel]}</span>
+          <h2 className="text-base font-semibold text-ink-700 dark:text-ink-700 mb-4">{translations.selectGrade}</h2>
+          <p className="text-sm text-ink-400 font-medium mt-1">
+            Currently: <span className="text-moss-600 dark:text-moss-400 font-bold">{translations.grades[user.gradeLevel]}</span>
           </p>
         </div>
 
@@ -202,29 +202,29 @@ const Settings: React.FC<Props> = ({
             return (
               <div
                 key={folder.id}
-                className={`rounded-xl border-2 overflow-hidden transition-all ${hasSelected ? 'border-brand-400 dark:border-brand-600' : 'border-zinc-100 dark:border-zinc-800'}`}
+                className={`rounded-xl border-2 overflow-hidden transition-all ${hasSelected ? 'border-moss-400 dark:border-moss-600' : 'border-ink-100 dark:border-ink-200'}`}
               >
                 <button
                   onClick={() => setOpenFolder(isOpen ? null : folder.id)}
                   className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold transition-colors ${
                     hasSelected
-                      ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400'
-                      : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                      ? 'bg-moss-50 dark:bg-moss-light/30 text-moss-700 dark:text-moss-400'
+                      : 'bg-cream-50 dark:bg-ink-100 text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-100'
                   }`}
                 >
                   <span>{folder.emoji} {folder.label}</span>
                   <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {isOpen && (
-                  <div className="flex flex-col gap-1 p-2 bg-white dark:bg-zinc-900">
+                  <div className="flex flex-col gap-1 p-2 bg-white dark:bg-ink-100">
                     {folder.grades.map((g) => (
                       <button
                         key={g}
                         onClick={() => setSelectedGrade(g)}
                         className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           selectedGrade === g
-                            ? 'border-brand-500 bg-brand-500 text-white shadow-brand'
-                            : 'px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:border-brand-400 transition-all'
+                            ? 'border-moss-500 bg-moss-500 text-white shadow-moss'
+                            : 'px-3 py-2 rounded-xl border border-ink-100 dark:border-ink-200 text-sm font-medium text-ink-500 dark:text-ink-400 hover:border-moss-400 transition-all'
                         }`}
                       >
                         <span>{translations.grades[g]}</span>
@@ -241,7 +241,7 @@ const Settings: React.FC<Props> = ({
         <button
           onClick={handleGradeSave}
           disabled={selectedGrade === user.gradeLevel}
-          className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold shadow-brand transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed w-full"
+          className="px-5 py-2.5 bg-moss-500 hover:bg-moss-600 text-white rounded-xl font-semibold shadow-moss transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed w-full"
         >
           {gradeSaved ? (
             <><Check size={18} /> Grade saved!</>
@@ -252,16 +252,16 @@ const Settings: React.FC<Props> = ({
       </section>
 
       {/* ── Appearance ── */}
-      <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm mb-4 space-y-5">
-        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+      <section className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 shadow-sm mb-4 space-y-5">
+        <h2 className="text-base font-semibold text-ink-700 dark:text-ink-700 mb-4">
           {translations.theme} &amp; {translations.language}
         </h2>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-zinc-600 dark:text-zinc-300">{translations.theme}</span>
+          <span className="text-sm font-bold text-ink-500 dark:text-ink-300">{translations.theme}</span>
           <button
             onClick={onThemeToggle}
-            className="flex items-center gap-2 px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-sm font-bold text-zinc-700 dark:text-zinc-200 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-cream-100 dark:bg-ink-100 rounded-xl text-sm font-bold text-ink-500 dark:text-ink-600 hover:text-moss-600 dark:hover:text-moss-400 transition-colors"
           >
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
             {theme === 'light' ? 'Light' : 'Dark'}
@@ -269,18 +269,18 @@ const Settings: React.FC<Props> = ({
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-zinc-600 dark:text-zinc-300">{translations.language}</span>
-          <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl px-3 py-2">
-            <Globe size={14} className="text-zinc-400" />
+          <span className="text-sm font-bold text-ink-500 dark:text-ink-300">{translations.language}</span>
+          <div className="flex items-center gap-2 bg-cream-100 dark:bg-ink-100 rounded-xl px-3 py-2">
+            <Globe size={14} className="text-ink-400" />
             <select
               value={language}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onLanguageChange(e.target.value as Language)}
-              className="bg-transparent border-none text-sm font-bold text-zinc-700 dark:text-zinc-200 focus:ring-0 cursor-pointer"
+              className="bg-transparent border-none text-sm font-bold text-ink-500 dark:text-ink-600 focus:ring-0 cursor-pointer"
             >
-              <option value="en" className="bg-white dark:bg-zinc-800">English</option>
-              <option value="ru" className="bg-white dark:bg-zinc-800">Русский</option>
-              <option value="he" className="bg-white dark:bg-zinc-800">עברית</option>
-              <option value="ar" className="bg-white dark:bg-zinc-800">العربية</option>
+              <option value="en" className="bg-white dark:bg-ink-100">English</option>
+              <option value="ru" className="bg-white dark:bg-ink-100">Русский</option>
+              <option value="he" className="bg-white dark:bg-ink-100">עברית</option>
+              <option value="ar" className="bg-white dark:bg-ink-100">العربية</option>
             </select>
           </div>
         </div>

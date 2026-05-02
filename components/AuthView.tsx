@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { GradeLevel, Language, UserProfile, Translations } from '../types';
 import {
-  ArrowRight, User, Lock, AlignLeft, AlertCircle, ChevronDown,
-  Moon, Sun, Globe, Check, Zap, Brain, BookOpen, BarChart2,
-  Sparkles, Target, GraduationCap
+  ArrowRight, AlertCircle, ChevronDown, Moon, Sun, Globe, Check
 } from 'lucide-react';
 
 interface UserDbEntry extends UserProfile {
@@ -19,13 +17,10 @@ interface Props {
   onLanguageChange: (lang: Language) => void;
 }
 
-const FEATURES = [
-  { icon: Brain, label: 'AI-Powered Tutoring', desc: 'Personalized lessons that adapt to your learning style', color: 'from-blue-400 to-indigo-500' },
-  { icon: Target, label: 'Smart Practice', desc: 'Adaptive exercises that focus on your weak areas', color: 'from-emerald-400 to-teal-500' },
-  { icon: BarChart2, label: 'Progress Tracking', desc: 'Visualize mastery across all subjects and topics', color: 'from-amber-400 to-orange-500' },
-  { icon: BookOpen, label: 'Full Curriculum', desc: 'Content from Kindergarten through College level', color: 'from-violet-400 to-purple-500' },
-  { icon: Zap, label: 'Instant Feedback', desc: 'Get explanations and hints in real time', color: 'from-rose-400 to-pink-500' },
-  { icon: GraduationCap, label: 'XP & Streaks', desc: 'Stay motivated with levels, XP, and daily goals', color: 'from-cyan-400 to-blue-500' },
+const TESTIMONIALS = [
+  { text: "Finally, a study app that doesn't feel like homework.", who: 'Maya · 11th grade' },
+  { text: "I actually understand quadratic equations now.", who: 'Daniel · 9th grade' },
+  { text: "The AI tutor explains things how my teacher should.", who: 'Aria · 10th grade' },
 ];
 
 const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onThemeToggle, onLanguageChange }) => {
@@ -37,12 +32,13 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
   const [openFolder, setOpenFolder] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [testimonialIdx, setTestimonialIdx] = useState(() => Math.floor(Math.random() * TESTIMONIALS.length));
 
   const gradeFolders = [
     { id: 'kinder',     emoji: '🎒', label: 'Kindergarten',      grades: [GradeLevel.KINDER] },
-    { id: 'elementary', emoji: '🏫', label: 'Elementary School',  grades: [GradeLevel.GRADE_1, GradeLevel.GRADE_2, GradeLevel.GRADE_3, GradeLevel.GRADE_4, GradeLevel.GRADE_5, GradeLevel.GRADE_6] },
-    { id: 'middle',     emoji: '📚', label: 'Middle School',      grades: [GradeLevel.GRADE_7, GradeLevel.GRADE_8, GradeLevel.GRADE_9] },
-    { id: 'high',       emoji: '🎓', label: 'High School',        grades: [GradeLevel.GRADE_10, GradeLevel.GRADE_11, GradeLevel.GRADE_12] },
+    { id: 'elementary', emoji: '🏫', label: 'Elementary',         grades: [GradeLevel.GRADE_1, GradeLevel.GRADE_2, GradeLevel.GRADE_3, GradeLevel.GRADE_4, GradeLevel.GRADE_5, GradeLevel.GRADE_6] },
+    { id: 'middle',     emoji: '📚', label: 'Middle school',      grades: [GradeLevel.GRADE_7, GradeLevel.GRADE_8, GradeLevel.GRADE_9] },
+    { id: 'high',       emoji: '🎓', label: 'High school',        grades: [GradeLevel.GRADE_10, GradeLevel.GRADE_11, GradeLevel.GRADE_12] },
     { id: 'college',    emoji: '🏛', label: 'College',            grades: [GradeLevel.COLLEGE_FRESHMAN, GradeLevel.COLLEGE_ADVANCED] },
   ];
 
@@ -67,7 +63,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
   const handleAuth = async () => {
     setError(null);
     if (!username || !password) {
-      setError("Please fill in all fields");
+      setError("Hold up — fill in both fields.");
       return;
     }
     setLoading(true);
@@ -84,11 +80,11 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
           if (!safeUser.progressMap) safeUser.progressMap = {};
           onLogin(safeUser);
         } else {
-          setError(translations.authError);
+          setError("That doesn't match. Try again?");
         }
       } else {
         const exists = Object.values(usersDb).some((u) => u.username === username);
-        if (exists) { setError(translations.userExists); return; }
+        if (exists) { setError("Username taken. Try a different one."); return; }
 
         const newUser: UserProfile = {
           id: crypto.randomUUID(),
@@ -110,102 +106,74 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
         onLogin(newUser);
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError("Something broke. Try again in a sec.");
       console.error("Auth error:", err);
     } finally {
       setLoading(false);
     }
   };
 
+  const testimonial = TESTIMONIALS[testimonialIdx];
+
   return (
-    <div className="min-h-screen flex bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen flex bg-cream-50 dark:bg-ink-50">
 
-      {/* ── Left panel — features showcase ────────────────────────────────── */}
-      <div className="hidden lg:flex w-[55%] flex-col relative overflow-hidden">
-        {/* Gradient mesh background */}
-        <div className="absolute inset-0 gradient-mesh" />
-
-        {/* Floating orbs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/10 rounded-full blur-3xl orb-slow" />
-          <div className="absolute top-1/2 -right-20 w-80 h-80 bg-violet-400/10 rounded-full blur-3xl orb-medium" />
-          <div className="absolute -bottom-20 left-1/3 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl orb-fast" />
-          {/* Dot grid */}
-          <div className="absolute inset-0 opacity-[0.04]">
-            <svg width="100%" height="100%">
-              <defs>
-                <pattern id="dotgrid" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
-                  <circle cx="2" cy="2" r="1.5" fill="white"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#dotgrid)"/>
-            </svg>
-          </div>
-        </div>
+      {/* ── Left: editorial brand panel ──────────────────────────────────── */}
+      <div className="hidden lg:flex w-[52%] flex-col relative overflow-hidden bg-cream-100 dark:bg-ink-100 border-e border-ink-100/50 dark:border-ink-200">
+        {/* Soft decorative shape */}
+        <div className="absolute top-[8%] right-[8%] w-72 h-72 rounded-full bg-moss-100/60 dark:bg-moss-light/30 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[15%] left-[5%] w-96 h-96 rounded-full bg-clay-100/40 dark:bg-clay-light/20 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col h-full p-12 xl:p-16">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-14">
-            <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-lg">
-              <Sparkles size={20} className="text-white" />
+          <div className="flex items-center gap-2.5 mb-auto">
+            <div className="w-9 h-9 rounded-lg bg-moss-500 flex items-center justify-center">
+              <span className="font-display font-bold text-white text-xl leading-none">B</span>
             </div>
-            <span className="text-white font-bold text-xl tracking-tight">BrainWave</span>
+            <span className="font-display font-semibold text-xl text-ink-700 dark:text-ink-700 tracking-tight">BrainWave</span>
           </div>
 
-          {/* Hero text */}
-          <div className="mb-12">
-            <h1 className="text-4xl xl:text-5xl font-bold text-white leading-[1.15] mb-4">
-              Learn Smarter
-              <span className="block mt-1 bg-gradient-to-r from-white/90 via-brand-200 to-violet-200 bg-clip-text text-transparent">
-                with AI at your side
-              </span>
+          {/* Headline */}
+          <div className="my-auto py-12">
+            <p className="text-xs uppercase tracking-[0.2em] text-clay-500 font-semibold mb-5">For students, by people who get it</p>
+            <h1 className="font-display text-5xl xl:text-6xl 2xl:text-7xl leading-[0.95] font-medium text-ink-700 dark:text-ink-700 tracking-tight mb-6">
+              Study like<br/>
+              you actually <em className="italic text-moss-500">care</em>.
             </h1>
-            <p className="text-white/50 text-lg leading-relaxed max-w-md">
-              Personalized tutoring, adaptive exercises, and progress tracking — all in one beautiful platform.
+            <p className="font-display text-xl text-ink-400 dark:text-ink-400 max-w-md leading-relaxed">
+              An AI tutor that explains things until they click. Quizzes that adapt. Lessons made for the way you actually think.
             </p>
+
+            {/* Testimonial */}
+            <div className="mt-12 pl-5 border-l-2 border-moss-300 max-w-md">
+              <p className="font-display italic text-xl text-ink-600 dark:text-ink-600 leading-snug">
+                "{testimonial.text}"
+              </p>
+              <p className="text-sm text-ink-300 dark:text-ink-400 mt-2">— {testimonial.who}</p>
+            </div>
           </div>
 
-          {/* Features grid */}
-          <div className="grid grid-cols-2 gap-4 mb-auto">
-            {FEATURES.map(({ icon: Icon, label, desc, color }, idx) => (
-              <div key={label} className={`stagger-item stagger-${idx + 1} flex items-start gap-3 group`}>
-                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon size={16} className="text-white" />
-                </div>
-                <div>
-                  <div className="text-white text-sm font-semibold leading-tight mb-0.5">{label}</div>
-                  <div className="text-white/40 text-xs leading-relaxed">{desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom stat strip */}
-          <div className="mt-10 pt-6 border-t border-white/10 flex items-center gap-8">
-            {[
-              { value: '6', label: 'Subjects' },
-              { value: 'K-12+', label: 'Grade Levels' },
-              { value: 'AI', label: 'Powered' },
-            ].map(({ value, label }) => (
-              <div key={label}>
-                <div className="text-2xl font-bold text-white">{value}</div>
-                <div className="text-xs text-white/40">{label}</div>
-              </div>
-            ))}
+          {/* Bottom marks */}
+          <div className="flex items-baseline gap-8 text-sm text-ink-400 dark:text-ink-400">
+            <span>K through college</span>
+            <span className="w-1 h-1 rounded-full bg-ink-200 dark:bg-ink-300" />
+            <span>4 languages</span>
+            <span className="w-1 h-1 rounded-full bg-ink-200 dark:bg-ink-300" />
+            <span>No ads, ever</span>
           </div>
         </div>
       </div>
 
-      {/* ── Right panel — auth form ───────────────────────────────────────── */}
-      <div className="flex-1 lg:w-[45%] flex items-center justify-center p-6 relative">
+      {/* ── Right: form ───────────────────────────────────────────────────── */}
+      <div className="flex-1 lg:w-[48%] flex items-center justify-center p-6 relative">
         {/* Top controls */}
         <div className="absolute top-5 end-5 flex items-center gap-2 z-10">
-          <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2 shadow-sm">
-            <Globe size={13} className="text-zinc-400" />
+          <div className="flex items-center gap-1.5 bg-cream-100 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg px-2.5 py-1.5">
+            <Globe size={12} className="text-ink-300" />
             <select
               value={language}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onLanguageChange(e.target.value as Language)}
-              className="bg-transparent border-none text-sm font-semibold text-zinc-700 dark:text-zinc-200 focus:ring-0 cursor-pointer outline-none"
+              onChange={(e) => onLanguageChange(e.target.value as Language)}
+              className="bg-transparent border-none text-sm font-medium text-ink-600 dark:text-ink-600 focus:ring-0 cursor-pointer outline-none"
             >
               <option value="en">English</option>
               <option value="ru">Русский</option>
@@ -215,137 +183,124 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
           </div>
           <button
             onClick={onThemeToggle}
-            className="p-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-500 dark:text-zinc-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors shadow-sm"
+            className="p-2 bg-cream-100 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg text-ink-400 hover:text-ink-700 transition-colors"
           >
-            {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
+            {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
           </button>
         </div>
 
-        {/* Form */}
         <div className="w-full max-w-[400px]">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2.5 mb-10">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-brand">
-              <Sparkles size={18} className="text-white" />
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-10">
+            <div className="w-9 h-9 rounded-lg bg-moss-500 flex items-center justify-center">
+              <span className="font-display font-bold text-white text-xl leading-none">B</span>
             </div>
-            <span className="font-bold text-xl text-zinc-900 dark:text-white tracking-tight">BrainWave</span>
+            <span className="font-display font-semibold text-xl text-ink-700 dark:text-ink-700 tracking-tight">BrainWave</span>
           </div>
 
-          <div className="mb-7">
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1.5">
-              {mode === 'login' ? 'Welcome back' : 'Create account'}
+          <div className="mb-8">
+            <h2 className="font-display text-3xl md:text-4xl font-medium text-ink-700 dark:text-ink-700 leading-tight mb-2">
+              {mode === 'login' ? <>Welcome back.</> : <>Let's get you set up.</>}
             </h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {mode === 'login' ? 'Sign in to continue your learning journey' : 'Start your personalized learning experience'}
+            <p className="text-base text-ink-400 dark:text-ink-400">
+              {mode === 'login' ? 'Pick up right where you left off.' : 'Takes about 30 seconds. No email needed.'}
             </p>
           </div>
 
-          {/* Mode toggle */}
-          <div className="flex bg-zinc-100 dark:bg-zinc-800/80 rounded-xl p-1 mb-7">
+          {/* Mode toggle — minimalist */}
+          <div className="inline-flex bg-cream-100 dark:bg-ink-100 rounded-lg p-1 mb-7 border border-ink-100 dark:border-ink-200">
             <button
               onClick={() => { setMode('login'); setError(null); }}
-              className={`flex-1 py-2.5 text-sm rounded-lg font-semibold transition-all duration-200 ${
+              className={`px-5 py-1.5 text-sm rounded-md font-semibold transition-all ${
                 mode === 'login'
-                  ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  ? 'bg-white dark:bg-ink-200 text-ink-700 dark:text-ink-700 shadow-sm'
+                  : 'text-ink-400 hover:text-ink-600'
               }`}
             >
-              {translations.signIn}
+              Sign in
             </button>
             <button
               onClick={() => { setMode('register'); setError(null); }}
-              className={`flex-1 py-2.5 text-sm rounded-lg font-semibold transition-all duration-200 ${
+              className={`px-5 py-1.5 text-sm rounded-md font-semibold transition-all ${
                 mode === 'register'
-                  ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  ? 'bg-white dark:bg-ink-200 text-ink-700 dark:text-ink-700 shadow-sm'
+                  : 'text-ink-400 hover:text-ink-600'
               }`}
             >
-              {translations.register}
+              Sign up
             </button>
           </div>
 
           <div className="space-y-4">
-            {/* Username */}
             <div>
-              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.12em] block mb-1.5">{translations.username}</label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition-all text-zinc-900 dark:text-white placeholder-zinc-400"
-                  placeholder="your_username"
-                />
-              </div>
+              <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-700 placeholder-ink-300"
+                placeholder="pick anything you'll remember"
+              />
             </div>
 
-            {/* Password */}
             <div>
-              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.12em] block mb-1.5">{translations.password}</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition-all text-zinc-900 dark:text-white placeholder-zinc-400"
-                  placeholder="••••••••"
-                  onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
-                />
-              </div>
+              <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-700 placeholder-ink-300"
+                placeholder="••••••••"
+                onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
+              />
             </div>
 
-            {/* Register extras */}
             {mode === 'register' && (
-              <div className="space-y-4 pt-1 animate-slide-up">
+              <div className="space-y-4 animate-slide-up">
                 <div>
-                  <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.12em] block mb-1.5">{translations.name} (optional)</label>
-                  <div className="relative">
-                    <AlignLeft className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition-all text-zinc-900 dark:text-white placeholder-zinc-400"
-                      placeholder="Alex Student"
-                    />
-                  </div>
+                  <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">Your first name <span className="text-ink-300 font-normal">(optional)</span></label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-700 placeholder-ink-300"
+                    placeholder="What should we call you?"
+                  />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.12em] block mb-1.5">{translations.selectGrade}</label>
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto scrollbar-hide">
+                  <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">What grade are you in?</label>
+                  <div className="space-y-1.5 max-h-52 overflow-y-auto scrollbar-hide">
                     {gradeFolders.map((folder) => {
                       const isOpen = openFolder === folder.id;
                       const hasSelected = folder.grades.includes(grade);
                       return (
-                        <div key={folder.id} className={`rounded-xl border overflow-hidden transition-all duration-200 ${hasSelected ? 'border-brand-400 dark:border-brand-600' : 'border-zinc-200 dark:border-zinc-700'}`}>
+                        <div key={folder.id} className={`rounded-lg border overflow-hidden transition-all ${hasSelected ? 'border-moss-300' : 'border-ink-100 dark:border-ink-200'}`}>
                           <button
                             onClick={() => setOpenFolder(isOpen ? null : folder.id)}
-                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold transition-colors ${
+                            className={`w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-medium transition-colors ${
                               hasSelected
-                                ? 'bg-brand-50 dark:bg-brand-950/30 text-brand-700 dark:text-brand-400'
-                                : 'bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                                ? 'bg-moss-50 dark:bg-moss-light text-moss-600 dark:text-moss-300'
+                                : 'bg-cream-50 dark:bg-ink-100 text-ink-500 dark:text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-200'
                             }`}
                           >
                             <span className="flex items-center gap-2">
                               <span>{folder.emoji}</span>
                               <span>{folder.label}</span>
-                              {hasSelected && <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />}
+                              {hasSelected && <span className="w-1.5 h-1.5 rounded-full bg-moss-500" />}
                             </span>
-                            <ChevronDown size={14} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                           </button>
                           {isOpen && (
-                            <div className="flex flex-col gap-1 p-2 bg-white dark:bg-zinc-900">
+                            <div className="flex flex-col gap-1 p-2 bg-cream-50 dark:bg-ink-100">
                               {folder.grades.map((g) => (
                                 <button
                                   key={g}
                                   onClick={() => setGrade(g)}
-                                  className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center justify-between ${
+                                  className={`w-full text-left px-3 py-1.5 rounded text-xs font-medium transition-all flex items-center justify-between ${
                                     grade === g
-                                      ? 'bg-brand-500 border-brand-500 text-white shadow-brand'
-                                      : 'border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-brand-400 hover:text-brand-600'
+                                      ? 'bg-moss-500 text-white'
+                                      : 'text-ink-500 dark:text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-200'
                                   }`}
                                 >
                                   {translations.grades[g]}
@@ -362,19 +317,17 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
               </div>
             )}
 
-            {/* Error */}
             {error && (
-              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-sm rounded-xl px-4 py-3 flex items-center gap-2 animate-shake">
-                <AlertCircle size={15} />
+              <div className="bg-clay-light dark:bg-clay-light text-clay-500 text-sm rounded-lg px-4 py-3 flex items-center gap-2 animate-shake">
+                <AlertCircle size={14} />
                 {error}
               </div>
             )}
 
-            {/* Submit */}
             <button
               onClick={handleAuth}
               disabled={loading}
-              className="w-full py-3.5 btn-brand text-sm flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+              className="w-full py-3.5 btn-moss text-base flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
             >
               {loading ? (
                 <span className="flex items-center gap-1.5">
@@ -384,13 +337,12 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                 </span>
               ) : (
                 <>
-                  {mode === 'login' ? translations.signIn : translations.finish}
+                  {mode === 'login' ? "Let's go" : 'Create account'}
                   <ArrowRight size={16} />
                 </>
               )}
             </button>
 
-            {/* Guest */}
             <button
               onClick={() => onLogin({
                 id: `guest-${Date.now()}`,
@@ -404,9 +356,9 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                 streakDays: 0,
                 progressMap: {},
               })}
-              className="w-full text-center text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors font-medium py-1"
+              className="w-full text-center text-sm text-ink-300 dark:text-ink-400 hover:text-ink-500 dark:hover:text-ink-600 transition-colors font-medium py-2"
             >
-              {translations.continueAsGuest}
+              or just look around →
             </button>
           </div>
         </div>

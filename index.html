@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="BrainWave - AI-powered personal tutor with lessons, quizzes, and progress tracking." />
-    <meta name="theme-color" content="#6366f1" />
-    <title>BrainWave - Personal Tutor</title>
+    <meta name="description" content="BrainWave - Your AI study buddy. Learn faster, remember more." />
+    <meta name="theme-color" content="#1a3d2e" />
+    <title>BrainWave</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@400;500;600;700;800&family=Heebo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -17,46 +17,68 @@
           extend: {
             fontFamily: {
               sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+              serif: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
+              mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
             },
             colors: {
-              brand: {
-                50:  '#eef2ff',
-                100: '#e0e7ff',
-                200: '#c7d2fe',
-                300: '#a5b4fc',
-                400: '#818cf8',
-                500: '#6366f1',
-                600: '#4f46e5',
-                700: '#4338ca',
-                800: '#3730a3',
-                900: '#312e81',
-                950: '#1e1b4b',
+              cream: {
+                50:  '#FBFAF6',
+                100: '#F7F5EE',
+                200: '#EFEBDD',
+                300: '#E5DFC8',
+                400: '#D4CDB0',
               },
-              violet: {
-                50:  '#f5f3ff',
-                100: '#ede9fe',
-                200: '#ddd6fe',
-                300: '#c4b5fd',
-                400: '#a78bfa',
-                500: '#8b5cf6',
-                600: '#7c3aed',
-                700: '#6d28d9',
-                800: '#5b21b6',
-                900: '#4c1d95',
-              }
+              ink: {
+                50:  '#F5F4F1',
+                100: '#E8E6E0',
+                200: '#C9C6BC',
+                300: '#928D7E',
+                400: '#5C594F',
+                500: '#3A3833',
+                600: '#28261F',
+                700: '#1A1815',
+                800: '#0F0E0C',
+                900: '#080706',
+              },
+              moss: {
+                50:  '#F0F4F0',
+                100: '#DCE6DD',
+                200: '#B6CABA',
+                300: '#7FA890',
+                400: '#508A6C',
+                500: '#2D6A4F',
+                600: '#1F4D38',
+                700: '#163829',
+                800: '#0E251B',
+              },
+              clay: {
+                50:  '#FBF1EC',
+                100: '#F5DDD0',
+                200: '#EDC2AC',
+                300: '#E29D7F',
+                400: '#D4754F',
+                500: '#B85A35',
+              },
+              sun: {
+                50:  '#FDF6E0',
+                100: '#FAEAB0',
+                200: '#F5D870',
+                300: '#EFC233',
+                400: '#D9A813',
+                500: '#A87E0A',
+              },
             },
             borderRadius: {
               'xl':  '14px',
-              '2xl': '18px',
-              '3xl': '24px',
-              '4xl': '32px',
+              '2xl': '20px',
+              '3xl': '28px',
+              '4xl': '36px',
             },
             boxShadow: {
-              'card':       '0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)',
-              'card-hover': '0 12px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)',
-              'brand':      '0 4px 16px rgba(99,102,241,0.3)',
-              'glow':       '0 0 24px rgba(99,102,241,0.35)',
-              'inner-glow': 'inset 0 1px 0 rgba(255,255,255,0.1)',
+              'paper':     '0 1px 0 rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.04)',
+              'paper-hover':'0 8px 24px rgba(0,0,0,0.08)',
+              'lift':      '0 12px 32px rgba(0,0,0,0.08)',
+              'moss':      '0 4px 16px rgba(45,106,79,0.25)',
             },
             animation: {
               'spin-slow': 'spin 20s linear infinite',
@@ -78,7 +100,7 @@
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
+  <body class="bg-cream-50 dark:bg-ink-900 text-ink-700 dark:text-cream-100 transition-colors duration-300 antialiased">
     <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>

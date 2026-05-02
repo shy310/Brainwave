@@ -426,61 +426,58 @@ const App: React.FC = () => {
   const xpInLevel = appState.user.totalXp % 1000;
 
   return (
-    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 font-sans overflow-hidden text-zinc-900 dark:text-zinc-100">
+    <div className="flex h-screen bg-cream-50 dark:bg-ink-50 transition-colors duration-300 font-sans overflow-hidden text-ink-700 dark:text-ink-700">
 
-      {/* ── SIDEBAR ──────────────────────────────────────────────────────────── */}
+      {/* ── SIDEBAR (slim, light cream — feels like a notebook spine) ─────── */}
       <aside
-        className={`fixed inset-y-0 start-0 z-50 bg-zinc-950 flex flex-col transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+        className={`fixed inset-y-0 start-0 z-50 bg-cream-100 dark:bg-ink-100 border-e border-ink-100/50 dark:border-ink-200 flex flex-col transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
           ${mobileMenuOpen ? 'translate-x-0' : sidebarHiddenClass}
-          ${sidebarCollapsed ? 'md:w-[72px]' : 'md:w-[240px]'}
+          ${sidebarCollapsed ? 'md:w-[68px]' : 'md:w-[220px]'}
           md:translate-x-0 w-[240px]`}
       >
         {/* Logo area */}
-        <div className={`flex items-center h-[60px] border-b border-white/[0.06] flex-shrink-0 ${sidebarCollapsed ? 'px-3 justify-center' : 'px-4 justify-between'}`}>
+        <div className={`flex items-center h-[64px] flex-shrink-0 ${sidebarCollapsed ? 'px-3 justify-center' : 'px-5 justify-between'}`}>
           {!sidebarCollapsed ? (
             <>
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                  <Sparkles size={15} className="text-white" />
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-moss-500 flex items-center justify-center">
+                  <span className="font-display font-bold text-white text-base leading-none">B</span>
                 </div>
-                <span className="font-bold text-base tracking-tight text-white">BrainWave</span>
+                <span className="font-display font-semibold text-lg tracking-tight text-ink-700 dark:text-ink-700">BrainWave</span>
               </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="md:hidden text-zinc-500 p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-                >
-                  <X size={16} />
-                </button>
-                <button
-                  onClick={() => setSidebarCollapsed(true)}
-                  className="hidden md:flex text-zinc-500 p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-                  title="Collapse sidebar"
-                >
-                  <ChevronLeft size={15} />
-                </button>
-              </div>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="md:hidden text-ink-300 p-1.5 hover:bg-ink-100 dark:hover:bg-ink-200 rounded-lg transition-colors"
+              >
+                <X size={16} />
+              </button>
+              <button
+                onClick={() => setSidebarCollapsed(true)}
+                className="hidden md:flex text-ink-300 p-1 hover:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-200 rounded transition-colors"
+                title="Collapse"
+              >
+                <ChevronLeft size={14} />
+              </button>
             </>
           ) : (
             <button
               onClick={() => setSidebarCollapsed(false)}
-              className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30"
-              title="Expand sidebar"
+              className="w-8 h-8 rounded-lg bg-moss-500 flex items-center justify-center hover:bg-moss-600 transition-colors"
+              title="Expand"
             >
-              <Sparkles size={15} className="text-white" />
+              <span className="font-display font-bold text-white text-base leading-none">B</span>
             </button>
           )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 overflow-y-auto sidebar-scroll px-2.5">
-          {/* LEARN section */}
+        <nav className="flex-1 py-3 overflow-y-auto sidebar-scroll px-3">
           {!sidebarCollapsed && (
-            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600 px-2.5 mb-2">
-              {t.learning}
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-300 dark:text-ink-300 px-3 mb-2 mt-2">
+              Learn
             </div>
           )}
-          <div className="space-y-0.5 mb-4">
+          <div className="space-y-0.5 mb-5">
             {NAV_ITEMS.filter(i => i.section === 'learn').map(({ view, label, icon }) => {
               const isActive = appState.activeView === view;
               return (
@@ -488,30 +485,27 @@ const App: React.FC = () => {
                   key={view}
                   onClick={() => navigateTo(view)}
                   title={sidebarCollapsed ? label : undefined}
-                  className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all duration-200
-                    ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2.5'}
+                  className={`w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200 relative
+                    ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2'}
                     ${isActive
-                      ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/10 text-white'
-                      : 'text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-300'
+                      ? 'bg-moss-500 text-white shadow-moss'
+                      : 'text-ink-500 dark:text-ink-500 hover:bg-cream-200 dark:hover:bg-ink-200 hover:text-ink-700 dark:hover:text-ink-700'
                     }`}
                 >
-                  <span className={`flex-shrink-0 ${isActive ? 'text-indigo-400' : ''}`}>{icon}</span>
+                  <span className="flex-shrink-0">{icon}</span>
                   {!sidebarCollapsed && <span className="truncate">{label}</span>}
-                  {isActive && !sidebarCollapsed && (
-                    <span className="ms-auto w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                  )}
                 </button>
               );
             })}
           </div>
 
-          {/* Subjects quick access */}
+          {/* Subjects */}
           {!sidebarCollapsed && (
             <>
-              <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600 px-2.5 mb-2 mt-3">
-                {t.subjects}
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-300 dark:text-ink-300 px-3 mb-2">
+                Subjects
               </div>
-              <div className="space-y-0.5 mb-4">
+              <div className="space-y-0.5 mb-5">
                 {Object.values(Subject).map(s => {
                   const Icon = SUBJECT_ICONS[s];
                   const isActive = activeSubject === s && (appState.activeView === 'exercise' || appState.activeView === 'lesson');
@@ -519,13 +513,13 @@ const App: React.FC = () => {
                     <button
                       key={s}
                       onClick={() => startSubjectPractice(s)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 ${
+                      className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 ${
                         isActive
-                          ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/10 text-white'
-                          : 'text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-300'
+                          ? 'bg-cream-200 dark:bg-ink-200 text-ink-700 dark:text-ink-700'
+                          : 'text-ink-400 dark:text-ink-400 hover:bg-cream-200 dark:hover:bg-ink-200 hover:text-ink-700 dark:hover:text-ink-700'
                       }`}
                     >
-                      <Icon size={15} />
+                      <Icon size={14} strokeWidth={1.75} />
                       <span className="truncate">{t.subjectsList[s]}</span>
                     </button>
                   );
@@ -536,14 +530,13 @@ const App: React.FC = () => {
 
           {/* Divider */}
           {sidebarCollapsed ? (
-            <div className="h-px bg-white/[0.06] my-3 mx-2" />
+            <div className="h-px bg-ink-100 dark:bg-ink-200 my-3 mx-2" />
           ) : (
-            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600 px-2.5 mb-2 mt-3">
-              Account
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-300 dark:text-ink-300 px-3 mb-2">
+              You
             </div>
           )}
 
-          {/* Account section */}
           <div className="space-y-0.5">
             {NAV_ITEMS.filter(i => i.section === 'account').map(({ view, label, icon }) => {
               const isActive = appState.activeView === view;
@@ -552,11 +545,11 @@ const App: React.FC = () => {
                   key={view}
                   onClick={() => navigateTo(view)}
                   title={sidebarCollapsed ? label : undefined}
-                  className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all duration-200
-                    ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2.5'}
+                  className={`w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200
+                    ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2'}
                     ${isActive
-                      ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/10 text-white'
-                      : 'text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-300'
+                      ? 'bg-moss-500 text-white shadow-moss'
+                      : 'text-ink-500 dark:text-ink-500 hover:bg-cream-200 dark:hover:bg-ink-200 hover:text-ink-700 dark:hover:text-ink-700'
                     }`}
                 >
                   <span className="flex-shrink-0">{icon}</span>
@@ -568,16 +561,15 @@ const App: React.FC = () => {
         </nav>
 
         {/* User card */}
-        <div className={`border-t border-white/[0.06] py-3 flex-shrink-0 ${sidebarCollapsed ? 'px-2.5' : 'px-3'}`}>
+        <div className={`border-t border-ink-100/60 dark:border-ink-200 py-3 flex-shrink-0 ${sidebarCollapsed ? 'px-2.5' : 'px-3'}`}>
           {!sidebarCollapsed ? (
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/20">
+              <div className="w-9 h-9 rounded-full bg-clay-300 dark:bg-clay-400 text-white font-display text-base font-semibold flex items-center justify-center shrink-0">
                 {appState.user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-white truncate leading-tight">{appState.user.name}</div>
-                <div className="text-[10px] text-zinc-500 leading-tight mt-0.5 flex items-center gap-1">
-                  <Zap size={9} className="text-indigo-400" />
+                <div className="text-sm font-semibold text-ink-700 dark:text-ink-700 truncate leading-tight">{appState.user.name}</div>
+                <div className="text-[11px] text-ink-300 dark:text-ink-300 leading-tight mt-0.5">
                   Lv.{level} · {appState.user.totalXp} XP
                 </div>
               </div>
@@ -585,7 +577,7 @@ const App: React.FC = () => {
                 <LanguageSelector currentLang={appState.language} onChange={(l) => setAppState(prev => ({ ...prev, language: l }))} disabled={appState.activeView === 'exercise' || appState.activeView === 'lesson'} />
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
-                  className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+                  className="p-1.5 text-ink-300 hover:text-clay-500 transition-colors rounded-md"
                   title={t.signOut}
                 >
                   <LogOut size={14} />
@@ -594,12 +586,12 @@ const App: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <div className="w-9 h-9 rounded-full bg-clay-300 dark:bg-clay-400 text-white font-display text-base font-semibold flex items-center justify-center">
                 {appState.user.name.charAt(0).toUpperCase()}
               </div>
               <button
                 onClick={() => setShowLogoutConfirm(true)}
-                className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+                className="p-1.5 text-ink-300 hover:text-clay-500 transition-colors rounded-md"
               >
                 <LogOut size={14} />
               </button>
@@ -610,18 +602,18 @@ const App: React.FC = () => {
 
       {/* Mobile Backdrop */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-zinc-900/60 backdrop-blur-sm z-40 md:hidden transition-opacity" onClick={() => setMobileMenuOpen(false)} />
+        <div className="fixed inset-0 bg-ink-700/40 backdrop-blur-sm z-40 md:hidden transition-opacity" onClick={() => setMobileMenuOpen(false)} />
       )}
 
       {/* ── MAIN ─────────────────────────────────────────────────────────────── */}
       <main className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-        ${sidebarCollapsed ? 'md:ms-[72px]' : 'md:ms-[240px]'}`}
+        ${sidebarCollapsed ? 'md:ms-[68px]' : 'md:ms-[220px]'}`}
       >
-        {/* HEADER */}
-        <header className="sticky top-0 h-[56px] glass border-b border-zinc-100 dark:border-zinc-800/80 z-30 px-4 flex items-center justify-between flex-shrink-0">
+        {/* HEADER — minimal, just essentials */}
+        <header className="sticky top-0 h-[56px] bg-cream-50/85 dark:bg-ink-50/85 backdrop-blur-xl border-b border-ink-100/40 dark:border-ink-200/50 z-30 px-5 flex items-center justify-between flex-shrink-0">
           {viewLoading && (
-            <div className="absolute bottom-0 start-0 end-0 h-[2px] bg-brand-100 dark:bg-brand-900/40 overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-brand-500 to-violet-500 animate-nav-loading rounded-full" />
+            <div className="absolute bottom-0 start-0 end-0 h-[2px] bg-cream-200 dark:bg-ink-200 overflow-hidden">
+              <div className="h-full bg-moss-500 animate-nav-loading rounded-full" />
             </div>
           )}
           <div className="flex items-center gap-3">
@@ -630,54 +622,42 @@ const App: React.FC = () => {
                 if (window.innerWidth >= 768) setSidebarCollapsed(c => !c);
                 else setMobileMenuOpen(m => !m);
               }}
-              className="p-2 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
+              className="p-2 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-700 hover:bg-cream-100 dark:hover:bg-ink-100 transition-all duration-200"
             >
               <Menu size={18} />
             </button>
-            <div className="hidden lg:flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60 rounded-xl px-3.5 py-2 focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-500/10 transition-all">
-              <Search size={14} className="text-zinc-400 shrink-0" />
+            <div className="hidden lg:flex items-center gap-2 bg-cream-100 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg px-3 py-1.5 focus-within:border-moss-300 transition-all">
+              <Search size={14} className="text-ink-300 shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t.search}
-                className="bg-transparent border-none text-sm w-52 outline-none text-zinc-700 dark:text-zinc-200 placeholder-zinc-400"
+                placeholder="Search subjects, topics…"
+                className="bg-transparent border-none text-sm w-56 outline-none text-ink-600 dark:text-ink-600 placeholder-ink-300"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Streak badge */}
+            {/* Streak — subtle */}
             {appState.user.streakDays > 0 && (
-              <div className="hidden sm:flex items-center gap-1.5 bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-orange-100 dark:border-orange-900/40 transition-all">
+              <div className="hidden sm:flex items-center gap-1.5 text-clay-500 px-2.5 py-1 rounded-lg text-xs font-semibold">
                 <Flame size={12} fill="currentColor" />
-                <span>{appState.user.streakDays}d</span>
+                <span>{appState.user.streakDays}</span>
               </div>
             )}
-            {/* XP badge */}
-            <div className="hidden sm:flex items-center gap-1.5 bg-brand-50 dark:bg-brand-950/30 text-brand-600 dark:text-brand-400 px-3 py-1.5 rounded-xl text-xs font-bold border border-brand-100 dark:border-brand-900/40 transition-all">
-              <Trophy size={12} />
-              <span>Lv.{level}</span>
-              <span className="text-brand-400 dark:text-brand-500">·</span>
-              <span>{appState.user.totalXp} XP</span>
-            </div>
-            {/* XP mini progress */}
-            <div className="hidden md:flex items-center gap-1.5 w-20">
-              <div className="flex-1 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-brand-500 to-violet-500 rounded-full transition-all duration-700 ease-out" style={{ width: `${xpInLevel / 10}%` }} />
-              </div>
-            </div>
             {/* Theme toggle */}
             <button
               onClick={() => setAppState(prev => ({ ...prev, theme: prev.theme === 'light' ? 'dark' : 'light' }))}
-              className="p-2 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
+              className="p-2 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-700 hover:bg-cream-100 dark:hover:bg-ink-100 transition-all duration-200"
+              title="Toggle theme"
             >
               {appState.theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
             </button>
-            {/* Avatar */}
+            {/* Avatar — direct link to profile */}
             <button
               onClick={() => navigateTo('profile')}
-              className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 text-white text-sm font-bold flex items-center justify-center shadow-brand hover:shadow-glow transition-shadow duration-300"
+              className="w-8 h-8 rounded-full bg-clay-300 dark:bg-clay-400 text-white font-display text-sm font-semibold flex items-center justify-center hover:scale-105 transition-transform"
             >
               {appState.user.name.charAt(0).toUpperCase()}
             </button>
@@ -685,8 +665,8 @@ const App: React.FC = () => {
         </header>
 
         {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide bg-zinc-50 dark:bg-zinc-950">
-          <div className="max-w-[1600px] mx-auto w-full h-full">
+        <div className="flex-1 overflow-y-auto scrollbar-hide bg-cream-50 dark:bg-ink-50 paper-texture">
+          <div className="w-full h-full">
 
             {appState.activeView === 'dashboard' && (
               <div className="view-enter">
@@ -784,13 +764,13 @@ const App: React.FC = () => {
 
                 {/* Avatar + name */}
                 <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 p-8 flex flex-col sm:flex-row items-center gap-6 shadow-card">
-                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center text-white text-4xl font-bold shadow-brand ring-4 ring-brand-100 dark:ring-brand-900/30">
+                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-moss-500 to-moss-700 flex items-center justify-center text-white text-4xl font-bold shadow-moss ring-4 ring-moss-100 dark:ring-moss-900/30">
                     {appState.user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="text-center sm:text-start">
                     <div className="text-2xl font-bold text-zinc-900 dark:text-white">{appState.user.name}</div>
                     <div className="text-sm text-zinc-400 font-medium">@{appState.user.username}</div>
-                    <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-brand-50 dark:bg-brand-950/30 text-brand-600 dark:text-brand-400 rounded-xl text-xs font-bold border border-brand-100 dark:border-brand-900/40">
+                    <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-moss-50 dark:bg-moss-light/30 text-moss-600 dark:text-moss-400 rounded-xl text-xs font-bold border border-moss-100 dark:border-moss-light/40">
                       <GraduationCap size={12} />
                       {t.grades[appState.user.gradeLevel]}
                     </div>
@@ -801,7 +781,7 @@ const App: React.FC = () => {
                 <div className="grid grid-cols-3 gap-4">
                   {[
                     { icon: <Trophy size={22} className="text-yellow-500" />, label: 'Level', value: String(level), bg: 'bg-yellow-50 dark:bg-yellow-950/20', border: 'border-yellow-100 dark:border-yellow-900/30' },
-                    { icon: <Star size={22} className="text-brand-500" />, label: t.xp, value: String(appState.user.totalXp), bg: 'bg-brand-50 dark:bg-brand-950/20', border: 'border-brand-100 dark:border-brand-900/30' },
+                    { icon: <Star size={22} className="text-moss-500" />, label: t.xp, value: String(appState.user.totalXp), bg: 'bg-moss-50 dark:bg-moss-light/20', border: 'border-moss-100 dark:border-moss-light/30' },
                     { icon: <Flame size={22} className="text-orange-500" />, label: t.streak, value: `${appState.user.streakDays}d`, bg: 'bg-orange-50 dark:bg-orange-950/20', border: 'border-orange-100 dark:border-orange-900/30' },
                   ].map(({ icon, label, value, bg, border }) => (
                     <div key={label} className={`${bg} rounded-2xl p-5 flex flex-col items-center gap-2.5 border ${border}`}>
@@ -816,10 +796,10 @@ const App: React.FC = () => {
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-card">
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Progress to Level {level + 1}</span>
-                    <span className="text-xs font-bold text-brand-600">{xpInLevel} / 1000 XP</span>
+                    <span className="text-xs font-bold text-moss-600">{xpInLevel} / 1000 XP</span>
                   </div>
                   <div className="h-3 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-brand-500 to-violet-500 rounded-full transition-all duration-1000" style={{ width: `${xpInLevel / 10}%` }} />
+                    <div className="h-full bg-gradient-to-r from-moss-500 to-moss-700 rounded-full transition-all duration-1000" style={{ width: `${xpInLevel / 10}%` }} />
                   </div>
                 </div>
 
@@ -841,10 +821,10 @@ const App: React.FC = () => {
                           <div key={tp.topicId}>
                             <div className="flex justify-between text-xs font-medium text-zinc-500 mb-2">
                               <span className="truncate">{topicTitle}</span>
-                              <span className="font-bold text-brand-600">{tp.mastery}%</span>
+                              <span className="font-bold text-moss-600">{tp.mastery}%</span>
                             </div>
                             <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                              <div className="h-full bg-gradient-to-r from-brand-500 to-violet-500 rounded-full transition-all" style={{ width: `${tp.mastery}%` }} />
+                              <div className="h-full bg-gradient-to-r from-moss-500 to-moss-700 rounded-full transition-all" style={{ width: `${tp.mastery}%` }} />
                             </div>
                           </div>
                         );
@@ -915,7 +895,7 @@ const App: React.FC = () => {
       {/* Level-up toast */}
       {levelUpToast !== null && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-toast-in">
-          <div className="flex items-center gap-3 bg-gradient-to-r from-brand-500 to-violet-500 text-white px-6 py-3.5 rounded-2xl shadow-2xl shadow-brand-500/30 font-bold border border-white/20">
+          <div className="flex items-center gap-3 bg-gradient-to-r from-moss-500 to-moss-700 text-white px-6 py-3.5 rounded-2xl shadow-2xl shadow-moss-500/30 font-bold border border-white/20">
             <Trophy size={18} />
             <span>Level {levelUpToast} reached!</span>
             <Star size={14} className="fill-white" />
