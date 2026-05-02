@@ -426,14 +426,175 @@ const App: React.FC = () => {
   const xpInLevel = appState.user.totalXp % 1000;
 
   return (
-    <div className="flex h-screen bg-cream-50 dark:bg-ink-900 transition-colors duration-300 font-sans overflow-hidden text-ink-700 dark:text-ink-100">
+    <div className="flex flex-col h-screen bg-cream-50 dark:bg-ink-900 transition-colors duration-300 font-sans overflow-hidden text-ink-700 dark:text-ink-100">
 
-      {/* ── SIDEBAR (slim, light cream — feels like a notebook spine) ─────── */}
+      {/* ── TOP NAVIGATION BAR ───────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-white dark:bg-ink-900 border-b border-ink-100 dark:border-ink-800 flex-shrink-0 relative">
+        {viewLoading && (
+          <div className="absolute bottom-0 start-0 end-0 h-[2px] overflow-hidden">
+            <div className="h-full bg-moss-500 animate-nav-loading" />
+          </div>
+        )}
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 h-[64px] flex items-center justify-between gap-4">
+          {/* Left: Logo + nav */}
+          <div className="flex items-center gap-3 md:gap-7">
+            <button onClick={() => navigateTo('dashboard')} className="flex items-center gap-2 shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-moss-500 flex items-center justify-center">
+                <span className="font-bold text-white text-base leading-none">B</span>
+              </div>
+              <span className="font-bold text-base tracking-tight text-ink-700 dark:text-ink-100 hidden sm:inline">BrainWave</span>
+            </button>
+
+            <nav className="hidden md:flex items-center gap-1">
+              {NAV_ITEMS.filter(i => i.section === 'learn').map(({ view, label, icon }) => {
+                const isActive = appState.activeView === view;
+                return (
+                  <button
+                    key={view}
+                    onClick={() => navigateTo(view)}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                      isActive
+                        ? 'bg-moss-500 text-white shadow-moss'
+                        : 'text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-100'
+                    }`}
+                  >
+                    <span className="flex-shrink-0">{icon}</span>
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            <button
+              onClick={() => setMobileMenuOpen(m => !m)}
+              className="md:hidden p-2 rounded-lg text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-800 transition-colors"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+
+          {/* Right: Search, stats, theme, avatar */}
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <div className="hidden lg:flex items-center gap-2 bg-cream-100 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-full px-3.5 py-1.5 focus-within:border-moss-300 transition-all">
+              <Search size={14} className="text-ink-300 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search…"
+                className="bg-transparent border-none text-sm w-44 outline-none text-ink-700 dark:text-ink-100 placeholder-ink-300"
+              />
+            </div>
+
+            {appState.user.streakDays > 0 && (
+              <div className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-full text-clay-500 text-xs font-bold bg-clay-light/60 dark:bg-clay-light">
+                <Flame size={12} fill="currentColor" />
+                <span>{appState.user.streakDays}</span>
+              </div>
+            )}
+
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-moss-50 dark:bg-moss-light text-moss-600 dark:text-moss-300 text-xs font-bold">
+              <span>Lv.{level}</span>
+              <span className="opacity-50">·</span>
+              <span>{appState.user.totalXp} XP</span>
+            </div>
+
+            <LanguageSelector currentLang={appState.language} onChange={(l) => setAppState(prev => ({ ...prev, language: l }))} disabled={appState.activeView === 'exercise' || appState.activeView === 'lesson'} />
+
+            <button
+              onClick={() => setAppState(prev => ({ ...prev, theme: prev.theme === 'light' ? 'dark' : 'light' }))}
+              className="p-2 rounded-full text-ink-400 hover:text-ink-700 dark:hover:text-ink-100 hover:bg-cream-100 dark:hover:bg-ink-800 transition-all"
+              title="Toggle theme"
+            >
+              {appState.theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+            </button>
+
+            <div className="relative group">
+              <button
+                onClick={() => navigateTo('profile')}
+                className="w-9 h-9 rounded-full bg-clay-300 text-white font-bold text-sm flex items-center justify-center hover:scale-105 transition-transform"
+              >
+                {appState.user.name.charAt(0).toUpperCase()}
+              </button>
+              <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 rounded-2xl shadow-lift py-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="px-3 py-2.5 border-b border-ink-100 dark:border-ink-800 mb-1">
+                  <div className="font-bold text-sm text-ink-700 dark:text-ink-100 truncate">{appState.user.name}</div>
+                  <div className="text-xs text-ink-300 dark:text-ink-400 mt-0.5">@{appState.user.username || 'guest'}</div>
+                </div>
+                {NAV_ITEMS.filter(i => i.section === 'account').map(({ view, label, icon }) => (
+                  <button
+                    key={view}
+                    onClick={() => navigateTo(view)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-100 transition-colors"
+                  >
+                    {icon}{label}
+                  </button>
+                ))}
+                <div className="border-t border-ink-100 dark:border-ink-800 mt-1 pt-1">
+                  <button
+                    onClick={() => setShowLogoutConfirm(true)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-clay-500 hover:bg-clay-light/50 dark:hover:bg-clay-light transition-colors"
+                  >
+                    <LogOut size={18} /> Sign out
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile menu drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-900 max-h-[70vh] overflow-y-auto">
+            <nav className="px-4 py-3 space-y-1">
+              {NAV_ITEMS.filter(i => i.section === 'learn').map(({ view, label, icon }) => {
+                const isActive = appState.activeView === view;
+                return (
+                  <button
+                    key={view}
+                    onClick={() => navigateTo(view)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-moss-500 text-white'
+                        : 'text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800'
+                    }`}
+                  >
+                    {icon}{label}
+                  </button>
+                );
+              })}
+              <div className="h-px bg-ink-100 dark:bg-ink-800 my-2" />
+              <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-300 dark:text-ink-500 px-3 mb-1">Subjects</div>
+              {Object.values(Subject).map(s => {
+                const Icon = SUBJECT_ICONS[s];
+                return (
+                  <button
+                    key={s}
+                    onClick={() => startSubjectPractice(s)}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800"
+                  >
+                    <Icon size={16} />{t.subjectsList[s]}
+                  </button>
+                );
+              })}
+              <div className="h-px bg-ink-100 dark:bg-ink-800 my-2" />
+              {NAV_ITEMS.filter(i => i.section === 'account').map(({ view, label, icon }) => (
+                <button
+                  key={view}
+                  onClick={() => navigateTo(view)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800"
+                >
+                  {icon}{label}
+                </button>
+              ))}
+            </nav>
+          </div>
+        )}
+      </header>
+
+      {/* HIDDEN: keep old aside markup hidden so we don't break refs */}
       <aside
-        className={`fixed inset-y-0 start-0 z-50 bg-white dark:bg-ink-900 border-e border-ink-100/70 dark:border-ink-800 flex flex-col transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-          ${mobileMenuOpen ? 'translate-x-0' : sidebarHiddenClass}
-          ${sidebarCollapsed ? 'md:w-[68px]' : 'md:w-[220px]'}
-          md:translate-x-0 w-[240px]`}
+        className={`hidden`}
       >
         {/* Logo area */}
         <div className={`flex items-center h-[64px] flex-shrink-0 ${sidebarCollapsed ? 'px-3 justify-center' : 'px-5 justify-between'}`}>
@@ -600,72 +761,9 @@ const App: React.FC = () => {
         </div>
       </aside>
 
-      {/* Mobile Backdrop */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-ink-700/40 backdrop-blur-sm z-40 md:hidden transition-opacity" onClick={() => setMobileMenuOpen(false)} />
-      )}
-
-      {/* ── MAIN ─────────────────────────────────────────────────────────────── */}
-      <main className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-        ${sidebarCollapsed ? 'md:ms-[68px]' : 'md:ms-[220px]'}`}
-      >
-        {/* HEADER — minimal, just essentials */}
-        <header className="sticky top-0 h-[56px] bg-white/85 dark:bg-ink-900/90 backdrop-blur-xl border-b border-ink-100/60 dark:border-ink-800 z-30 px-5 flex items-center justify-between flex-shrink-0">
-          {viewLoading && (
-            <div className="absolute bottom-0 start-0 end-0 h-[2px] bg-cream-200 dark:bg-ink-700 overflow-hidden">
-              <div className="h-full bg-moss-500 animate-nav-loading rounded-full" />
-            </div>
-          )}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                if (window.innerWidth >= 768) setSidebarCollapsed(c => !c);
-                else setMobileMenuOpen(m => !m);
-              }}
-              className="p-2 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-100 hover:bg-cream-100 dark:hover:bg-ink-800 transition-all duration-200"
-            >
-              <Menu size={18} />
-            </button>
-            <div className="hidden lg:flex items-center gap-2 bg-cream-100 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-lg px-3 py-1.5 focus-within:border-moss-300 transition-all">
-              <Search size={14} className="text-ink-300 shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search subjects, topics…"
-                className="bg-transparent border-none text-sm w-56 outline-none text-ink-600 dark:text-ink-400 placeholder-ink-300"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Streak — subtle */}
-            {appState.user.streakDays > 0 && (
-              <div className="hidden sm:flex items-center gap-1.5 text-clay-500 px-2.5 py-1 rounded-lg text-xs font-semibold">
-                <Flame size={12} fill="currentColor" />
-                <span>{appState.user.streakDays}</span>
-              </div>
-            )}
-            {/* Theme toggle */}
-            <button
-              onClick={() => setAppState(prev => ({ ...prev, theme: prev.theme === 'light' ? 'dark' : 'light' }))}
-              className="p-2 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-100 hover:bg-cream-100 dark:hover:bg-ink-800 transition-all duration-200"
-              title="Toggle theme"
-            >
-              {appState.theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-            </button>
-            {/* Avatar — direct link to profile */}
-            <button
-              onClick={() => navigateTo('profile')}
-              className="w-8 h-8 rounded-full bg-clay-300 dark:bg-clay-400 text-white font-display text-sm font-semibold flex items-center justify-center hover:scale-105 transition-transform"
-            >
-              {appState.user.name.charAt(0).toUpperCase()}
-            </button>
-          </div>
-        </header>
-
-        {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide bg-cream-50 dark:bg-ink-900 paper-texture">
+      {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden">
+        <div className="flex-1 overflow-y-auto scrollbar-hide bg-cream-50 dark:bg-ink-900">
           <div className="w-full h-full">
 
             {appState.activeView === 'dashboard' && (

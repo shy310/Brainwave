@@ -74,23 +74,21 @@
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
   margin: 0;
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   background: var(--bg-primary);
   color: var(--ink-600);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: -0.011em;
-  font-feature-settings: 'cv11', 'ss01', 'ss02';
 }
 
 :lang(he), :lang(he) * { font-family: 'Heebo', ui-sans-serif, system-ui, sans-serif; }
 
-/* Editorial serif for headlines */
+/* Display headlines — same font, just tighter and bolder */
 .font-display {
-  font-family: 'Fraunces', ui-serif, Georgia, serif;
-  font-feature-settings: 'ss01', 'ss02';
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.03em;
-  font-optical-sizing: auto;
+  font-weight: 700;
 }
 
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
