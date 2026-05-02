@@ -11,6 +11,37 @@ import MathText from './MathText';
 
 const MAX_ATTEMPTS = 3;
 
+type ExLangKey = 'en' | 'ru' | 'he' | 'ar';
+const EX_COPY: Record<ExLangKey, {
+  multipleChoice: string; shortAnswer: string; multiStep: string; fillInBlank: string; questionLabel: string;
+  attemptsLeft: (n: number) => string; attemptsCount: (a: number, m: number) => string;
+}> = {
+  en: {
+    multipleChoice: 'Multiple Choice', shortAnswer: 'Short Answer', multiStep: 'Multi-Step',
+    fillInBlank: 'Fill in the Blank', questionLabel: 'Question',
+    attemptsLeft: (n) => `${n} left`,
+    attemptsCount: (a, m) => `${a}/${m} attempts`,
+  },
+  ru: {
+    multipleChoice: 'Выбор ответа', shortAnswer: 'Короткий ответ', multiStep: 'По шагам',
+    fillInBlank: 'Заполни пропуск', questionLabel: 'Вопрос',
+    attemptsLeft: (n) => `осталось ${n}`,
+    attemptsCount: (a, m) => `${a}/${m} попыток`,
+  },
+  he: {
+    multipleChoice: 'בחירה מרובה', shortAnswer: 'תשובה קצרה', multiStep: 'רב-שלבי',
+    fillInBlank: 'מלא את החסר', questionLabel: 'שאלה',
+    attemptsLeft: (n) => `נותרו ${n}`,
+    attemptsCount: (a, m) => `${a}/${m} ניסיונות`,
+  },
+  ar: {
+    multipleChoice: 'اختيار من متعدد', shortAnswer: 'إجابة قصيرة', multiStep: 'متعدد الخطوات',
+    fillInBlank: 'املأ الفراغ', questionLabel: 'سؤال',
+    attemptsLeft: (n) => `${n} متبقية`,
+    attemptsCount: (a, m) => `${a}/${m} محاولات`,
+  },
+};
+
 // Module-level cache — session-only, NOT persisted to localStorage.
 // This ensures students get fresh questions each time they restart the app.
 const _quizCache = new Map<string, Exercise[]>();
@@ -37,6 +68,8 @@ const ExercisePanel: React.FC<Props> = ({
   session, userGrade, language, translations,
   onComplete, onBack, onContextUpdate, onGoToLesson, onQuizGenerated
 }) => {
+  const ex = EX_COPY[(EX_COPY[language as ExLangKey] ? language : 'en') as ExLangKey];
+
   // Upload-based sessions must never use the shared cache (their key would collide with
   // general-practice quizzes for the same subject/grade).
   const isUploadSession = session.studyContext.length > 0;
@@ -313,10 +346,10 @@ const ExercisePanel: React.FC<Props> = ({
           <div className="bg-white dark:bg-ink-800 rounded-3xl border border-ink-100 dark:border-ink-700 p-8 shadow-sm">
             {/* Question type badge */}
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full inline-block mb-4 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
-              {currentExercise.questionType === QuestionType.MULTIPLE_CHOICE ? 'Multiple Choice' :
-                currentExercise.questionType === QuestionType.SHORT_ANSWER ? 'Short Answer' :
-                currentExercise.questionType === QuestionType.MULTI_STEP ? 'Multi-Step' :
-                currentExercise.questionType === QuestionType.FILL_IN_BLANK ? 'Fill in the Blank' : 'Question'}
+              {currentExercise.questionType === QuestionType.MULTIPLE_CHOICE ? ex.multipleChoice :
+                currentExercise.questionType === QuestionType.SHORT_ANSWER ? ex.shortAnswer :
+                currentExercise.questionType === QuestionType.MULTI_STEP ? ex.multiStep :
+                currentExercise.questionType === QuestionType.FILL_IN_BLANK ? ex.fillInBlank : ex.questionLabel}
             </span>
 
             {/* XP badge */}
@@ -495,7 +528,7 @@ const ExercisePanel: React.FC<Props> = ({
                     </button>
                     {attempts > 0 && attempts < MAX_ATTEMPTS && (
                       <p className="text-center text-xs text-ink-400 font-bold">
-                        {translations.tryAgain} ({MAX_ATTEMPTS - attempts} left)
+                        {translations.tryAgain} ({ex.attemptsLeft(MAX_ATTEMPTS - attempts)})
                       </p>
                     )}
                     {attempts >= MAX_ATTEMPTS && !isSubmitted && (
@@ -525,7 +558,7 @@ const ExercisePanel: React.FC<Props> = ({
                     {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
                       <div key={i} className={`w-2 h-2 rounded-full ${i < attempts ? 'bg-amber-400' : 'bg-cream-200 dark:bg-ink-700'}`}></div>
                     ))}
-                    <span className="text-xs text-ink-400 ms-2">{attempts}/{MAX_ATTEMPTS} attempts</span>
+                    <span className="text-xs text-ink-400 ms-2">{ex.attemptsCount(attempts, MAX_ATTEMPTS)}</span>
                   </div>
                 )}
               </div>

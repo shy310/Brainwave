@@ -136,7 +136,7 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
                   <PolarGrid stroke="#e5e7eb" />
                   <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12, fontWeight: 700, fill: '#6b7280' }} />
                   <Radar
-                    name="Mastery"
+                    name={translations.mastery}
                     dataKey="mastery"
                     stroke="#0ea5e9"
                     fill="#0ea5e9"

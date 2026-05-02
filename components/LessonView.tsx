@@ -34,9 +34,41 @@ const SECTION_BADGE: Record<string, string> = {
   summary: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
 };
 
+const SECTION_LABELS: Record<string, Record<string, string>> = {
+  en: { intro: 'Intro', concept: 'Concept', example: 'Example', summary: 'Summary' },
+  ru: { intro: 'Введение', concept: 'Концепция', example: 'Пример', summary: 'Итог' },
+  he: { intro: 'מבוא', concept: 'מושג', example: 'דוגמה', summary: 'סיכום' },
+  ar: { intro: 'مقدمة', concept: 'مفهوم', example: 'مثال', summary: 'ملخص' },
+};
+
+const LESSON_MISC: Record<string, { selectAtLeastOne: string; couldNotGenerate: string; couldNotAnalyze: string }> = {
+  en: {
+    selectAtLeastOne: 'Select at least one topic to generate a quiz.',
+    couldNotGenerate: 'Could not generate the lesson. Please try again.',
+    couldNotAnalyze: 'Could not analyze the uploaded file. Please try again.',
+  },
+  ru: {
+    selectAtLeastOne: 'Выбери хотя бы одну тему, чтобы сгенерировать тест.',
+    couldNotGenerate: 'Не удалось сгенерировать урок. Попробуй ещё раз.',
+    couldNotAnalyze: 'Не удалось проанализировать файл. Попробуй ещё раз.',
+  },
+  he: {
+    selectAtLeastOne: 'בחר לפחות נושא אחד כדי ליצור חידון.',
+    couldNotGenerate: 'לא הצלחנו ליצור את השיעור. נסה שוב.',
+    couldNotAnalyze: 'לא הצלחנו לנתח את הקובץ. נסה שוב.',
+  },
+  ar: {
+    selectAtLeastOne: 'اختر موضوعاً واحداً على الأقل لإنشاء اختبار.',
+    couldNotGenerate: 'تعذر إنشاء الدرس. حاول مرة أخرى.',
+    couldNotAnalyze: 'تعذر تحليل الملف. حاول مرة أخرى.',
+  },
+};
+
 const LessonView: React.FC<Props> = ({
   session, userGrade, language, translations, onStartExercises, onBack, onContextUpdate
 }) => {
+  const sectionLabels = SECTION_LABELS[language] || SECTION_LABELS.en;
+  const lc = LESSON_MISC[language] || LESSON_MISC.en;
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [uploadAnalysis, setUploadAnalysis] = useState<UploadAnalysis | null>(null);
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set());
@@ -61,10 +93,10 @@ const LessonView: React.FC<Props> = ({
             setUploadAnalysis(result);
             setSelectedTopics(new Set(result.topics));
           } else {
-            setError("Could not analyze the uploaded file. Please try again.");
+            setError(lc.couldNotAnalyze);
           }
         } catch (e: any) {
-          setError("Could not analyze the uploaded file.");
+          setError(lc.couldNotAnalyze);
           setErrorDetail(e?.message || String(e));
           console.error("analyzeUpload error:", e);
         }
@@ -83,10 +115,10 @@ const LessonView: React.FC<Props> = ({
           if (result) {
             setLesson(result);
           } else {
-            setError("Could not generate the lesson. Please try again.");
+            setError(lc.couldNotGenerate);
           }
         } catch (e: any) {
-          setError("Could not generate the lesson.");
+          setError(lc.couldNotGenerate);
           setErrorDetail(e?.message || String(e));
           console.error("generateLesson error:", e);
         }
@@ -230,7 +262,7 @@ const LessonView: React.FC<Props> = ({
             </ul>
             {selectedTopics.size === 0 && (
               <p className="mt-4 text-xs text-amber-600 dark:text-amber-400 font-medium">
-                Select at least one topic to generate a quiz.
+                {lc.selectAtLeastOne}
               </p>
             )}
           </div>
@@ -353,7 +385,7 @@ const LessonView: React.FC<Props> = ({
             <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 p-6 mb-4 shadow-sm border animate-in fade-in slide-in-from-bottom-4 duration-300">
               {/* Section type badge */}
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full inline-block mb-3 ${SECTION_BADGE[currentSection.type] || SECTION_BADGE['intro']}`}>
-                {currentSection.type.charAt(0).toUpperCase() + currentSection.type.slice(1)}
+                {sectionLabels[currentSection.type] || currentSection.type}
               </span>
               <h2 className="text-lg font-bold text-ink-700 dark:text-ink-100 mb-3">{currentSection.heading}</h2>
               <div className="prose dark:prose-invert max-w-none">

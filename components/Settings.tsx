@@ -16,10 +16,69 @@ interface Props {
 
 const USERS_DB_KEY = 'brainwave_users_db';
 
+type SetLangKey = 'en' | 'ru' | 'he' | 'ar';
+const SET_COPY: Record<SetLangKey, {
+  manageDesc: string; editProfile: string; displayName: string; namePlaceholder: string; usernamePlaceholder: string;
+  rules: string; usernameInvalid: string; nameEmpty: string;
+  saveProfile: string; profileSaved: string; saveGrade: string; gradeSaved: string;
+  currently: string; light: string; dark: string;
+  kinder: string; elementary: string; middle: string; high: string; college: string;
+}> = {
+  en: {
+    manageDesc: 'Manage your profile and learning preferences.',
+    editProfile: 'Edit Profile', displayName: 'Display Name',
+    namePlaceholder: 'Your name', usernamePlaceholder: 'student_123',
+    rules: 'Letters, numbers, and underscores only.',
+    usernameInvalid: 'Username can only contain letters, numbers, and underscores.',
+    nameEmpty: 'Name and username cannot be empty.',
+    saveProfile: 'Save Profile', profileSaved: 'Profile saved!',
+    saveGrade: 'Save Grade', gradeSaved: 'Grade saved!',
+    currently: 'Currently:', light: 'Light', dark: 'Dark',
+    kinder: 'Kindergarten', elementary: 'Elementary School', middle: 'Middle School', high: 'High School', college: 'College',
+  },
+  ru: {
+    manageDesc: 'Управляй профилем и настройками обучения.',
+    editProfile: 'Редактировать профиль', displayName: 'Имя для отображения',
+    namePlaceholder: 'Твоё имя', usernamePlaceholder: 'ученик_123',
+    rules: 'Только буквы, цифры и подчёркивания.',
+    usernameInvalid: 'Имя может содержать только буквы, цифры и подчёркивания.',
+    nameEmpty: 'Имя и имя пользователя не могут быть пустыми.',
+    saveProfile: 'Сохранить профиль', profileSaved: 'Профиль сохранён!',
+    saveGrade: 'Сохранить класс', gradeSaved: 'Класс сохранён!',
+    currently: 'Сейчас:', light: 'Светлая', dark: 'Тёмная',
+    kinder: 'Детский сад', elementary: 'Начальная школа', middle: 'Средняя школа', high: 'Старшая школа', college: 'Колледж',
+  },
+  he: {
+    manageDesc: 'נהל את הפרופיל והעדפות הלמידה שלך.',
+    editProfile: 'ערוך פרופיל', displayName: 'שם תצוגה',
+    namePlaceholder: 'השם שלך', usernamePlaceholder: 'תלמיד_123',
+    rules: 'אותיות, מספרים וקווים תחתונים בלבד.',
+    usernameInvalid: 'שם משתמש יכול להכיל רק אותיות, מספרים וקווים תחתונים.',
+    nameEmpty: 'שם ושם משתמש אינם יכולים להיות ריקים.',
+    saveProfile: 'שמור פרופיל', profileSaved: 'הפרופיל נשמר!',
+    saveGrade: 'שמור כיתה', gradeSaved: 'הכיתה נשמרה!',
+    currently: 'כרגע:', light: 'בהיר', dark: 'כהה',
+    kinder: 'גן', elementary: 'יסודי', middle: 'חטיבת ביניים', high: 'תיכון', college: 'קולג׳',
+  },
+  ar: {
+    manageDesc: 'أدر ملفك الشخصي وتفضيلات التعلم.',
+    editProfile: 'تحرير الملف الشخصي', displayName: 'اسم العرض',
+    namePlaceholder: 'اسمك', usernamePlaceholder: 'طالب_123',
+    rules: 'الأحرف والأرقام والشرطات السفلية فقط.',
+    usernameInvalid: 'يمكن أن يحتوي اسم المستخدم على أحرف وأرقام وشرطات سفلية فقط.',
+    nameEmpty: 'الاسم واسم المستخدم لا يمكن أن يكونا فارغين.',
+    saveProfile: 'حفظ الملف الشخصي', profileSaved: 'تم حفظ الملف الشخصي!',
+    saveGrade: 'حفظ الصف', gradeSaved: 'تم حفظ الصف!',
+    currently: 'حالياً:', light: 'فاتح', dark: 'داكن',
+    kinder: 'الروضة', elementary: 'الابتدائي', middle: 'الإعدادي', high: 'الثانوي', college: 'الجامعة',
+  },
+};
+
 const Settings: React.FC<Props> = ({
   user, translations, theme, language,
   onProfileUpdate, onGradeChange, onThemeToggle, onLanguageChange
 }) => {
+  const c = SET_COPY[(SET_COPY[language as SetLangKey] ? language : 'en') as SetLangKey];
   // Profile fields
   const [name, setName] = useState(user.name);
   const [username, setUsername] = useState(user.username);
@@ -32,11 +91,11 @@ const Settings: React.FC<Props> = ({
   const [gradeSaved, setGradeSaved] = useState(false);
 
   const gradeFolders = [
-    { id: 'kinder',     emoji: '🎒', label: 'Kindergarten',     grades: [GradeLevel.KINDER] },
-    { id: 'elementary', emoji: '🏫', label: 'Elementary School', grades: [GradeLevel.GRADE_1, GradeLevel.GRADE_2, GradeLevel.GRADE_3, GradeLevel.GRADE_4, GradeLevel.GRADE_5, GradeLevel.GRADE_6] },
-    { id: 'middle',     emoji: '📚', label: 'Middle School',     grades: [GradeLevel.GRADE_7, GradeLevel.GRADE_8, GradeLevel.GRADE_9] },
-    { id: 'high',       emoji: '🎓', label: 'High School',       grades: [GradeLevel.GRADE_10, GradeLevel.GRADE_11, GradeLevel.GRADE_12] },
-    { id: 'college',    emoji: '🏛️', label: 'College',           grades: [GradeLevel.COLLEGE_FRESHMAN, GradeLevel.COLLEGE_ADVANCED] },
+    { id: 'kinder',     emoji: '🎒', label: c.kinder,     grades: [GradeLevel.KINDER] },
+    { id: 'elementary', emoji: '🏫', label: c.elementary, grades: [GradeLevel.GRADE_1, GradeLevel.GRADE_2, GradeLevel.GRADE_3, GradeLevel.GRADE_4, GradeLevel.GRADE_5, GradeLevel.GRADE_6] },
+    { id: 'middle',     emoji: '📚', label: c.middle,     grades: [GradeLevel.GRADE_7, GradeLevel.GRADE_8, GradeLevel.GRADE_9] },
+    { id: 'high',       emoji: '🎓', label: c.high,       grades: [GradeLevel.GRADE_10, GradeLevel.GRADE_11, GradeLevel.GRADE_12] },
+    { id: 'college',    emoji: '🏛️', label: c.college,    grades: [GradeLevel.COLLEGE_FRESHMAN, GradeLevel.COLLEGE_ADVANCED] },
   ];
 
   const profileDirty = name.trim() !== user.name || username.trim() !== user.username;
@@ -47,11 +106,11 @@ const Settings: React.FC<Props> = ({
     const trimmedUsername = username.trim();
 
     if (!trimmedName || !trimmedUsername) {
-      setProfileError('Name and username cannot be empty.');
+      setProfileError(c.nameEmpty);
       return;
     }
     if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
-      setProfileError('Username can only contain letters, numbers, and underscores.');
+      setProfileError(c.usernameInvalid);
       return;
     }
 
@@ -90,7 +149,7 @@ const Settings: React.FC<Props> = ({
           {translations.settings}
         </h1>
         <p className="text-ink-400 dark:text-ink-400 mt-2 font-medium">
-          Manage your profile and learning preferences.
+          {c.manageDesc}
         </p>
       </header>
 
@@ -121,12 +180,12 @@ const Settings: React.FC<Props> = ({
         </div>
 
         <div className="border-t dark:border-ink-700 pt-5 space-y-4">
-          <h2 className="text-base font-semibold text-ink-700 dark:text-ink-100 mb-4">Edit Profile</h2>
+          <h2 className="text-base font-semibold text-ink-700 dark:text-ink-100 mb-4">{c.editProfile}</h2>
 
           {/* Display Name */}
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-ink-400 uppercase tracking-wide mb-1.5">
-              Display Name
+              {c.displayName}
             </label>
             <div className="relative group">
               <User
@@ -138,7 +197,7 @@ const Settings: React.FC<Props> = ({
                 value={name}
                 onChange={(e) => { setName(e.target.value); setProfileError(null); setProfileSaved(false); }}
                 className="w-full pl-11 pr-4 py-3 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-xl text-sm outline-none focus:border-moss-500 focus:ring-2 focus:ring-moss-500/20 transition-all font-bold text-ink-700 dark:text-white"
-                placeholder="Your name"
+                placeholder={c.namePlaceholder}
               />
             </div>
           </div>
@@ -146,7 +205,7 @@ const Settings: React.FC<Props> = ({
           {/* Username */}
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-ink-400 uppercase tracking-wide mb-1.5">
-              Username
+              {translations.username}
             </label>
             <div className="relative group">
               <AtSign
@@ -158,10 +217,10 @@ const Settings: React.FC<Props> = ({
                 value={username}
                 onChange={(e) => { setUsername(e.target.value); setProfileError(null); setProfileSaved(false); }}
                 className="w-full pl-11 pr-4 py-3 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-xl text-sm outline-none focus:border-moss-500 focus:ring-2 focus:ring-moss-500/20 transition-all font-bold text-ink-700 dark:text-white"
-                placeholder="student_123"
+                placeholder={c.usernamePlaceholder}
               />
             </div>
-            <p className="text-[11px] text-ink-400 ml-1">Letters, numbers, and underscores only.</p>
+            <p className="text-[11px] text-ink-400 ml-1">{c.rules}</p>
           </div>
 
           {/* Error */}
@@ -178,9 +237,9 @@ const Settings: React.FC<Props> = ({
             className="px-5 py-2.5 bg-moss-500 hover:bg-moss-600 text-white rounded-xl font-semibold shadow-moss transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed w-full"
           >
             {profileSaved ? (
-              <><Check size={18} /> Profile saved!</>
+              <><Check size={18} /> {c.profileSaved}</>
             ) : (
-              <><Save size={18} /> Save Profile</>
+              <><Save size={18} /> {c.saveProfile}</>
             )}
           </button>
         </div>
@@ -191,7 +250,7 @@ const Settings: React.FC<Props> = ({
         <div>
           <h2 className="text-base font-semibold text-ink-700 dark:text-ink-100 mb-4">{translations.selectGrade}</h2>
           <p className="text-sm text-ink-400 font-medium mt-1">
-            Currently: <span className="text-moss-600 dark:text-moss-400 font-bold">{translations.grades[user.gradeLevel]}</span>
+            {c.currently} <span className="text-moss-600 dark:text-moss-400 font-bold">{translations.grades[user.gradeLevel]}</span>
           </p>
         </div>
 
@@ -244,9 +303,9 @@ const Settings: React.FC<Props> = ({
           className="px-5 py-2.5 bg-moss-500 hover:bg-moss-600 text-white rounded-xl font-semibold shadow-moss transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed w-full"
         >
           {gradeSaved ? (
-            <><Check size={18} /> Grade saved!</>
+            <><Check size={18} /> {c.gradeSaved}</>
           ) : (
-            <><Save size={18} /> Save Grade</>
+            <><Save size={18} /> {c.saveGrade}</>
           )}
         </button>
       </section>
@@ -264,7 +323,7 @@ const Settings: React.FC<Props> = ({
             className="flex items-center gap-2 px-4 py-2.5 bg-cream-100 dark:bg-ink-800 rounded-xl text-sm font-bold text-ink-500 dark:text-ink-400 hover:text-moss-600 dark:hover:text-moss-400 transition-colors"
           >
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-            {theme === 'light' ? 'Light' : 'Dark'}
+            {theme === 'light' ? c.light : c.dark}
           </button>
         </div>
 
