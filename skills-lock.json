@@ -45,6 +45,41 @@
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
       "computedHash": "50b55178a2da8ee931850193596601fa0517cd800e171366a903769f25bf4dda"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "9bd26c52dfd10dfd613dd3cc85df217dc25a172e380bde41fdfa6fedda288b2a"
+    },
+    "ui-ux-design": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "87a5278f1fdb2e2e51c7506b69aed58efbf261185e524e37450b866e594dd102"
+    },
+    "ui-ux-banner": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "b55b30c763e2aa9aac953021bcb72bd03669f187150fc0815ab1313846b79466"
+    },
+    "ui-ux-brand": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "1312fe0046f4b52fc53695efa102da6f900688c32f839dbe154e803cb8cea1ad"
+    },
+    "ui-ux-design-system": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "eb484103939b1ba2778c351f0c97b7899ea09ebe143bafb7eed29385dfedf854"
+    },
+    "ui-ux-slides": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "e071a7ad7a72f10344d3fe55a29cebf8750a255ecbf98af2daee9e6432bd8b3a"
+    },
+    "ui-ux-styling": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "12b07e5b883c72f01e6f103a353f00fba8b512e71ccc29af33ddf1f6aae311ae"
     }
   }
 }
