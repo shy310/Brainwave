@@ -481,7 +481,7 @@ const App: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search…"
+                placeholder={t.search}
                 className="bg-transparent border-none text-sm w-44 outline-none text-ink-700 dark:text-ink-100 placeholder-ink-300"
               />
             </div>
@@ -772,6 +772,7 @@ const App: React.FC = () => {
                   user={appState.user}
                   courses={courses}
                   translations={t}
+                  language={appState.language}
                   searchQuery={searchQuery}
                   onSelectCourse={(id) => setAppState(prev => ({ ...prev, activeCourseId: id, activeView: 'courses' }))}
                   onResumeTopic={(courseId, topicId) => {
