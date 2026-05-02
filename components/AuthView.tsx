@@ -116,10 +116,10 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
   const testimonial = TESTIMONIALS[testimonialIdx];
 
   return (
-    <div className="min-h-screen flex bg-cream-50 dark:bg-ink-50">
+    <div className="min-h-screen flex bg-cream-50 dark:bg-ink-900">
 
       {/* ── Left: editorial brand panel ──────────────────────────────────── */}
-      <div className="hidden lg:flex w-[52%] flex-col relative overflow-hidden bg-cream-100 dark:bg-ink-100 border-e border-ink-100/50 dark:border-ink-200">
+      <div className="hidden lg:flex w-[52%] flex-col relative overflow-hidden bg-cream-100 dark:bg-ink-800 border-e border-ink-100/50 dark:border-ink-700">
         {/* Soft decorative shape */}
         <div className="absolute top-[8%] right-[8%] w-72 h-72 rounded-full bg-moss-100/60 dark:bg-moss-light/30 blur-3xl pointer-events-none" />
         <div className="absolute bottom-[15%] left-[5%] w-96 h-96 rounded-full bg-clay-100/40 dark:bg-clay-light/20 blur-3xl pointer-events-none" />
@@ -130,13 +130,13 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
             <div className="w-9 h-9 rounded-lg bg-moss-500 flex items-center justify-center">
               <span className="font-display font-bold text-white text-xl leading-none">B</span>
             </div>
-            <span className="font-display font-semibold text-xl text-ink-700 dark:text-ink-700 tracking-tight">BrainWave</span>
+            <span className="font-display font-semibold text-xl text-ink-700 dark:text-ink-100 tracking-tight">BrainWave</span>
           </div>
 
           {/* Headline */}
           <div className="my-auto py-12">
             <p className="text-xs uppercase tracking-[0.2em] text-clay-500 font-semibold mb-5">For students, by people who get it</p>
-            <h1 className="font-display text-5xl xl:text-6xl 2xl:text-7xl leading-[0.95] font-medium text-ink-700 dark:text-ink-700 tracking-tight mb-6">
+            <h1 className="font-display text-5xl xl:text-6xl 2xl:text-7xl leading-[0.95] font-medium text-ink-700 dark:text-ink-100 tracking-tight mb-6">
               Study like<br/>
               you actually <em className="italic text-moss-500">care</em>.
             </h1>
@@ -146,7 +146,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
 
             {/* Testimonial */}
             <div className="mt-12 pl-5 border-l-2 border-moss-300 max-w-md">
-              <p className="font-display italic text-xl text-ink-600 dark:text-ink-600 leading-snug">
+              <p className="font-display italic text-xl text-ink-600 dark:text-ink-400 leading-snug">
                 "{testimonial.text}"
               </p>
               <p className="text-sm text-ink-300 dark:text-ink-400 mt-2">— {testimonial.who}</p>
@@ -156,9 +156,9 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
           {/* Bottom marks */}
           <div className="flex items-baseline gap-8 text-sm text-ink-400 dark:text-ink-400">
             <span>K through college</span>
-            <span className="w-1 h-1 rounded-full bg-ink-200 dark:bg-ink-300" />
+            <span className="w-1 h-1 rounded-full bg-ink-200 dark:bg-ink-600" />
             <span>4 languages</span>
-            <span className="w-1 h-1 rounded-full bg-ink-200 dark:bg-ink-300" />
+            <span className="w-1 h-1 rounded-full bg-ink-200 dark:bg-ink-600" />
             <span>No ads, ever</span>
           </div>
         </div>
@@ -168,12 +168,12 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
       <div className="flex-1 lg:w-[48%] flex items-center justify-center p-6 relative">
         {/* Top controls */}
         <div className="absolute top-5 end-5 flex items-center gap-2 z-10">
-          <div className="flex items-center gap-1.5 bg-cream-100 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg px-2.5 py-1.5">
+          <div className="flex items-center gap-1.5 bg-cream-100 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-lg px-2.5 py-1.5">
             <Globe size={12} className="text-ink-300" />
             <select
               value={language}
               onChange={(e) => onLanguageChange(e.target.value as Language)}
-              className="bg-transparent border-none text-sm font-medium text-ink-600 dark:text-ink-600 focus:ring-0 cursor-pointer outline-none"
+              className="bg-transparent border-none text-sm font-medium text-ink-600 dark:text-ink-400 focus:ring-0 cursor-pointer outline-none"
             >
               <option value="en">English</option>
               <option value="ru">Русский</option>
@@ -183,7 +183,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
           </div>
           <button
             onClick={onThemeToggle}
-            className="p-2 bg-cream-100 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg text-ink-400 hover:text-ink-700 transition-colors"
+            className="p-2 bg-cream-100 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-lg text-ink-400 hover:text-ink-700 transition-colors"
           >
             {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
           </button>
@@ -195,11 +195,11 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
             <div className="w-9 h-9 rounded-lg bg-moss-500 flex items-center justify-center">
               <span className="font-display font-bold text-white text-xl leading-none">B</span>
             </div>
-            <span className="font-display font-semibold text-xl text-ink-700 dark:text-ink-700 tracking-tight">BrainWave</span>
+            <span className="font-display font-semibold text-xl text-ink-700 dark:text-ink-100 tracking-tight">BrainWave</span>
           </div>
 
           <div className="mb-8">
-            <h2 className="font-display text-3xl md:text-4xl font-medium text-ink-700 dark:text-ink-700 leading-tight mb-2">
+            <h2 className="font-display text-3xl md:text-4xl font-medium text-ink-700 dark:text-ink-100 leading-tight mb-2">
               {mode === 'login' ? <>Welcome back.</> : <>Let's get you set up.</>}
             </h2>
             <p className="text-base text-ink-400 dark:text-ink-400">
@@ -208,12 +208,12 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
           </div>
 
           {/* Mode toggle — minimalist */}
-          <div className="inline-flex bg-cream-100 dark:bg-ink-100 rounded-lg p-1 mb-7 border border-ink-100 dark:border-ink-200">
+          <div className="inline-flex bg-cream-100 dark:bg-ink-800 rounded-lg p-1 mb-7 border border-ink-100 dark:border-ink-700">
             <button
               onClick={() => { setMode('login'); setError(null); }}
               className={`px-5 py-1.5 text-sm rounded-md font-semibold transition-all ${
                 mode === 'login'
-                  ? 'bg-white dark:bg-ink-200 text-ink-700 dark:text-ink-700 shadow-sm'
+                  ? 'bg-white dark:bg-ink-700 text-ink-700 dark:text-ink-100 shadow-sm'
                   : 'text-ink-400 hover:text-ink-600'
               }`}
             >
@@ -223,7 +223,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
               onClick={() => { setMode('register'); setError(null); }}
               className={`px-5 py-1.5 text-sm rounded-md font-semibold transition-all ${
                 mode === 'register'
-                  ? 'bg-white dark:bg-ink-200 text-ink-700 dark:text-ink-700 shadow-sm'
+                  ? 'bg-white dark:bg-ink-700 text-ink-700 dark:text-ink-100 shadow-sm'
                   : 'text-ink-400 hover:text-ink-600'
               }`}
             >
@@ -238,7 +238,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-700 placeholder-ink-300"
+                className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-100 placeholder-ink-300"
                 placeholder="pick anything you'll remember"
               />
             </div>
@@ -249,7 +249,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-700 placeholder-ink-300"
+                className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-100 placeholder-ink-300"
                 placeholder="••••••••"
                 onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
               />
@@ -263,7 +263,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-700 placeholder-ink-300"
+                    className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-100 placeholder-ink-300"
                     placeholder="What should we call you?"
                   />
                 </div>
@@ -275,13 +275,13 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                       const isOpen = openFolder === folder.id;
                       const hasSelected = folder.grades.includes(grade);
                       return (
-                        <div key={folder.id} className={`rounded-lg border overflow-hidden transition-all ${hasSelected ? 'border-moss-300' : 'border-ink-100 dark:border-ink-200'}`}>
+                        <div key={folder.id} className={`rounded-lg border overflow-hidden transition-all ${hasSelected ? 'border-moss-300' : 'border-ink-100 dark:border-ink-700'}`}>
                           <button
                             onClick={() => setOpenFolder(isOpen ? null : folder.id)}
                             className={`w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-medium transition-colors ${
                               hasSelected
                                 ? 'bg-moss-50 dark:bg-moss-light text-moss-600 dark:text-moss-300'
-                                : 'bg-cream-50 dark:bg-ink-100 text-ink-500 dark:text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-200'
+                                : 'bg-cream-50 dark:bg-ink-800 text-ink-500 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700'
                             }`}
                           >
                             <span className="flex items-center gap-2">
@@ -292,7 +292,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                             <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                           </button>
                           {isOpen && (
-                            <div className="flex flex-col gap-1 p-2 bg-cream-50 dark:bg-ink-100">
+                            <div className="flex flex-col gap-1 p-2 bg-cream-50 dark:bg-ink-800">
                               {folder.grades.map((g) => (
                                 <button
                                   key={g}
@@ -300,7 +300,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                                   className={`w-full text-left px-3 py-1.5 rounded text-xs font-medium transition-all flex items-center justify-between ${
                                     grade === g
                                       ? 'bg-moss-500 text-white'
-                                      : 'text-ink-500 dark:text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-200'
+                                      : 'text-ink-500 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700'
                                   }`}
                                 >
                                   {translations.grades[g]}
@@ -356,7 +356,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                 streakDays: 0,
                 progressMap: {},
               })}
-              className="w-full text-center text-sm text-ink-300 dark:text-ink-400 hover:text-ink-500 dark:hover:text-ink-600 transition-colors font-medium py-2"
+              className="w-full text-center text-sm text-ink-300 dark:text-ink-400 hover:text-ink-500 dark:hover:text-ink-200 transition-colors font-medium py-2"
             >
               or just look around →
             </button>

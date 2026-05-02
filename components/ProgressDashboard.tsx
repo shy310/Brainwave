@@ -98,7 +98,7 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
     <div className="max-w-5xl mx-auto px-6 py-8 view-enter space-y-6">
       {/* Header */}
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-ink-700 dark:text-ink-700 mb-6">{translations.progress}</h1>
+        <h1 className="text-2xl font-bold text-ink-700 dark:text-ink-100 mb-6">{translations.progress}</h1>
         <p className="text-ink-400 dark:text-ink-400 font-medium">{translations.overallMastery}: {overallMastery}%</p>
       </header>
 
@@ -110,7 +110,7 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
           { label: translations.overallMastery, value: `${overallMastery}%`, icon: <Target size={20} className="text-moss-500" />, color: 'bg-moss-50 dark:bg-moss-light/20' },
           { label: translations.topics, value: Object.keys(progressMap).length, icon: <BookOpen size={20} className="text-purple-500" />, color: 'bg-purple-50 dark:bg-purple-900/20' },
         ].map(({ label, value, icon, color }) => (
-          <div key={label} className="bg-white dark:bg-ink-100 rounded-2xl p-5 border border-ink-100 dark:border-ink-200 shadow-sm">
+          <div key={label} className="bg-white dark:bg-ink-800 rounded-2xl p-5 border border-ink-100 dark:border-ink-700 shadow-sm">
             <div className="mb-3">{icon}</div>
             <div className="text-3xl font-bold text-ink-700 dark:text-white">{value}</div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-ink-400 mb-3 mt-1">{label}</div>
@@ -120,7 +120,7 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
 
       {!hasAnyProgress ? (
         <div className="text-center py-20 space-y-4">
-          <TrendingUp size={64} className="text-ink-600 dark:text-ink-500 mx-auto" />
+          <TrendingUp size={64} className="text-ink-600 dark:text-ink-400 mx-auto" />
           <h2 className="text-2xl font-bold text-ink-400 dark:text-ink-400">{translations.readyToLearn}</h2>
           <p className="text-ink-400">{translations.exploreLibrary}</p>
         </div>
@@ -129,8 +129,8 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
           {/* Charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Radar */}
-            <div className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 shadow-sm mb-4">
-              <h2 className="text-base font-semibold text-ink-700 dark:text-ink-700 mb-4">{translations.subjectsList[Subject.MATH].replace('Mathematics', translations.subjects)}</h2>
+            <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 p-6 shadow-sm mb-4">
+              <h2 className="text-base font-semibold text-ink-700 dark:text-ink-100 mb-4">{translations.subjectsList[Subject.MATH].replace('Mathematics', translations.subjects)}</h2>
               <ResponsiveContainer width="100%" height={280}>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke="#e5e7eb" />
@@ -148,8 +148,8 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
             </div>
 
             {/* Bar chart */}
-            <div className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 shadow-sm mb-4">
-              <h2 className="text-base font-semibold text-ink-700 dark:text-ink-700 mb-4">{translations.mastery} %</h2>
+            <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 p-6 shadow-sm mb-4">
+              <h2 className="text-base font-semibold text-ink-700 dark:text-ink-100 mb-4">{translations.mastery} %</h2>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={barData} barSize={32}>
                   <XAxis dataKey="name" tick={{ fontSize: 11, fontWeight: 700, fill: '#6b7280' }} axisLine={false} tickLine={false} />
@@ -172,20 +172,20 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Weak areas */}
             {weakTopics.length > 0 && (
-              <div className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 shadow-sm mb-4">
+              <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 p-6 shadow-sm mb-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-semibold text-ink-700 dark:text-ink-700">{translations.weakAreas}</h2>
+                  <h2 className="text-base font-semibold text-ink-700 dark:text-ink-100">{translations.weakAreas}</h2>
                   <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-ink-400">{translations.reviewWeakness}</span>
                 </div>
                 <ul className="space-y-2">
                   {weakTopics.map(topic => (
-                    <li key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 dark:hover:bg-ink-100/60 transition-colors">
+                    <li key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 dark:hover:bg-ink-800/60 transition-colors">
                       <div className="flex-1">
                         <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium text-ink-500 dark:text-ink-300 flex-1 truncate">{topic.topicTitle}</span>
+                          <span className="text-sm font-medium text-ink-500 dark:text-ink-400 flex-1 truncate">{topic.topicTitle}</span>
                           <span className="text-xs font-bold text-red-500">{topic.mastery}%</span>
                         </div>
-                        <div className="h-2 rounded-full bg-cream-100 dark:bg-ink-100 overflow-hidden">
+                        <div className="h-2 rounded-full bg-cream-100 dark:bg-ink-800 overflow-hidden">
                           <div className="h-full bg-red-400 rounded-full transition-all" style={{ width: `${topic.mastery}%` }}></div>
                         </div>
                       </div>
@@ -204,17 +204,17 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
 
             {/* Strong areas */}
             {strongTopics.length > 0 && (
-              <div className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 shadow-sm mb-4">
-                <h2 className="text-base font-semibold text-ink-700 dark:text-ink-700 mb-4">{translations.strongAreas}</h2>
+              <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 p-6 shadow-sm mb-4">
+                <h2 className="text-base font-semibold text-ink-700 dark:text-ink-100 mb-4">{translations.strongAreas}</h2>
                 <ul className="space-y-2">
                   {strongTopics.map(topic => (
-                    <li key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 dark:hover:bg-ink-100/60 transition-colors">
+                    <li key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 dark:hover:bg-ink-800/60 transition-colors">
                       <div className="flex-1">
                         <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium text-ink-500 dark:text-ink-300 flex-1 truncate">{topic.topicTitle}</span>
+                          <span className="text-sm font-medium text-ink-500 dark:text-ink-400 flex-1 truncate">{topic.topicTitle}</span>
                           <span className="text-xs font-bold text-green-500">{topic.mastery}%</span>
                         </div>
-                        <div className="h-2 rounded-full bg-cream-100 dark:bg-ink-100 overflow-hidden">
+                        <div className="h-2 rounded-full bg-cream-100 dark:bg-ink-800 overflow-hidden">
                           <div className="h-full bg-green-400 rounded-full transition-all" style={{ width: `${topic.mastery}%` }}></div>
                         </div>
                       </div>
@@ -226,8 +226,8 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
           </div>
 
           {/* Subject detail table */}
-          <div className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 shadow-sm mb-4">
-            <h2 className="text-base font-semibold text-ink-700 dark:text-ink-700 mb-4">{translations.subjects}</h2>
+          <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 p-6 shadow-sm mb-4">
+            <h2 className="text-base font-semibold text-ink-700 dark:text-ink-100 mb-4">{translations.subjects}</h2>
             <div className="space-y-4">
               {subjectMastery.map(({ subject, mastery, attempted, total }) => {
                 const subjectData = SUBJECTS_DATA.find(s => s.id === subject);
@@ -238,17 +238,17 @@ const ProgressDashboard: React.FC<Props> = ({ user, translations, language, onSt
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between mb-1.5">
-                        <span className="font-bold text-ink-600 dark:text-ink-600 text-sm">{translations.subjectsList[subject]}</span>
+                        <span className="font-bold text-ink-600 dark:text-ink-400 text-sm">{translations.subjectsList[subject]}</span>
                         <span className="text-xs text-ink-400 font-bold">{attempted}/{total} {translations.topics}</span>
                       </div>
-                      <div className="h-2 rounded-full bg-cream-100 dark:bg-ink-100 overflow-hidden">
+                      <div className="h-2 rounded-full bg-cream-100 dark:bg-ink-800 overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-700"
                           style={{ width: `${mastery}%`, backgroundColor: SUBJECT_COLORS[subject] }}
                         ></div>
                       </div>
                     </div>
-                    <span className="text-lg font-bold text-ink-500 dark:text-ink-300 w-14 text-end">{mastery}%</span>
+                    <span className="text-lg font-bold text-ink-500 dark:text-ink-400 w-14 text-end">{mastery}%</span>
                     <button
                       onClick={() => onStartPractice(subject, null, translations.subjectsList[subject])}
                       className="p-2 rounded-lg bg-moss-50 dark:bg-moss-light/20 text-moss-600 dark:text-moss-400 hover:bg-moss-100 transition-all duration-150"

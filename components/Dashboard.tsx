@@ -196,7 +196,7 @@ const Dashboard: React.FC<Props> = ({
             {studiedToday ? 'You\'re on a roll today' : 'Today'}
           </span>
         </div>
-        <h1 className="font-display text-[44px] md:text-[64px] leading-[0.95] font-medium text-ink-700 dark:text-ink-700 tracking-tight">
+        <h1 className="font-display text-[44px] md:text-[64px] leading-[0.95] font-medium text-ink-700 dark:text-ink-100 tracking-tight">
           {greeting.greeting}.
         </h1>
         <p className="mt-3 text-lg md:text-xl text-ink-400 dark:text-ink-400 max-w-2xl leading-relaxed">
@@ -208,18 +208,18 @@ const Dashboard: React.FC<Props> = ({
           {user.streakDays > 0 && (
             <span className="inline-flex items-center gap-1.5">
               <Flame size={13} className="text-clay-400" />
-              <span className="font-semibold text-ink-500 dark:text-ink-500">{user.streakDays}-day streak</span>
+              <span className="font-semibold text-ink-500 dark:text-ink-400">{user.streakDays}-day streak</span>
             </span>
           )}
           <span className="inline-flex items-center gap-1.5">
-            <span className="font-semibold text-ink-500 dark:text-ink-500">Level {level}</span>
-            <span className="text-ink-200 dark:text-ink-300">·</span>
+            <span className="font-semibold text-ink-500 dark:text-ink-400">Level {level}</span>
+            <span className="text-ink-200 dark:text-ink-400">·</span>
             <span>{user.totalXp.toLocaleString()} XP</span>
           </span>
           {totalTopicsDone > 0 && (
             <span className="inline-flex items-center gap-1.5">
               <Target size={13} className="text-moss-500" />
-              <span className="font-semibold text-ink-500 dark:text-ink-500">{totalTopicsDone}</span>
+              <span className="font-semibold text-ink-500 dark:text-ink-400">{totalTopicsDone}</span>
               <span>topics mastered</span>
             </span>
           )}
@@ -239,7 +239,7 @@ const Dashboard: React.FC<Props> = ({
                   <PlayCircle size={11} />
                   Pick up where you left off
                 </div>
-                <h2 className="font-display text-2xl md:text-3xl font-semibold text-ink-700 dark:text-ink-700 mb-1.5 leading-tight">
+                <h2 className="font-display text-2xl md:text-3xl font-semibold text-ink-700 dark:text-ink-100 mb-1.5 leading-tight">
                   {continueLearning.topic.title}
                 </h2>
                 <p className="text-sm text-ink-400 dark:text-ink-400">
@@ -264,12 +264,12 @@ const Dashboard: React.FC<Props> = ({
         </section>
       ) : (
         <section className="fade-in stagger-1">
-          <div className="paper-card p-7 md:p-10 bg-cream-100 dark:bg-ink-200 border-cream-200 dark:border-ink-300">
+          <div className="paper-card p-7 md:p-10 bg-cream-100 dark:bg-ink-700 border-cream-200 dark:border-ink-600">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 dark:bg-ink-700/40 text-clay-400 text-xs font-semibold uppercase tracking-wider mb-3">
               <Sparkles size={11} />
               Fresh start
             </div>
-            <h2 className="font-display text-2xl md:text-3xl font-semibold text-ink-700 dark:text-ink-700 mb-2 leading-tight">
+            <h2 className="font-display text-2xl md:text-3xl font-semibold text-ink-700 dark:text-ink-100 mb-2 leading-tight">
               Nothing on your plate yet.
             </h2>
             <p className="text-base text-ink-400 dark:text-ink-400 mb-5">
@@ -281,7 +281,7 @@ const Dashboard: React.FC<Props> = ({
 
       {/* ─── Section 3: Quick options (bento) ─────────────────────────────── */}
       <section className="fade-in stagger-2">
-        <h2 className="font-display text-2xl md:text-3xl font-medium text-ink-700 dark:text-ink-700 mb-1">
+        <h2 className="font-display text-2xl md:text-3xl font-medium text-ink-700 dark:text-ink-100 mb-1">
           What sounds good <em className="font-display italic text-moss-500">today?</em>
         </h2>
         <p className="text-ink-400 dark:text-ink-400 text-sm mb-6">Three ways to spend the next 20 minutes.</p>
@@ -298,7 +298,7 @@ const Dashboard: React.FC<Props> = ({
                   <Coffee size={14} className="text-clay-400" />
                   <span className="text-xs uppercase tracking-wider font-semibold text-clay-400">Worth a closer look</span>
                 </div>
-                <h3 className="font-display text-2xl md:text-[26px] font-semibold text-ink-700 dark:text-ink-700 leading-tight mb-2">
+                <h3 className="font-display text-2xl md:text-[26px] font-semibold text-ink-700 dark:text-ink-100 leading-tight mb-2">
                   Your {translations.subjectsList[recommendedSubject.subject]} could use some love.
                 </h3>
                 <p className="text-sm text-ink-400 dark:text-ink-400">
@@ -315,7 +315,7 @@ const Dashboard: React.FC<Props> = ({
               className="md:col-span-3 paper-card tactile-card p-7 text-left group min-h-[200px]"
             >
               <Sparkles size={20} className="text-moss-500 mb-3" />
-              <h3 className="font-display text-2xl font-semibold text-ink-700 dark:text-ink-700 mb-2">
+              <h3 className="font-display text-2xl font-semibold text-ink-700 dark:text-ink-100 mb-2">
                 Try a quick math warm-up
               </h3>
               <p className="text-sm text-ink-400 dark:text-ink-400">5 minutes. Easy questions to get you in the zone.</p>
@@ -325,14 +325,14 @@ const Dashboard: React.FC<Props> = ({
           {/* Medium card — Quiz */}
           <button
             onClick={() => recommendedSubject && handleSubjectClick(recommendedSubject.subject)}
-            className="md:col-span-3 paper-card tactile-card p-7 text-left group min-h-[200px] flex flex-col justify-between bg-clay-light dark:bg-ink-100 border-clay-100 dark:border-ink-200"
+            className="md:col-span-3 paper-card tactile-card p-7 text-left group min-h-[200px] flex flex-col justify-between bg-clay-light dark:bg-ink-800 border-clay-100 dark:border-ink-700"
           >
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Pencil size={14} className="text-clay-500" />
                 <span className="text-xs uppercase tracking-wider font-semibold text-clay-500">Quick check</span>
               </div>
-              <h3 className="font-display text-2xl md:text-[26px] font-semibold text-ink-700 dark:text-ink-700 leading-tight mb-2">
+              <h3 className="font-display text-2xl md:text-[26px] font-semibold text-ink-700 dark:text-ink-100 leading-tight mb-2">
                 Take a 10-question quiz.
               </h3>
               <p className="text-sm text-ink-400 dark:text-ink-400">
@@ -350,7 +350,7 @@ const Dashboard: React.FC<Props> = ({
       <section className="fade-in stagger-3">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h2 className="font-display text-2xl md:text-3xl font-medium text-ink-700 dark:text-ink-700">
+            <h2 className="font-display text-2xl md:text-3xl font-medium text-ink-700 dark:text-ink-100">
               Or just <em className="font-display italic text-moss-500">browse</em>.
             </h2>
             <p className="text-ink-400 dark:text-ink-400 text-sm mt-1">All subjects, your level.</p>
@@ -384,7 +384,7 @@ const Dashboard: React.FC<Props> = ({
                     </span>
                   )}
                 </div>
-                <h3 className="font-display text-xl font-semibold text-ink-700 dark:text-ink-700 mb-1">
+                <h3 className="font-display text-xl font-semibold text-ink-700 dark:text-ink-100 mb-1">
                   {translations.subjectsList[subject.id]}
                 </h3>
                 <p className={`text-xs ${Char.ink} ${Char.inkDark} opacity-80 mb-4`}>
@@ -416,7 +416,7 @@ const Dashboard: React.FC<Props> = ({
       {/* ─── Section 5: All your active work (if user has multiple courses) ─ */}
       {activeCourses.length > 1 && (
         <section className="fade-in stagger-4">
-          <h2 className="font-display text-2xl md:text-3xl font-medium text-ink-700 dark:text-ink-700 mb-1">
+          <h2 className="font-display text-2xl md:text-3xl font-medium text-ink-700 dark:text-ink-100 mb-1">
             What you're <em className="font-display italic text-moss-500">working on</em>.
           </h2>
           <p className="text-ink-400 dark:text-ink-400 text-sm mb-6">All your in-progress courses.</p>
@@ -433,11 +433,11 @@ const Dashboard: React.FC<Props> = ({
                       <Icon size={17} strokeWidth={1.75} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-ink-700 dark:text-ink-700 text-sm truncate">{course.title}</h3>
+                      <h3 className="font-semibold text-ink-700 dark:text-ink-100 text-sm truncate">{course.title}</h3>
                       <p className="text-xs text-ink-300 dark:text-ink-400">{course.progress}% complete</p>
                     </div>
                   </div>
-                  <div className="h-1 bg-ink-100 dark:bg-ink-200 rounded-full overflow-hidden mb-3">
+                  <div className="h-1 bg-ink-100 dark:bg-ink-700 rounded-full overflow-hidden mb-3">
                     <div className={`h-full rounded-full ${Char.ink.replace('text-', 'bg-')}`} style={{ width: `${course.progress}%` }} />
                   </div>
                   <p className="text-xs text-ink-400 dark:text-ink-400 line-clamp-1 mb-4">
@@ -474,13 +474,13 @@ const Dashboard: React.FC<Props> = ({
       {/* ─── Grade picker modal ───────────────────────────────────────────── */}
       {selectedSubject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-ink-700/40 dark:bg-ink-900/70 backdrop-blur-sm">
-          <div className="bg-cream-50 dark:bg-ink-100 rounded-3xl w-full max-w-2xl shadow-lift overflow-hidden border border-ink-100 dark:border-ink-200 animate-pop">
-            <div className="p-6 border-b border-ink-100 dark:border-ink-200 flex items-center justify-between">
+          <div className="bg-cream-50 dark:bg-ink-800 rounded-3xl w-full max-w-2xl shadow-lift overflow-hidden border border-ink-100 dark:border-ink-700 animate-pop">
+            <div className="p-6 border-b border-ink-100 dark:border-ink-700 flex items-center justify-between">
               <div>
-                <h3 className="font-display text-2xl font-semibold text-ink-700 dark:text-ink-700">Pick your level.</h3>
+                <h3 className="font-display text-2xl font-semibold text-ink-700 dark:text-ink-100">Pick your level.</h3>
                 <p className="text-sm text-ink-400 dark:text-ink-400 mt-1">So we serve the right difficulty.</p>
               </div>
-              <button onClick={() => setSelectedSubject(null)} className="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-200 text-ink-400 transition-colors">
+              <button onClick={() => setSelectedSubject(null)} className="p-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-700 text-ink-400 transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -488,23 +488,23 @@ const Dashboard: React.FC<Props> = ({
               {gradeFolders.map((folder) => {
                 const isOpen = openGradeFolder === folder.id;
                 return (
-                  <div key={folder.id} className="rounded-2xl border border-ink-100 dark:border-ink-200 overflow-hidden">
+                  <div key={folder.id} className="rounded-2xl border border-ink-100 dark:border-ink-700 overflow-hidden">
                     <button
                       onClick={() => setOpenGradeFolder(isOpen ? null : folder.id)}
-                      className="w-full flex items-center justify-between px-5 py-3.5 bg-cream-100 dark:bg-ink-200 hover:bg-cream-200 dark:hover:bg-ink-300/30 transition-colors"
+                      className="w-full flex items-center justify-between px-5 py-3.5 bg-cream-100 dark:bg-ink-700 hover:bg-cream-200 dark:hover:bg-ink-700 transition-colors"
                     >
-                      <span className="font-semibold text-sm text-ink-600 dark:text-ink-600">{folder.emoji} {folder.label}</span>
+                      <span className="font-semibold text-sm text-ink-600 dark:text-ink-400">{folder.emoji} {folder.label}</span>
                       <ChevronDown size={16} className={`text-ink-300 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isOpen && (
-                      <div className="flex flex-col gap-1 p-3 bg-cream-50 dark:bg-ink-100">
+                      <div className="flex flex-col gap-1 p-3 bg-cream-50 dark:bg-ink-800">
                         {folder.grades.map((grade) => (
                           <button
                             key={grade}
                             onClick={() => handleGradeSelect(grade)}
-                            className="w-full text-left px-4 py-2.5 rounded-xl border border-ink-100 dark:border-ink-200 hover:border-moss-300 hover:bg-moss-50 dark:hover:bg-moss-light transition-all flex items-center justify-between group"
+                            className="w-full text-left px-4 py-2.5 rounded-xl border border-ink-100 dark:border-ink-700 hover:border-moss-300 hover:bg-moss-50 dark:hover:bg-moss-light transition-all flex items-center justify-between group"
                           >
-                            <span className="font-medium text-sm text-ink-600 dark:text-ink-600 group-hover:text-moss-600 dark:group-hover:text-moss-300">{translations.grades[grade]}</span>
+                            <span className="font-medium text-sm text-ink-600 dark:text-ink-400 group-hover:text-moss-600 dark:group-hover:text-moss-300">{translations.grades[grade]}</span>
                             <ChevronRight size={14} className="text-ink-200 group-hover:text-moss-500" />
                           </button>
                         ))}

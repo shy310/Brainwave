@@ -426,11 +426,11 @@ const App: React.FC = () => {
   const xpInLevel = appState.user.totalXp % 1000;
 
   return (
-    <div className="flex h-screen bg-cream-50 dark:bg-ink-50 transition-colors duration-300 font-sans overflow-hidden text-ink-700 dark:text-ink-700">
+    <div className="flex h-screen bg-cream-50 dark:bg-ink-900 transition-colors duration-300 font-sans overflow-hidden text-ink-700 dark:text-ink-100">
 
       {/* ── SIDEBAR (slim, light cream — feels like a notebook spine) ─────── */}
       <aside
-        className={`fixed inset-y-0 start-0 z-50 bg-cream-100 dark:bg-ink-100 border-e border-ink-100/50 dark:border-ink-200 flex flex-col transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+        className={`fixed inset-y-0 start-0 z-50 bg-white dark:bg-ink-900 border-e border-ink-100/70 dark:border-ink-800 flex flex-col transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
           ${mobileMenuOpen ? 'translate-x-0' : sidebarHiddenClass}
           ${sidebarCollapsed ? 'md:w-[68px]' : 'md:w-[220px]'}
           md:translate-x-0 w-[240px]`}
@@ -443,17 +443,17 @@ const App: React.FC = () => {
                 <div className="w-7 h-7 rounded-lg bg-moss-500 flex items-center justify-center">
                   <span className="font-display font-bold text-white text-base leading-none">B</span>
                 </div>
-                <span className="font-display font-semibold text-lg tracking-tight text-ink-700 dark:text-ink-700">BrainWave</span>
+                <span className="font-display font-semibold text-lg tracking-tight text-ink-700 dark:text-ink-100">BrainWave</span>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="md:hidden text-ink-300 p-1.5 hover:bg-ink-100 dark:hover:bg-ink-200 rounded-lg transition-colors"
+                className="md:hidden text-ink-300 p-1.5 hover:bg-ink-100 dark:hover:bg-ink-700 rounded-lg transition-colors"
               >
                 <X size={16} />
               </button>
               <button
                 onClick={() => setSidebarCollapsed(true)}
-                className="hidden md:flex text-ink-300 p-1 hover:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-200 rounded transition-colors"
+                className="hidden md:flex text-ink-300 p-1 hover:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-700 rounded transition-colors"
                 title="Collapse"
               >
                 <ChevronLeft size={14} />
@@ -473,7 +473,7 @@ const App: React.FC = () => {
         {/* Navigation */}
         <nav className="flex-1 py-3 overflow-y-auto sidebar-scroll px-3">
           {!sidebarCollapsed && (
-            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-300 dark:text-ink-300 px-3 mb-2 mt-2">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-300 dark:text-ink-400 px-3 mb-2 mt-2">
               Learn
             </div>
           )}
@@ -489,7 +489,7 @@ const App: React.FC = () => {
                     ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2'}
                     ${isActive
                       ? 'bg-moss-500 text-white shadow-moss'
-                      : 'text-ink-500 dark:text-ink-500 hover:bg-cream-200 dark:hover:bg-ink-200 hover:text-ink-700 dark:hover:text-ink-700'
+                      : 'text-ink-500 dark:text-ink-400 hover:bg-cream-200 dark:hover:bg-ink-700 hover:text-ink-700 dark:hover:text-ink-100'
                     }`}
                 >
                   <span className="flex-shrink-0">{icon}</span>
@@ -502,7 +502,7 @@ const App: React.FC = () => {
           {/* Subjects */}
           {!sidebarCollapsed && (
             <>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-300 dark:text-ink-300 px-3 mb-2">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-300 dark:text-ink-400 px-3 mb-2">
                 Subjects
               </div>
               <div className="space-y-0.5 mb-5">
@@ -515,8 +515,8 @@ const App: React.FC = () => {
                       onClick={() => startSubjectPractice(s)}
                       className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 ${
                         isActive
-                          ? 'bg-cream-200 dark:bg-ink-200 text-ink-700 dark:text-ink-700'
-                          : 'text-ink-400 dark:text-ink-400 hover:bg-cream-200 dark:hover:bg-ink-200 hover:text-ink-700 dark:hover:text-ink-700'
+                          ? 'bg-cream-200 dark:bg-ink-700 text-ink-700 dark:text-ink-100'
+                          : 'text-ink-400 dark:text-ink-400 hover:bg-cream-200 dark:hover:bg-ink-700 hover:text-ink-700 dark:hover:text-ink-100'
                       }`}
                     >
                       <Icon size={14} strokeWidth={1.75} />
@@ -530,9 +530,9 @@ const App: React.FC = () => {
 
           {/* Divider */}
           {sidebarCollapsed ? (
-            <div className="h-px bg-ink-100 dark:bg-ink-200 my-3 mx-2" />
+            <div className="h-px bg-ink-100 dark:bg-ink-700 my-3 mx-2" />
           ) : (
-            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-300 dark:text-ink-300 px-3 mb-2">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-300 dark:text-ink-400 px-3 mb-2">
               You
             </div>
           )}
@@ -549,7 +549,7 @@ const App: React.FC = () => {
                     ${sidebarCollapsed ? 'px-2.5 py-2.5 justify-center' : 'px-3 py-2'}
                     ${isActive
                       ? 'bg-moss-500 text-white shadow-moss'
-                      : 'text-ink-500 dark:text-ink-500 hover:bg-cream-200 dark:hover:bg-ink-200 hover:text-ink-700 dark:hover:text-ink-700'
+                      : 'text-ink-500 dark:text-ink-400 hover:bg-cream-200 dark:hover:bg-ink-700 hover:text-ink-700 dark:hover:text-ink-100'
                     }`}
                 >
                   <span className="flex-shrink-0">{icon}</span>
@@ -561,15 +561,15 @@ const App: React.FC = () => {
         </nav>
 
         {/* User card */}
-        <div className={`border-t border-ink-100/60 dark:border-ink-200 py-3 flex-shrink-0 ${sidebarCollapsed ? 'px-2.5' : 'px-3'}`}>
+        <div className={`border-t border-ink-100/60 dark:border-ink-700 py-3 flex-shrink-0 ${sidebarCollapsed ? 'px-2.5' : 'px-3'}`}>
           {!sidebarCollapsed ? (
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-full bg-clay-300 dark:bg-clay-400 text-white font-display text-base font-semibold flex items-center justify-center shrink-0">
                 {appState.user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-ink-700 dark:text-ink-700 truncate leading-tight">{appState.user.name}</div>
-                <div className="text-[11px] text-ink-300 dark:text-ink-300 leading-tight mt-0.5">
+                <div className="text-sm font-semibold text-ink-700 dark:text-ink-100 truncate leading-tight">{appState.user.name}</div>
+                <div className="text-[11px] text-ink-300 dark:text-ink-400 leading-tight mt-0.5">
                   Lv.{level} · {appState.user.totalXp} XP
                 </div>
               </div>
@@ -610,9 +610,9 @@ const App: React.FC = () => {
         ${sidebarCollapsed ? 'md:ms-[68px]' : 'md:ms-[220px]'}`}
       >
         {/* HEADER — minimal, just essentials */}
-        <header className="sticky top-0 h-[56px] bg-cream-50/85 dark:bg-ink-50/85 backdrop-blur-xl border-b border-ink-100/40 dark:border-ink-200/50 z-30 px-5 flex items-center justify-between flex-shrink-0">
+        <header className="sticky top-0 h-[56px] bg-white/85 dark:bg-ink-900/90 backdrop-blur-xl border-b border-ink-100/60 dark:border-ink-800 z-30 px-5 flex items-center justify-between flex-shrink-0">
           {viewLoading && (
-            <div className="absolute bottom-0 start-0 end-0 h-[2px] bg-cream-200 dark:bg-ink-200 overflow-hidden">
+            <div className="absolute bottom-0 start-0 end-0 h-[2px] bg-cream-200 dark:bg-ink-700 overflow-hidden">
               <div className="h-full bg-moss-500 animate-nav-loading rounded-full" />
             </div>
           )}
@@ -622,18 +622,18 @@ const App: React.FC = () => {
                 if (window.innerWidth >= 768) setSidebarCollapsed(c => !c);
                 else setMobileMenuOpen(m => !m);
               }}
-              className="p-2 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-700 hover:bg-cream-100 dark:hover:bg-ink-100 transition-all duration-200"
+              className="p-2 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-100 hover:bg-cream-100 dark:hover:bg-ink-800 transition-all duration-200"
             >
               <Menu size={18} />
             </button>
-            <div className="hidden lg:flex items-center gap-2 bg-cream-100 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-lg px-3 py-1.5 focus-within:border-moss-300 transition-all">
+            <div className="hidden lg:flex items-center gap-2 bg-cream-100 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-lg px-3 py-1.5 focus-within:border-moss-300 transition-all">
               <Search size={14} className="text-ink-300 shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search subjects, topics…"
-                className="bg-transparent border-none text-sm w-56 outline-none text-ink-600 dark:text-ink-600 placeholder-ink-300"
+                className="bg-transparent border-none text-sm w-56 outline-none text-ink-600 dark:text-ink-400 placeholder-ink-300"
               />
             </div>
           </div>
@@ -649,7 +649,7 @@ const App: React.FC = () => {
             {/* Theme toggle */}
             <button
               onClick={() => setAppState(prev => ({ ...prev, theme: prev.theme === 'light' ? 'dark' : 'light' }))}
-              className="p-2 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-700 hover:bg-cream-100 dark:hover:bg-ink-100 transition-all duration-200"
+              className="p-2 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-100 hover:bg-cream-100 dark:hover:bg-ink-800 transition-all duration-200"
               title="Toggle theme"
             >
               {appState.theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
@@ -665,7 +665,7 @@ const App: React.FC = () => {
         </header>
 
         {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide bg-cream-50 dark:bg-ink-50 paper-texture">
+        <div className="flex-1 overflow-y-auto scrollbar-hide bg-cream-50 dark:bg-ink-900 paper-texture">
           <div className="w-full h-full">
 
             {appState.activeView === 'dashboard' && (
@@ -763,7 +763,7 @@ const App: React.FC = () => {
                 <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{t.profile}</h1>
 
                 {/* Avatar + name */}
-                <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 p-8 flex flex-col sm:flex-row items-center gap-6 shadow-card">
+                <div className="bg-white dark:bg-ink-900 rounded-3xl border border-ink-100 dark:border-ink-800 p-8 flex flex-col sm:flex-row items-center gap-6 shadow-paper">
                   <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-moss-500 to-moss-700 flex items-center justify-center text-white text-4xl font-bold shadow-moss ring-4 ring-moss-100 dark:ring-moss-900/30">
                     {appState.user.name.charAt(0).toUpperCase()}
                   </div>
@@ -793,19 +793,19 @@ const App: React.FC = () => {
                 </div>
 
                 {/* XP progress */}
-                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-card">
+                <div className="bg-white dark:bg-ink-900 rounded-2xl border border-ink-100 dark:border-ink-800 p-6 shadow-paper">
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Progress to Level {level + 1}</span>
                     <span className="text-xs font-bold text-moss-600">{xpInLevel} / 1000 XP</span>
                   </div>
-                  <div className="h-3 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-3 bg-cream-100 dark:bg-ink-800 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-moss-500 to-moss-700 rounded-full transition-all duration-1000" style={{ width: `${xpInLevel / 10}%` }} />
                   </div>
                 </div>
 
                 {/* Topic mastery */}
                 {Object.keys(appState.user.progressMap || {}).length > 0 && (
-                  <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-card">
+                  <div className="bg-white dark:bg-ink-900 rounded-2xl border border-ink-100 dark:border-ink-800 p-6 shadow-paper">
                     <h3 className="font-bold text-zinc-900 dark:text-white mb-4">{t.mastery} by Topic</h3>
                     <div className="space-y-4">
                       {(Object.values(appState.user.progressMap) as TopicProgress[]).slice(0, 5).map(tp => {
@@ -823,7 +823,7 @@ const App: React.FC = () => {
                               <span className="truncate">{topicTitle}</span>
                               <span className="font-bold text-moss-600">{tp.mastery}%</span>
                             </div>
-                            <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="h-2 bg-cream-100 dark:bg-ink-800 rounded-full overflow-hidden">
                               <div className="h-full bg-gradient-to-r from-moss-500 to-moss-700 rounded-full transition-all" style={{ width: `${tp.mastery}%` }} />
                             </div>
                           </div>
@@ -867,8 +867,8 @@ const App: React.FC = () => {
 
       {/* Logout confirmation */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-900/60 backdrop-blur-md">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 shadow-xl border border-zinc-100 dark:border-zinc-800 max-w-sm w-full mx-4 animate-pop">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink-900/60 backdrop-blur-md">
+          <div className="bg-white dark:bg-ink-900 rounded-3xl p-8 shadow-xl border border-ink-100 dark:border-ink-800 max-w-sm w-full mx-4 animate-pop">
             <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-950/30 mx-auto mb-4">
               <LogOut size={24} className="text-red-500" />
             </div>
@@ -877,7 +877,7 @@ const App: React.FC = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 py-3 rounded-2xl border-2 border-zinc-200 dark:border-zinc-700 text-sm font-semibold text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all"
+                className="flex-1 py-3 rounded-2xl border-2 border-zinc-200 dark:border-ink-700 text-sm font-semibold text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all"
               >
                 Cancel
               </button>

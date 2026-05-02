@@ -104,11 +104,11 @@ const LessonView: React.FC<Props> = ({
         <div className="w-full max-w-sm space-y-4">
           <div className="flex items-center gap-3 mb-2">
             <Logo size={28} showText={false} />
-            <span className="text-base font-bold text-ink-500 dark:text-ink-600">
+            <span className="text-base font-bold text-ink-500 dark:text-ink-400">
               {isUploadMode ? translations.analyzingUpload : translations.generatingLesson}
             </span>
           </div>
-          <div className="w-full h-2.5 bg-cream-100 dark:bg-ink-100 rounded-full overflow-hidden">
+          <div className="w-full h-2.5 bg-cream-100 dark:bg-ink-800 rounded-full overflow-hidden">
             <div className="h-full rounded-full progress-shimmer animate-progress"></div>
           </div>
           <p className="text-xs text-ink-400 font-medium">{translations.connectingToAI}</p>
@@ -127,7 +127,7 @@ const LessonView: React.FC<Props> = ({
           </pre>
         )}
         <div className="flex gap-4 justify-center">
-          <button onClick={onBack} className="px-6 py-3 bg-cream-100 dark:bg-ink-100 rounded-xl font-bold transition-all duration-150">
+          <button onClick={onBack} className="px-6 py-3 bg-cream-100 dark:bg-ink-800 rounded-xl font-bold transition-all duration-150">
             {translations.backToDashboard}
           </button>
         </div>
@@ -143,7 +143,7 @@ const LessonView: React.FC<Props> = ({
         <div className="flex items-center gap-4">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 dark:hover:text-ink-600 transition-colors"
+            className="flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 dark:hover:text-ink-200 transition-colors"
           >
             <ArrowLeft size={18} className="rtl:rotate-180" />
             {translations.backToDashboard}
@@ -162,12 +162,12 @@ const LessonView: React.FC<Props> = ({
             <FileText size={20} className="text-moss-600" />
             <h2 className="font-bold text-moss-700 dark:text-brand-100">{translations.uploadMaterial}</h2>
           </div>
-          <p className="text-ink-500 dark:text-ink-300 leading-relaxed">{uploadAnalysis.summary}</p>
+          <p className="text-ink-500 dark:text-ink-400 leading-relaxed">{uploadAnalysis.summary}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Detected Topics with checkboxes */}
-          <div className="bg-white dark:bg-ink-100 rounded-2xl p-8 border border-ink-100 dark:border-ink-200 shadow-sm border">
+          <div className="bg-white dark:bg-ink-800 rounded-2xl p-8 border border-ink-100 dark:border-ink-700 shadow-sm border">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <Tag size={18} className="text-amber-500" />
@@ -195,7 +195,7 @@ const LessonView: React.FC<Props> = ({
                       <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
                         checked
                           ? 'bg-moss-600 border-moss-600'
-                          : 'border-ink-200 dark:border-ink-300 group-hover:border-moss-400'
+                          : 'border-ink-200 dark:border-ink-600 group-hover:border-moss-400'
                       }`}
                         onClick={() => {
                           setSelectedTopics(prev => {
@@ -210,7 +210,7 @@ const LessonView: React.FC<Props> = ({
                       </div>
                       <span
                         className={`text-sm font-medium transition-colors ${
-                          checked ? 'text-ink-600 dark:text-ink-600' : 'text-ink-400 dark:text-ink-400 line-through'
+                          checked ? 'text-ink-600 dark:text-ink-400' : 'text-ink-400 dark:text-ink-400 line-through'
                         }`}
                         onClick={() => {
                           setSelectedTopics(prev => {
@@ -236,7 +236,7 @@ const LessonView: React.FC<Props> = ({
           </div>
 
           {/* Detected Info */}
-          <div className="bg-white dark:bg-ink-100 rounded-2xl p-8 border border-ink-100 dark:border-ink-200 shadow-sm border">
+          <div className="bg-white dark:bg-ink-800 rounded-2xl p-8 border border-ink-100 dark:border-ink-700 shadow-sm border">
             <div className="flex items-center gap-2 mb-6">
               <GraduationCap size={18} className="text-purple-500" />
               <h3 className="font-bold text-ink-700 dark:text-white">{translations.recommended}</h3>
@@ -244,13 +244,13 @@ const LessonView: React.FC<Props> = ({
             {uploadAnalysis.detectedSubject && (
               <div className="mb-4">
                 <span className="text-xs text-ink-400 uppercase tracking-wider font-bold">{translations.subjects}</span>
-                <p className="font-bold text-ink-600 dark:text-ink-600 mt-1">{uploadAnalysis.detectedSubject}</p>
+                <p className="font-bold text-ink-600 dark:text-ink-400 mt-1">{uploadAnalysis.detectedSubject}</p>
               </div>
             )}
             {uploadAnalysis.detectedGrade && (
               <div className="mb-4">
                 <span className="text-xs text-ink-400 uppercase tracking-wider font-bold">{translations.selectGrade}</span>
-                <p className="font-bold text-ink-600 dark:text-ink-600 mt-1">{uploadAnalysis.detectedGrade}</p>
+                <p className="font-bold text-ink-600 dark:text-ink-400 mt-1">{uploadAnalysis.detectedGrade}</p>
               </div>
             )}
             <div>
@@ -285,7 +285,7 @@ const LessonView: React.FC<Props> = ({
           </button>
           <button
             onClick={onBack}
-            className="flex-1 py-4 bg-cream-100 dark:bg-ink-100 text-ink-500 dark:text-ink-600 rounded-2xl font-bold hover:bg-cream-200 transition-all duration-150"
+            className="flex-1 py-4 bg-cream-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400 rounded-2xl font-bold hover:bg-cream-200 transition-all duration-150"
           >
             {translations.backToDashboard}
           </button>
@@ -306,7 +306,7 @@ const LessonView: React.FC<Props> = ({
       {/* Back button */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 dark:hover:text-ink-600 mb-6 transition-colors"
+        className="flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 dark:hover:text-ink-200 mb-6 transition-colors"
       >
         <ArrowLeft size={16} className="rtl:rotate-180" />
         {translations.backToDashboard}
@@ -337,7 +337,7 @@ const LessonView: React.FC<Props> = ({
                 ? 'bg-moss-500 text-white shadow-moss'
                 : i < activeSection
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-cream-100 dark:bg-ink-100 text-ink-400 dark:text-ink-400'
+                  : 'bg-cream-100 dark:bg-ink-800 text-ink-400 dark:text-ink-400'
             }`}
           >
             {i < activeSection ? <CheckCircle size={14} /> : SECTION_ICONS[sec.type] || <BookOpen size={14} />}
@@ -350,12 +350,12 @@ const LessonView: React.FC<Props> = ({
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-4">
           {currentSection && (
-            <div className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 mb-4 shadow-sm border animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 p-6 mb-4 shadow-sm border animate-in fade-in slide-in-from-bottom-4 duration-300">
               {/* Section type badge */}
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full inline-block mb-3 ${SECTION_BADGE[currentSection.type] || SECTION_BADGE['intro']}`}>
                 {currentSection.type.charAt(0).toUpperCase() + currentSection.type.slice(1)}
               </span>
-              <h2 className="text-lg font-bold text-ink-700 dark:text-ink-700 mb-3">{currentSection.heading}</h2>
+              <h2 className="text-lg font-bold text-ink-700 dark:text-ink-100 mb-3">{currentSection.heading}</h2>
               <div className="prose dark:prose-invert max-w-none">
                 {currentSection.body.split('\n').map((line, i) => {
                   if (!line.trim()) return <br key={i} />;
@@ -397,7 +397,7 @@ const LessonView: React.FC<Props> = ({
             {activeSection > 0 && (
               <button
                 onClick={() => setActiveSection(activeSection - 1)}
-                className="flex-1 py-4 bg-cream-100 dark:bg-ink-100 text-ink-500 dark:text-ink-600 rounded-2xl font-bold hover:bg-cream-200 transition-all duration-150 flex items-center justify-center gap-2"
+                className="flex-1 py-4 bg-cream-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400 rounded-2xl font-bold hover:bg-cream-200 transition-all duration-150 flex items-center justify-center gap-2"
               >
                 <ChevronRight size={20} className="rotate-180 rtl:rotate-0" />
                 {translations.backToLesson}
@@ -423,7 +423,7 @@ const LessonView: React.FC<Props> = ({
 
         {/* Sidebar: Key Points */}
         <div className="space-y-6">
-          <div className="bg-white dark:bg-ink-100 rounded-2xl border border-ink-100 dark:border-ink-200 p-6 shadow-sm border sticky top-6">
+          <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 p-6 shadow-sm border sticky top-6">
             <div className="flex items-center gap-2 mb-4">
               <Lightbulb size={18} className="text-amber-500" />
               <h3 className="font-bold text-ink-700 dark:text-white text-sm uppercase tracking-widest">{translations.keyPoints}</h3>
@@ -433,7 +433,7 @@ const LessonView: React.FC<Props> = ({
             <div className="bg-moss-50 dark:bg-moss-light/20 rounded-xl p-4 border border-moss-100 dark:border-moss-light/40 mt-4">
               <ul className="space-y-2">
                 {(lesson.keyPoints || []).map((point, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-ink-500 dark:text-ink-300 mb-2">
+                  <li key={i} className="flex items-start gap-2 text-sm text-ink-500 dark:text-ink-400 mb-2">
                     <div className="w-5 h-5 rounded-full bg-moss-100 dark:bg-moss-light/40 text-moss-600 dark:text-moss-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                       {i + 1}
                     </div>
@@ -443,7 +443,7 @@ const LessonView: React.FC<Props> = ({
               </ul>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-ink-100 dark:border-ink-200">
+            <div className="mt-6 pt-4 border-t border-ink-100 dark:border-ink-700">
               <button
                 onClick={() => onStartExercises(session.studyContext)}
                 className="w-full py-4 bg-moss-500 hover:bg-moss-600 text-white rounded-2xl font-semibold shadow-moss transition-all duration-150 active:scale-[0.98] mt-6 text-base flex items-center justify-center gap-2"

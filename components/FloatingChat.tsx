@@ -348,7 +348,7 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
 
   // ── OPEN STATE ───────────────────────────────────────────────────────────────
   return (
-    <div className={`fixed bottom-6 right-6 bg-white dark:bg-ink-100 rounded-3xl shadow-2xl border border-ink-100 dark:border-ink-200/80 flex flex-col z-50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] rtl:left-6 rtl:right-auto overflow-hidden animate-pop
+    <div className={`fixed bottom-6 right-6 bg-white dark:bg-ink-800 rounded-3xl shadow-2xl border border-ink-100 dark:border-ink-700/80 flex flex-col z-50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] rtl:left-6 rtl:right-auto overflow-hidden animate-pop
       ${isExpanded ? 'w-[780px] h-[82vh] max-w-[calc(100vw-48px)]' : 'w-96 h-[560px] max-w-[calc(100vw-48px)]'}`}
     >
       {/* ── Header ── */}
@@ -379,14 +379,14 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
       </div>
 
       {/* ── Messages ── */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-cream-50 dark:bg-ink-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-cream-50 dark:bg-ink-900">
         {messages.map((msg) => {
           const isUser = msg.role === 'user';
           return (
             <div key={msg.id} className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : ''}`}>
               <div className={`w-7 h-7 rounded-xl flex-shrink-0 flex items-center justify-center mt-1
                 ${isUser
-                  ? 'bg-cream-200 dark:bg-zinc-700 text-ink-500 dark:text-ink-300'
+                  ? 'bg-cream-200 dark:bg-ink-700 text-ink-500 dark:text-ink-400'
                   : 'bg-moss-100 dark:bg-moss-light/40 text-moss-600 dark:text-moss-400'
                 }`}
               >
@@ -396,7 +396,7 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
               <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm
                 ${isUser
                   ? 'bg-moss-600 text-white rounded-tr-sm'
-                  : 'bg-white dark:bg-ink-100 text-ink-600 dark:text-ink-700 border border-ink-100 dark:border-ink-200 shadow-sm rounded-tl-sm'
+                  : 'bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-100 border border-ink-100 dark:border-ink-700 shadow-sm rounded-tl-sm'
                 }`}
               >
                 <MarkdownMessage text={msg.text || '…'} isUser={isUser} />
@@ -422,7 +422,7 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
             <div className="w-7 h-7 rounded-xl flex-shrink-0 flex items-center justify-center bg-moss-100 dark:bg-moss-light/40 text-moss-600 dark:text-moss-400">
               <Brain size={13} />
             </div>
-            <div className="bg-white dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+            <div className="bg-white dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
               <div className="flex gap-1 items-center h-4">
                 <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -436,9 +436,9 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
       </div>
 
       {/* ── Input ── */}
-      <div className="p-3 bg-white dark:bg-ink-100 border-t border-ink-100 dark:border-ink-200 flex-shrink-0">
+      <div className="p-3 bg-white dark:bg-ink-800 border-t border-ink-100 dark:border-ink-700 flex-shrink-0">
 
-        <div className="flex items-end gap-2 bg-cream-50 dark:bg-ink-100 border border-ink-100 dark:border-ink-200 rounded-2xl px-3 py-2">
+        <div className="flex items-end gap-2 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-2xl px-3 py-2">
           <FileUpload onAttach={setAttachments} translations={translations} />
           <textarea
             ref={textareaRef}
@@ -446,7 +446,7 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
             onChange={handleInputChange}
             placeholder={currentCfg.placeholder}
             rows={1}
-            className="flex-1 bg-transparent border-none resize-none focus:ring-0 outline-none py-1.5 text-sm text-ink-700 dark:text-ink-700 placeholder-zinc-400"
+            className="flex-1 bg-transparent border-none resize-none focus:ring-0 outline-none py-1.5 text-sm text-ink-700 dark:text-ink-100 placeholder-zinc-400"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
             }}

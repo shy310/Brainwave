@@ -91,7 +91,7 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
   };
 
   return (
-    <div className="h-full flex flex-col bg-cream-50 dark:bg-ink-50 overflow-y-auto scrollbar-hide view-enter">
+    <div className="h-full flex flex-col bg-cream-50 dark:bg-ink-900 overflow-y-auto scrollbar-hide view-enter">
       <div className="max-w-[1200px] mx-auto w-full p-8 md:p-16 space-y-12">
         
         {/* Header */}
@@ -117,10 +117,10 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`bg-white dark:bg-ink-100 rounded-[2.5rem] border-4 border-dashed p-12 flex flex-col items-center text-center space-y-6 transition-all group relative cursor-pointer ${
+                    className={`bg-white dark:bg-ink-800 rounded-[2.5rem] border-4 border-dashed p-12 flex flex-col items-center text-center space-y-6 transition-all group relative cursor-pointer ${
                         isDragging 
                         ? 'border-moss-500 bg-moss-50/50 dark:bg-moss-light/20' 
-                        : 'border-ink-100 dark:border-ink-200 hover:border-moss-300 dark:hover:border-moss-light'
+                        : 'border-ink-100 dark:border-ink-700 hover:border-moss-300 dark:hover:border-moss-light'
                     }`}
                 >
                     <div className={`w-24 h-24 rounded-[2rem] flex items-center justify-center transition-transform group-hover:scale-110 ${
@@ -156,9 +156,9 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
                         <h4 className="text-xs font-black text-ink-400 uppercase tracking-[0.2em] px-2">{translations.uploadedDocs} ({attachments.length})</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {attachments.map((file, idx) => (
-                                <div key={idx} className="bg-white dark:bg-ink-100 p-4 rounded-2xl border border-ink-100 dark:border-ink-200 flex items-center justify-between group">
+                                <div key={idx} className="bg-white dark:bg-ink-800 p-4 rounded-2xl border border-ink-100 dark:border-ink-700 flex items-center justify-between group">
                                     <div className="flex items-center gap-3 min-w-0">
-                                        <div className="w-10 h-10 bg-cream-50 dark:bg-ink-100 rounded-xl flex items-center justify-center text-moss-600">
+                                        <div className="w-10 h-10 bg-cream-50 dark:bg-ink-800 rounded-xl flex items-center justify-center text-moss-600">
                                             <FileText size={20} />
                                         </div>
                                         <div className="min-w-0">
@@ -181,7 +181,7 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
 
             {/* Right Column: Subject & Start */}
             <div className="lg:col-span-5 space-y-8">
-                <div className="bg-white dark:bg-ink-100 rounded-[2.5rem] p-10 border border-ink-100 dark:border-ink-200 shadow-xl space-y-8">
+                <div className="bg-white dark:bg-ink-800 rounded-[2.5rem] p-10 border border-ink-100 dark:border-ink-700 shadow-xl space-y-8">
                     <div className="space-y-2">
                         <h3 className="text-xl font-black text-ink-700 dark:text-white">{translations.selectSubject}</h3>
                         <p className="text-sm text-ink-400">{translations.domainChoiceDesc}</p>
@@ -192,7 +192,7 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
                             <button 
                                 key={s}
                                 onClick={() => setSelectedSubject(s)}
-                                className={`p-4 rounded-2xl border-2 text-sm font-black transition-all text-center ${selectedSubject === s ? 'border-moss-600 bg-moss-50 dark:bg-moss-light/30 text-moss-700 dark:text-moss-400' : 'border-cream-50 dark:border-ink-200 text-ink-400 hover:border-moss-100 dark:hover:border-moss-light'}`}
+                                className={`p-4 rounded-2xl border-2 text-sm font-black transition-all text-center ${selectedSubject === s ? 'border-moss-600 bg-moss-50 dark:bg-moss-light/30 text-moss-700 dark:text-moss-400' : 'border-cream-50 dark:border-ink-700 text-ink-400 hover:border-moss-100 dark:hover:border-moss-light'}`}
                             >
                                 {translations.subjectsList[s]}
                             </button>
