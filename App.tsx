@@ -29,6 +29,49 @@ import {
 const SESSION_KEY = 'brainwave_session_v2';
 const USERS_DB_KEY = 'brainwave_users_db';
 
+// Tiny translation map for App.tsx strings (logout modal, level-up toast, profile section)
+type AppLangKey = 'en' | 'ru' | 'he' | 'ar';
+const APP_COPY: Record<AppLangKey, {
+  signOutTitle: string; signOutDesc: string; cancel: string;
+  levelReached: (n: number) => string;
+  progressToLevel: (n: number) => string;
+  masteryByTopic: string;
+}> = {
+  en: {
+    signOutTitle: 'Sign out?',
+    signOutDesc: 'Your progress is saved. You can sign back in anytime.',
+    cancel: 'Cancel',
+    levelReached: (n) => `Level ${n} reached!`,
+    progressToLevel: (n) => `Progress to Level ${n}`,
+    masteryByTopic: 'Mastery by Topic',
+  },
+  ru: {
+    signOutTitle: 'Выйти?',
+    signOutDesc: 'Прогресс сохранён. Можешь вернуться когда угодно.',
+    cancel: 'Отмена',
+    levelReached: (n) => `Достигнут уровень ${n}!`,
+    progressToLevel: (n) => `Прогресс до уровня ${n}`,
+    masteryByTopic: 'Освоение по темам',
+  },
+  he: {
+    signOutTitle: 'להתנתק?',
+    signOutDesc: 'ההתקדמות שלך שמורה. תמיד אפשר לחזור.',
+    cancel: 'ביטול',
+    levelReached: (n) => `הגעת לשלב ${n}!`,
+    progressToLevel: (n) => `התקדמות לשלב ${n}`,
+    masteryByTopic: 'שליטה לפי נושא',
+  },
+  ar: {
+    signOutTitle: 'تسجيل الخروج؟',
+    signOutDesc: 'تقدمك محفوظ. يمكنك العودة في أي وقت.',
+    cancel: 'إلغاء',
+    levelReached: (n) => `وصلت إلى المستوى ${n}!`,
+    progressToLevel: (n) => `التقدم إلى المستوى ${n}`,
+    masteryByTopic: 'الإتقان حسب الموضوع',
+  },
+};
+const getAppCopy = (lang: string) => APP_COPY[(APP_COPY[lang as AppLangKey] ? lang : 'en') as AppLangKey];
+
 const GRADE_ORDINAL: Partial<Record<GradeLevel, number>> = {
   [GradeLevel.KINDER]: 0,
   [GradeLevel.GRADE_1]: 1,   [GradeLevel.GRADE_2]: 2,   [GradeLevel.GRADE_3]: 3,
@@ -396,6 +439,7 @@ const App: React.FC = () => {
   }, [appState.user.gradeLevel, handleUploadAnalysis, handleStartExercises]);
 
   const t = TRANSLATIONS[appState.language];
+  const ac = getAppCopy(appState.language);
   const isRtl = appState.language === 'he' || appState.language === 'ar';
   const sidebarHiddenClass = isRtl ? 'translate-x-full' : '-translate-x-full';
 
@@ -535,7 +579,7 @@ const App: React.FC = () => {
                     onClick={() => setShowLogoutConfirm(true)}
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-clay-500 hover:bg-clay-light/50 dark:hover:bg-clay-light transition-colors"
                   >
-                    <LogOut size={18} /> Sign out
+                    <LogOut size={18} /> {t.signOut}
                   </button>
                 </div>
               </div>
@@ -894,7 +938,7 @@ const App: React.FC = () => {
                 {/* XP progress */}
                 <div className="bg-white dark:bg-ink-900 rounded-2xl border border-ink-100 dark:border-ink-800 p-6 shadow-paper">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Progress to Level {level + 1}</span>
+                    <span className="text-sm font-semibold text-ink-600 dark:text-ink-200">{ac.progressToLevel(level + 1)}</span>
                     <span className="text-xs font-bold text-moss-600">{xpInLevel} / 1000 XP</span>
                   </div>
                   <div className="h-3 bg-cream-100 dark:bg-ink-800 rounded-full overflow-hidden">
@@ -905,7 +949,7 @@ const App: React.FC = () => {
                 {/* Topic mastery */}
                 {Object.keys(appState.user.progressMap || {}).length > 0 && (
                   <div className="bg-white dark:bg-ink-900 rounded-2xl border border-ink-100 dark:border-ink-800 p-6 shadow-paper">
-                    <h3 className="font-bold text-zinc-900 dark:text-white mb-4">{t.mastery} by Topic</h3>
+                    <h3 className="font-bold text-ink-700 dark:text-ink-100 mb-4">{ac.masteryByTopic}</h3>
                     <div className="space-y-4">
                       {(Object.values(appState.user.progressMap) as TopicProgress[]).slice(0, 5).map(tp => {
                         let topicTitle = tp.topicId;
@@ -971,14 +1015,14 @@ const App: React.FC = () => {
             <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-950/30 mx-auto mb-4">
               <LogOut size={24} className="text-red-500" />
             </div>
-            <h3 className="text-xl font-bold text-center text-zinc-900 dark:text-white mb-2">Sign out?</h3>
-            <p className="text-sm text-center text-zinc-500 dark:text-zinc-400 mb-6">Your progress is saved. You can sign back in anytime.</p>
+            <h3 className="text-xl font-bold text-center text-ink-700 dark:text-ink-100 mb-2">{ac.signOutTitle}</h3>
+            <p className="text-sm text-center text-ink-400 dark:text-ink-300 mb-6">{ac.signOutDesc}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 py-3 rounded-2xl border-2 border-zinc-200 dark:border-ink-700 text-sm font-semibold text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all"
+                className="flex-1 py-3 rounded-2xl border-2 border-ink-100 dark:border-ink-700 text-sm font-semibold text-ink-500 dark:text-ink-300 hover:border-ink-200 dark:hover:border-ink-600 transition-all"
               >
-                Cancel
+                {ac.cancel}
               </button>
               <button
                 onClick={handleLogout}
@@ -996,7 +1040,7 @@ const App: React.FC = () => {
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-toast-in">
           <div className="flex items-center gap-3 bg-gradient-to-r from-moss-500 to-moss-700 text-white px-6 py-3.5 rounded-2xl shadow-2xl shadow-moss-500/30 font-bold border border-white/20">
             <Trophy size={18} />
-            <span>Level {levelUpToast} reached!</span>
+            <span>{ac.levelReached(levelUpToast)}</span>
             <Star size={14} className="fill-white" />
           </div>
         </div>

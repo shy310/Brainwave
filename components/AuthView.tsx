@@ -17,13 +17,155 @@ interface Props {
   onLanguageChange: (lang: Language) => void;
 }
 
-const TESTIMONIALS = [
-  { text: "Finally, a study app that doesn't feel like homework.", who: 'Maya · 11th grade' },
-  { text: "I actually understand quadratic equations now.", who: 'Daniel · 9th grade' },
-  { text: "The AI tutor explains things how my teacher should.", who: 'Aria · 10th grade' },
-];
+type AuthLangKey = 'en' | 'ru' | 'he' | 'ar';
+
+const AUTH_COPY: Record<AuthLangKey, {
+  testimonials: { text: string; who: string }[];
+  tagline: string;
+  headline1: string;
+  headline2: string;
+  headlineEm: string;
+  subhead: string;
+  marks: string[];
+  welcomeBack: string;
+  letsSetUp: string;
+  pickUp: string;
+  takesSeconds: string;
+  signIn: string;
+  signUp: string;
+  username: string;
+  password: string;
+  firstName: string;
+  optional: string;
+  gradeLabel: string;
+  usernamePlaceholder: string;
+  namePlaceholder: string;
+  letsGo: string;
+  createAccount: string;
+  lookAround: string;
+  errFill: string;
+  errMatch: string;
+  errTaken: string;
+  errBroken: string;
+  kinder: string; elementary: string; middle: string; high: string; college: string;
+}> = {
+  en: {
+    testimonials: [
+      { text: "Finally, a study app that doesn't feel like homework.", who: 'Maya · 11th grade' },
+      { text: 'I actually understand quadratic equations now.', who: 'Daniel · 9th grade' },
+      { text: 'The AI tutor explains things how my teacher should.', who: 'Aria · 10th grade' },
+    ],
+    tagline: 'For students, by people who get it',
+    headline1: 'Study like', headline2: 'you actually', headlineEm: 'care',
+    subhead: 'An AI tutor that explains things until they click. Quizzes that adapt. Lessons made for the way you actually think.',
+    marks: ['K through college', '4 languages', 'No ads, ever'],
+    welcomeBack: 'Welcome back.',
+    letsSetUp: "Let's get you set up.",
+    pickUp: 'Pick up right where you left off.',
+    takesSeconds: 'Takes about 30 seconds. No email needed.',
+    signIn: 'Sign in', signUp: 'Sign up',
+    username: 'Username', password: 'Password',
+    firstName: 'Your first name', optional: '(optional)',
+    gradeLabel: 'What grade are you in?',
+    usernamePlaceholder: "pick anything you'll remember",
+    namePlaceholder: 'What should we call you?',
+    letsGo: "Let's go", createAccount: 'Create account',
+    lookAround: 'or just look around →',
+    errFill: 'Hold up — fill in both fields.',
+    errMatch: "That doesn't match. Try again?",
+    errTaken: 'Username taken. Try a different one.',
+    errBroken: 'Something broke. Try again in a sec.',
+    kinder: 'Kindergarten', elementary: 'Elementary', middle: 'Middle school', high: 'High school', college: 'College',
+  },
+  ru: {
+    testimonials: [
+      { text: 'Наконец-то приложение для учёбы, которое не похоже на домашку.', who: 'Майя · 11 класс' },
+      { text: 'Я наконец-то понимаю квадратные уравнения.', who: 'Даниил · 9 класс' },
+      { text: 'Этот ИИ-репетитор объясняет так, как должен учитель.', who: 'Ария · 10 класс' },
+    ],
+    tagline: 'Для учеников, от тех, кто понимает',
+    headline1: 'Учись так,', headline2: 'будто тебе и правда', headlineEm: 'не всё равно',
+    subhead: 'ИИ-репетитор, который объясняет, пока не дойдёт. Тесты, которые подстраиваются. Уроки под то, как ты на самом деле думаешь.',
+    marks: ['От садика до колледжа', '4 языка', 'Никакой рекламы'],
+    welcomeBack: 'С возвращением.',
+    letsSetUp: 'Давай тебя оформим.',
+    pickUp: 'Продолжи с того места, где остановился.',
+    takesSeconds: 'Займёт около 30 секунд. Email не нужен.',
+    signIn: 'Войти', signUp: 'Регистрация',
+    username: 'Имя пользователя', password: 'Пароль',
+    firstName: 'Твоё имя', optional: '(не обязательно)',
+    gradeLabel: 'В каком ты классе?',
+    usernamePlaceholder: 'выбери любое, которое запомнишь',
+    namePlaceholder: 'Как тебя называть?',
+    letsGo: 'Поехали', createAccount: 'Создать аккаунт',
+    lookAround: 'или просто осмотрись →',
+    errFill: 'Стоп — заполни оба поля.',
+    errMatch: 'Не совпадает. Попробуешь ещё раз?',
+    errTaken: 'Имя занято. Выбери другое.',
+    errBroken: 'Что-то сломалось. Попробуй через секунду.',
+    kinder: 'Детский сад', elementary: 'Начальная школа', middle: 'Средняя школа', high: 'Старшая школа', college: 'Колледж',
+  },
+  he: {
+    testimonials: [
+      { text: 'סוף סוף אפליקציה ללימודים שלא מרגישה כמו שיעורי בית.', who: 'מיה · כיתה י״א' },
+      { text: 'אני באמת מבין משוואות ריבועיות עכשיו.', who: 'דניאל · כיתה ט׳' },
+      { text: 'המורה הדיגיטלי מסביר דברים כמו שהמורה שלי צריך.', who: 'אריה · כיתה י׳' },
+    ],
+    tagline: 'לתלמידים, מאנשים שמבינים',
+    headline1: 'תלמדו כאילו', headline2: 'באמת', headlineEm: 'אכפת לכם',
+    subhead: 'מורה AI שמסביר דברים עד שהם נופלים לראש. חידונים שמתאימים את עצמם. שיעורים שעובדים עם איך שאתם באמת חושבים.',
+    marks: ['מגן ועד קולג׳', '4 שפות', 'בלי פרסומות, אף פעם'],
+    welcomeBack: 'ברוך שובך.',
+    letsSetUp: 'בוא נסדר אותך.',
+    pickUp: 'תמשיך בדיוק מאיפה שעצרת.',
+    takesSeconds: 'לוקח בערך 30 שניות. לא צריך אימייל.',
+    signIn: 'התחבר', signUp: 'הרשמה',
+    username: 'שם משתמש', password: 'סיסמה',
+    firstName: 'השם הפרטי שלך', optional: '(לא חובה)',
+    gradeLabel: 'באיזו כיתה אתה?',
+    usernamePlaceholder: 'בחר משהו שתזכור',
+    namePlaceholder: 'איך לקרוא לך?',
+    letsGo: 'יאללה', createAccount: 'יצירת חשבון',
+    lookAround: 'או פשוט תסתובב לראות ←',
+    errFill: 'רגע — מלא את שני השדות.',
+    errMatch: 'לא תואם. ננסה שוב?',
+    errTaken: 'שם משתמש תפוס. בחר אחר.',
+    errBroken: 'משהו נשבר. נסה שוב בעוד שנייה.',
+    kinder: 'גן', elementary: 'יסודי', middle: 'חטיבת ביניים', high: 'תיכון', college: 'קולג׳',
+  },
+  ar: {
+    testimonials: [
+      { text: 'أخيراً تطبيق دراسة لا يشعر مثل الواجبات المنزلية.', who: 'مايا · الصف ١١' },
+      { text: 'صرت أفهم المعادلات التربيعية فعلاً.', who: 'دانيال · الصف ٩' },
+      { text: 'المعلم الذكي يشرح الأشياء كما يجب على معلمي أن يشرحها.', who: 'آريا · الصف ١٠' },
+    ],
+    tagline: 'للطلاب، من أناس يفهمونهم',
+    headline1: 'ادرس كأنك', headline2: 'فعلاً', headlineEm: 'مهتم',
+    subhead: 'معلم ذكي يشرح الأشياء حتى تفهمها. اختبارات تتكيف معك. دروس مصممة لطريقة تفكيرك.',
+    marks: ['من الروضة إلى الجامعة', '٤ لغات', 'بدون إعلانات أبداً'],
+    welcomeBack: 'مرحباً بعودتك.',
+    letsSetUp: 'لنجهزك.',
+    pickUp: 'تابع من حيث توقفت بالضبط.',
+    takesSeconds: 'يستغرق حوالي ٣٠ ثانية. بدون بريد إلكتروني.',
+    signIn: 'تسجيل دخول', signUp: 'إنشاء حساب',
+    username: 'اسم المستخدم', password: 'كلمة المرور',
+    firstName: 'اسمك الأول', optional: '(اختياري)',
+    gradeLabel: 'في أي صف أنت؟',
+    usernamePlaceholder: 'اختر أي شيء تتذكره',
+    namePlaceholder: 'بماذا نناديك؟',
+    letsGo: 'هيا بنا', createAccount: 'إنشاء حساب',
+    lookAround: 'أو فقط ألق نظرة ←',
+    errFill: 'لحظة — املأ الحقلين.',
+    errMatch: 'غير متطابق. حاول مرة أخرى؟',
+    errTaken: 'اسم المستخدم مأخوذ. جرب آخر.',
+    errBroken: 'حدث خطأ. حاول بعد ثانية.',
+    kinder: 'الروضة', elementary: 'الابتدائي', middle: 'الإعدادي', high: 'الثانوي', college: 'الجامعة',
+  },
+};
 
 const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onThemeToggle, onLanguageChange }) => {
+  const c = AUTH_COPY[(AUTH_COPY[language as AuthLangKey] ? language : 'en') as AuthLangKey];
+
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -32,14 +174,14 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
   const [openFolder, setOpenFolder] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [testimonialIdx, setTestimonialIdx] = useState(() => Math.floor(Math.random() * TESTIMONIALS.length));
+  const [testimonialIdx] = useState(() => Math.floor(Math.random() * c.testimonials.length));
 
   const gradeFolders = [
-    { id: 'kinder',     emoji: '🎒', label: 'Kindergarten',      grades: [GradeLevel.KINDER] },
-    { id: 'elementary', emoji: '🏫', label: 'Elementary',         grades: [GradeLevel.GRADE_1, GradeLevel.GRADE_2, GradeLevel.GRADE_3, GradeLevel.GRADE_4, GradeLevel.GRADE_5, GradeLevel.GRADE_6] },
-    { id: 'middle',     emoji: '📚', label: 'Middle school',      grades: [GradeLevel.GRADE_7, GradeLevel.GRADE_8, GradeLevel.GRADE_9] },
-    { id: 'high',       emoji: '🎓', label: 'High school',        grades: [GradeLevel.GRADE_10, GradeLevel.GRADE_11, GradeLevel.GRADE_12] },
-    { id: 'college',    emoji: '🏛', label: 'College',            grades: [GradeLevel.COLLEGE_FRESHMAN, GradeLevel.COLLEGE_ADVANCED] },
+    { id: 'kinder',     emoji: '🎒', label: c.kinder,     grades: [GradeLevel.KINDER] },
+    { id: 'elementary', emoji: '🏫', label: c.elementary, grades: [GradeLevel.GRADE_1, GradeLevel.GRADE_2, GradeLevel.GRADE_3, GradeLevel.GRADE_4, GradeLevel.GRADE_5, GradeLevel.GRADE_6] },
+    { id: 'middle',     emoji: '📚', label: c.middle,     grades: [GradeLevel.GRADE_7, GradeLevel.GRADE_8, GradeLevel.GRADE_9] },
+    { id: 'high',       emoji: '🎓', label: c.high,       grades: [GradeLevel.GRADE_10, GradeLevel.GRADE_11, GradeLevel.GRADE_12] },
+    { id: 'college',    emoji: '🏛', label: c.college,    grades: [GradeLevel.COLLEGE_FRESHMAN, GradeLevel.COLLEGE_ADVANCED] },
   ];
 
   const USERS_DB_KEY = 'brainwave_users_db';
@@ -63,7 +205,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
   const handleAuth = async () => {
     setError(null);
     if (!username || !password) {
-      setError("Hold up — fill in both fields.");
+      setError(c.errFill);
       return;
     }
     setLoading(true);
@@ -80,11 +222,11 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
           if (!safeUser.progressMap) safeUser.progressMap = {};
           onLogin(safeUser);
         } else {
-          setError("That doesn't match. Try again?");
+          setError(c.errMatch);
         }
       } else {
         const exists = Object.values(usersDb).some((u) => u.username === username);
-        if (exists) { setError("Username taken. Try a different one."); return; }
+        if (exists) { setError(c.errTaken); return; }
 
         const newUser: UserProfile = {
           id: crypto.randomUUID(),
@@ -106,14 +248,14 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
         onLogin(newUser);
       }
     } catch (err) {
-      setError("Something broke. Try again in a sec.");
+      setError(c.errBroken);
       console.error("Auth error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const testimonial = TESTIMONIALS[testimonialIdx];
+  const testimonial = c.testimonials[testimonialIdx];
 
   return (
     <div className="min-h-screen flex bg-cream-50 dark:bg-ink-900">
@@ -135,13 +277,13 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
 
           {/* Headline */}
           <div className="my-auto py-12">
-            <p className="text-xs uppercase tracking-[0.2em] text-clay-500 font-semibold mb-5">For students, by people who get it</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-clay-500 font-semibold mb-5">{c.tagline}</p>
             <h1 className="font-display text-5xl xl:text-6xl 2xl:text-7xl leading-[0.95] font-medium text-ink-700 dark:text-ink-100 tracking-tight mb-6">
-              Study like<br/>
-              you actually <em className="italic text-moss-500">care</em>.
+              {c.headline1}<br/>
+              {c.headline2} <em className="italic text-moss-500">{c.headlineEm}</em>.
             </h1>
             <p className="font-display text-xl text-ink-400 dark:text-ink-400 max-w-md leading-relaxed">
-              An AI tutor that explains things until they click. Quizzes that adapt. Lessons made for the way you actually think.
+              {c.subhead}
             </p>
 
             {/* Testimonial */}
@@ -155,11 +297,11 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
 
           {/* Bottom marks */}
           <div className="flex items-baseline gap-8 text-sm text-ink-400 dark:text-ink-400">
-            <span>K through college</span>
+            <span>{c.marks[0]}</span>
             <span className="w-1 h-1 rounded-full bg-ink-200 dark:bg-ink-600" />
-            <span>4 languages</span>
+            <span>{c.marks[1]}</span>
             <span className="w-1 h-1 rounded-full bg-ink-200 dark:bg-ink-600" />
-            <span>No ads, ever</span>
+            <span>{c.marks[2]}</span>
           </div>
         </div>
       </div>
@@ -200,10 +342,10 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
 
           <div className="mb-8">
             <h2 className="font-display text-3xl md:text-4xl font-medium text-ink-700 dark:text-ink-100 leading-tight mb-2">
-              {mode === 'login' ? <>Welcome back.</> : <>Let's get you set up.</>}
+              {mode === 'login' ? c.welcomeBack : c.letsSetUp}
             </h2>
             <p className="text-base text-ink-400 dark:text-ink-400">
-              {mode === 'login' ? 'Pick up right where you left off.' : 'Takes about 30 seconds. No email needed.'}
+              {mode === 'login' ? c.pickUp : c.takesSeconds}
             </p>
           </div>
 
@@ -217,7 +359,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                   : 'text-ink-400 hover:text-ink-600'
               }`}
             >
-              Sign in
+              {c.signIn}
             </button>
             <button
               onClick={() => { setMode('register'); setError(null); }}
@@ -227,24 +369,24 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                   : 'text-ink-400 hover:text-ink-600'
               }`}
             >
-              Sign up
+              {c.signUp}
             </button>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">Username</label>
+              <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">{c.username}</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-100 placeholder-ink-300"
-                placeholder="pick anything you'll remember"
+                placeholder={c.usernamePlaceholder}
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">Password</label>
+              <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">{c.password}</label>
               <input
                 type="password"
                 value={password}
@@ -258,18 +400,18 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
             {mode === 'register' && (
               <div className="space-y-4 animate-slide-up">
                 <div>
-                  <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">Your first name <span className="text-ink-300 font-normal">(optional)</span></label>
+                  <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">{c.firstName} <span className="text-ink-300 font-normal">{c.optional}</span></label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-lg text-base outline-none focus:border-moss-400 focus:ring-2 focus:ring-moss-100 dark:focus:ring-moss-light transition-all text-ink-700 dark:text-ink-100 placeholder-ink-300"
-                    placeholder="What should we call you?"
+                    placeholder={c.namePlaceholder}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">What grade are you in?</label>
+                  <label className="text-xs font-medium text-ink-400 dark:text-ink-400 block mb-1.5">{c.gradeLabel}</label>
                   <div className="space-y-1.5 max-h-52 overflow-y-auto scrollbar-hide">
                     {gradeFolders.map((folder) => {
                       const isOpen = openFolder === folder.id;
@@ -337,7 +479,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
                 </span>
               ) : (
                 <>
-                  {mode === 'login' ? "Let's go" : 'Create account'}
+                  {mode === 'login' ? c.letsGo : c.createAccount}
                   <ArrowRight size={16} />
                 </>
               )}
@@ -358,7 +500,7 @@ const AuthView: React.FC<Props> = ({ language, translations, theme, onLogin, onT
               })}
               className="w-full text-center text-sm text-ink-300 dark:text-ink-400 hover:text-ink-500 dark:hover:text-ink-200 transition-colors font-medium py-2"
             >
-              or just look around →
+              {c.lookAround}
             </button>
           </div>
         </div>
