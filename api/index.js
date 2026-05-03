@@ -1,41 +1,77 @@
 import express from 'express';
 import cors from 'cors';
-import Groq from 'groq-sdk';
 import path from 'path';
 import fs from 'fs';
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-if (!GROQ_API_KEY) {
-  console.error('GROQ_API_KEY is not set in environment variables');
+// ─── DeepSeek configuration (OpenAI-compatible API) ────────────────────────
+// DeepSeek-V3 (deepseek-chat) is excellent at multilingual structured output,
+// dramatically better than Llama for Hebrew/Arabic JSON generation.
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const DEEPSEEK_BASE_URL = 'https://api.deepseek.com/v1';
+const TEXT_MODEL = 'deepseek-chat';        // DeepSeek-V3 — fast, cheap, multilingual
+const REASONER_MODEL = 'deepseek-reasoner'; // DeepSeek-R1 — for complex reasoning (slower)
+
+if (!DEEPSEEK_API_KEY) {
+  console.error('DEEPSEEK_API_KEY is not set in environment variables');
 }
 
-const groq = GROQ_API_KEY ? new Groq({ apiKey: GROQ_API_KEY }) : null;
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
-const TEXT_MODEL   = 'llama-3.3-70b-versatile';
-const VISION_MODEL = 'llama-3.2-90b-vision-preview';
-
-function hasImages(messages) {
-  return messages.some(msg =>
-    Array.isArray(msg.content) &&
-    msg.content.some(block => block.type === 'image' || block.type === 'document')
-  );
-}
-
-function convertMessages(messages) {
+// Strip image/document content blocks (DeepSeek-chat is text-only).
+// The model gets a text marker instead so it knows attachments existed.
+function stripAttachments(messages) {
   return messages.map(msg => {
     if (typeof msg.content === 'string') return msg;
-    const converted = msg.content
-      .filter(block => block.type !== 'document')
-      .map(block => {
-        if (block.type === 'image') {
-          const { media_type, data } = block.source;
-          return { type: 'image_url', image_url: { url: `data:${media_type};base64,${data}` } };
-        }
-        return block;
-      });
-    return { role: msg.role, content: converted };
+    if (!Array.isArray(msg.content)) return msg;
+
+    const textParts = [];
+    let attachmentCount = 0;
+    for (const block of msg.content) {
+      if (block.type === 'text') {
+        textParts.push(block.text);
+      } else if (block.type === 'image' || block.type === 'document') {
+        attachmentCount++;
+      }
+    }
+    if (attachmentCount > 0) {
+      textParts.unshift(`[${attachmentCount} attachment(s) provided — text content only]`);
+    }
+    return { role: msg.role, content: textParts.join('\n\n') || '.' };
   });
 }
+
+async function callDeepSeek({ messages, system, max_tokens, temperature, stream = false }) {
+  const finalMessages = [
+    ...(system ? [{ role: 'system', content: system }] : []),
+    ...stripAttachments(messages),
+  ];
+
+  const response = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: TEXT_MODEL,
+      messages: finalMessages,
+      max_tokens: max_tokens ?? 4096,
+      temperature: temperature ?? 0.7,
+      stream,
+    }),
+  });
+
+  if (!stream) {
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      throw new Error(`DeepSeek API error ${response.status}: ${errText.slice(0, 500)}`);
+    }
+    return await response.json();
+  }
+  return response;
+}
+
+// ─── Express app ────────────────────────────────────────────────────────────
 
 const app = express();
 
@@ -49,11 +85,16 @@ app.use((_req, res, next) => {
   next();
 });
 
-// ── Health ────────────────────────────────────────────────────────────────────
-app.get('/api/health', (_req, res) => res.json({ status: 'ok', hasKey: !!GROQ_API_KEY }));
+// ─── Health ────────────────────────────────────────────────────────────────
+app.get('/api/health', (_req, res) => res.json({
+  status: 'ok',
+  hasKey: !!DEEPSEEK_API_KEY,
+  provider: 'deepseek',
+  model: TEXT_MODEL,
+}));
 
-// ── User data (ephemeral /tmp on Vercel) ──────────────────────────────────────
-const DATA_DIR   = '/tmp';
+// ─── User data (ephemeral /tmp on Vercel) ──────────────────────────────────
+const DATA_DIR = '/tmp';
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
 async function readUsersDb() {
@@ -98,36 +139,29 @@ app.get('/api/user/:userId', async (req, res) => {
   }
 });
 
-// ── AI proxy ──────────────────────────────────────────────────────────────────
+// ─── AI proxy (kept at /api/claude for frontend compatibility) ─────────────
 app.post('/api/claude', async (req, res) => {
-  if (!groq) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
-  const { messages, system, max_tokens } = req.body;
+  if (!DEEPSEEK_API_KEY) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
+  const { messages, system, max_tokens, temperature } = req.body;
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
   }
+
   try {
-    const fullMessages = [
-      ...(system ? [{ role: 'system', content: system }] : []),
-      ...convertMessages(messages),
-    ];
-    const model = hasImages(messages) ? VISION_MODEL : TEXT_MODEL;
-    const response = await groq.chat.completions.create({
-      model,
-      max_tokens: max_tokens ?? 12000,
-      messages: fullMessages,
-    });
-    const text = response.choices[0]?.message?.content ?? '';
+    const data = await callDeepSeek({ messages, system, max_tokens, temperature });
+    const text = data.choices?.[0]?.message?.content ?? '';
+    // Return in the shape the frontend expects (Anthropic-style content blocks)
     res.json({ content: [{ type: 'text', text }] });
   } catch (err) {
-    console.error('Groq error:', err);
-    res.status(err.status ?? 500).json({ error: err.message ?? String(err) });
+    console.error('DeepSeek error:', err);
+    res.status(500).json({ error: err.message ?? String(err) });
   }
 });
 
-// ── AI streaming proxy (SSE) ──────────────────────────────────────────────────
+// ─── AI streaming proxy (SSE) ──────────────────────────────────────────────
 app.post('/api/claude-stream', async (req, res) => {
-  if (!groq) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
-  const { messages, system, max_tokens } = req.body;
+  if (!DEEPSEEK_API_KEY) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
+  const { messages, system, max_tokens, temperature } = req.body;
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
   }
@@ -138,24 +172,43 @@ app.post('/api/claude-stream', async (req, res) => {
   res.flushHeaders();
 
   try {
-    const fullMessages = [
-      ...(system ? [{ role: 'system', content: system }] : []),
-      ...convertMessages(messages),
-    ];
-    const stream = await groq.chat.completions.create({
-      model: TEXT_MODEL,
-      max_tokens: max_tokens ?? 12000,
-      messages: fullMessages,
-      stream: true,
-    });
-    for await (const chunk of stream) {
-      const text = chunk.choices[0]?.delta?.content ?? '';
-      if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+    const upstream = await callDeepSeek({ messages, system, max_tokens, temperature, stream: true });
+    if (!upstream.ok) {
+      const errText = await upstream.text().catch(() => '');
+      res.write(`data: ${JSON.stringify({ error: `Upstream error ${upstream.status}: ${errText.slice(0, 300)}` })}\n\n`);
+      return res.end();
+    }
+
+    // DeepSeek returns OpenAI-format SSE: each line is "data: {json}\n\n"
+    const reader = upstream.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) continue;
+        const data = trimmed.slice(5).trim();
+        if (data === '[DONE]') {
+          res.write('data: [DONE]\n\n');
+          return res.end();
+        }
+        try {
+          const obj = JSON.parse(data);
+          const text = obj.choices?.[0]?.delta?.content ?? '';
+          if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        } catch { /* skip malformed chunks */ }
+      }
     }
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('Groq stream error:', err);
+    console.error('DeepSeek stream error:', err);
     res.write(`data: ${JSON.stringify({ error: err.message ?? String(err) })}\n\n`);
     res.end();
   }
