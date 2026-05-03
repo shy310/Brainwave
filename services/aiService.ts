@@ -409,8 +409,261 @@ Return ONLY a JSON object (no markdown, no code blocks):
     };
 };
 
-// ─── QUIZ GENERATION ──────────────────────────────────────────────────────────
+// ─── QUIZ GENERATION (rebuilt from scratch — multi-stage, validated, retried) ──
 
+// Per-subject coaching: tells the AI what GOOD questions look like for each subject.
+const SUBJECT_GUIDANCE: Record<string, string> = {
+    MATH: `
+- Math questions must have numerical or symbolic answers that you can verify by computation.
+- For each multiple-choice math question, internally compute the answer step-by-step BEFORE writing options.
+- Distractors should reflect common student errors (off-by-one, sign errors, missed step, wrong order of operations).
+- Mix problem types: direct calculation, word problems, identifying patterns, applying formulas to real scenarios.
+- Avoid trick questions or ambiguous notation. If the question requires a specific notation, define it.`,
+    SCIENCE: `
+- Science questions must be factually accurate and use precise terminology.
+- Mix conceptual (what causes X?), procedural (which step comes first?), and applied (what would happen if?).
+- Avoid outdated science (e.g., do not call Pluto a planet, do not say tongue has flavor zones).
+- For biology/chemistry/physics: use correct units, real chemical formulas, real physical constants.
+- Distractors should be common misconceptions students actually have.`,
+    GEOGRAPHY: `
+- Geography questions must use accurate, current data: real country names, real capitals, real landforms.
+- Verify every fact: Is that really the longest river? Does that country really border that one?
+- Mix physical geography (climate, landforms, biomes), human geography (population, culture, economy),
+  and map skills (directions, latitude, scale).
+- Distractors should be plausible neighboring countries or similar landforms — not obviously wrong.
+- For maps/coordinates: only use questions that work without an actual image (describe the position in words).`,
+    HISTORY: `
+- Every date, name, and event must be historically accurate. Verify before writing.
+- Mix question types: cause-and-effect, chronological order, identifying figures, primary source analysis.
+- Avoid Eurocentric bias — include world history, not just Western history.
+- Distractors should be plausible (same era, same region) but clearly the wrong answer.
+- Do NOT ask questions that depend on perspective or interpretation as if they have one true answer.`,
+    CODING: `
+- Code snippets must be syntactically valid in the language they show.
+- For "what does this code output?" questions: trace the code yourself line-by-line BEFORE writing options.
+- Mix conceptual (what is a variable?), debugging (what's wrong with this code?), and predicting output.
+- Use real, modern syntax. No deprecated patterns.
+- Distractors should reflect real bugs students introduce (wrong loop bound, off-by-one, type error).`,
+    ECONOMICS: `
+- Use correct economic definitions (supply, demand, elasticity, opportunity cost).
+- Mix theoretical (what does X mean?), applied (what would happen if?), and real-world examples.
+- For numerical questions, verify your math.
+- Distractors should be common confusions (microeconomics vs macroeconomics, real vs nominal).
+- Avoid politically charged questions presented as having one correct answer.`,
+};
+
+// Question-type schema templates with EXACT examples.
+const TYPE_EXAMPLES = `
+EXAMPLE — MULTIPLE_CHOICE:
+{
+  "id": "q1",
+  "questionType": "MULTIPLE_CHOICE",
+  "difficulty": 3,
+  "question": "If $f(x) = 2x + 5$, what is $f(3)$?",
+  "options": [
+    {"id": "a", "text": "8"},
+    {"id": "b", "text": "11"},
+    {"id": "c", "text": "13"},
+    {"id": "d", "text": "16"}
+  ],
+  "correctOptionId": "b",
+  "sampleAnswer": "",
+  "steps": [],
+  "skillTag": "function evaluation",
+  "xpValue": 30,
+  "explanation": "Substitute x = 3: f(3) = 2(3) + 5 = 6 + 5 = 11.",
+  "hint": "Replace x with 3 in the formula and compute step by step."
+}
+
+EXAMPLE — SHORT_ANSWER:
+{
+  "id": "q2",
+  "questionType": "SHORT_ANSWER",
+  "difficulty": 4,
+  "question": "Explain why the sky appears blue during the day.",
+  "options": [],
+  "correctOptionId": "",
+  "sampleAnswer": "Sunlight contains all colors. As it enters the atmosphere, shorter wavelengths (blue and violet) scatter more than longer wavelengths because of Rayleigh scattering. We perceive the sky as blue because our eyes are more sensitive to blue than violet.",
+  "steps": [],
+  "skillTag": "Rayleigh scattering",
+  "xpValue": 40,
+  "explanation": "Rayleigh scattering: shorter wavelengths scatter more strongly when light hits small particles.",
+  "hint": "Think about what happens to different colors of light as they travel through the atmosphere."
+}
+
+EXAMPLE — FILL_IN_BLANK:
+{
+  "id": "q3",
+  "questionType": "FILL_IN_BLANK",
+  "difficulty": 2,
+  "question": "The largest ocean on Earth is the ___ Ocean.",
+  "options": [],
+  "correctOptionId": "",
+  "sampleAnswer": "Pacific",
+  "steps": [],
+  "skillTag": "world oceans",
+  "xpValue": 20,
+  "explanation": "The Pacific Ocean covers more than 30% of Earth's surface — larger than all land combined.",
+  "hint": "It borders the west coast of the Americas and the east coast of Asia."
+}`;
+
+// ─── Validation: reject malformed questions before they reach the UI ──────────
+function validateQuestion(q: any): boolean {
+    if (!q || typeof q !== 'object') return false;
+    if (typeof q.question !== 'string' || q.question.trim().length < 5) return false;
+    if (typeof q.explanation !== 'string' || q.explanation.trim().length < 10) return false;
+
+    const qType = q.questionType || QuestionType.MULTIPLE_CHOICE;
+    if (qType === QuestionType.MULTIPLE_CHOICE) {
+        if (!Array.isArray(q.options) || q.options.length < 2) return false;
+        const validOptions = q.options.every((o: any) =>
+            o && typeof o.id === 'string' && typeof o.text === 'string' && o.text.trim().length > 0
+        );
+        if (!validOptions) return false;
+        // correctOptionId must match one of the options
+        if (typeof q.correctOptionId !== 'string') return false;
+        if (!q.options.some((o: any) => o.id === q.correctOptionId)) return false;
+    } else {
+        // Open-answer types must have a sampleAnswer
+        if (typeof q.sampleAnswer !== 'string' || q.sampleAnswer.trim().length < 1) return false;
+    }
+    return true;
+}
+
+function normalizeQuestion(q: any, index: number): Exercise {
+    return {
+        id: q.id || `q-${Date.now()}-${index}`,
+        questionType: q.questionType || QuestionType.MULTIPLE_CHOICE,
+        difficulty: typeof q.difficulty === 'number' ? Math.max(1, Math.min(5, q.difficulty)) : 3,
+        question: String(q.question).trim(),
+        options: Array.isArray(q.options) ? q.options : [],
+        correctOptionId: q.correctOptionId || '',
+        sampleAnswer: q.sampleAnswer || '',
+        steps: Array.isArray(q.steps) ? q.steps : [],
+        skillTag: q.skillTag || 'general',
+        xpValue: typeof q.xpValue === 'number' ? q.xpValue : (q.difficulty || 3) * 10,
+        explanation: String(q.explanation).trim(),
+        hint: String(q.hint || '').trim(),
+    } as Exercise;
+}
+
+// ─── Single-attempt generation (used by main flow + retry) ────────────────────
+async function generateQuizOnce(
+    subject: string,
+    grade: GradeLevel,
+    topic: string,
+    language: string,
+    count: number,
+    questionTypes: QuestionType[],
+    context: string | undefined,
+    attachments: Attachment[] | undefined,
+    seed: number
+): Promise<Exercise[]> {
+    const targetLang = LANG_MAP[language] || language;
+    const subjectGuidance = SUBJECT_GUIDANCE[subject] || '';
+    const typeList = questionTypes.join(', ');
+
+    const system = `You are an expert educator who writes assessment questions used by millions of students.
+Every question you write is checked by other teachers. If a question has a wrong answer, an ambiguous prompt,
+or a fact-check failure, it gets pulled and the student loses trust. Your reputation depends on accuracy.
+
+Respond with ONLY a valid JSON array. No prose, no markdown fences, no explanations outside the JSON.`;
+
+    const userPrompt = `TASK: Generate exactly ${count} high-quality assessment questions.
+
+SUBJECT: ${subject}
+GRADE LEVEL: ${grade}
+TOPIC: ${topic}
+LANGUAGE: ${targetLang} (every text field must be in ${targetLang}, except code/formulas which stay universal)
+QUESTION TYPES ALLOWED: ${typeList}
+RANDOMIZATION SEED: ${seed} (use this to ensure questions are different from your default templates)
+
+${subjectGuidance ? `SUBJECT-SPECIFIC GUIDANCE:${subjectGuidance}` : ''}
+
+QUALITY REQUIREMENTS (NON-NEGOTIABLE):
+1. ACCURACY: Every fact, formula, date, name must be 100% correct. If you're unsure, choose a different question.
+2. SOLVABILITY: A reasonable student at grade ${grade} must be able to solve it.
+3. UNIQUENESS: Each of the ${count} questions tests a DIFFERENT skill or aspect of "${topic}". No duplicates.
+4. CLARITY: Questions must be unambiguous — only one defensible correct answer.
+5. APPROPRIATE DIFFICULTY: Use this distribution:
+   - ${Math.ceil(count * 0.2)} easy (difficulty 1-2): direct recall or one-step
+   - ${Math.ceil(count * 0.4)} medium (difficulty 3): two-step or applied
+   - ${Math.floor(count * 0.3)} hard (difficulty 4): multi-step or synthesis
+   - ${Math.floor(count * 0.1)} challenging (difficulty 5): edge case or deeper insight
+6. DISTRACTORS (for multiple choice): Each wrong option must be plausible — a real mistake a student might make.
+   Never use "all of the above" or "none of the above" or absurd options.
+7. EXPLANATIONS: The "explanation" field must TEACH the concept, not just state the answer.
+   It should be 1-3 sentences that help a student who got it wrong understand why.
+
+OUTPUT SCHEMA — return EXACTLY this structure as a JSON array:
+[
+  {
+    "id": "q1",
+    "questionType": "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "FILL_IN_BLANK",
+    "difficulty": 1-5,
+    "question": "the question text in ${targetLang}",
+    "options": [{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."},{"id":"d","text":"..."}],
+    "correctOptionId": "a"|"b"|"c"|"d",
+    "sampleAnswer": "for non-MC types",
+    "steps": [],
+    "skillTag": "specific skill being tested in English",
+    "xpValue": difficulty * 10,
+    "explanation": "1-3 sentence teaching explanation in ${targetLang}",
+    "hint": "1 sentence hint in ${targetLang}"
+  }
+]
+
+FIELD RULES BY TYPE:
+- MULTIPLE_CHOICE: REQUIRED options (4 items), REQUIRED correctOptionId. Leave sampleAnswer "" and steps [].
+- SHORT_ANSWER: REQUIRED sampleAnswer (a complete model answer). Leave options [] and correctOptionId "".
+- FILL_IN_BLANK: Use ___ in the question. REQUIRED sampleAnswer (the missing word/phrase).
+  Leave options [] and correctOptionId "".
+
+LATEX RULES (math expressions only):
+- Inline math: $expression$ — example: "Solve $2x + 3 = 11$"
+- Display math: $$expression$$
+- CRITICAL: This is JSON, so DOUBLE every backslash. Write \\\\frac, \\\\sqrt, \\\\pi — NOT \\frac.
+
+${context ? `\nADDITIONAL CONTEXT TO USE:\n${context}\n` : ''}
+
+VERIFY YOUR WORK BEFORE RETURNING:
+- For each multiple-choice question: confirm the marked correct answer is actually correct.
+- For each math problem: redo the computation. If the result doesn't match your stated answer, fix it.
+- Confirm every "id" in correctOptionId actually exists in the options array.
+- Confirm the JSON is valid (balanced brackets, proper escaping).
+
+Now generate the JSON array. NO PROSE before or after — just the JSON.`;
+
+    const content: object[] = [];
+    if (attachments?.length) attachments.forEach(att => content.push(contentBlock(att)));
+    content.push({ type: 'text', text: userPrompt + '\n\n' + TYPE_EXAMPLES });
+
+    const text = await callClaude({
+        model: HAIKU,
+        max_tokens: 8192,
+        system,
+        messages: [{ role: 'user', content }],
+    });
+
+    if (!text) return [];
+
+    let raw: any[];
+    try {
+        const parsed = parseJson(text);
+        raw = Array.isArray(parsed) ? parsed : (parsed?.questions || parsed?.exercises || []);
+    } catch (err) {
+        console.error('Quiz JSON parse failed:', err);
+        return [];
+    }
+
+    const validated = raw
+        .filter(validateQuestion)
+        .map(normalizeQuestion);
+
+    return validated;
+}
+
+// ─── Public API: tries up to 2 attempts, fills with simpler retry if needed ──
 export const generateQuiz = async (
     subject: string,
     grade: GradeLevel,
@@ -421,82 +674,48 @@ export const generateQuiz = async (
     questionTypes?: QuestionType[],
     count: number = 10
 ): Promise<Exercise[]> => {
-    const targetLang = LANG_MAP[language] || language;
-    const types = questionTypes || [QuestionType.MULTIPLE_CHOICE];
-    const typeList = types.join(', ');
+    const types = questionTypes && questionTypes.length > 0
+        ? questionTypes
+        : [QuestionType.MULTIPLE_CHOICE];
 
-    // Add timestamp seed to force unique questions each time
-    const seed = Date.now() % 10000;
-    let prompt = `Generate ${count} UNIQUE exercises as a JSON array. Language: ${targetLang} — ALL text must be in ${targetLang}.
-
-Subject: ${subject}, Grade: ${grade}, Topic: "${topic}"
-Question types to use: ${typeList}
-Uniqueness seed: ${seed} — use this to vary your question selection. Generate DIFFERENT questions than you would normally default to.
-
-CRITICAL QUALITY RULES:
-- Every question must be factually correct with a verified correct answer
-- For math: double-check your arithmetic — wrong answers destroy student trust
-- Use specific, concrete scenarios — not generic textbook templates
-- Vary the style: some word problems, some direct questions, some applied scenarios
-- Make distractors (wrong options) plausible but clearly wrong to someone who understands the concept
-- Each question should test a DIFFERENT aspect or skill within the topic
-- NEVER repeat the same question structure with different numbers — each question must feel fresh
-
-Return ONLY a JSON array (no markdown, no code blocks):
-[
-  {
-    "id": "q1",
-    "questionType": "MULTIPLE_CHOICE",
-    "difficulty": 2,
-    "question": "question text",
-    "options": [{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."},{"id":"d","text":"..."}],
-    "correctOptionId": "a",
-    "sampleAnswer": "",
-    "steps": [],
-    "skillTag": "specific skill being tested",
-    "xpValue": 20,
-    "explanation": "clear, educational explanation of WHY the answer is correct — teach, don't just state",
-    "hint": "a genuinely helpful hint that guides thinking without giving the answer"
-  }
-]
-
-Rules:
-- For MULTIPLE_CHOICE: fill options and correctOptionId; leave sampleAnswer and steps empty
-- For SHORT_ANSWER: fill sampleAnswer with a thorough model answer; leave options empty
-- For FILL_IN_BLANK: use ___ in the question for the blank; fill sampleAnswer
-- For MULTI_STEP: fill steps array with expected steps; fill sampleAnswer with final answer
-- Difficulty distribution: 2 easy (1-2), 4 medium (3), 2 hard (4), 2 challenging (5)
-- xpValue = difficulty * 10
-- For math use LaTeX: inline $...$ or display $$...$$. CRITICAL: this is JSON — double every backslash. Write \\\\frac, \\\\sqrt, \\\\alpha, etc.`;
-
-    if (context) prompt += `\nAdditional Context: ${context}`;
-
+    // Attempt 1: full quality
+    const seed1 = Date.now() % 100000;
+    let questions: Exercise[] = [];
     try {
-        const content: object[] = [];
-        if (attachments?.length) attachments.forEach(att => content.push(contentBlock(att)));
-        content.push({ type: 'text', text: prompt });
-
-        const text = await callClaude({
-            model: HAIKU,
-            max_tokens: 8192,
-            messages: [{ role: 'user', content }],
-        });
-
-        if (!text) return [];
-        const raw = parseJson(text) as any[];
-        return raw
-            .filter((q: any) => typeof q?.question === 'string' && q.question.trim()) // drop truncated/empty entries
-            .map((q: any, i: number) => ({
-                ...q,
-                id: q.id || `q-${i}`,
-                options: q.options || [],
-                questionType: q.questionType || QuestionType.MULTIPLE_CHOICE,
-                xpValue: q.xpValue || (q.difficulty || 1) * 10
-            })) as Exercise[];
-    } catch (error: any) {
-        console.error("Quiz Generation Error:", error);
-        return [];
+        questions = await generateQuizOnce(subject, grade, topic, language, count, types, context, attachments, seed1);
+    } catch (e: any) {
+        console.error('Quiz attempt 1 failed:', e?.message || e);
     }
+
+    // If we got at least 60% of the requested questions, that's good enough
+    if (questions.length >= Math.ceil(count * 0.6)) {
+        return questions.slice(0, count);
+    }
+
+    // Attempt 2: simpler — multiple choice only, fewer questions, fresh seed
+    console.warn(`Quiz attempt 1 produced only ${questions.length}/${count} valid questions — retrying with simpler config.`);
+    const seed2 = (Date.now() + 7919) % 100000;
+    try {
+        const retry = await generateQuizOnce(
+            subject, grade, topic, language,
+            count, [QuestionType.MULTIPLE_CHOICE],
+            context, attachments, seed2
+        );
+        // Merge: keep originals first, fill with retry
+        const seenQs = new Set(questions.map(q => q.question.toLowerCase().trim()));
+        for (const q of retry) {
+            if (questions.length >= count) break;
+            const key = q.question.toLowerCase().trim();
+            if (!seenQs.has(key)) {
+                seenQs.add(key);
+                questions.push(q);
+            }
+        }
+    } catch (e: any) {
+        console.error('Quiz attempt 2 failed:', e?.message || e);
+    }
+
+    return questions.slice(0, count);
 };
 
 // ─── PRESENTATION GENERATION ──────────────────────────────────────────────────

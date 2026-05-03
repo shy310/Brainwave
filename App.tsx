@@ -434,7 +434,10 @@ const App: React.FC = () => {
     if (attachments.length > 0) {
       handleUploadAnalysis(attachments);
     } else {
-      handleStartExercises(s, grade, null, 'General Practice');
+      // Use the first real topic from the curriculum so the AI gets concrete context
+      const cc = getCurriculumCourse(s, grade);
+      const firstTopic = cc?.units[0]?.topics[0];
+      handleStartExercises(s, grade, firstTopic?.id || null, firstTopic?.title || `${s} basics`);
     }
   }, [appState.user.gradeLevel, handleUploadAnalysis, handleStartExercises]);
 
@@ -826,7 +829,33 @@ const App: React.FC = () => {
                   }}
                   onSelectSubjectGrade={(s, g) => {
                     setAppState(prev => ({ ...prev, user: { ...prev.user, gradeLevel: g } }));
-                    handleStartLesson(s, g, null, 'General Practice');
+                    // Pick the first uncompleted real topic from the curriculum
+                    // so the lesson/quiz has a concrete topic to work with (not vague "General Practice")
+                    const cc = getCurriculumCourse(s, g);
+                    const pm = appState.user.progressMap || {};
+                    let chosenTopic: { id: string; title: string } | null = null;
+                    if (cc) {
+                      for (const unit of cc.units) {
+                        for (const topic of unit.topics) {
+                          const mastery = pm[topic.id]?.mastery ?? 0;
+                          if (mastery < 100) {
+                            chosenTopic = { id: topic.id, title: topic.title };
+                            break;
+                          }
+                        }
+                        if (chosenTopic) break;
+                      }
+                      // If everything mastered, just pick the first topic
+                      if (!chosenTopic) {
+                        const firstTopic = cc.units[0]?.topics[0];
+                        if (firstTopic) chosenTopic = { id: firstTopic.id, title: firstTopic.title };
+                      }
+                    }
+                    handleStartLesson(
+                      s, g,
+                      chosenTopic?.id ?? null,
+                      chosenTopic?.title ?? `${s} basics`
+                    );
                   }}
                 />
               </div>
