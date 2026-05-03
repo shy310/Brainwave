@@ -12,7 +12,11 @@ const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
 // Free models tried in order. Free tier is shared globally so any individual
 // model can be rate-limited at any time. Long fallback chain = better odds.
+// Order: try paid (super cheap, reliable) first if balance exists,
+// then fall back through free tier models. If user has no OpenRouter
+// credit, the paid attempts will 402 immediately and we move on.
 const MODELS = [
+  'deepseek/deepseek-chat',                    // Paid: ~$0.0003/quiz, very reliable, best multilingual
   'deepseek/deepseek-chat-v3-0324:free',
   'deepseek/deepseek-r1:free',
   'google/gemini-2.0-flash-exp:free',
@@ -20,7 +24,6 @@ const MODELS = [
   'qwen/qwen-2.5-72b-instruct:free',
   'nvidia/llama-3.1-nemotron-70b-instruct:free',
   'meta-llama/llama-3.1-405b-instruct:free',
-  'microsoft/phi-3-medium-128k-instruct:free',
 ];
 
 if (!OPENROUTER_API_KEY) {
