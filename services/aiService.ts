@@ -183,12 +183,34 @@ function extractJson(text: string): string {
     return end !== -1 ? text.slice(start, end + 1) : text.slice(start);
 }
 
+// Pre-clean the AI output: strip BOM, RTL markers, replace smart quotes outside strings,
+// fix common Unicode-related JSON breakers from non-English models.
+function preCleanJson(text: string): string {
+    return text
+        // Strip UTF-8 BOM if present
+        .replace(/^﻿/, '')
+        // Strip RTL/LTR markers and other invisible control chars that break parsers
+        .replace(/[​-‏‪-‮⁠⁦-⁩﻿]/g, '')
+        // Replace smart double quotes with regular ones (the AI sometimes uses these
+        // as JSON delimiters in non-English output, breaking parsing entirely)
+        .replace(/[“”„‟″]/g, '"')
+        // Replace smart single quotes — only safe replacement is to leave them in
+        // string content; we'll only strip if they appear as JSON syntax (rare)
+        .replace(/[‘’‚‛]/g, "'")
+        // Replace various dashes the model might insert as JSON syntax
+        .replace(/[–—―]/g, '-')
+        // Strip language markers some models add ("```json" with extra prose)
+        .replace(/^[^[{]*?(?=[\[{])/s, '');
+}
+
 // Parse JSON from LLM output with multi-pass repair.
 function parseJson(text: string): any {
+    // Pre-clean for non-English / Unicode quirks
+    const cleaned = preCleanJson(text);
+
     // Strip markdown code fences, then extract the outermost JSON block
-    // (handles cases where the model adds a preamble like "Here is the JSON:")
     const stripped = extractJson(
-        text.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim()
+        cleaned.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim()
     );
 
     // Fast path — valid JSON
@@ -201,7 +223,16 @@ function parseJson(text: string): any {
 
     // Pass 2: also close any truncated structures
     const pass2 = closeIncomplete(pass1);
-    return JSON.parse(pass2);
+    try { return JSON.parse(pass2); } catch { /* fall through */ }
+
+    // Pass 3 (last resort): try to find JUST the array/object portion and parse
+    const arrayMatch = stripped.match(/\[[\s\S]*\]/);
+    if (arrayMatch) {
+        try { return JSON.parse(arrayMatch[0]); } catch { /* fall through */ }
+        try { return JSON.parse(closeIncomplete(repairEscapes(arrayMatch[0]))); } catch { /* fall through */ }
+    }
+
+    throw new Error(`Could not parse JSON from response (${text.length} chars)`);
 }
 
 // ─── TUTOR CHAT ───────────────────────────────────────────────────────────────
@@ -269,7 +300,15 @@ Subject: ${subject}
 Grade Level: ${grade}
 Topic: ${topicTitle}
 Description: ${topicDescription}
-Language: ${targetLang} — ALL text values must be in ${targetLang}.
+Language: ${targetLang} — text content must be in ${targetLang}.
+
+CRITICAL OUTPUT FORMAT:
+- Respond with ONLY a valid JSON object. No prose, no markdown fences, no explanations outside the JSON.
+- The JSON STRUCTURE (braces, brackets, commas, field names like "topicTitle", "sections", "type") is ALWAYS in English ASCII.
+- Only the VALUES of text content fields (topicTitle, heading, body, keyPoints[]) are in ${targetLang}.
+- The "type" field values stay in English: "intro", "concept", "example", "summary".
+- Use ONLY standard ASCII double quotes (") for JSON strings. NEVER use smart/curly quotes (" " „).
+- For Hebrew/Arabic content: write text inside string normally; do NOT add RTL/LTR markers or BOM characters.
 
 CRITICAL ACCURACY RULES:
 - Every fact, definition, formula, and date MUST be 100% correct. Do not guess or fabricate.
@@ -567,7 +606,13 @@ async function generateQuizOnce(
 Every question you write is checked by other teachers. If a question has a wrong answer, an ambiguous prompt,
 or a fact-check failure, it gets pulled and the student loses trust. Your reputation depends on accuracy.
 
-Respond with ONLY a valid JSON array. No prose, no markdown fences, no explanations outside the JSON.`;
+CRITICAL OUTPUT FORMAT:
+- Respond with ONLY a valid JSON array. No prose, no markdown fences, no explanations outside the JSON.
+- The JSON STRUCTURE (brackets, braces, commas, field names like "question", "options") is ALWAYS in English ASCII.
+- Only the VALUES of text content fields (question, explanation, hint, sampleAnswer, options[].text) are in the requested target language.
+- Use ONLY standard ASCII double quotes (") to delimit JSON strings. NEVER use smart/curly quotes (" " „ « »).
+- Field names "id", "questionType", "skillTag" stay in English (they are identifiers, not display text).
+- For Hebrew/Arabic/RTL content: write the text inside the string normally; do NOT add RTL/LTR markers or BOM characters.`;
 
     const userPrompt = `TASK: Generate exactly ${count} high-quality assessment questions.
 
