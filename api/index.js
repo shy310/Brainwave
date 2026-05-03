@@ -3,22 +3,28 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 
-// ─── DeepSeek configuration (OpenAI-compatible API) ────────────────────────
-// DeepSeek-V3 (deepseek-chat) is excellent at multilingual structured output,
-// dramatically better than Llama for Hebrew/Arabic JSON generation.
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_BASE_URL = 'https://api.deepseek.com/v1';
-const TEXT_MODEL = 'deepseek-chat';        // DeepSeek-V3 — fast, cheap, multilingual
-const REASONER_MODEL = 'deepseek-reasoner'; // DeepSeek-R1 — for complex reasoning (slower)
+// ─── OpenRouter configuration ──────────────────────────────────────────────
+// OpenRouter is OpenAI-compatible and gives access to many models including
+// free tiers. We use DeepSeek-V3 (same model that worked great for multilingual)
+// via OpenRouter's free tier.
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
-if (!DEEPSEEK_API_KEY) {
-  console.error('DEEPSEEK_API_KEY is not set in environment variables');
+// Primary model: DeepSeek-V3 free — excellent multilingual structured output.
+// Fallbacks: tried in order if the primary returns an error.
+const MODELS = [
+  'deepseek/deepseek-chat-v3-0324:free',
+  'google/gemini-2.0-flash-exp:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+];
+
+if (!OPENROUTER_API_KEY) {
+  console.error('OPENROUTER_API_KEY is not set in environment variables');
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-// Strip image/document content blocks (DeepSeek-chat is text-only).
-// The model gets a text marker instead so it knows attachments existed.
+// Strip image/document content blocks (free text models don't support vision).
 function stripAttachments(messages) {
   return messages.map(msg => {
     if (typeof msg.content === 'string') return msg;
@@ -40,20 +46,23 @@ function stripAttachments(messages) {
   });
 }
 
-async function callDeepSeek({ messages, system, max_tokens, temperature, stream = false }) {
+async function callOpenRouter({ messages, system, max_tokens, temperature, stream = false, model }) {
   const finalMessages = [
     ...(system ? [{ role: 'system', content: system }] : []),
     ...stripAttachments(messages),
   ];
 
-  const response = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+  const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
+      // OpenRouter optional headers for analytics/leaderboard
+      'HTTP-Referer': 'https://brainwave-kappa-livid.vercel.app',
+      'X-Title': 'BrainWave',
     },
     body: JSON.stringify({
-      model: TEXT_MODEL,
+      model,
       messages: finalMessages,
       max_tokens: max_tokens ?? 4096,
       temperature: temperature ?? 0.7,
@@ -64,11 +73,36 @@ async function callDeepSeek({ messages, system, max_tokens, temperature, stream 
   if (!stream) {
     if (!response.ok) {
       const errText = await response.text().catch(() => '');
-      throw new Error(`DeepSeek API error ${response.status}: ${errText.slice(0, 500)}`);
+      throw new Error(`OpenRouter API error ${response.status} on ${model}: ${errText.slice(0, 500)}`);
     }
     return await response.json();
   }
   return response;
+}
+
+// Try primary model, fall back through alternatives on failure.
+async function callWithFallback(opts) {
+  let lastError;
+  for (const model of MODELS) {
+    try {
+      const result = await callOpenRouter({ ...opts, model });
+      // For non-stream: ensure we got actual content
+      if (!opts.stream) {
+        const text = result?.choices?.[0]?.message?.content;
+        if (text && text.trim()) return result;
+        lastError = new Error(`Model ${model} returned empty content`);
+        continue;
+      }
+      // For stream: check it opened ok before returning
+      if (result.ok) return result;
+      const errText = await result.text().catch(() => '');
+      lastError = new Error(`Stream open failed on ${model}: ${result.status} ${errText.slice(0, 200)}`);
+    } catch (err) {
+      lastError = err;
+      console.warn(`Model ${model} failed, trying next:`, err.message);
+    }
+  }
+  throw lastError ?? new Error('All models failed');
 }
 
 // ─── Express app ────────────────────────────────────────────────────────────
@@ -88,9 +122,9 @@ app.use((_req, res, next) => {
 // ─── Health ────────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => res.json({
   status: 'ok',
-  hasKey: !!DEEPSEEK_API_KEY,
-  provider: 'deepseek',
-  model: TEXT_MODEL,
+  hasKey: !!OPENROUTER_API_KEY,
+  provider: 'openrouter',
+  models: MODELS,
 }));
 
 // ─── User data (ephemeral /tmp on Vercel) ──────────────────────────────────
@@ -141,26 +175,25 @@ app.get('/api/user/:userId', async (req, res) => {
 
 // ─── AI proxy (kept at /api/claude for frontend compatibility) ─────────────
 app.post('/api/claude', async (req, res) => {
-  if (!DEEPSEEK_API_KEY) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
+  if (!OPENROUTER_API_KEY) return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured' });
   const { messages, system, max_tokens, temperature } = req.body;
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
   }
 
   try {
-    const data = await callDeepSeek({ messages, system, max_tokens, temperature });
+    const data = await callWithFallback({ messages, system, max_tokens, temperature, stream: false });
     const text = data.choices?.[0]?.message?.content ?? '';
-    // Return in the shape the frontend expects (Anthropic-style content blocks)
     res.json({ content: [{ type: 'text', text }] });
   } catch (err) {
-    console.error('DeepSeek error:', err);
+    console.error('OpenRouter error:', err);
     res.status(500).json({ error: err.message ?? String(err) });
   }
 });
 
 // ─── AI streaming proxy (SSE) ──────────────────────────────────────────────
 app.post('/api/claude-stream', async (req, res) => {
-  if (!DEEPSEEK_API_KEY) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
+  if (!OPENROUTER_API_KEY) return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured' });
   const { messages, system, max_tokens, temperature } = req.body;
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
@@ -172,14 +205,8 @@ app.post('/api/claude-stream', async (req, res) => {
   res.flushHeaders();
 
   try {
-    const upstream = await callDeepSeek({ messages, system, max_tokens, temperature, stream: true });
-    if (!upstream.ok) {
-      const errText = await upstream.text().catch(() => '');
-      res.write(`data: ${JSON.stringify({ error: `Upstream error ${upstream.status}: ${errText.slice(0, 300)}` })}\n\n`);
-      return res.end();
-    }
+    const upstream = await callWithFallback({ messages, system, max_tokens, temperature, stream: true });
 
-    // DeepSeek returns OpenAI-format SSE: each line is "data: {json}\n\n"
     const reader = upstream.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -208,7 +235,7 @@ app.post('/api/claude-stream', async (req, res) => {
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('DeepSeek stream error:', err);
+    console.error('OpenRouter stream error:', err);
     res.write(`data: ${JSON.stringify({ error: err.message ?? String(err) })}\n\n`);
     res.end();
   }
