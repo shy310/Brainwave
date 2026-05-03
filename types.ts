@@ -5,7 +5,7 @@ export type Direction = 'ltr' | 'rtl';
 export enum Subject {
   MATH = 'MATH',
   SCIENCE = 'SCIENCE',
-  LANGUAGE = 'LANGUAGE',
+  GEOGRAPHY = 'GEOGRAPHY',
   HISTORY = 'HISTORY',
   CODING = 'CODING',
   ECONOMICS = 'ECONOMICS'

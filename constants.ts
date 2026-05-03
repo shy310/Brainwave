@@ -13,7 +13,7 @@ export const ICON_MAP: Record<string, any> = {
 export const SUBJECTS_DATA = [
   { id: Subject.MATH, icon: 'Calculator', color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' },
   { id: Subject.SCIENCE, icon: 'FlaskConical', color: 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' },
-  { id: Subject.LANGUAGE, icon: 'Globe', color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400' },
+  { id: Subject.GEOGRAPHY, icon: 'Globe', color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400' },
   { id: Subject.CODING, icon: 'Laptop', color: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400' },
   { id: Subject.HISTORY, icon: 'BookOpen', color: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' },
   { id: Subject.ECONOMICS, icon: 'TrendingUp', color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400' }
@@ -255,92 +255,92 @@ export const CURRICULUM: CurriculumCourse[] = [
   },
 
   // ══════════════════════════════════════════════════════════════════════════
-  // LANGUAGE
+  // GEOGRAPHY
   // ══════════════════════════════════════════════════════════════════════════
   {
-    id: 'lang-kinder', subject: Subject.LANGUAGE, gradeLevel: GradeLevel.KINDER, iconName: 'Globe',
+    id: 'lang-kinder', subject: Subject.GEOGRAPHY, gradeLevel: GradeLevel.KINDER, iconName: 'Globe',
     units: [
-      { id: 'lang-k-u1', title: 'Reading Foundations', topics: [
-        { id: 'lang-k-t1', title: 'Letter Recognition', description: 'Naming and writing all 26 uppercase and lowercase letters of the alphabet.', skillTags: ['phonics', 'letters'], prerequisiteIds: [] },
-        { id: 'lang-k-t2', title: 'Phonics & Sight Words', description: 'Letter sounds, blending CVC words and the first 50 sight words.', skillTags: ['phonics', 'reading'], prerequisiteIds: ['lang-k-t1'] },
-        { id: 'lang-k-t3', title: 'Listening & Storytelling', description: 'Understanding stories read aloud: characters, setting and what happens.', skillTags: ['comprehension', 'listening'], prerequisiteIds: [] },
+      { id: 'lang-k-u1', title: 'My World Around Me', topics: [
+        { id: 'lang-k-t1', title: 'Maps of My Home', description: 'What is a map? Drawing simple maps of my room, home and classroom.', skillTags: ['maps', 'spatial'], prerequisiteIds: [] },
+        { id: 'lang-k-t2', title: 'Land & Water', description: 'Recognizing mountains, rivers, lakes, forests and oceans in pictures and our world.', skillTags: ['landforms', 'water'], prerequisiteIds: ['lang-k-t1'] },
+        { id: 'lang-k-t3', title: 'Weather & Seasons', description: 'Hot vs cold places, rain vs snow, and why we have four seasons.', skillTags: ['weather', 'seasons'], prerequisiteIds: [] },
       ]},
     ]
   },
   {
-    id: 'lang-elem13', subject: Subject.LANGUAGE, gradeLevel: GradeLevel.ELEMENTARY_1_3, iconName: 'Globe',
+    id: 'lang-elem13', subject: Subject.GEOGRAPHY, gradeLevel: GradeLevel.ELEMENTARY_1_3, iconName: 'Globe',
     units: [
-      { id: 'lang-e13-u1', title: 'Reading & Phonics', topics: [
-        { id: 'lang-e13-t1', title: 'Phonics & Decoding', description: 'Blends, digraphs, vowel teams and decoding multi-syllable words.', skillTags: ['phonics', 'decoding'], prerequisiteIds: [] },
-        { id: 'lang-e13-t2', title: 'Reading Fluency', description: 'Reading aloud with accuracy, speed and expression.', skillTags: ['fluency', 'reading'], prerequisiteIds: ['lang-e13-t1'] },
-        { id: 'lang-e13-t3', title: 'Comprehension', description: 'Retelling stories, identifying main idea and asking questions about a text.', skillTags: ['comprehension'], prerequisiteIds: ['lang-e13-t2'] },
+      { id: 'lang-e13-u1', title: 'Maps & Globes', topics: [
+        { id: 'lang-e13-t1', title: 'Reading Maps', description: 'Map keys, compass roses, symbols and the four cardinal directions (N/S/E/W).', skillTags: ['maps', 'directions'], prerequisiteIds: [] },
+        { id: 'lang-e13-t2', title: 'Continents & Oceans', description: 'The seven continents and the five oceans — names, locations and basic facts.', skillTags: ['continents', 'oceans'], prerequisiteIds: ['lang-e13-t1'] },
+        { id: 'lang-e13-t3', title: 'My Country & Neighbors', description: 'Locating my country, its capital and the countries that border it.', skillTags: ['countries', 'borders'], prerequisiteIds: ['lang-e13-t2'] },
       ]},
-      { id: 'lang-e13-u2', title: 'Writing & Grammar', topics: [
-        { id: 'lang-e13-t4', title: 'Sentences & Punctuation', description: 'Writing complete sentences with capital letters and end punctuation.', skillTags: ['grammar', 'writing'], prerequisiteIds: [] },
-        { id: 'lang-e13-t5', title: 'Vocabulary Building', description: 'Using context clues, prefixes and suffixes to learn new words.', skillTags: ['vocabulary'], prerequisiteIds: ['lang-e13-t4'] },
+      { id: 'lang-e13-u2', title: 'Natural World', topics: [
+        { id: 'lang-e13-t4', title: 'Landforms', description: 'Mountains, hills, valleys, plains, deserts, peninsulas and islands.', skillTags: ['landforms', 'physical'], prerequisiteIds: [] },
+        { id: 'lang-e13-t5', title: 'Bodies of Water', description: 'Oceans, seas, rivers, lakes and glaciers — how they shape our planet.', skillTags: ['water', 'physical'], prerequisiteIds: ['lang-e13-t4'] },
       ]},
     ]
   },
   {
-    id: 'lang-elem46', subject: Subject.LANGUAGE, gradeLevel: GradeLevel.ELEMENTARY_4_6, iconName: 'Globe',
+    id: 'lang-elem46', subject: Subject.GEOGRAPHY, gradeLevel: GradeLevel.ELEMENTARY_4_6, iconName: 'Globe',
     units: [
-      { id: 'lang-e46-u1', title: 'Reading & Analysis', topics: [
-        { id: 'lang-e46-t1', title: 'Main Idea & Supporting Details', description: 'Finding the central idea and how details support it in non-fiction texts.', skillTags: ['comprehension', 'non-fiction'], prerequisiteIds: [] },
-        { id: 'lang-e46-t2', title: 'Story Elements', description: 'Analyzing characters, plot, conflict and theme in fiction.', skillTags: ['literary-analysis'], prerequisiteIds: ['lang-e46-t1'] },
+      { id: 'lang-e46-u1', title: 'Physical Geography', topics: [
+        { id: 'lang-e46-t1', title: 'Climate Zones & Biomes', description: 'Tropical, temperate and polar zones; rainforests, deserts, grasslands, tundra and forests.', skillTags: ['climate', 'biomes'], prerequisiteIds: [] },
+        { id: 'lang-e46-t2', title: 'Latitude & Longitude', description: 'The grid of the Earth: equator, prime meridian, hemispheres and finding any place by coordinates.', skillTags: ['coordinates', 'maps'], prerequisiteIds: ['lang-e46-t1'] },
       ]},
-      { id: 'lang-e46-u2', title: 'Writing & Grammar', topics: [
-        { id: 'lang-e46-t3', title: 'Paragraph Writing', description: 'Topic sentence, supporting details and a concluding sentence.', skillTags: ['writing', 'paragraphs'], prerequisiteIds: [] },
-        { id: 'lang-e46-t4', title: 'Grammar: Parts of Speech', description: 'Nouns, verbs, adjectives, adverbs, pronouns and conjunctions.', skillTags: ['grammar'], prerequisiteIds: ['lang-e46-t3'] },
-        { id: 'lang-e46-t5', title: 'Spelling & Vocabulary', description: 'Greek/Latin roots, context clues and commonly confused words.', skillTags: ['vocabulary', 'spelling'], prerequisiteIds: [] },
+      { id: 'lang-e46-u2', title: 'World Regions', topics: [
+        { id: 'lang-e46-t3', title: 'Countries & Capitals', description: 'Major countries of each continent with their capitals, flags and main languages.', skillTags: ['countries', 'capitals'], prerequisiteIds: [] },
+        { id: 'lang-e46-t4', title: 'World Cultures', description: 'How people live differently around the world: food, clothing, customs and traditions.', skillTags: ['culture', 'human'], prerequisiteIds: ['lang-e46-t3'] },
+        { id: 'lang-e46-t5', title: 'Natural Wonders', description: 'Famous landmarks of the natural world: Amazon, Sahara, Everest, Great Barrier Reef and more.', skillTags: ['landmarks', 'physical'], prerequisiteIds: [] },
       ]},
     ]
   },
   {
-    id: 'lang-middle', subject: Subject.LANGUAGE, gradeLevel: GradeLevel.MIDDLE_7_8, iconName: 'Globe',
+    id: 'lang-middle', subject: Subject.GEOGRAPHY, gradeLevel: GradeLevel.MIDDLE_7_8, iconName: 'Globe',
     units: [
-      { id: 'lang-mid-u1', title: 'Grammar & Writing', topics: [
-        { id: 'lang-mid-t1', title: 'Advanced Grammar', description: 'Phrases, clauses, compound-complex sentences and common errors.', skillTags: ['grammar'], prerequisiteIds: [] },
-        { id: 'lang-mid-t2', title: 'Essay Writing', description: 'Five-paragraph essays: thesis, body paragraphs, transitions and conclusion.', skillTags: ['writing', 'essays'], prerequisiteIds: ['lang-mid-t1'] },
-        { id: 'lang-mid-t3', title: 'Argumentative Writing', description: 'Building a claim, using evidence and addressing counterarguments.', skillTags: ['writing', 'argumentation'], prerequisiteIds: ['lang-mid-t2'] },
+      { id: 'lang-mid-u1', title: 'Earth Systems', topics: [
+        { id: 'lang-mid-t1', title: 'Plate Tectonics', description: 'How continents move, why earthquakes happen and how mountains and volcanoes form.', skillTags: ['tectonics', 'physical'], prerequisiteIds: [] },
+        { id: 'lang-mid-t2', title: 'Climate & Weather', description: 'The atmosphere, weather vs climate, ocean currents and the water cycle.', skillTags: ['climate', 'atmosphere'], prerequisiteIds: ['lang-mid-t1'] },
+        { id: 'lang-mid-t3', title: 'Climate Change', description: 'Greenhouse effect, carbon cycle, evidence of warming and global impacts.', skillTags: ['climate-change', 'environment'], prerequisiteIds: ['lang-mid-t2'] },
       ]},
-      { id: 'lang-mid-u2', title: 'Literature & Analysis', topics: [
-        { id: 'lang-mid-t4', title: 'Literary Devices', description: 'Metaphor, simile, alliteration, foreshadowing and symbolism.', skillTags: ['literary-devices'], prerequisiteIds: [] },
-        { id: 'lang-mid-t5', title: 'Textual Evidence & Inference', description: 'Supporting claims with direct quotes, paraphrase and inference.', skillTags: ['analysis', 'evidence'], prerequisiteIds: ['lang-mid-t4'] },
+      { id: 'lang-mid-u2', title: 'Human Geography', topics: [
+        { id: 'lang-mid-t4', title: 'Population & Migration', description: 'Where people live and why; push/pull factors that drive migration.', skillTags: ['population', 'migration'], prerequisiteIds: [] },
+        { id: 'lang-mid-t5', title: 'Resources & Trade', description: 'Renewable vs non-renewable resources; how goods move between countries.', skillTags: ['resources', 'economy'], prerequisiteIds: ['lang-mid-t4'] },
       ]},
     ]
   },
   {
-    id: 'lang-high910', subject: Subject.LANGUAGE, gradeLevel: GradeLevel.HIGH_9_10, iconName: 'Globe',
+    id: 'lang-high910', subject: Subject.GEOGRAPHY, gradeLevel: GradeLevel.HIGH_9_10, iconName: 'Globe',
     units: [
-      { id: 'lang-h1-u1', title: 'Rhetoric & Composition', topics: [
-        { id: 'lang-h1-t1', title: 'Rhetorical Analysis', description: 'Identifying ethos, pathos and logos in speeches, essays and advertisements.', skillTags: ['rhetoric', 'analysis'], prerequisiteIds: [] },
-        { id: 'lang-h1-t2', title: 'Research Writing', description: 'Thesis statements, integrating sources, MLA/APA citation and avoiding plagiarism.', skillTags: ['research', 'writing'], prerequisiteIds: ['lang-h1-t1'] },
+      { id: 'lang-h1-u1', title: 'World Regional Geography', topics: [
+        { id: 'lang-h1-t1', title: 'Europe & Russia', description: 'Physical features, political boundaries, the EU and major cultural regions.', skillTags: ['europe', 'regional'], prerequisiteIds: [] },
+        { id: 'lang-h1-t2', title: 'Asia & Middle East', description: 'East, South and Southeast Asia plus the Middle East: physical, political and economic geography.', skillTags: ['asia', 'regional'], prerequisiteIds: ['lang-h1-t1'] },
       ]},
-      { id: 'lang-h1-u2', title: 'Literature', topics: [
-        { id: 'lang-h1-t3', title: 'World Literature', description: 'Analyzing novels, poems and plays from global traditions and historical contexts.', skillTags: ['literature', 'world'], prerequisiteIds: [] },
-        { id: 'lang-h1-t4', title: 'Shakespeare & Classic Drama', description: 'Reading Shakespeare: plot, character, language and historical significance.', skillTags: ['shakespeare', 'drama'], prerequisiteIds: ['lang-h1-t3'] },
+      { id: 'lang-h1-u2', title: 'Geopolitics', topics: [
+        { id: 'lang-h1-t3', title: 'Borders & Sovereignty', description: 'How borders are drawn, disputed territories and what makes a country a country.', skillTags: ['political', 'borders'], prerequisiteIds: [] },
+        { id: 'lang-h1-t4', title: 'Globalization', description: 'How transport, trade and technology connect places and reshape local cultures.', skillTags: ['globalization', 'economy'], prerequisiteIds: ['lang-h1-t3'] },
       ]},
     ]
   },
   {
-    id: 'lang-high1112', subject: Subject.LANGUAGE, gradeLevel: GradeLevel.HIGH_11_12, iconName: 'Globe',
+    id: 'lang-high1112', subject: Subject.GEOGRAPHY, gradeLevel: GradeLevel.HIGH_11_12, iconName: 'Globe',
     units: [
-      { id: 'lang-h2-u1', title: 'AP Language & Composition', topics: [
-        { id: 'lang-h2-t1', title: 'Synthesis Essays', description: 'Combining multiple sources into a coherent argument with proper attribution.', skillTags: ['synthesis', 'argumentation'], prerequisiteIds: [] },
-        { id: 'lang-h2-t2', title: 'Stylistic Analysis', description: 'How authors\' diction, syntax and tone create meaning and effect.', skillTags: ['stylistics', 'analysis'], prerequisiteIds: ['lang-h2-t1'] },
+      { id: 'lang-h2-u1', title: 'AP Human Geography', topics: [
+        { id: 'lang-h2-t1', title: 'Demographic Transition', description: 'Birth rates, death rates and how populations change as countries develop.', skillTags: ['demography', 'human'], prerequisiteIds: [] },
+        { id: 'lang-h2-t2', title: 'Urban Patterns', description: 'How cities grow: concentric zones, sector and multiple-nuclei models, megacities.', skillTags: ['urban', 'human'], prerequisiteIds: ['lang-h2-t1'] },
       ]},
-      { id: 'lang-h2-u2', title: 'AP Literature', topics: [
-        { id: 'lang-h2-t3', title: 'The American Novel', description: 'Major themes in American literature from Hawthorne to Toni Morrison.', skillTags: ['american-literature'], prerequisiteIds: [] },
-        { id: 'lang-h2-t4', title: 'Poetry Analysis', description: 'Close reading of poems: form, imagery, voice, tone and irony.', skillTags: ['poetry', 'analysis'], prerequisiteIds: ['lang-h2-t3'] },
+      { id: 'lang-h2-u2', title: 'Environmental Geography', topics: [
+        { id: 'lang-h2-t3', title: 'Sustainability & Resources', description: 'Carrying capacity, sustainable development and managing finite resources.', skillTags: ['sustainability', 'environment'], prerequisiteIds: [] },
+        { id: 'lang-h2-t4', title: 'Biodiversity & Conservation', description: 'Why ecosystems matter, threats to biodiversity and conservation strategies.', skillTags: ['biodiversity', 'environment'], prerequisiteIds: ['lang-h2-t3'] },
       ]},
     ]
   },
   {
-    id: 'lang-college', subject: Subject.LANGUAGE, gradeLevel: GradeLevel.COLLEGE_FRESHMAN, iconName: 'Globe',
+    id: 'lang-college', subject: Subject.GEOGRAPHY, gradeLevel: GradeLevel.COLLEGE_FRESHMAN, iconName: 'Globe',
     units: [
-      { id: 'lang-col-u1', title: 'College Composition', topics: [
-        { id: 'lang-col-t1', title: 'Academic Writing', description: 'Writing college-level essays: argumentation, evidence, citations and revision.', skillTags: ['academic-writing'], prerequisiteIds: [] },
-        { id: 'lang-col-t2', title: 'Critical Reading', description: 'Analyzing complex texts for argument, bias, rhetoric and underlying assumptions.', skillTags: ['critical-reading'], prerequisiteIds: ['lang-col-t1'] },
+      { id: 'lang-col-u1', title: 'Geographic Analysis', topics: [
+        { id: 'lang-col-t1', title: 'Geographic Information Systems (GIS)', description: 'Map layers, spatial data, georeferencing and basic GIS analysis.', skillTags: ['gis', 'analysis'], prerequisiteIds: [] },
+        { id: 'lang-col-t2', title: 'Cartography', description: 'Map projections, scale, generalization and the principles of map design.', skillTags: ['cartography', 'maps'], prerequisiteIds: ['lang-col-t1'] },
       ]},
     ]
   },
@@ -795,7 +795,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     subjectsList: {
         [Subject.MATH]: "Mathematics",
         [Subject.SCIENCE]: "Science",
-        [Subject.LANGUAGE]: "Languages",
+        [Subject.GEOGRAPHY]: "Geography",
         [Subject.HISTORY]: "History",
         [Subject.CODING]: "Coding",
         [Subject.ECONOMICS]: "Economics"
@@ -1170,7 +1170,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     subjectsList: {
         [Subject.MATH]: "Математика",
         [Subject.SCIENCE]: "Наука",
-        [Subject.LANGUAGE]: "Языки",
+        [Subject.GEOGRAPHY]: "География",
         [Subject.HISTORY]: "История",
         [Subject.CODING]: "Программирование",
         [Subject.ECONOMICS]: "Экономика"
@@ -1545,7 +1545,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     subjectsList: {
         [Subject.MATH]: "מתמטיקה",
         [Subject.SCIENCE]: "מדעים",
-        [Subject.LANGUAGE]: "שפות",
+        [Subject.GEOGRAPHY]: "גאוגרפיה",
         [Subject.HISTORY]: "היסטוריה",
         [Subject.CODING]: "תכנות",
         [Subject.ECONOMICS]: "כלכלה"
@@ -1920,7 +1920,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     subjectsList: {
         [Subject.MATH]: "الرياضيات",
         [Subject.SCIENCE]: "العلوم",
-        [Subject.LANGUAGE]: "اللغات",
+        [Subject.GEOGRAPHY]: "الجغرافيا",
         [Subject.HISTORY]: "تاريخ",
         [Subject.CODING]: "برمجة",
         [Subject.ECONOMICS]: "اقتصاد"

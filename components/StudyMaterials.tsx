@@ -80,9 +80,17 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
   };
 
   const handleStart = () => {
-    if (selectedSubject && attachments.length > 0) {
-      onContextUpdate(`Studying custom materials for ${selectedSubject}. Files: ${attachments.map(a => a.name).join(', ')}`);
-      onStartQuiz(selectedSubject, attachments);
+    // Three valid paths:
+    //  1. Files uploaded (with or without subject) → analyze upload, auto-detect subject
+    //  2. Subject selected, no files → general practice for that subject
+    //  3. Neither → button disabled
+    if (attachments.length > 0) {
+      const subjectForContext = selectedSubject ?? Subject.MATH; // placeholder; analyzer will detect actual subject
+      onContextUpdate(`Studying custom materials. Files: ${attachments.map(a => a.name).join(', ')}`);
+      onStartQuiz(subjectForContext, attachments);
+    } else if (selectedSubject) {
+      onContextUpdate(`General practice for ${selectedSubject}.`);
+      onStartQuiz(selectedSubject, []);
     }
   };
 
@@ -202,7 +210,7 @@ const StudyMaterials: React.FC<Props> = ({ translations, userGrade, onBack, onSt
                     <div className="pt-4">
                         <button
                             onClick={handleStart}
-                            disabled={!selectedSubject || attachments.length === 0}
+                            disabled={!selectedSubject && attachments.length === 0}
                             className="w-full py-5 btn-brand text-lg disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                         >
                             <Brain size={24} />

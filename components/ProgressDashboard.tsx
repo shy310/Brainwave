@@ -15,7 +15,7 @@ interface Props {
 const SUBJECT_COLORS: Record<Subject, string> = {
   [Subject.MATH]: '#3b82f6',
   [Subject.SCIENCE]: '#22c55e',
-  [Subject.LANGUAGE]: '#a855f7',
+  [Subject.GEOGRAPHY]: '#a855f7',
   [Subject.CODING]: '#f97316',
   [Subject.HISTORY]: '#f59e0b',
   [Subject.ECONOMICS]: '#10b981',

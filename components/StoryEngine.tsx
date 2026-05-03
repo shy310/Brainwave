@@ -90,7 +90,7 @@ const StoryEngine: React.FC<Props> = ({
     onContextUpdate(`Story Engine — ${selectedGenre} ${storyLength}`);
     try {
       const data = await generateStoryOpeningV2(
-        Subject.LANGUAGE, selectedGenre, mode,
+        Subject.GEOGRAPHY, selectedGenre, mode,
         writingFocus || '', userGrade, language
       );
       setTitle(data.title);

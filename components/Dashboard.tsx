@@ -310,21 +310,21 @@ const LEGACY_GROUPED_GRADES = new Set<GradeLevel>([
 const SUBJECT_CHARACTER: Record<Subject, {
   icon: React.ElementType;
   bg: string; ink: string; bgDark: string; inkDark: string;
-  vibeKey: 'logic' | 'science' | 'language' | 'history' | 'coding' | 'economics';
+  vibeKey: 'logic' | 'science' | 'geography' | 'history' | 'coding' | 'economics';
 }> = {
   [Subject.MATH]:      { icon: Calculator,   bg: 'bg-[#EEF1F8]', ink: 'text-[#2D4A7A]', bgDark: 'dark:bg-[#1A2440]', inkDark: 'dark:text-[#A4B8E0]', vibeKey: 'logic' },
   [Subject.SCIENCE]:   { icon: FlaskConical, bg: 'bg-[#EAF2EC]', ink: 'text-[#2D5F3F]', bgDark: 'dark:bg-[#16291E]', inkDark: 'dark:text-[#9CC5A8]', vibeKey: 'science' },
-  [Subject.LANGUAGE]:  { icon: BookMarked,   bg: 'bg-[#F2EAEE]', ink: 'text-[#6B3F62]', bgDark: 'dark:bg-[#2A1B26]', inkDark: 'dark:text-[#C9A8C0]', vibeKey: 'language' },
+  [Subject.GEOGRAPHY]:  { icon: Globe,        bg: 'bg-[#EAF2F4]', ink: 'text-[#1F5468]', bgDark: 'dark:bg-[#0E2530]', inkDark: 'dark:text-[#9DBED1]', vibeKey: 'geography' },
   [Subject.HISTORY]:   { icon: BookOpen,     bg: 'bg-[#F7EDD9]', ink: 'text-[#8C5A1A]', bgDark: 'dark:bg-[#2A1F0E]', inkDark: 'dark:text-[#D9B57A]', vibeKey: 'history' },
   [Subject.CODING]:    { icon: Laptop,       bg: 'bg-[#E8EFEF]', ink: 'text-[#2A5C5E]', bgDark: 'dark:bg-[#152728]', inkDark: 'dark:text-[#9DC4C5]', vibeKey: 'coding' },
   [Subject.ECONOMICS]: { icon: TrendingUp,   bg: 'bg-[#F7E9E5]', ink: 'text-[#A0492C]', bgDark: 'dark:bg-[#2A1812]', inkDark: 'dark:text-[#E0A38C]', vibeKey: 'economics' },
 };
 
 const VIBE_TEXT: Record<LangKey, Record<string, string>> = {
-  en: { logic: 'Logic & patterns', science: 'How things work', language: 'Words & meaning', history: 'Stories of the past', coding: 'Build with logic', economics: 'Markets & choices' },
-  ru: { logic: 'Логика и закономерности', science: 'Как всё устроено', language: 'Слова и смысл', history: 'Истории прошлого', coding: 'Создавай с помощью логики', economics: 'Рынки и решения' },
-  he: { logic: 'לוגיקה ודפוסים', science: 'איך דברים עובדים', language: 'מילים ומשמעות', history: 'סיפורי העבר', coding: 'בנה עם לוגיקה', economics: 'שווקים ובחירות' },
-  ar: { logic: 'المنطق والأنماط', science: 'كيف تعمل الأشياء', language: 'الكلمات والمعنى', history: 'حكايات الماضي', coding: 'بناء بالمنطق', economics: 'الأسواق والخيارات' },
+  en: { logic: 'Logic & patterns', science: 'How things work', geography: 'The world around us', history: 'Stories of the past', coding: 'Build with logic', economics: 'Markets & choices' },
+  ru: { logic: 'Логика и закономерности', science: 'Как всё устроено', geography: 'Мир вокруг нас', history: 'Истории прошлого', coding: 'Создавай с помощью логики', economics: 'Рынки и решения' },
+  he: { logic: 'לוגיקה ודפוסים', science: 'איך דברים עובדים', geography: 'העולם סביבנו', history: 'סיפורי העבר', coding: 'בנה עם לוגיקה', economics: 'שווקים ובחירות' },
+  ar: { logic: 'المنطق والأنماط', science: 'كيف تعمل الأشياء', geography: 'العالم من حولنا', history: 'حكايات الماضي', coding: 'بناء بالمنطق', economics: 'الأسواق والخيارات' },
 };
 
 function getCopy(language?: Language): typeof COPY['en'] {

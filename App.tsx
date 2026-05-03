@@ -91,7 +91,7 @@ const GRADE_ORDINAL: Partial<Record<GradeLevel, number>> = {
 const SUBJECT_ICONS: Record<string, React.ElementType> = {
   [Subject.MATH]: Calculator,
   [Subject.SCIENCE]: FlaskConical,
-  [Subject.LANGUAGE]: Globe,
+  [Subject.GEOGRAPHY]: Globe,
   [Subject.CODING]: Laptop,
   [Subject.HISTORY]: BookOpen,
   [Subject.ECONOMICS]: TrendingUp
