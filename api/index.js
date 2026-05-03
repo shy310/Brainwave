@@ -10,12 +10,17 @@ import fs from 'fs';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
-// Primary model: DeepSeek-V3 free — excellent multilingual structured output.
-// Fallbacks: tried in order if the primary returns an error.
+// Free models tried in order. Free tier is shared globally so any individual
+// model can be rate-limited at any time. Long fallback chain = better odds.
 const MODELS = [
   'deepseek/deepseek-chat-v3-0324:free',
+  'deepseek/deepseek-r1:free',
   'google/gemini-2.0-flash-exp:free',
   'meta-llama/llama-3.3-70b-instruct:free',
+  'qwen/qwen-2.5-72b-instruct:free',
+  'nvidia/llama-3.1-nemotron-70b-instruct:free',
+  'meta-llama/llama-3.1-405b-instruct:free',
+  'microsoft/phi-3-medium-128k-instruct:free',
 ];
 
 if (!OPENROUTER_API_KEY) {
@@ -81,28 +86,37 @@ async function callOpenRouter({ messages, system, max_tokens, temperature, strea
 }
 
 // Try primary model, fall back through alternatives on failure.
+// Logs which model finally succeeded so we can monitor reliability.
 async function callWithFallback(opts) {
   let lastError;
+  const attempts = [];
   for (const model of MODELS) {
     try {
       const result = await callOpenRouter({ ...opts, model });
-      // For non-stream: ensure we got actual content
       if (!opts.stream) {
         const text = result?.choices?.[0]?.message?.content;
-        if (text && text.trim()) return result;
+        if (text && text.trim()) {
+          if (attempts.length > 0) console.log(`Succeeded on ${model} after ${attempts.length} fallback(s)`);
+          return result;
+        }
         lastError = new Error(`Model ${model} returned empty content`);
+        attempts.push(`${model}: empty`);
         continue;
       }
-      // For stream: check it opened ok before returning
-      if (result.ok) return result;
+      if (result.ok) {
+        if (attempts.length > 0) console.log(`Stream succeeded on ${model} after ${attempts.length} fallback(s)`);
+        return result;
+      }
       const errText = await result.text().catch(() => '');
       lastError = new Error(`Stream open failed on ${model}: ${result.status} ${errText.slice(0, 200)}`);
+      attempts.push(`${model}: ${result.status}`);
     } catch (err) {
       lastError = err;
-      console.warn(`Model ${model} failed, trying next:`, err.message);
+      attempts.push(`${model}: ${err.message?.slice(0, 80)}`);
     }
   }
-  throw lastError ?? new Error('All models failed');
+  console.error('All models exhausted:', attempts);
+  throw new Error(`All ${MODELS.length} free models are rate-limited or unavailable. Try again in a minute, or add OpenRouter credit at https://openrouter.ai/credits to use paid tier. Last error: ${lastError?.message}`);
 }
 
 // ─── Express app ────────────────────────────────────────────────────────────
