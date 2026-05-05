@@ -1,8 +1,10 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config();
+dotenv.config({ path: '.env.local', override: true });
 
 import express from 'express';
 import cors from 'cors';
-import Groq from 'groq-sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -10,9 +12,9 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Startup guard ─────────────────────────────────────────────────────────────
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-if (!GROQ_API_KEY) {
-  console.error('\n✗ FATAL: GROQ_API_KEY is not set.\n  Add it to .env.local for local dev,\n  or to Railway Variables for production.\n');
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+  console.error('\n✗ FATAL: GEMINI_API_KEY is not set.\n  Add it to .env.local for local dev,\n  or to Railway Variables for production.\n');
   process.exit(1);
 }
 
@@ -28,7 +30,6 @@ const ALLOWED_ORIGINS = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (Capacitor native WebView, curl, etc.)
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
@@ -40,7 +41,7 @@ const corsOptions = {
 };
 
 const app = express();
-app.options('*', cors(corsOptions)); // preflight for all routes
+app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 
@@ -52,37 +53,32 @@ app.use((_req, res, next) => {
   next();
 });
 
-// ── Groq client (singleton) ───────────────────────────────────────────────────
-const groq = new Groq({ apiKey: GROQ_API_KEY });
+// ── Gemini client ─────────────────────────────────────────────────────────────
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const TEXT_MODEL = 'gemini-2.0-flash';
 
-// ── Models ────────────────────────────────────────────────────────────────────
-const TEXT_MODEL   = 'llama-3.3-70b-versatile';
-const VISION_MODEL = 'llama-3.2-90b-vision-preview';
-
-function hasImages(messages) {
-  return messages.some(msg =>
-    Array.isArray(msg.content) &&
-    msg.content.some(block => block.type === 'image' || block.type === 'document')
-  );
-}
-
-// Convert Anthropic-style content blocks → Groq/OpenAI format
-// - image    → image_url  (Groq vision supports jpeg/png/gif/webp)
-// - document → dropped    (Groq has no PDF support)
-// - text     → unchanged
-function convertMessages(messages) {
+// Convert Anthropic-style messages → Gemini contents format
+// - role 'assistant' → 'model'
+// - content array → parts array
+// - image blocks → inlineData
+// - document blocks → dropped (Gemini handles PDFs differently)
+function toGeminiContents(messages) {
   return messages.map(msg => {
-    if (typeof msg.content === 'string') return msg;
-    const converted = msg.content
+    const role = msg.role === 'assistant' ? 'model' : 'user';
+    if (typeof msg.content === 'string') {
+      return { role, parts: [{ text: msg.content }] };
+    }
+    const parts = msg.content
       .filter(block => block.type !== 'document')
       .map(block => {
+        if (block.type === 'text') return { text: block.text };
         if (block.type === 'image') {
-          const { media_type, data } = block.source;
-          return { type: 'image_url', image_url: { url: `data:${media_type};base64,${data}` } };
+          return { inlineData: { mimeType: block.source.media_type, data: block.source.data } };
         }
-        return block;
-      });
-    return { role: msg.role, content: converted };
+        return null;
+      })
+      .filter(Boolean);
+    return { role, parts };
   });
 }
 
@@ -108,7 +104,6 @@ async function writeUsersDb(db) {
   } catch (err) { console.error('Failed to write users DB:', err); }
 }
 
-// Save or update a single user's data
 app.post('/api/user/save', async (req, res) => {
   const { userId, userData } = req.body;
   if (!userId || typeof userId !== 'string' || !userData || typeof userData !== 'object') {
@@ -124,7 +119,6 @@ app.post('/api/user/save', async (req, res) => {
   }
 });
 
-// Load a single user's data
 app.get('/api/user/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
@@ -141,30 +135,25 @@ app.get('/api/user/:userId', async (req, res) => {
 app.post('/api/claude', async (req, res) => {
   const { messages, system, max_tokens } = req.body;
 
-  // Validate request body
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
   }
 
   try {
-    const fullMessages = [
-      ...(system ? [{ role: 'system', content: system }] : []),
-      ...convertMessages(messages),
-    ];
-
-    const model = hasImages(messages) ? VISION_MODEL : TEXT_MODEL;
-
-    const response = await groq.chat.completions.create({
-      model,
-      max_tokens: max_tokens ?? 12000,
-      messages: fullMessages,
+    const model = genAI.getGenerativeModel({
+      model: TEXT_MODEL,
+      ...(system ? { systemInstruction: system } : {}),
     });
 
-    const text = response.choices[0]?.message?.content ?? '';
-    // Return in Anthropic-compatible shape so the frontend needs no changes
+    const result = await model.generateContent({
+      contents: toGeminiContents(messages),
+      generationConfig: { maxOutputTokens: max_tokens ?? 12000 },
+    });
+
+    const text = result.response.text();
     res.json({ content: [{ type: 'text', text }] });
   } catch (err) {
-    console.error('Groq error:', err);
+    console.error('Gemini error:', err);
     res.status(err.status ?? 500).json({ error: err.message ?? String(err) });
   }
 });
@@ -183,20 +172,18 @@ app.post('/api/claude-stream', async (req, res) => {
   res.flushHeaders();
 
   try {
-    const fullMessages = [
-      ...(system ? [{ role: 'system', content: system }] : []),
-      ...convertMessages(messages),
-    ];
-
-    const stream = await groq.chat.completions.create({
+    const model = genAI.getGenerativeModel({
       model: TEXT_MODEL,
-      max_tokens: max_tokens ?? 12000,
-      messages: fullMessages,
-      stream: true,
+      ...(system ? { systemInstruction: system } : {}),
     });
 
-    for await (const chunk of stream) {
-      const text = chunk.choices[0]?.delta?.content ?? '';
+    const result = await model.generateContentStream({
+      contents: toGeminiContents(messages),
+      generationConfig: { maxOutputTokens: max_tokens ?? 12000 },
+    });
+
+    for await (const chunk of result.stream) {
+      const text = chunk.text();
       if (text) {
         res.write(`data: ${JSON.stringify({ text })}\n\n`);
       }
@@ -204,7 +191,7 @@ app.post('/api/claude-stream', async (req, res) => {
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('Groq stream error:', err);
+    console.error('Gemini stream error:', err);
     res.write(`data: ${JSON.stringify({ error: err.message ?? String(err) })}\n\n`);
     res.end();
   }
@@ -216,5 +203,5 @@ app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.htm
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✓ Server running on port ${PORT}  (Groq · key: ...${GROQ_API_KEY.slice(-6)})`);
+  console.log(`✓ Server running on port ${PORT}  (Gemini 2.5 Flash)`);
 });
