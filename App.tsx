@@ -4,6 +4,7 @@ import {
   LearningSession, ProgressMap, TopicProgress, Course
 } from './types';
 import { TRANSLATIONS, CURRICULUM, getCurriculumCourse, buildCourseFromCurriculum } from './constants';
+import { Analytics } from '@vercel/analytics/react';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
@@ -1074,6 +1075,7 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+      <Analytics />
     </div>
   );
 };
