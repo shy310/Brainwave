@@ -8,6 +8,7 @@ import {
 import { generateQuiz, evaluateAnswer } from '../services/aiService';
 import Logo from './Logo';
 import MathText from './MathText';
+import Confetti from './Confetti';
 
 const MAX_ATTEMPTS = 3;
 
@@ -105,6 +106,7 @@ const ExercisePanel: React.FC<Props> = ({
   const [quizFinished, setQuizFinished] = useState(false);
   const [attemptsTotal, setAttemptsTotal] = useState(0);
   const [attemptsCorrect, setAttemptsCorrect] = useState(0);
+  const [confettiBurst, setConfettiBurst] = useState(0);
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -198,6 +200,7 @@ const ExercisePanel: React.FC<Props> = ({
       setScore(s => s + 1);
       setAttemptsCorrect(c => c + 1);
       setTotalXp(x => x + (currentExercise.xpValue || 50));
+      setConfettiBurst(n => n + 1);
     }
   };
 
@@ -226,6 +229,7 @@ const ExercisePanel: React.FC<Props> = ({
       setScore(s => s + 1);
       setAttemptsCorrect(c => c + 1);
       setTotalXp(x => x + (currentExercise.xpValue || 50));
+      setConfettiBurst(n => n + 1);
     } else if (attemptNum >= MAX_ATTEMPTS) {
       setIsSubmitted(true);
     }
@@ -312,6 +316,7 @@ const ExercisePanel: React.FC<Props> = ({
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 view-enter">
+      <Confetti trigger={confettiBurst} count={50} />
       {/* Back button */}
       <button
         onClick={onBack}

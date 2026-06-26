@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { GradeLevel, Language, UserProfile, Translations } from '../types';
-import { ChevronDown, Save, Globe, Moon, Sun, Check, User, AtSign, AlertCircle } from 'lucide-react';
+import { ChevronDown, Save, Globe, Moon, Sun, Check, User, AtSign, AlertCircle, Volume2, VolumeX } from 'lucide-react';
 
 interface Props {
   user: UserProfile;
@@ -12,6 +12,7 @@ interface Props {
   onGradeChange: (grade: GradeLevel) => void;
   onThemeToggle: () => void;
   onLanguageChange: (lang: Language) => void;
+  onToggleSound?: () => void;
 }
 
 const USERS_DB_KEY = 'brainwave_users_db';
@@ -76,7 +77,7 @@ const SET_COPY: Record<SetLangKey, {
 
 const Settings: React.FC<Props> = ({
   user, translations, theme, language,
-  onProfileUpdate, onGradeChange, onThemeToggle, onLanguageChange
+  onProfileUpdate, onGradeChange, onThemeToggle, onLanguageChange, onToggleSound
 }) => {
   const c = SET_COPY[(SET_COPY[language as SetLangKey] ? language : 'en') as SetLangKey];
   // Profile fields
@@ -342,6 +343,20 @@ const Settings: React.FC<Props> = ({
               <option value="ar" className="bg-white dark:bg-ink-800">العربية</option>
             </select>
           </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-sm font-bold text-ink-500 dark:text-ink-400 block">{translations.rewardSounds}</span>
+            <span className="text-xs text-ink-400 dark:text-ink-500">{translations.rewardSoundsDesc}</span>
+          </div>
+          <button
+            onClick={onToggleSound}
+            className="flex items-center gap-2 px-4 py-2.5 bg-cream-100 dark:bg-ink-800 rounded-xl text-sm font-bold text-ink-500 dark:text-ink-400 hover:text-moss-600 dark:hover:text-moss-400 transition-colors"
+          >
+            {user.soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            {user.soundEnabled ? 'On' : 'Off'}
+          </button>
         </div>
       </section>
 

@@ -153,6 +153,44 @@ export interface UserProfile {
   isRegistered: boolean;
   progressMap: ProgressMap;
   lastActivityDate?: string; // ISO date for streak calculation
+  // ── Engagement / retention ─────────────────────────────────────────────────
+  dailyXpGoal?: number;          // XP target for today (default 30)
+  todayXp?: number;              // XP earned during the current day
+  lastXpDate?: string;           // YYYY-MM-DD the todayXp counter belongs to
+  lastGoalMetDate?: string;      // YYYY-MM-DD the daily goal was last completed
+  streakFreezes?: number;        // protects the streak across one missed day
+  bestStreak?: number;           // longest streak ever reached
+  dailyGoalsMet?: number;        // total days the daily goal was completed
+  unlockedAchievements?: string[]; // achievement ids the user has earned
+  soundEnabled?: boolean;        // reward sound cues toggle
+}
+
+// ─── ENGAGEMENT: ACHIEVEMENTS ─────────────────────────────────────────────────
+
+export type AchievementCategory = 'streak' | 'xp' | 'mastery' | 'goal' | 'milestone';
+
+// A snapshot of user stats used to evaluate achievement predicates
+export interface AchievementStats {
+  totalXp: number;
+  streakDays: number;
+  bestStreak: number;
+  topicsMastered: number;      // topics with mastery >= 80
+  topicsStarted: number;       // topics with any attempts
+  dailyGoalsMet: number;
+}
+
+export interface Achievement {
+  id: string;
+  category: AchievementCategory;
+  icon: string;                // lucide icon name
+  xpReward: number;
+  // Localized copy keyed by language
+  title: Record<Language, string>;
+  description: Record<Language, string>;
+  // Returns true when the achievement is earned for the given stats
+  predicate: (s: AchievementStats) => boolean;
+  // Progress 0–1 toward unlocking (for "next achievement" nudges)
+  progress: (s: AchievementStats) => number;
 }
 
 export interface AppState {
@@ -160,7 +198,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   language: Language;
   user: UserProfile;
-  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review';
+  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard';
   activeCourseId: string | null;
   activeTopicId: string | null;
   currentSession: LearningSession | null;
@@ -759,4 +797,30 @@ export interface Translations {
   presenterTimer: string;
   generatingSlide: string;
   includes: string;
+  // ── Engagement / retention ─────────────────────────────────────────────────
+  dailyGoal: string;
+  dailyGoalDesc: string;
+  goalMet: string;
+  goalMetDesc: string;
+  todayProgress: string;
+  xpToGo: (n: number) => string;
+  setGoal: string;
+  streakSaved: string;
+  freezeUsed: string;
+  freezesLeft: (n: number) => string;
+  achievements: string;
+  achievementsDesc: string;
+  achievementUnlocked: string;
+  nextUp: string;
+  unlocked: (n: number, total: number) => string;
+  leaderboard: string;
+  leaderboardDesc: string;
+  rank: string;
+  you: string;
+  yourRank: (n: number) => string;
+  noRankYet: string;
+  loadingBoard: string;
+  rewardSounds: string;
+  rewardSoundsDesc: string;
+  keepStreakAlive: string;
 }

@@ -4,8 +4,43 @@ import { ICON_MAP, SUBJECTS_DATA, CURRICULUM, getCurriculumCourse } from '../con
 import {
   ArrowRight, ArrowUpRight, BookOpen, Calculator, FlaskConical, Globe,
   Laptop, TrendingUp, Flame, Sparkles, ChevronDown, ChevronRight, X,
-  PlayCircle, Coffee, Pencil, BookMarked, Target
+  PlayCircle, Coffee, Pencil, BookMarked, Target, Award, Snowflake, Check
 } from 'lucide-react';
+import { DEFAULT_DAILY_GOAL, localDayKey, nextAchievement } from '../services/engagement';
+
+// ─── Daily goal progress ring (SVG) ───────────────────────────────────────────
+const DailyGoalRing: React.FC<{ value: number; goal: number; met: boolean }> = ({ value, goal, met }) => {
+  const size = 132, stroke = 11, r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const pct = goal > 0 ? Math.min(1, value / goal) : 0;
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={stroke} className="text-ink-100 dark:text-ink-700" />
+        <circle
+          cx={size / 2} cy={size / 2} r={r} fill="none"
+          stroke="currentColor" strokeWidth={stroke} strokeLinecap="round"
+          strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
+          className={met ? 'text-clay-400' : 'text-moss-500'}
+          style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1)' }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        {met ? (
+          <>
+            <Check size={30} className="text-clay-400" strokeWidth={3} />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-clay-400 mt-0.5">{value}</span>
+          </>
+        ) : (
+          <>
+            <span className="font-display text-3xl font-semibold text-ink-700 dark:text-ink-100 leading-none count-in">{value}</span>
+            <span className="text-xs text-ink-300 dark:text-ink-400 mt-1">/ {goal} XP</span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
 interface Props {
   user: UserProfile;
@@ -16,6 +51,8 @@ interface Props {
   onSelectCourse: (courseId: string) => void;
   onResumeTopic: (courseId: string, topicId: string) => void;
   onSelectSubjectGrade: (subject: Subject, grade: GradeLevel) => void;
+  onSetDailyGoal?: (goal: number) => void;
+  onOpenAchievements?: () => void;
 }
 
 // ─── Editorial copy translations (the new strings I added) ─────────────────
@@ -347,7 +384,7 @@ function getGreeting(name: string, language?: Language): { greeting: string; emo
 
 const Dashboard: React.FC<Props> = ({
   user, courses, translations, searchQuery = '', language,
-  onSelectCourse, onResumeTopic, onSelectSubjectGrade
+  onSelectCourse, onResumeTopic, onSelectSubjectGrade, onSetDailyGoal, onOpenAchievements
 }) => {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [openGradeFolder, setOpenGradeFolder] = useState<string | null>(null);
@@ -357,6 +394,15 @@ const Dashboard: React.FC<Props> = ({
 
   const hasSpecificGrade = !LEGACY_GROUPED_GRADES.has(user.gradeLevel);
   const level = Math.floor(user.totalXp / 1000) + 1;
+
+  // ── Daily habit loop ──────────────────────────────────────────────────────
+  const todayKey = localDayKey();
+  const todayXp = user.lastXpDate === todayKey ? (user.todayXp ?? 0) : 0;
+  const dailyGoal = user.dailyXpGoal ?? DEFAULT_DAILY_GOAL;
+  const goalMet = todayXp >= dailyGoal;
+  const freezes = user.streakFreezes ?? 0;
+  const nextAch = useMemo(() => nextAchievement(user), [user]);
+  const GOAL_OPTIONS = [20, 30, 50];
   const greeting = getGreeting(user.name, language);
 
   const handleSubjectClick = (subject: Subject) => {
@@ -457,27 +503,95 @@ const Dashboard: React.FC<Props> = ({
           {greeting.mood}
         </p>
 
-        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-300 dark:text-ink-400">
-          {user.streakDays > 0 && (
-            <span className="inline-flex items-center gap-1.5">
-              <Flame size={13} className="text-clay-400" />
-              <span className="font-semibold text-ink-500 dark:text-ink-400">{c.daysStreak(user.streakDays)}</span>
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1.5">
-            <span className="font-semibold text-ink-500 dark:text-ink-400">{c.level(level)}</span>
-            <span className="text-ink-200 dark:text-ink-400">·</span>
-            <span>{user.totalXp.toLocaleString()} XP</span>
-          </span>
-          {totalTopicsDone > 0 && (
-            <span className="inline-flex items-center gap-1.5">
-              <Target size={13} className="text-moss-500" />
-              <span className="font-semibold text-ink-500 dark:text-ink-400">{totalTopicsDone}</span>
-              <span>{c.topicsMastered}</span>
-            </span>
+      </header>
+
+      {/* ─── Today hero: daily goal ring + streak + next achievement ───────── */}
+      <section className="fade-in stagger-1 -mt-6">
+        <div className="paper-card p-5 md:p-7 bg-white dark:bg-ink-800 border-ink-100 dark:border-ink-700">
+          <div className="flex flex-col sm:flex-row items-center gap-5 md:gap-7">
+            <DailyGoalRing value={todayXp} goal={dailyGoal} met={goalMet} />
+
+            <div className="flex-1 w-full min-w-0">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="font-display text-xl md:text-2xl font-semibold text-ink-700 dark:text-ink-100 leading-tight">
+                    {goalMet ? translations.goalMet : translations.todayProgress}
+                  </h3>
+                  <p className="text-sm text-ink-400 dark:text-ink-400 mt-0.5">
+                    {goalMet ? translations.goalMetDesc : translations.xpToGo(Math.max(0, dailyGoal - todayXp))}
+                  </p>
+                </div>
+                {/* Goal picker */}
+                <div className="flex items-center gap-1 shrink-0" title={translations.setGoal}>
+                  {GOAL_OPTIONS.map(g => (
+                    <button
+                      key={g}
+                      onClick={() => onSetDailyGoal?.(g)}
+                      className={`w-9 h-8 rounded-lg text-xs font-bold transition-colors ${
+                        dailyGoal === g
+                          ? 'bg-moss-500 text-white'
+                          : 'bg-ink-50 dark:bg-ink-700 text-ink-400 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-600'
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stat chips */}
+              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-300 dark:text-ink-400">
+                {user.streakDays > 0 && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Flame size={14} className="text-clay-400" />
+                    <span className="font-semibold text-ink-500 dark:text-ink-300">{c.daysStreak(user.streakDays)}</span>
+                    {freezes > 0 && (
+                      <span className="inline-flex items-center gap-0.5 text-sky-500" title={translations.freezesLeft(freezes)}>
+                        <Snowflake size={12} /> {freezes}
+                      </span>
+                    )}
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="font-semibold text-ink-500 dark:text-ink-300">{c.level(level)}</span>
+                  <span className="text-ink-200 dark:text-ink-400">·</span>
+                  <span>{user.totalXp.toLocaleString()} XP</span>
+                </span>
+                {totalTopicsDone > 0 && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Target size={14} className="text-moss-500" />
+                    <span className="font-semibold text-ink-500 dark:text-ink-300">{totalTopicsDone}</span>
+                    <span>{c.topicsMastered}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Next achievement nudge */}
+          {nextAch && (
+            <button
+              onClick={onOpenAchievements}
+              className="mt-5 w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-100 dark:border-amber-900/30 hover:bg-amber-100/70 dark:hover:bg-amber-900/25 transition-colors text-start group"
+            >
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0">
+                <Award size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">{translations.nextUp}</span>
+                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{Math.round(nextAch.progress * 100)}%</span>
+                </div>
+                <div className="font-semibold text-ink-700 dark:text-ink-100 truncate">{nextAch.achievement.title[language ?? 'en']}</div>
+                <div className="mt-1.5 h-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-700" style={{ width: `${Math.round(nextAch.progress * 100)}%` }} />
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-amber-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
+            </button>
           )}
         </div>
-      </header>
+      </section>
 
       {/* ─── Section 2: pick up where you left off ──────────────────────── */}
       {continueLearning ? (
