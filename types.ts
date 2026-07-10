@@ -90,11 +90,23 @@ export interface TopicProgress {
 // Map of topicId → progress
 export type ProgressMap = Record<string, TopicProgress>;
 
-// A section of a lesson (intro, concept, example, practice cue)
+// A section of a lesson. Lessons are a paced sequence of short, varied cards:
+// - intro / concept / example / scenario / summary — bite-size explanatory cards
+// - check — a quick tap-to-answer question with instant feedback
+// - challenge — a think-first prompt whose answer is revealed on demand
+export type LessonSectionType =
+  | 'intro' | 'concept' | 'example' | 'scenario' | 'check' | 'challenge' | 'summary';
+
 export interface LessonSection {
-  type: 'intro' | 'concept' | 'example' | 'summary';
+  type: LessonSectionType;
   heading: string;
-  body: string;
+  body: string;              // short: 2–4 sentences max
+  bullets?: string[];        // optional visual bullet list (kept short)
+  // Interactive fields — used by 'check' (and 'challenge' reveals via explanation)
+  question?: string;
+  options?: string[];        // 3 answer choices for 'check'
+  correctIndex?: number;     // index into options
+  explanation?: string;      // one-sentence "why" shown after answering / revealing
 }
 
 // Full AI-generated lesson for a topic

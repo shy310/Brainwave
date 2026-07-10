@@ -20,19 +20,15 @@ if (!GROQ_API_KEY) {
 const PORT = process.env.PORT ?? 3000;
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
-  'http://localhost:4173',
-  'http://localhost:3000',
-];
+// Local dev server: allow any localhost/127.0.0.1 origin regardless of port
+// (Vite dev, vite preview, or serving the built dist directly). Same-origin
+// module scripts send an Origin header too, so rejecting here breaks the app.
+const LOCAL_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS: origin not allowed — ${origin}`));
-    }
+    // Disallowed origins get CORS headers omitted (browser blocks), not a 500.
+    callback(null, !origin || LOCAL_ORIGIN.test(origin));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],

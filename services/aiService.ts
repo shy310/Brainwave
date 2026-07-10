@@ -294,7 +294,7 @@ export const generateLesson = async (
 ): Promise<Lesson | null> => {
     const targetLang = LANG_MAP[language] || language;
 
-    const prompt = `You are a world-class educator and subject matter expert. Generate an in-depth, accurate lesson.
+    const prompt = `You are a world-class educator who designs addictive, bite-size interactive lessons (think Duolingo, not a textbook). Generate an accurate micro-lesson as a paced sequence of short cards.
 
 Subject: ${subject}
 Grade Level: ${grade}
@@ -305,40 +305,51 @@ Language: ${targetLang} — text content must be in ${targetLang}.
 CRITICAL OUTPUT FORMAT:
 - Respond with ONLY a valid JSON object. No prose, no markdown fences, no explanations outside the JSON.
 - The JSON STRUCTURE (braces, brackets, commas, field names like "topicTitle", "sections", "type") is ALWAYS in English ASCII.
-- Only the VALUES of text content fields (topicTitle, heading, body, keyPoints[]) are in ${targetLang}.
-- The "type" field values stay in English: "intro", "concept", "example", "summary".
+- Only the VALUES of text content fields (topicTitle, heading, body, bullets[], question, options[], explanation, keyPoints[]) are in ${targetLang}.
+- The "type" field values stay in English: "intro", "concept", "example", "scenario", "check", "challenge", "summary".
 - Use ONLY standard ASCII double quotes (") for JSON strings. NEVER use smart/curly quotes (" " „).
 - For Hebrew/Arabic content: write text inside string normally; do NOT add RTL/LTR markers or BOM characters.
 
 CRITICAL ACCURACY RULES:
 - Every fact, definition, formula, and date MUST be 100% correct. Do not guess or fabricate.
-- If the topic is mathematical, show correct derivations and formulas step by step.
-- If the topic is historical, use correct dates, names, and events.
-- If the topic is scientific, use correct terminology and explain mechanisms accurately.
-- Double-check all numerical examples — verify your arithmetic is correct before including it.
+- Verify all arithmetic in examples and check questions before including it.
+- The correctIndex MUST point at the genuinely correct option.
+
+LESSON DESIGN RULES (the whole point — keep it snappy):
+- 9 to 11 sections total, each ONE small idea.
+- "body" is SHORT: 2-4 sentences, maximum ~55 words. NEVER write paragraphs of filler.
+- Prefer "bullets" (3-5 items, each under 12 words) over prose whenever listing steps, properties, or comparisons.
+- NO repetition between sections. Never restate what a previous card already said.
+- Variety: never place two sections of the same type next to each other (checks may follow anything).
+- Include EXACTLY 3 "check" sections spread through the lesson (never first, never last). Each has: "question" (one sentence), "options" (exactly 3, plausible, one correct), "correctIndex" (0-2), "explanation" (one sentence why).
+- Include EXACTLY 1 "scenario": a tiny concrete real-world story (2-3 sentences) showing the concept in action.
+- Include EXACTLY 1 "challenge" near the end: a think-first question in "body"; put the worked answer in "explanation" (2-3 sentences).
+- "intro" is a hook: open with a surprising fact or question that makes the student curious (2-3 sentences).
+- "summary" is last: 1-2 sentences + 3-4 "bullets" of the key takeaways.
+- Headings are punchy: 2-5 words.
+- Where natural, start "heading" with one relevant emoji (e.g. "🌋 Why plates move"). At most half the headings.
 
 Return ONLY a JSON object (no markdown, no code blocks):
 {
   "topicTitle": "string",
   "sections": [
-    { "type": "intro", "heading": "string", "body": "string (3-5 paragraphs introducing the topic with real-world context and why it matters)" },
-    { "type": "concept", "heading": "string", "body": "string (thorough explanation of core concepts with definitions, 4-6 paragraphs)" },
-    { "type": "concept", "heading": "string", "body": "string (deeper exploration of secondary concepts, building on the first)" },
-    { "type": "example", "heading": "string", "body": "string (3 detailed worked examples with step-by-step solutions)" },
-    { "type": "example", "heading": "string", "body": "string (real-world applications and practice problems)" },
-    { "type": "summary", "heading": "string", "body": "string (key takeaways, common mistakes to avoid, what to study next)" }
+    { "type": "intro", "heading": "string", "body": "string" },
+    { "type": "concept", "heading": "string", "body": "string", "bullets": ["optional", "short", "items"] },
+    { "type": "check", "heading": "string", "body": "", "question": "string", "options": ["a","b","c"], "correctIndex": 0, "explanation": "string" },
+    { "type": "example", "heading": "string", "body": "string", "bullets": ["step 1", "step 2"] },
+    { "type": "scenario", "heading": "string", "body": "string" },
+    { "type": "challenge", "heading": "string", "body": "string", "explanation": "string" },
+    { "type": "summary", "heading": "string", "body": "string", "bullets": ["takeaway 1", "takeaway 2", "takeaway 3"] }
   ],
-  "keyPoints": ["point1", "point2", "point3", "point4", "point5", "point6"],
+  "keyPoints": ["point1", "point2", "point3", "point4"],
   "diagramPrompt": "optional short English description for a diagram"
 }
 
 QUALITY REQUIREMENTS:
-- Write at the depth of a real textbook, not a Wikipedia summary
-- Each section body should be substantial — at least 150 words per section
-- Include specific facts, numbers, dates, formulas — not vague generalizations
-- Use numbered steps for processes, bullet points for lists
-- Connect concepts to prior knowledge the student likely has at this grade level
-- Include common misconceptions and explicitly correct them
+- Specific facts, numbers, and formulas — never vague generalizations.
+- Pitch difficulty and vocabulary exactly at grade ${grade}.
+- Address one common misconception somewhere (a check option or the challenge is a great place).
+- keyPoints: exactly 4, each under 12 words.
 
 For ALL mathematical expressions use LaTeX: inline $...$ or display $$...$$.
 CRITICAL — this is JSON, so double every backslash: \\\\frac not \\frac, \\\\sqrt not \\sqrt.
