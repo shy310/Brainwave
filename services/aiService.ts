@@ -44,18 +44,27 @@ async function callClaude(body: {
     max_tokens?: number;
     model?: string;
 }): Promise<string> {
-    const res = await fetch(`${API_BASE}/api/claude`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-        throw new Error(err.error ?? `HTTP ${res.status}`);
+    // The server already retries short rate limits and falls back to a smaller
+    // model. This client-side retry is the last resort when even that failed:
+    // wait out the per-minute window once, then surrender with a clear error.
+    for (let attempt = 0; ; attempt++) {
+        const res = await fetch(`${API_BASE}/api/claude`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        if (res.status === 429 && attempt === 0) {
+            await new Promise(r => setTimeout(r, 10_000));
+            continue;
+        }
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+            throw new Error(err.error ?? `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        const block = (data.content ?? []).find((b: any) => b.type === 'text');
+        return block?.text ?? '';
     }
-    const data = await res.json();
-    const block = (data.content ?? []).find((b: any) => b.type === 'text');
-    return block?.text ?? '';
 }
 
 // Valid characters after a JSON backslash escape
@@ -372,7 +381,9 @@ Write "40 dollars" / the currency word in the target language instead.`;
 
     const text = await callClaude({
         model: HAIKU,
-        max_tokens: 8192,
+        // Lessons are short cards now — a tight output budget keeps each call
+        // well inside Groq's tokens-per-minute quota.
+        max_tokens: 4096,
         messages: [{ role: 'user', content }],
     });
 
@@ -832,7 +843,9 @@ Now generate the JSON array. NO PROSE before or after — just the JSON.`;
 
     const text = await callClaude({
         model: HAIKU,
-        max_tokens: 8192,
+        // 10 questions fit comfortably; over-reserving output tokens counts
+        // against Groq's TPM quota and triggers 429s on the free tier.
+        max_tokens: 4096,
         system,
         messages: [{ role: 'user', content }],
     });

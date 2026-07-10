@@ -113,5 +113,6 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
 | `GROQ_API_KEY` | Yes | Groq API key — set in Vercel Environment Variables for production, `.env.local` for local dev |
 | `GROQ_MODEL` | No | Override the text model (default `llama-3.3-70b-versatile`) |
 | `GROQ_VISION_MODEL` | No | Override the vision model (default `meta-llama/llama-4-scout-17b-16e-instruct`) |
+| `GROQ_FALLBACK_MODEL` | No | Model used automatically when the main model is rate-limited (default `llama-3.1-8b-instant`; set empty to disable) |
 | `PORT` | No | Local dev server port (defaults to `3000`) |
 | `VITE_API_URL` | No | Override API base URL (for Capacitor/mobile builds) |

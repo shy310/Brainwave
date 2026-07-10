@@ -4,9 +4,26 @@ import path from 'path';
 import fs from 'fs';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_API_URL = process.env.GROQ_API_URL ?? 'https://api.groq.com/openai/v1/chat/completions';
 const TEXT_MODEL = process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile';
 const VISION_MODEL = process.env.GROQ_VISION_MODEL ?? 'meta-llama/llama-4-scout-17b-16e-instruct';
+// Smaller model used automatically when the main model is rate-limited.
+// Set GROQ_FALLBACK_MODEL="" to disable the fallback entirely.
+const FALLBACK_MODEL = process.env.GROQ_FALLBACK_MODEL ?? 'llama-3.1-8b-instant';
+
+// Groq counts max_completion_tokens against the tokens-per-minute quota even
+// when the reply is short — keep output reservations tight.
+const DEFAULT_MAX_TOKENS = 4096;
+const MAX_TOKENS_CAP = 6000;
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function parseRetryAfterSeconds(errBody, headers) {
+  const headerVal = Number(headers?.get?.('retry-after'));
+  if (Number.isFinite(headerVal) && headerVal > 0) return headerVal;
+  const m = /try again in ([\d.]+)s/i.exec(errBody || '');
+  return m ? parseFloat(m[1]) : null;
+}
 
 if (!GROQ_API_KEY) {
   console.error('GROQ_API_KEY is not set in environment variables');
@@ -45,24 +62,52 @@ function toGroqMessages(messages, system) {
   return { messages: out, hasImage };
 }
 
-async function callGroq({ messages, system, max_tokens, stream = false }) {
-  const { messages: groqMessages, hasImage } = toGroqMessages(messages, system);
-  const response = await fetch(GROQ_API_URL, {
+async function groqRequest(model, groqMessages, maxTokens, stream) {
+  return fetch(GROQ_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: hasImage ? VISION_MODEL : TEXT_MODEL,
+      model,
       messages: groqMessages,
-      max_completion_tokens: max_tokens ?? 8192,
+      max_completion_tokens: maxTokens,
       stream,
     }),
   });
+}
+
+async function callGroq({ messages, system, max_tokens, stream = false }) {
+  const { messages: groqMessages, hasImage } = toGroqMessages(messages, system);
+  const model = hasImage ? VISION_MODEL : TEXT_MODEL;
+  const maxTokens = Math.min(max_tokens ?? DEFAULT_MAX_TOKENS, MAX_TOKENS_CAP);
+
+  let response = await groqRequest(model, groqMessages, maxTokens, stream);
+
+  // Rate limited → wait out short limits, then retry once on the same model.
+  if (response.status === 429) {
+    const errBody = await response.text().catch(() => '');
+    const waitSec = parseRetryAfterSeconds(errBody, response.headers);
+    if (waitSec !== null && waitSec <= 12) {
+      await sleep((waitSec + 0.5) * 1000);
+      response = await groqRequest(model, groqMessages, maxTokens, stream);
+    }
+    // Still limited (or the wait was too long) → fall back to the smaller
+    // model, which has its own separate per-model quota.
+    if (response.status === 429 && FALLBACK_MODEL && FALLBACK_MODEL !== model && !hasImage) {
+      console.warn(`Groq rate limit on ${model} — falling back to ${FALLBACK_MODEL}`);
+      response = await groqRequest(FALLBACK_MODEL, groqMessages, maxTokens, stream);
+    }
+  }
+
   if (!response.ok) {
     const errBody = await response.text().catch(() => '');
-    const err = new Error(`Groq API ${response.status}: ${errBody.slice(0, 500)}`);
+    const err = new Error(
+      response.status === 429
+        ? 'The AI is receiving too many requests right now. Please wait a few seconds and try again.'
+        : `Groq API ${response.status}: ${errBody.slice(0, 500)}`
+    );
     err.status = response.status;
     throw err;
   }
