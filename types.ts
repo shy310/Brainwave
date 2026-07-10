@@ -178,7 +178,88 @@ export interface UserProfile {
   dailyGoalsMet?: number;        // total days the daily goal was completed
   unlockedAchievements?: string[]; // achievement ids the user has earned
   soundEnabled?: boolean;        // reward sound cues toggle
+  // ── Adaptive learning ──────────────────────────────────────────────────────
+  skillMap?: SkillMap;           // per-skill mastery records (Mastery Map)
 }
+
+// ─── ADAPTIVE LEARNING: SKILL MASTERY ────────────────────────────────────────
+// The central per-skill record that powers the Mastery Map and every adaptive
+// feature. Updated deterministically by services/masteryEngine.ts.
+
+export type SkillStatus = 'new' | 'learning' | 'developing' | 'secure' | 'mastered' | 'needs_review';
+
+export type MistakeKind =
+  | 'sign'        // right magnitude, wrong sign
+  | 'magnitude'   // off by a power of ten / decimal slip
+  | 'arithmetic'  // close numeric miss (calculation slip)
+  | 'units'       // value right, unit missing or wrong
+  | 'concept'     // chose a plausible-but-wrong idea (distractor)
+  | 'incomplete'  // partial multi-select / missing steps
+  | 'recall'      // blank / unrelated / couldn't retrieve the fact
+  | 'other';
+
+export type ConfidenceLevel = 1 | 2 | 3; // 1 = guessing, 2 = think so, 3 = sure
+
+// One answered question, as reported by the exercise UI
+export interface SkillAttemptEvent {
+  skillTag: string;
+  subject?: Subject;
+  topicId?: string | null;
+  correct: boolean;
+  questionType: QuestionType;
+  difficulty: number;
+  timeMs?: number;
+  hintsUsed: number;
+  skippedQuestion?: boolean;
+  mistakeKind?: MistakeKind;    // the mistake made (final answer, or the first wrong try when later corrected)
+  corrected?: boolean;          // got it right on a retry of the same question
+  confidence?: ConfidenceLevel; // when the student volunteered it
+  // Open-format correct answers count as "can explain" evidence — the student
+  // produced the answer rather than recognizing it among options.
+  explainEvidence?: boolean;
+  ts?: string;                  // ISO timestamp (defaults to now)
+}
+
+// Compact stored attempt (recent history, capped)
+export interface SkillAttempt {
+  ts: string;
+  correct: boolean;
+  questionType: QuestionType;
+  difficulty: number;
+  timeMs?: number;
+  hintsUsed: number;
+  mistakeKind?: MistakeKind;
+  corrected?: boolean;
+  confidence?: ConfidenceLevel;
+}
+
+export interface SkillRecord {
+  skillTag: string;
+  subject?: Subject;
+  topicId?: string | null;
+  status: SkillStatus;
+  masteryScore: number;              // 0–100 EMA, difficulty-weighted
+  attemptsTotal: number;
+  attemptsCorrect: number;
+  streak: number;                    // consecutive correct answers
+  lastPracticed: string;             // ISO — any activity
+  lastReviewed: string;              // ISO — last successful recall after a gap
+  reviewDue: string;                 // ISO — spaced-repetition next review date
+  reviewIntervalDays: number;        // current position on the interval ladder
+  successDays: string[];             // distinct local days with ≥1 correct (cap 12)
+  formatsCorrect: string[];          // question formats answered correctly (cap 8)
+  hintsTotal: number;
+  avgTimeMs?: number;
+  mistakeCounts: Partial<Record<MistakeKind, number>>;
+  mistakesTotal: number;
+  correctedCount: number;            // mistakes later fixed by the student
+  canExplain: boolean;               // produced (not just recognized) a correct answer
+  confidenceSum: number;             // for average confidence when volunteered
+  confidenceCount: number;
+  recent: SkillAttempt[];            // last 10 attempts, newest last
+}
+
+export type SkillMap = Record<string, SkillRecord>;
 
 // ─── ENGAGEMENT: ACHIEVEMENTS ─────────────────────────────────────────────────
 
@@ -213,7 +294,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   language: Language;
   user: UserProfile;
-  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard';
+  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard' | 'mastery';
   activeCourseId: string | null;
   activeTopicId: string | null;
   currentSession: LearningSession | null;
@@ -847,4 +928,5 @@ export interface Translations {
   rewardSounds: string;
   rewardSoundsDesc: string;
   keepStreakAlive: string;
+  masteryMap: string;
 }
