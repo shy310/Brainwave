@@ -4,7 +4,6 @@ dotenv.config({ path: '.env.local', override: true });
 
 import express from 'express';
 import cors from 'cors';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -12,9 +11,9 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Startup guard ─────────────────────────────────────────────────────────────
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-if (!GEMINI_API_KEY) {
-  console.error('\n✗ FATAL: GEMINI_API_KEY is not set.\n  Add it to .env.local for local dev,\n  or to Railway Variables for production.\n');
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+if (!GROQ_API_KEY) {
+  console.error('\n✗ FATAL: GROQ_API_KEY is not set.\n  Add it to .env.local for local dev,\n  or to Railway Variables for production.\n');
   process.exit(1);
 }
 
@@ -53,33 +52,67 @@ app.use((_req, res, next) => {
   next();
 });
 
-// ── Gemini client ─────────────────────────────────────────────────────────────
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const TEXT_MODEL = 'gemini-2.0-flash';
+// ── Groq client (OpenAI-compatible chat completions, no SDK needed) ──────────
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const TEXT_MODEL = process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile';
+const VISION_MODEL = process.env.GROQ_VISION_MODEL ?? 'meta-llama/llama-4-scout-17b-16e-instruct';
 
-// Convert Anthropic-style messages → Gemini contents format
-// - role 'assistant' → 'model'
-// - content array → parts array
-// - image blocks → inlineData
-// - document blocks → dropped (Gemini handles PDFs differently)
-function toGeminiContents(messages) {
-  return messages.map(msg => {
-    const role = msg.role === 'assistant' ? 'model' : 'user';
+// Convert Anthropic-style messages → OpenAI/Groq chat format
+// - system prompt → a leading { role: 'system' } message
+// - image blocks → image_url with a base64 data URI
+// - document blocks → dropped (not supported by Groq chat completions)
+// Returns the message list plus whether any image was present (for model routing).
+function toGroqMessages(messages, system) {
+  let hasImage = false;
+  const out = [];
+  if (system) out.push({ role: 'system', content: system });
+  for (const msg of messages) {
+    const role = msg.role === 'assistant' ? 'assistant' : 'user';
     if (typeof msg.content === 'string') {
-      return { role, parts: [{ text: msg.content }] };
+      out.push({ role, content: msg.content });
+      continue;
     }
     const parts = msg.content
       .filter(block => block.type !== 'document')
       .map(block => {
-        if (block.type === 'text') return { text: block.text };
+        if (block.type === 'text') return { type: 'text', text: block.text };
         if (block.type === 'image') {
-          return { inlineData: { mimeType: block.source.media_type, data: block.source.data } };
+          hasImage = true;
+          return {
+            type: 'image_url',
+            image_url: { url: `data:${block.source.media_type};base64,${block.source.data}` },
+          };
         }
         return null;
       })
       .filter(Boolean);
-    return { role, parts };
+    out.push({ role, content: parts });
+  }
+  return { messages: out, hasImage };
+}
+
+async function callGroq({ messages, system, max_tokens, stream = false }) {
+  const { messages: groqMessages, hasImage } = toGroqMessages(messages, system);
+  const response = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: hasImage ? VISION_MODEL : TEXT_MODEL,
+      messages: groqMessages,
+      max_completion_tokens: max_tokens ?? 12000,
+      stream,
+    }),
   });
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => '');
+    const err = new Error(`Groq API ${response.status}: ${errBody.slice(0, 500)}`);
+    err.status = response.status;
+    throw err;
+  }
+  return response;
 }
 
 // ── Health check ──────────────────────────────────────────────────────────────
@@ -167,20 +200,12 @@ app.post('/api/claude', async (req, res) => {
   }
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: TEXT_MODEL,
-      ...(system ? { systemInstruction: system } : {}),
-    });
-
-    const result = await model.generateContent({
-      contents: toGeminiContents(messages),
-      generationConfig: { maxOutputTokens: max_tokens ?? 12000 },
-    });
-
-    const text = result.response.text();
+    const response = await callGroq({ messages, system, max_tokens });
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content ?? '';
     res.json({ content: [{ type: 'text', text }] });
   } catch (err) {
-    console.error('Gemini error:', err);
+    console.error('Groq error:', err);
     res.status(err.status ?? 500).json({ error: err.message ?? String(err) });
   }
 });
@@ -199,26 +224,28 @@ app.post('/api/claude-stream', async (req, res) => {
   res.flushHeaders();
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: TEXT_MODEL,
-      ...(system ? { systemInstruction: system } : {}),
-    });
+    const response = await callGroq({ messages, system, max_tokens, stream: true });
 
-    const result = await model.generateContentStream({
-      contents: toGeminiContents(messages),
-      generationConfig: { maxOutputTokens: max_tokens ?? 12000 },
-    });
-
-    for await (const chunk of result.stream) {
-      const text = chunk.text();
-      if (text) {
-        res.write(`data: ${JSON.stringify({ text })}\n\n`);
+    // Re-emit Groq's OpenAI-style SSE stream as the { text } events the client expects.
+    const decoder = new TextDecoder();
+    let buffer = '';
+    for await (const chunk of response.body) {
+      buffer += decoder.decode(chunk, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        const payload = line.startsWith('data: ') ? line.slice(6).trim() : null;
+        if (!payload || payload === '[DONE]') continue;
+        try {
+          const text = JSON.parse(payload).choices?.[0]?.delta?.content;
+          if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        } catch { /* ignore malformed keep-alive lines */ }
       }
     }
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('Gemini stream error:', err);
+    console.error('Groq stream error:', err);
     res.write(`data: ${JSON.stringify({ error: err.message ?? String(err) })}\n\n`);
     res.end();
   }
@@ -230,5 +257,5 @@ app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.htm
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✓ Server running on port ${PORT}  (Gemini 2.5 Flash)`);
+  console.log(`✓ Server running on port ${PORT}  (Groq: ${TEXT_MODEL})`);
 });

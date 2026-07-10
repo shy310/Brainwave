@@ -29,7 +29,7 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
 |---|---|
 | Frontend | React 19 + TypeScript + Vite |
 | Styling | Tailwind CSS + custom CSS animations |
-| AI | Groq API (`llama-3.3-70b-versatile` / `llama-3.2-90b-vision-preview`) |
+| AI | Groq API (`llama-3.3-70b-versatile` / `meta-llama/llama-4-scout-17b-16e-instruct` for vision) |
 | Backend | Express.js proxy + user data persistence (`data/users.json`) |
 | Charts | Recharts |
 | Math | KaTeX |
@@ -111,5 +111,7 @@ No separate database or service is needed.
 | Variable | Required | Description |
 |---|---|---|
 | `GROQ_API_KEY` | Yes | Groq API key — set in Railway Variables for production, `.env.local` for local dev |
+| `GROQ_MODEL` | No | Override the text model (default `llama-3.3-70b-versatile`) |
+| `GROQ_VISION_MODEL` | No | Override the vision model (default `meta-llama/llama-4-scout-17b-16e-instruct`) |
 | `PORT` | No | Server port (Railway sets this automatically; defaults to `3000`) |
 | `VITE_API_URL` | No | Override API base URL (for Capacitor/mobile builds) |
