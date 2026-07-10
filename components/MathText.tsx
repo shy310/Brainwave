@@ -14,8 +14,14 @@ interface Seg { type: SegType; content: string; }
 
 function parse(raw: string): Seg[] {
   const segs: Seg[] = [];
-  // $$...$$ must be matched before $...$ to avoid consuming the delimiters greedily
-  const re = /\$\$([\s\S]*?)\$\$|\$([^\$\n]+?)\$/g;
+  // $$...$$ must be matched before $...$ to avoid consuming the delimiters greedily.
+  // Inline $...$ follows Pandoc's rules so currency doesn't get eaten as math:
+  //   - the opening $ must be immediately followed by a non-space, non-$ char
+  //   - the closing $ must be immediately preceded by a non-space char
+  //   - the closing $ must NOT be immediately followed by a digit
+  // "Tom has $40. His mom gives him $30." therefore stays plain text, while
+  // "$2x + 3 = 11$" still renders as math.
+  const re = /\$\$([\s\S]*?)\$\$|\$(?![\s$])([^$\n]+?)(?<=\S)\$(?!\d)/g;
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(raw)) !== null) {

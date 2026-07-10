@@ -259,7 +259,8 @@ STUDENT PROFILE: Grade: ${userContext.grade} | Language: ${targetLang}
 INSTRUCTIONS:
 1. CRITICAL — You MUST respond ONLY in ${targetLang}. This overrides all previous messages in the conversation history. Even if earlier messages were in a different language, your response must be in ${targetLang}.
 2. Use the context to help the student with whatever they are currently studying.
-3. For mathematical expressions use LaTeX notation: inline $...$ or display $$...$$.`;
+3. For mathematical expressions use LaTeX notation: inline $...$ or display $$...$$.
+4. NEVER write money with a bare $ sign ("$40" breaks rendering because $ delimits math) — write "40 dollars" or the currency word in the student's language.`;
 
     try {
         // Build history messages (map legacy 'model' role → 'assistant')
@@ -361,7 +362,9 @@ QUALITY REQUIREMENTS:
 
 For ALL mathematical expressions use LaTeX: inline $...$ or display $$...$$.
 CRITICAL — this is JSON, so double every backslash: \\\\frac not \\frac, \\\\sqrt not \\sqrt.
-Example: "$$\\\\frac{-b \\\\pm \\\\sqrt{b^2-4ac}}{2a}$$"`;
+Example: "$$\\\\frac{-b \\\\pm \\\\sqrt{b^2-4ac}}{2a}$$"
+CURRENCY: NEVER write money with a bare $ sign ("$40" breaks rendering because $ delimits math).
+Write "40 dollars" / the currency word in the target language instead.`;
 
     const content: object[] = [];
     if (attachments?.length) attachments.forEach(att => content.push(contentBlock(att)));
@@ -423,6 +426,7 @@ FEEDBACK RULES:
 - Hint ladder: attempt 1 → nudge at the concept; attempt 2 → point at the exact step to fix; attempt 3 → fullSolution.
 - Do not invent facts, formulas or rules. If the expected answer covers it, use it; otherwise stay general.
 - Grade level ${grade}: match vocabulary and depth to it.
+- Use LaTeX ($...$) only for math expressions; NEVER write money with a bare $ sign — say "40 dollars" instead.
 
 Return ONLY a JSON object (no markdown, no code blocks):
 {
@@ -613,7 +617,7 @@ EXAMPLE — NUMERIC (any question whose answer is a number, measurement, fractio
   "id": "q4",
   "questionType": "NUMERIC",
   "difficulty": 3,
-  "question": "A shirt costs $40 and is discounted by 25%. What is the sale price in dollars?",
+  "question": "A shirt costs 40 dollars and is discounted by 25%. What is the sale price in dollars?",
   "options": [],
   "correctOptionId": "",
   "sampleAnswer": "30",
@@ -809,6 +813,8 @@ LATEX RULES (math expressions only):
 - Inline math: $expression$ — example: "Solve $2x + 3 = 11$"
 - Display math: $$expression$$
 - CRITICAL: This is JSON, so DOUBLE every backslash. Write \\\\frac, \\\\sqrt, \\\\pi — NOT \\frac.
+- CURRENCY: NEVER write money with a bare $ sign ("$40" breaks rendering because $ delimits math).
+  Write "40 dollars" / "40 €" / the currency word in the target language instead.
 
 ${context ? `\nADDITIONAL CONTEXT TO USE:\n${context}\n` : ''}
 
