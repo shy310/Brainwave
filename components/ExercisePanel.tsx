@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Exercise, QuestionType, LearningSession, GradeLevel, Language, Translations, AnswerEvaluation } from '../types';
+import { Exercise, QuestionType, LearningSession, GradeLevel, Language, Translations, AnswerEvaluation, SkillAttemptEvent, ConfidenceLevel, MistakeKind } from '../types';
 import {
   CheckCircle, XCircle, Lightbulb, RefreshCw, ChevronRight, BookOpen,
   Zap, Trophy, ArrowRight, Send, Eye, AlertTriangle, HelpCircle, SkipForward
 } from 'lucide-react';
 import { generateQuiz, evaluateAnswer, QuizPerformance } from '../services/aiService';
 import { checkAnswer, looksNumeric } from '../services/mathEngine';
+import { classifyMistake } from '../services/masteryEngine';
 import Logo from './Logo';
 import MathText from './MathText';
 import Confetti from './Confetti';
@@ -17,6 +18,7 @@ type ExLangKey = 'en' | 'ru' | 'he' | 'ar';
 const EX_COPY: Record<ExLangKey, {
   multipleChoice: string; shortAnswer: string; multiStep: string; fillInBlank: string; questionLabel: string;
   trueFalse: string; numeric: string; multiSelect: string; skip: string; skipped: string; selectAllApply: string;
+  howSure: string; guessing: string; thinkSo: string; sure: string;
   attemptsLeft: (n: number) => string; attemptsCount: (a: number, m: number) => string;
 }> = {
   en: {
@@ -24,6 +26,7 @@ const EX_COPY: Record<ExLangKey, {
     fillInBlank: 'Fill in the Blank', questionLabel: 'Question',
     trueFalse: 'True or False', numeric: 'Numeric', multiSelect: 'Select All', skip: 'Skip', skipped: 'Skipped',
     selectAllApply: 'Select every correct option, then submit.',
+    howSure: 'How sure are you?', guessing: 'Guessing', thinkSo: 'Think so', sure: 'Sure',
     attemptsLeft: (n) => `${n} left`,
     attemptsCount: (a, m) => `${a}/${m} attempts`,
   },
@@ -32,6 +35,7 @@ const EX_COPY: Record<ExLangKey, {
     fillInBlank: 'Заполни пропуск', questionLabel: 'Вопрос',
     trueFalse: 'Верно или нет', numeric: 'Числовой', multiSelect: 'Несколько ответов', skip: 'Пропустить', skipped: 'Пропущено',
     selectAllApply: 'Отметь все верные варианты и отправь.',
+    howSure: 'Насколько уверен?', guessing: 'Наугад', thinkSo: 'Кажется', sure: 'Уверен',
     attemptsLeft: (n) => `осталось ${n}`,
     attemptsCount: (a, m) => `${a}/${m} попыток`,
   },
@@ -40,6 +44,7 @@ const EX_COPY: Record<ExLangKey, {
     fillInBlank: 'מלא את החסר', questionLabel: 'שאלה',
     trueFalse: 'נכון או לא', numeric: 'מספרי', multiSelect: 'בחר הכל', skip: 'דלג', skipped: 'דולג',
     selectAllApply: 'סמן את כל התשובות הנכונות ושלח.',
+    howSure: 'עד כמה אתה בטוח?', guessing: 'ניחוש', thinkSo: 'נראה לי', sure: 'בטוח',
     attemptsLeft: (n) => `נותרו ${n}`,
     attemptsCount: (a, m) => `${a}/${m} ניסיונות`,
   },
@@ -48,6 +53,7 @@ const EX_COPY: Record<ExLangKey, {
     fillInBlank: 'املأ الفراغ', questionLabel: 'سؤال',
     trueFalse: 'صح أم خطأ', numeric: 'رقمي', multiSelect: 'اختر الكل', skip: 'تخطى', skipped: 'تم التخطي',
     selectAllApply: 'حدد كل الخيارات الصحيحة ثم أرسل.',
+    howSure: 'ما مدى ثقتك؟', guessing: 'تخمين', thinkSo: 'أظن ذلك', sure: 'متأكد',
     attemptsLeft: (n) => `${n} متبقية`,
     attemptsCount: (a, m) => `${a}/${m} محاولات`,
   },
@@ -68,7 +74,7 @@ interface Props {
   userGrade: GradeLevel;
   language: Language;
   translations: Translations;
-  onComplete: (xpEarned: number, attemptsTotal: number, attemptsCorrect: number, topicId?: string | null, skillTag?: string) => void;
+  onComplete: (xpEarned: number, attemptsTotal: number, attemptsCorrect: number, topicId?: string | null, skillTag?: string, skillEvents?: SkillAttemptEvent[]) => void;
   onBack: () => void;
   onContextUpdate: (ctx: string) => void;
   onGoToLesson?: () => void;
@@ -125,6 +131,42 @@ const ExercisePanel: React.FC<Props> = ({
   const [attemptsCorrect, setAttemptsCorrect] = useState(0);
   const [confettiBurst, setConfettiBurst] = useState(0);
 
+  // Adaptive-learning telemetry for the mastery engine
+  const [confidence, setConfidence] = useState<ConfidenceLevel | undefined>(undefined);
+  const questionStartRef = useRef<number>(Date.now());
+  const skillEventsRef = useRef<SkillAttemptEvent[]>([]);
+  // First wrong try on this question — kept so a corrected answer still
+  // records WHAT kind of mistake was made (and that it was fixed).
+  const firstMistakeRef = useRef<MistakeKind | null>(null);
+
+  // One event per question, recorded exactly once when the question resolves.
+  const recordSkillEvent = (correct: boolean, opts: { skipped?: boolean; studentAnswer?: string } = {}) => {
+    const exercise = quiz[currentIndex];
+    if (!exercise) return;
+    const wasRetry = attempts > 0; // attempts counted BEFORE this resolution
+    skillEventsRef.current.push({
+      skillTag: exercise.skillTag || session.topicTitle || 'general',
+      subject: session.subject,
+      topicId: session.topicId,
+      correct,
+      questionType: exercise.questionType || QuestionType.MULTIPLE_CHOICE,
+      difficulty: exercise.difficulty || 3,
+      timeMs: Math.max(0, Date.now() - questionStartRef.current),
+      hintsUsed: (showHint ? 1 : 0) + shownHints.length,
+      skippedQuestion: opts.skipped,
+      mistakeKind: correct
+        ? (firstMistakeRef.current ?? undefined)
+        : opts.skipped ? 'recall'
+        : (firstMistakeRef.current ?? classifyMistake(exercise, opts.studentAnswer ?? '')),
+      corrected: correct && wasRetry,
+      confidence,
+      explainEvidence: correct && !opts.skipped &&
+        exercise.questionType !== QuestionType.MULTIPLE_CHOICE &&
+        exercise.questionType !== QuestionType.TRUE_FALSE &&
+        exercise.questionType !== QuestionType.MULTI_SELECT,
+    });
+  };
+
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -156,6 +198,7 @@ const ExercisePanel: React.FC<Props> = ({
     setQuizFinished(false);
     setAttemptsTotal(0);
     setAttemptsCorrect(0);
+    skillEventsRef.current = [];
 
     const subjectName = session.subject;
     const topicName = session.topicTitle;
@@ -219,6 +262,9 @@ const ExercisePanel: React.FC<Props> = ({
     setShownHints([]);
     setWasCorrect(null);
     setSkipped(false);
+    setConfidence(undefined);
+    firstMistakeRef.current = null;
+    questionStartRef.current = Date.now();
   };
 
   const currentExercise = quiz[currentIndex];
@@ -245,6 +291,9 @@ const ExercisePanel: React.FC<Props> = ({
     setAttemptsTotal(t => t + 1);
     if (correct) markCorrect();
     else setWasCorrect(false);
+    recordSkillEvent(correct, {
+      studentAnswer: currentExercise.options.find(o => o.id === selectedOption)?.text ?? '',
+    });
   };
 
   // ── MULTI-SELECT SUBMIT ────────────────────────────────────────────────────
@@ -257,6 +306,7 @@ const ExercisePanel: React.FC<Props> = ({
     setAttemptsTotal(t => t + 1);
     if (correct) markCorrect();
     else setWasCorrect(false);
+    recordSkillEvent(correct);
   };
 
   // ── OPEN ANSWER SUBMIT (engine-first, AI for feedback only) ───────────────
@@ -309,12 +359,18 @@ const ExercisePanel: React.FC<Props> = ({
     if (result.hint) setShownHints(h => [...h, result.hint!]);
     setEvaluating(false);
 
+    if (!result.isCorrect && firstMistakeRef.current === null) {
+      firstMistakeRef.current = classifyMistake(currentExercise, openAnswer);
+    }
+
     if (result.isCorrect) {
       setIsSubmitted(true);
       markCorrect();
+      recordSkillEvent(true, { studentAnswer: openAnswer });
     } else if (attemptNum >= MAX_ATTEMPTS) {
       setIsSubmitted(true);
       setWasCorrect(false);
+      recordSkillEvent(false, { studentAnswer: openAnswer });
     }
   };
 
@@ -330,6 +386,7 @@ const ExercisePanel: React.FC<Props> = ({
     setWasCorrect(false);
     setAttemptsTotal(t => t + 1);
     setIsSubmitted(true);
+    recordSkillEvent(false, { skipped: true });
   };
 
   const handleNext = () => {
@@ -338,7 +395,8 @@ const ExercisePanel: React.FC<Props> = ({
       resetQuestionState();
     } else {
       setQuizFinished(true);
-      onComplete(totalXp, attemptsTotal, attemptsCorrect, session.topicId, currentExercise?.skillTag);
+      onComplete(totalXp, attemptsTotal, attemptsCorrect, session.topicId, currentExercise?.skillTag, skillEventsRef.current);
+      skillEventsRef.current = [];
     }
   };
 
@@ -658,6 +716,27 @@ const ExercisePanel: React.FC<Props> = ({
                 <h3 className="font-bold dark:text-white uppercase tracking-widest text-sm flex items-center gap-2">
                   <BookOpen size={18} className="text-moss-600" /> {translations.tools}
                 </h3>
+
+                {/* Optional confidence check — feeds the mastery engine */}
+                <div>
+                  <p className="text-[11px] font-bold text-ink-400 uppercase tracking-wider mb-1.5">{ex.howSure}</p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {([[1, '🎲', ex.guessing], [2, '🤔', ex.thinkSo], [3, '💪', ex.sure]] as const).map(([lvl, emoji, label]) => (
+                      <button
+                        key={lvl}
+                        onClick={() => setConfidence(c => (c === lvl ? undefined : lvl as ConfidenceLevel))}
+                        className={`px-1 py-2 rounded-lg text-[11px] font-bold border transition-colors min-h-[44px] ${
+                          confidence === lvl
+                            ? 'bg-moss-500 text-white border-moss-500'
+                            : 'bg-cream-50 dark:bg-ink-900/40 text-ink-400 border-ink-100 dark:border-ink-700 hover:border-moss-300'
+                        }`}
+                      >
+                        <span className="block text-sm leading-none mb-0.5">{emoji}</span>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Single-choice submit (MC / true-false) */}
                 {isChoiceType && (

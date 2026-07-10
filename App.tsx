@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  AppState, Subject, GradeLevel, UserProfile, Attachment,
+  AppState, Subject, GradeLevel, UserProfile, Attachment, SkillAttemptEvent,
   LearningSession, ProgressMap, TopicProgress, Course
 } from './types';
 import { TRANSLATIONS, CURRICULUM, getCurriculumCourse, buildCourseFromCurriculum } from './constants';
@@ -8,6 +8,8 @@ import {
   DEFAULT_DAILY_GOAL, DEFAULT_STREAK_FREEZES, localDayKey, rolloverDailyXp,
   calculateStreakWithFreeze, applyXpGain, ACHIEVEMENTS_BY_ID
 } from './services/engagement';
+import { recordAttempt } from './services/masteryEngine';
+import MasteryMap from './components/MasteryMap';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
@@ -29,7 +31,7 @@ import {
   Calculator, FlaskConical, Globe, Laptop, BookOpen, TrendingUp,
   LogOut, BarChart2, Settings,
   GraduationCap, User as UserIcon, Trophy, Flame, Star,
-  ChevronLeft, ChevronRight, Sparkles, Zap, Target, Award
+  ChevronLeft, ChevronRight, Sparkles, Zap, Target, Award, Map
 } from 'lucide-react';
 import Confetti from './components/Confetti';
 
@@ -121,7 +123,8 @@ const DEFAULT_USER: UserProfile = {
   bestStreak: 0,
   dailyGoalsMet: 0,
   unlockedAchievements: [],
-  soundEnabled: false
+  soundEnabled: false,
+  skillMap: {}
 };
 
 const DEFAULT_STATE: AppState = {
@@ -437,6 +440,7 @@ const App: React.FC = () => {
               bestStreak: serverData.bestStreak ?? prev.user.bestStreak,
               dailyGoalsMet: serverData.dailyGoalsMet ?? prev.user.dailyGoalsMet,
               unlockedAchievements: serverData.unlockedAchievements ?? prev.user.unlockedAchievements,
+              skillMap: serverData.skillMap ?? prev.user.skillMap,
             }
           }));
         })
@@ -488,8 +492,9 @@ const App: React.FC = () => {
   }, [appState.user.gradeLevel]);
 
   // Single XP choke point: updates streak (with freeze protection), topic
-  // progress, XP, daily-goal tracking and achievements, then fires celebrations.
-  const handleExerciseComplete = useCallback((xpEarned: number, attemptsTotal: number, attemptsCorrect: number, topicId?: string | null, skillTag?: string) => {
+  // progress, per-skill mastery records, XP, daily-goal tracking and
+  // achievements, then fires celebrations.
+  const handleExerciseComplete = useCallback((xpEarned: number, attemptsTotal: number, attemptsCorrect: number, topicId?: string | null, skillTag?: string, skillEvents?: SkillAttemptEvent[]) => {
     const todayKey = localDayKey();
     const cur = userRef.current;
 
@@ -498,6 +503,12 @@ const App: React.FC = () => {
       ? updateTopicProgress(cur.progressMap || {}, topicId, attemptsTotal, attemptsCorrect, skillTag)
       : cur.progressMap || {};
 
+    // Feed every answered question into the adaptive mastery engine
+    let newSkillMap = cur.skillMap || {};
+    for (const ev of skillEvents ?? []) {
+      newSkillMap = recordAttempt(newSkillMap, ev);
+    }
+
     const base: UserProfile = {
       ...cur,
       streakDays: streak.streakDays,
@@ -505,6 +516,7 @@ const App: React.FC = () => {
       streakFreezes: streak.streakFreezes,
       lastActivityDate: new Date().toISOString(),
       progressMap: newProgressMap,
+      skillMap: newSkillMap,
     };
 
     const gain = applyXpGain(base, Math.max(0, xpEarned), todayKey);
@@ -562,6 +574,7 @@ const App: React.FC = () => {
     { view: 'dashboard', label: t.dashboard, icon: <LayoutGrid size={18} />, section: 'learn' },
     { view: 'courses', label: t.courses ?? 'Study Materials', icon: <Library size={18} />, section: 'learn' },
     { view: 'progress', label: t.progress, icon: <BarChart2 size={18} />, section: 'learn' },
+    { view: 'mastery', label: t.masteryMap, icon: <Map size={18} />, section: 'learn' },
     { view: 'achievements', label: t.achievements, icon: <Award size={18} />, section: 'learn' },
     { view: 'leaderboard', label: t.leaderboard, icon: <Trophy size={18} />, section: 'learn' },
     { view: 'profile', label: t.profile, icon: <UserIcon size={18} />, section: 'account' },
@@ -1044,6 +1057,19 @@ const App: React.FC = () => {
                   language={appState.language}
                   onStartPractice={(subject, topicId, topicTitle) => {
                     handleStartExercises(subject, appState.user.gradeLevel, topicId, topicTitle);
+                  }}
+                />
+              </div>
+            )}
+
+            {appState.activeView === 'mastery' && (
+              <div className="view-enter">
+                <MasteryMap
+                  user={appState.user}
+                  translations={t}
+                  language={appState.language}
+                  onPractice={(subject, topicId, skillTag) => {
+                    handleStartExercises(subject ?? Subject.MATH, appState.user.gradeLevel, topicId ?? null, skillTag);
                   }}
                 />
               </div>
