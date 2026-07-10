@@ -123,6 +123,33 @@ app.post('/api/user/save', async (req, res) => {
   }
 });
 
+// ─── Leaderboard ────────────────────────────────────────────────────────────
+app.get('/api/leaderboard', async (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 50, 100);
+  try {
+    const db = await readUsersDb();
+    const board = Object.entries(db)
+      .map(([id, u]) => {
+        const totalXp = Number(u?.totalXp) || 0;
+        // First name only for privacy.
+        const name = String(u?.name || 'Learner').trim().split(/\s+/)[0] || 'Learner';
+        return {
+          id,
+          name,
+          totalXp,
+          streakDays: Number(u?.streakDays) || 0,
+          level: Math.floor(totalXp / 1000) + 1,
+        };
+      })
+      .filter(e => e.totalXp > 0)
+      .sort((a, b) => b.totalXp - a.totalXp)
+      .slice(0, limit);
+    res.json(board);
+  } catch (err) {
+    res.status(500).json({ error: err.message ?? 'Failed to build leaderboard.' });
+  }
+});
+
 app.get('/api/user/:userId', async (req, res) => {
   const { userId } = req.params;
   try {

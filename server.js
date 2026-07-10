@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // ── Startup guard ─────────────────────────────────────────────────────────────
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 if (!GROQ_API_KEY) {
-  console.error('\n✗ FATAL: GROQ_API_KEY is not set.\n  Add it to .env.local for local dev,\n  or to Railway Variables for production.\n');
+  console.error('\n✗ FATAL: GROQ_API_KEY is not set.\n  Add it to .env.local for local dev.\n  (Production runs on Vercel via api/index.js — set the key in Vercel env vars.)\n');
   process.exit(1);
 }
 
@@ -21,7 +21,6 @@ const PORT = process.env.PORT ?? 3000;
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
-  'https://brainwave.up.railway.app',
   'http://localhost:5173',
   'http://localhost:4173',
   'http://localhost:3000',
