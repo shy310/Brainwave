@@ -1023,6 +1023,7 @@ const App: React.FC = () => {
                   userGrade={appState.user.gradeLevel}
                   language={appState.language}
                   translations={t}
+                  topicMastery={exerciseSession.topicId ? appState.user.progressMap?.[exerciseSession.topicId]?.mastery : undefined}
                   onComplete={handleExerciseComplete}
                   onBack={() => {
                     setExerciseSession(null);
