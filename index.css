@@ -94,6 +94,10 @@ body {
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
+/* App shell height: dvh tracks mobile browser bars so the bottom of the UI
+   is never cut off behind them; vh is the fallback for older browsers. */
+.app-shell { height: 100vh; height: 100dvh; }
+
 /* ── Subtle paper texture (optional — adds character) ───────────────────── */
 .paper-texture {
   background-image:

@@ -572,7 +572,7 @@ const App: React.FC = () => {
   const xpInLevel = appState.user.totalXp % 1000;
 
   return (
-    <div className="flex flex-col h-screen bg-cream-50 dark:bg-ink-900 transition-colors duration-300 font-sans overflow-hidden text-ink-700 dark:text-ink-100">
+    <div className="app-shell flex flex-col bg-cream-50 dark:bg-ink-900 transition-colors duration-300 font-sans overflow-hidden text-ink-700 dark:text-ink-100">
 
       {/* ── TOP NAVIGATION BAR ───────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-white dark:bg-ink-900 border-b border-ink-100 dark:border-ink-800 flex-shrink-0 relative">
@@ -581,31 +581,35 @@ const App: React.FC = () => {
             <div className="h-full bg-moss-500 animate-nav-loading" />
           </div>
         )}
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 h-[64px] flex items-center justify-between gap-4">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 md:px-6 h-[64px] flex items-center justify-between gap-2 md:gap-4">
           {/* Left: Logo + nav */}
-          <div className="flex items-center gap-3 md:gap-7">
-            <button onClick={() => navigateTo('dashboard')} className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+            <button onClick={() => navigateTo('dashboard')} className="flex items-center gap-2 shrink-0 min-h-[44px]">
               <div className="w-8 h-8 rounded-xl bg-moss-500 flex items-center justify-center">
                 <span className="font-bold text-white text-base leading-none">B</span>
               </div>
-              <span className="font-bold text-base tracking-tight text-ink-700 dark:text-ink-100 hidden sm:inline">BrainWave</span>
+              <span className="font-bold text-base tracking-tight text-ink-700 dark:text-ink-100 hidden xl:inline">BrainWave</span>
             </button>
 
-            <nav className="hidden md:flex items-center gap-1">
+            {/* Desktop/tablet nav: icons-only at md, icon+label at lg+, scrolls if it
+                still cannot fit (long localized labels) instead of overflowing the page */}
+            <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-x-auto scrollbar-hide">
               {NAV_ITEMS.filter(i => i.section === 'learn').map(({ view, label, icon }) => {
                 const isActive = appState.activeView === view;
                 return (
                   <button
                     key={view}
                     onClick={() => navigateTo(view)}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                    title={label}
+                    aria-label={label}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition-all duration-200 shrink-0 whitespace-nowrap ${
                       isActive
                         ? 'bg-moss-500 text-white shadow-moss'
                         : 'text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-100'
                     }`}
                   >
                     <span className="flex-shrink-0">{icon}</span>
-                    <span>{label}</span>
+                    <span className="hidden lg:inline">{label}</span>
                   </button>
                 );
               })}
@@ -613,14 +617,16 @@ const App: React.FC = () => {
 
             <button
               onClick={() => setMobileMenuOpen(m => !m)}
-              className="md:hidden p-2 rounded-lg text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-800 transition-colors"
+              className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-800 transition-colors"
+              aria-label="Menu"
+              aria-expanded={mobileMenuOpen}
             >
-              <Menu size={20} />
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
 
           {/* Right: Search, stats, theme, avatar */}
-          <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="flex items-center gap-1 md:gap-2 shrink-0">
             <div className="hidden lg:flex items-center gap-2 bg-cream-100 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-full px-3.5 py-1.5 focus-within:border-moss-300 transition-all">
               <Search size={14} className="text-ink-300 shrink-0" />
               <input
@@ -639,10 +645,10 @@ const App: React.FC = () => {
               </div>
             )}
 
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-moss-50 dark:bg-moss-light text-moss-600 dark:text-moss-300 text-xs font-bold">
+            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-moss-50 dark:bg-moss-light text-moss-600 dark:text-moss-300 text-xs font-bold whitespace-nowrap">
               <span>Lv.{level}</span>
               <span className="opacity-50">·</span>
-              <span>{appState.user.totalXp} XP</span>
+              <span>{appState.user.totalXp.toLocaleString()} XP</span>
             </div>
 
             <LanguageSelector currentLang={appState.language} onChange={(l) => setAppState(prev => ({ ...prev, language: l }))} disabled={appState.activeView === 'exercise' || appState.activeView === 'lesson'} />
@@ -689,52 +695,62 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile menu drawer */}
+        {/* Mobile menu drawer (overlay panel + tap-outside backdrop) */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-900 max-h-[70vh] overflow-y-auto">
-            <nav className="px-4 py-3 space-y-1">
-              {NAV_ITEMS.filter(i => i.section === 'learn').map(({ view, label, icon }) => {
-                const isActive = appState.activeView === view;
-                return (
+          <>
+            <div
+              className="md:hidden fixed inset-0 top-[64px] z-30 bg-ink-900/40"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+            <div className="md:hidden absolute top-full inset-x-0 z-40 border-t border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-900 max-h-[calc(100dvh-64px)] overflow-y-auto shadow-lift">
+              <nav className="px-4 py-3 space-y-1 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                {NAV_ITEMS.filter(i => i.section === 'learn').map(({ view, label, icon }) => {
+                  const isActive = appState.activeView === view;
+                  return (
+                    <button
+                      key={view}
+                      onClick={() => navigateTo(view)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-moss-500 text-white'
+                          : 'text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800'
+                      }`}
+                    >
+                      <span className="shrink-0">{icon}</span>
+                      <span className="min-w-0 truncate text-start">{label}</span>
+                    </button>
+                  );
+                })}
+                <div className="h-px bg-ink-100 dark:bg-ink-800 my-2" />
+                <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-300 dark:text-ink-500 px-3 mb-1">{t.subjects}</div>
+                {Object.values(Subject).map(s => {
+                  const Icon = SUBJECT_ICONS[s];
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => startSubjectPractice(s)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800"
+                    >
+                      <Icon size={16} className="shrink-0" />
+                      <span className="min-w-0 truncate text-start">{t.subjectsList[s]}</span>
+                    </button>
+                  );
+                })}
+                <div className="h-px bg-ink-100 dark:bg-ink-800 my-2" />
+                {NAV_ITEMS.filter(i => i.section === 'account').map(({ view, label, icon }) => (
                   <button
                     key={view}
                     onClick={() => navigateTo(view)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-moss-500 text-white'
-                        : 'text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800'
-                    }`}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-medium text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800"
                   >
-                    {icon}{label}
+                    <span className="shrink-0">{icon}</span>
+                    <span className="min-w-0 truncate text-start">{label}</span>
                   </button>
-                );
-              })}
-              <div className="h-px bg-ink-100 dark:bg-ink-800 my-2" />
-              <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-300 dark:text-ink-500 px-3 mb-1">Subjects</div>
-              {Object.values(Subject).map(s => {
-                const Icon = SUBJECT_ICONS[s];
-                return (
-                  <button
-                    key={s}
-                    onClick={() => startSubjectPractice(s)}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800"
-                  >
-                    <Icon size={16} />{t.subjectsList[s]}
-                  </button>
-                );
-              })}
-              <div className="h-px bg-ink-100 dark:bg-ink-800 my-2" />
-              {NAV_ITEMS.filter(i => i.section === 'account').map(({ view, label, icon }) => (
-                <button
-                  key={view}
-                  onClick={() => navigateTo(view)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-ink-500 dark:text-ink-300 hover:bg-cream-100 dark:hover:bg-ink-800"
-                >
-                  {icon}{label}
-                </button>
-              ))}
-            </nav>
-          </div>
+                ))}
+              </nav>
+            </div>
+          </>
         )}
       </header>
 
@@ -909,7 +925,7 @@ const App: React.FC = () => {
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="flex-1 overflow-y-auto scrollbar-hide bg-cream-50 dark:bg-ink-900">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide bg-cream-50 dark:bg-ink-900">
           <div className="w-full h-full">
 
             {appState.activeView === 'dashboard' && (
@@ -994,6 +1010,7 @@ const App: React.FC = () => {
                   }}
                   onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard', currentSession: null }))}
                   onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
+                  onLessonComplete={(xp) => handleExerciseComplete(xp, 0, 0, null)}
                 />
               </div>
             )}
