@@ -2,7 +2,7 @@
 
 An AI-powered tutoring platform for students from Kindergarten through College. Multilingual, adaptive, and packed with interactive learning tools.
 
-**Live:** [brainwave.up.railway.app](https://brainwave.up.railway.app)
+**Live:** deployed on [Vercel](https://vercel.com) (project `brainwave`)
 
 ---
 
@@ -29,12 +29,12 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
 |---|---|
 | Frontend | React 19 + TypeScript + Vite |
 | Styling | Tailwind CSS + custom CSS animations |
-| AI | Groq API (`llama-3.3-70b-versatile` / `llama-3.2-90b-vision-preview`) |
+| AI | Groq API (`llama-3.3-70b-versatile` / `meta-llama/llama-4-scout-17b-16e-instruct` for vision) |
 | Backend | Express.js proxy + user data persistence (`data/users.json`) |
 | Charts | Recharts |
 | Math | KaTeX |
 | Code editor | Monaco Editor |
-| Deployment | Railway (Node 20, auto-deploy from `main`) |
+| Deployment | Vercel (static `dist/` + serverless `api/index.js`, auto-deploy from `main`) |
 
 ---
 
@@ -67,13 +67,13 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
 
 ---
 
-## Deployment (Railway)
+## Deployment (Vercel)
 
-1. Push to the `main` branch — Railway auto-deploys.
-2. Set `GROQ_API_KEY` in Railway → your project → **Variables**.
-3. The server builds the frontend (`npm run build`) and serves `dist/` + `/api/*` from a single Node process.
+1. Push to the `main` branch — Vercel auto-deploys production; every other branch gets a preview URL.
+2. Set `GROQ_API_KEY` in Vercel → Project → **Settings → Environment Variables**.
+3. Vercel serves the built frontend (`dist/`) statically and routes `/api/*` to the serverless Express app in `api/index.js` (see `vercel.json`).
 
-No separate database or service is needed.
+> **Note:** user data on Vercel is stored in the serverless function's ephemeral `/tmp`, so server-side progress sync and the leaderboard reset whenever the function recycles. Per-device progress still persists in the browser via localStorage. For durable cross-device data, wire `api/index.js` to a store like Vercel KV or Postgres.
 
 ---
 
@@ -81,7 +81,8 @@ No separate database or service is needed.
 
 ```
 ├── App.tsx                  # Root state, routing, session handlers
-├── server.js                # Express: /api/claude proxy, /api/user persistence
+├── server.js                # Express server for local dev (Groq proxy + user data)
+├── api/index.js             # Vercel serverless Express app (same API, production)
 ├── types.ts                 # All TypeScript interfaces and enums
 ├── constants.ts             # Translations, curriculum tree, AI prompts
 ├── services/
@@ -100,8 +101,7 @@ No separate database or service is needed.
 │   ├── SqlDetective.tsx
 │   └── FloatingChat.tsx      # Persistent AI tutor chat
 ├── index.css                # Global styles + custom keyframe animations
-├── railway.toml             # Railway build/deploy config
-└── nixpacks.toml            # Node 20 + npm ci
+└── vercel.json              # Vercel build/routing config
 ```
 
 ---
@@ -110,6 +110,8 @@ No separate database or service is needed.
 
 | Variable | Required | Description |
 |---|---|---|
-| `GROQ_API_KEY` | Yes | Groq API key — set in Railway Variables for production, `.env.local` for local dev |
-| `PORT` | No | Server port (Railway sets this automatically; defaults to `3000`) |
+| `GROQ_API_KEY` | Yes | Groq API key — set in Vercel Environment Variables for production, `.env.local` for local dev |
+| `GROQ_MODEL` | No | Override the text model (default `llama-3.3-70b-versatile`) |
+| `GROQ_VISION_MODEL` | No | Override the vision model (default `meta-llama/llama-4-scout-17b-16e-instruct`) |
+| `PORT` | No | Local dev server port (defaults to `3000`) |
 | `VITE_API_URL` | No | Override API base URL (for Capacitor/mobile builds) |

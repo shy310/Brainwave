@@ -4,6 +4,10 @@ import {
   LearningSession, ProgressMap, TopicProgress, Course
 } from './types';
 import { TRANSLATIONS, CURRICULUM, getCurriculumCourse, buildCourseFromCurriculum } from './constants';
+import {
+  DEFAULT_DAILY_GOAL, DEFAULT_STREAK_FREEZES, localDayKey, rolloverDailyXp,
+  calculateStreakWithFreeze, applyXpGain, ACHIEVEMENTS_BY_ID
+} from './services/engagement';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
@@ -17,14 +21,17 @@ import LessonView from './components/LessonView';
 import ProgressDashboard from './components/ProgressDashboard';
 import SettingsView from './components/Settings';
 import Logo from './components/Logo';
+import Achievements from './components/Achievements';
+import Leaderboard from './components/Leaderboard';
 
 import {
   LayoutGrid, Library, Menu, X, Moon, Sun, Search,
   Calculator, FlaskConical, Globe, Laptop, BookOpen, TrendingUp,
   LogOut, BarChart2, Settings,
   GraduationCap, User as UserIcon, Trophy, Flame, Star,
-  ChevronLeft, ChevronRight, Sparkles, Zap
+  ChevronLeft, ChevronRight, Sparkles, Zap, Target, Award
 } from 'lucide-react';
+import Confetti from './components/Confetti';
 
 const SESSION_KEY = 'brainwave_session_v2';
 const USERS_DB_KEY = 'brainwave_users_db';
@@ -107,7 +114,14 @@ const DEFAULT_USER: UserProfile = {
   totalXp: 0,
   streakDays: 0,
   isRegistered: false,
-  progressMap: {}
+  progressMap: {},
+  dailyXpGoal: DEFAULT_DAILY_GOAL,
+  todayXp: 0,
+  streakFreezes: DEFAULT_STREAK_FREEZES,
+  bestStreak: 0,
+  dailyGoalsMet: 0,
+  unlockedAchievements: [],
+  soundEnabled: false
 };
 
 const DEFAULT_STATE: AppState = {
@@ -174,16 +188,6 @@ const updateTopicProgress = (
   return { ...prev, [topicId]: updated };
 };
 
-const calculateStreak = (currentStreak: number, lastActivityDate?: string): number => {
-  if (!lastActivityDate) return 1;
-  const today = new Date().toDateString();
-  const yesterday = new Date(Date.now() - 86_400_000).toDateString();
-  const last = new Date(lastActivityDate).toDateString();
-  if (last === today) return currentStreak;
-  if (last === yesterday) return currentStreak + 1;
-  return 1;
-};
-
 // ─── NAV CONFIG ───────────────────────────────────────────────────────────────
 
 type NavView = AppState['activeView'];
@@ -194,6 +198,13 @@ interface NavItem {
   icon: React.ReactNode;
   section: 'learn' | 'account';
 }
+
+// A celebration-worthy moment surfaced as a toast + confetti burst.
+type Celebration =
+  | { type: 'level'; level: number }
+  | { type: 'goal' }
+  | { type: 'achievement'; id: string }
+  | { type: 'freeze' };
 
 // ─── APP COMPONENT ────────────────────────────────────────────────────────────
 
@@ -208,7 +219,7 @@ const App: React.FC = () => {
           const user = usersDb[session.lastUserId];
           if (user) {
             if (!user.progressMap) user.progressMap = {};
-            return { ...DEFAULT_STATE, ...session, user, activeView: 'dashboard' };
+            return { ...DEFAULT_STATE, ...session, user: { ...DEFAULT_USER, ...user }, activeView: 'dashboard' };
           }
         }
         return { ...DEFAULT_STATE, ...session, isLoggedIn: false, user: DEFAULT_USER };
@@ -224,11 +235,64 @@ const App: React.FC = () => {
   const [activeSubject, setActiveSubject] = useState<Subject | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [levelUpToast, setLevelUpToast] = useState<number | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
-  const prevXpRef = useRef(appState.user.totalXp);
   const serverSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestUserRef = useRef(appState.user);
+
+  // Always-fresh snapshot of the current user, safe to read inside event handlers.
+  const userRef = useRef(appState.user);
+  userRef.current = appState.user;
+
+  // ── Unified celebration queue (level-up, daily goal, achievements, freeze) ──
+  const [celebration, setCelebration] = useState<Celebration | null>(null);
+  const [confettiBurst, setConfettiBurst] = useState(0);
+  const celebrationQueueRef = useRef<Celebration[]>([]);
+  const celebrationActiveRef = useRef(false);
+
+  const playChime = useCallback(() => {
+    if (!userRef.current.soundEnabled) return;
+    try {
+      const AC = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      const now = ctx.currentTime;
+      [523.25, 659.25, 783.99].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const start = now + i * 0.09;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.18, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.4);
+      });
+      setTimeout(() => ctx.close().catch(() => {}), 800);
+    } catch { /* audio unavailable */ }
+  }, []);
+
+  const showNextCelebration = useCallback(() => {
+    if (celebrationActiveRef.current) return;
+    const next = celebrationQueueRef.current.shift();
+    if (!next) return;
+    celebrationActiveRef.current = true;
+    setCelebration(next);
+    setConfettiBurst(n => n + 1);
+    playChime();
+    setTimeout(() => {
+      setCelebration(null);
+      celebrationActiveRef.current = false;
+      showNextCelebration();
+    }, 3200);
+  }, [playChime]);
+
+  const enqueueCelebration = useCallback((cels: Celebration[]) => {
+    if (!cels.length) return;
+    celebrationQueueRef.current.push(...cels);
+    showNextCelebration();
+  }, [showNextCelebration]);
 
   // Build courses
   useEffect(() => {
@@ -303,19 +367,23 @@ const App: React.FC = () => {
     document.documentElement.lang = appState.language;
   }, [appState.theme, appState.language]);
 
-  // Level-up detection
+  // Daily rollover — zero out today's XP counter when the day changes, so the
+  // dashboard ring is correct after midnight. Celebrations for XP/level/goal are
+  // fired imperatively from handleExerciseComplete (the single XP choke point).
   useEffect(() => {
-    const newXp = appState.user.totalXp;
-    const prevXp = prevXpRef.current;
-    if (Math.floor(newXp / 1000) > Math.floor(prevXp / 1000)) {
-      const newLevel = Math.floor(newXp / 1000) + 1;
-      setLevelUpToast(newLevel);
-      const timer = setTimeout(() => setLevelUpToast(null), 3000);
-      prevXpRef.current = newXp;
-      return () => clearTimeout(timer);
+    if (!appState.isLoggedIn) return;
+    const patch = rolloverDailyXp(appState.user);
+    if (Object.keys(patch).length) {
+      setAppState(prev => ({ ...prev, user: { ...prev.user, ...patch } }));
     }
-    prevXpRef.current = newXp;
-  }, [appState.user.totalXp]);
+    // Re-check on tab focus (covers long-lived sessions crossing midnight).
+    const onFocus = () => {
+      const p = rolloverDailyXp(userRef.current);
+      if (Object.keys(p).length) setAppState(prev => ({ ...prev, user: { ...prev.user, ...p } }));
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [appState.isLoggedIn]);
 
   const navigateTo = useCallback((view: AppState['activeView']) => {
     setViewLoading(true);
@@ -329,8 +397,18 @@ const App: React.FC = () => {
 
   const handleLogin = useCallback((userData: Partial<UserProfile>) => {
     const fullUser: UserProfile = { ...DEFAULT_USER, ...userData, progressMap: (userData as any).progressMap || {} } as UserProfile;
-    const updatedStreak = calculateStreak(fullUser.streakDays, fullUser.lastActivityDate);
-    const userWithStreak = { ...fullUser, streakDays: updatedStreak };
+    const todayKey = localDayKey();
+    // Opening the app counts as activity, so the streak (with freeze protection)
+    // advances and today's XP counter rolls over to the current day.
+    const streak = calculateStreakWithFreeze(fullUser, todayKey);
+    const userWithStreak: UserProfile = {
+      ...fullUser,
+      streakDays: streak.streakDays,
+      bestStreak: streak.bestStreak,
+      streakFreezes: streak.streakFreezes,
+      lastActivityDate: new Date().toISOString(),
+      ...rolloverDailyXp(fullUser, todayKey),
+    };
 
     setAppState(prev => ({
       ...prev,
@@ -351,6 +429,14 @@ const App: React.FC = () => {
               progressMap: serverData.progressMap ?? prev.user.progressMap,
               totalXp: serverData.totalXp ?? prev.user.totalXp,
               streakDays: serverData.streakDays ?? prev.user.streakDays,
+              dailyXpGoal: serverData.dailyXpGoal ?? prev.user.dailyXpGoal,
+              todayXp: serverData.todayXp ?? prev.user.todayXp,
+              lastXpDate: serverData.lastXpDate ?? prev.user.lastXpDate,
+              lastGoalMetDate: serverData.lastGoalMetDate ?? prev.user.lastGoalMetDate,
+              streakFreezes: serverData.streakFreezes ?? prev.user.streakFreezes,
+              bestStreak: serverData.bestStreak ?? prev.user.bestStreak,
+              dailyGoalsMet: serverData.dailyGoalsMet ?? prev.user.dailyGoalsMet,
+              unlockedAchievements: serverData.unlockedAchievements ?? prev.user.unlockedAchievements,
             }
           }));
         })
@@ -401,26 +487,37 @@ const App: React.FC = () => {
     setAppState(prev => ({ ...prev, activeView: 'lesson', currentSession: session }));
   }, [appState.user.gradeLevel]);
 
+  // Single XP choke point: updates streak (with freeze protection), topic
+  // progress, XP, daily-goal tracking and achievements, then fires celebrations.
   const handleExerciseComplete = useCallback((xpEarned: number, attemptsTotal: number, attemptsCorrect: number, topicId?: string | null, skillTag?: string) => {
-    setAppState(prev => {
-      const today = new Date().toISOString();
-      const newStreak = calculateStreak(prev.user.streakDays, prev.user.lastActivityDate);
-      const newProgressMap = topicId
-        ? updateTopicProgress(prev.user.progressMap || {}, topicId, attemptsTotal, attemptsCorrect, skillTag)
-        : prev.user.progressMap || {};
+    const todayKey = localDayKey();
+    const cur = userRef.current;
 
-      return {
-        ...prev,
-        user: {
-          ...prev.user,
-          totalXp: prev.user.totalXp + xpEarned,
-          streakDays: newStreak,
-          lastActivityDate: today,
-          progressMap: newProgressMap
-        }
-      };
-    });
-  }, []);
+    const streak = calculateStreakWithFreeze(cur, todayKey);
+    const newProgressMap = topicId
+      ? updateTopicProgress(cur.progressMap || {}, topicId, attemptsTotal, attemptsCorrect, skillTag)
+      : cur.progressMap || {};
+
+    const base: UserProfile = {
+      ...cur,
+      streakDays: streak.streakDays,
+      bestStreak: streak.bestStreak,
+      streakFreezes: streak.streakFreezes,
+      lastActivityDate: new Date().toISOString(),
+      progressMap: newProgressMap,
+    };
+
+    const gain = applyXpGain(base, Math.max(0, xpEarned), todayKey);
+    userRef.current = gain.user;
+    setAppState(prev => ({ ...prev, user: gain.user }));
+
+    const cels: Celebration[] = [];
+    if (streak.freezeUsed) cels.push({ type: 'freeze' });
+    if (gain.goalJustMet) cels.push({ type: 'goal' });
+    gain.newlyUnlocked.forEach(id => cels.push({ type: 'achievement', id }));
+    if (gain.leveledUpTo) cels.push({ type: 'level', level: gain.leveledUpTo });
+    enqueueCelebration(cels);
+  }, [enqueueCelebration]);
 
   const startSubjectPractice = useCallback((s: Subject) => {
     const grade = appState.user.gradeLevel;
@@ -465,6 +562,8 @@ const App: React.FC = () => {
     { view: 'dashboard', label: t.dashboard, icon: <LayoutGrid size={18} />, section: 'learn' },
     { view: 'courses', label: t.courses ?? 'Study Materials', icon: <Library size={18} />, section: 'learn' },
     { view: 'progress', label: t.progress, icon: <BarChart2 size={18} />, section: 'learn' },
+    { view: 'achievements', label: t.achievements, icon: <Award size={18} />, section: 'learn' },
+    { view: 'leaderboard', label: t.leaderboard, icon: <Trophy size={18} />, section: 'learn' },
     { view: 'profile', label: t.profile, icon: <UserIcon size={18} />, section: 'account' },
     { view: 'settings', label: t.settings, icon: <Settings size={18} />, section: 'account' },
   ];
@@ -857,6 +956,8 @@ const App: React.FC = () => {
                       chosenTopic?.title ?? `${s} basics`
                     );
                   }}
+                  onSetDailyGoal={(goal) => setAppState(prev => ({ ...prev, user: { ...prev.user, dailyXpGoal: goal } }))}
+                  onOpenAchievements={() => navigateTo('achievements')}
                 />
               </div>
             )}
@@ -927,6 +1028,18 @@ const App: React.FC = () => {
                     handleStartExercises(subject, appState.user.gradeLevel, topicId, topicTitle);
                   }}
                 />
+              </div>
+            )}
+
+            {appState.activeView === 'achievements' && (
+              <div className="view-enter">
+                <Achievements user={appState.user} translations={t} language={appState.language} />
+              </div>
+            )}
+
+            {appState.activeView === 'leaderboard' && (
+              <div className="view-enter">
+                <Leaderboard user={appState.user} translations={t} language={appState.language} apiBase={API_BASE} />
               </div>
             )}
 
@@ -1020,6 +1133,7 @@ const App: React.FC = () => {
                   onGradeChange={(grade) => setAppState(prev => ({ ...prev, user: { ...prev.user, gradeLevel: grade } }))}
                   onThemeToggle={() => setAppState(prev => ({ ...prev, theme: prev.theme === 'light' ? 'dark' : 'light' }))}
                   onLanguageChange={(l) => setAppState(prev => ({ ...prev, language: l }))}
+                  onToggleSound={() => setAppState(prev => ({ ...prev, user: { ...prev.user, soundEnabled: !prev.user.soundEnabled } }))}
                 />
               </div>
             )}
@@ -1064,16 +1178,48 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Level-up toast */}
-      {levelUpToast !== null && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-toast-in">
-          <div className="flex items-center gap-3 bg-gradient-to-r from-moss-500 to-moss-700 text-white px-6 py-3.5 rounded-2xl shadow-2xl shadow-moss-500/30 font-bold border border-white/20">
-            <Trophy size={18} />
-            <span>{ac.levelReached(levelUpToast)}</span>
-            <Star size={14} className="fill-white" />
+      {/* Reward confetti — re-fires on each celebration */}
+      <Confetti trigger={confettiBurst} />
+
+      {/* Unified celebration toast (level-up, daily goal, achievement, streak freeze) */}
+      {celebration && (() => {
+        const cel = celebration;
+        let icon = <Trophy size={18} />;
+        let title = '';
+        let subtitle = '';
+        let gradient = 'from-moss-500 to-moss-700 shadow-moss-500/30';
+        if (cel.type === 'level') {
+          title = ac.levelReached(cel.level);
+        } else if (cel.type === 'goal') {
+          icon = <Target size={18} />;
+          title = t.goalMet;
+          subtitle = t.goalMetDesc;
+          gradient = 'from-clay-400 to-clay-500 shadow-clay-400/30';
+        } else if (cel.type === 'freeze') {
+          icon = <Flame size={18} />;
+          title = t.streakSaved;
+          subtitle = t.freezeUsed;
+          gradient = 'from-sky-500 to-blue-600 shadow-blue-500/30';
+        } else if (cel.type === 'achievement') {
+          const a = ACHIEVEMENTS_BY_ID[cel.id];
+          icon = <Award size={18} />;
+          title = t.achievementUnlocked;
+          subtitle = a ? a.title[appState.language] : '';
+          gradient = 'from-amber-400 to-orange-500 shadow-orange-400/30';
+        }
+        return (
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-toast-in">
+            <div className={`flex items-center gap-3 bg-gradient-to-r ${gradient} text-white px-6 py-3.5 rounded-2xl shadow-2xl font-bold border border-white/20`}>
+              {icon}
+              <div className="flex flex-col leading-tight">
+                <span>{title}</span>
+                {subtitle && <span className="text-xs font-medium text-white/85">{subtitle}</span>}
+              </div>
+              <Star size={14} className="fill-white" />
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

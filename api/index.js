@@ -2,35 +2,71 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const TEXT_MODEL = 'gemini-2.0-flash';
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const TEXT_MODEL = process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile';
+const VISION_MODEL = process.env.GROQ_VISION_MODEL ?? 'meta-llama/llama-4-scout-17b-16e-instruct';
 
-if (!GEMINI_API_KEY) {
-  console.error('GEMINI_API_KEY is not set in environment variables');
+if (!GROQ_API_KEY) {
+  console.error('GROQ_API_KEY is not set in environment variables');
 }
 
-const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
-
-function toGeminiContents(messages) {
-  return messages.map(msg => {
-    const role = msg.role === 'assistant' ? 'model' : 'user';
+// Convert Anthropic-style messages → OpenAI/Groq chat format
+// - system prompt → a leading { role: 'system' } message
+// - image blocks → image_url with a base64 data URI
+// - document blocks → dropped (not supported by Groq chat completions)
+function toGroqMessages(messages, system) {
+  let hasImage = false;
+  const out = [];
+  if (system) out.push({ role: 'system', content: system });
+  for (const msg of messages) {
+    const role = msg.role === 'assistant' ? 'assistant' : 'user';
     if (typeof msg.content === 'string') {
-      return { role, parts: [{ text: msg.content }] };
+      out.push({ role, content: msg.content });
+      continue;
     }
     const parts = msg.content
       .filter(block => block.type !== 'document')
       .map(block => {
-        if (block.type === 'text') return { text: block.text };
+        if (block.type === 'text') return { type: 'text', text: block.text };
         if (block.type === 'image') {
-          return { inlineData: { mimeType: block.source.media_type, data: block.source.data } };
+          hasImage = true;
+          return {
+            type: 'image_url',
+            image_url: { url: `data:${block.source.media_type};base64,${block.source.data}` },
+          };
         }
         return null;
       })
       .filter(Boolean);
-    return { role, parts };
+    out.push({ role, content: parts });
+  }
+  return { messages: out, hasImage };
+}
+
+async function callGroq({ messages, system, max_tokens, stream = false }) {
+  const { messages: groqMessages, hasImage } = toGroqMessages(messages, system);
+  const response = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: hasImage ? VISION_MODEL : TEXT_MODEL,
+      messages: groqMessages,
+      max_completion_tokens: max_tokens ?? 8192,
+      stream,
+    }),
   });
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => '');
+    const err = new Error(`Groq API ${response.status}: ${errBody.slice(0, 500)}`);
+    err.status = response.status;
+    throw err;
+  }
+  return response;
 }
 
 const app = express();
@@ -48,8 +84,8 @@ app.use((_req, res, next) => {
 // ─── Health ────────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => res.json({
   status: 'ok',
-  hasKey: !!GEMINI_API_KEY,
-  provider: 'gemini',
+  hasKey: !!GROQ_API_KEY,
+  provider: 'groq',
   model: TEXT_MODEL,
 }));
 
@@ -87,6 +123,33 @@ app.post('/api/user/save', async (req, res) => {
   }
 });
 
+// ─── Leaderboard ────────────────────────────────────────────────────────────
+app.get('/api/leaderboard', async (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 50, 100);
+  try {
+    const db = await readUsersDb();
+    const board = Object.entries(db)
+      .map(([id, u]) => {
+        const totalXp = Number(u?.totalXp) || 0;
+        // First name only for privacy.
+        const name = String(u?.name || 'Learner').trim().split(/\s+/)[0] || 'Learner';
+        return {
+          id,
+          name,
+          totalXp,
+          streakDays: Number(u?.streakDays) || 0,
+          level: Math.floor(totalXp / 1000) + 1,
+        };
+      })
+      .filter(e => e.totalXp > 0)
+      .sort((a, b) => b.totalXp - a.totalXp)
+      .slice(0, limit);
+    res.json(board);
+  } catch (err) {
+    res.status(500).json({ error: err.message ?? 'Failed to build leaderboard.' });
+  }
+});
+
 app.get('/api/user/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
@@ -101,34 +164,26 @@ app.get('/api/user/:userId', async (req, res) => {
 
 // ─── AI proxy ─────────────────────────────────────────────────────────────
 app.post('/api/claude', async (req, res) => {
-  if (!genAI) return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+  if (!GROQ_API_KEY) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
   const { messages, system, max_tokens } = req.body;
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
   }
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: TEXT_MODEL,
-      ...(system ? { systemInstruction: system } : {}),
-    });
-
-    const result = await model.generateContent({
-      contents: toGeminiContents(messages),
-      generationConfig: { maxOutputTokens: max_tokens ?? 8192 },
-    });
-
-    const text = result.response.text();
+    const response = await callGroq({ messages, system, max_tokens });
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content ?? '';
     res.json({ content: [{ type: 'text', text }] });
   } catch (err) {
-    console.error('Gemini error:', err);
-    res.status(500).json({ error: err.message ?? String(err) });
+    console.error('Groq error:', err);
+    res.status(err.status ?? 500).json({ error: err.message ?? String(err) });
   }
 });
 
 // ─── AI streaming proxy (SSE) ──────────────────────────────────────────────
 app.post('/api/claude-stream', async (req, res) => {
-  if (!genAI) return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+  if (!GROQ_API_KEY) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
   const { messages, system, max_tokens } = req.body;
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Request body must include a non-empty messages array.' });
@@ -140,24 +195,28 @@ app.post('/api/claude-stream', async (req, res) => {
   res.flushHeaders();
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: TEXT_MODEL,
-      ...(system ? { systemInstruction: system } : {}),
-    });
+    const response = await callGroq({ messages, system, max_tokens, stream: true });
 
-    const result = await model.generateContentStream({
-      contents: toGeminiContents(messages),
-      generationConfig: { maxOutputTokens: max_tokens ?? 8192 },
-    });
-
-    for await (const chunk of result.stream) {
-      const text = chunk.text();
-      if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+    // Re-emit Groq's OpenAI-style SSE stream as the { text } events the client expects.
+    const decoder = new TextDecoder();
+    let buffer = '';
+    for await (const chunk of response.body) {
+      buffer += decoder.decode(chunk, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        const payload = line.startsWith('data: ') ? line.slice(6).trim() : null;
+        if (!payload || payload === '[DONE]') continue;
+        try {
+          const text = JSON.parse(payload).choices?.[0]?.delta?.content;
+          if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        } catch { /* ignore malformed keep-alive lines */ }
+      }
     }
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('Gemini stream error:', err);
+    console.error('Groq stream error:', err);
     res.write(`data: ${JSON.stringify({ error: err.message ?? String(err) })}\n\n`);
     res.end();
   }
