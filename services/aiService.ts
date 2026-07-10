@@ -1,8 +1,16 @@
 
 import { Message, Attachment, GradeLevel, Exercise, QuestionType, Lesson, AnswerEvaluation, UploadAnalysis, Subject, CodeLanguage, GameType, Presentation, PresentationSlide, CodingChallenge, GameQuestion, BuggyCode, DebateTurn, StoryChapter, StoryEvaluation, MysteryCase, ChallengeTestResult, CodeReview, ArgumentScore, BranchChoice, InlineSuggestion, CaseTheme, CaseDifficulty, PresentationAudience, PresStructure, ConceptNode, ConceptEdge, FlashCard, TrueFalseItem } from '../types';
 import { INITIAL_SYSTEM_INSTRUCTION } from '../constants';
+import { sanitizeQuiz } from './questionValidator';
 
 const HAIKU = 'claude-haiku-4-5-20251001';
+
+// Learner performance snapshot used to adapt question difficulty.
+export interface QuizPerformance {
+    mastery?: number;        // 0–100 topic mastery (EMA)
+    recentCorrect?: number;  // correct answers in the last session on this topic
+    recentTotal?: number;    // attempts in the last session on this topic
+}
 
 // In dev, Vite's proxy forwards /api → localhost:3001 (leave VITE_API_URL unset).
 // In a Capacitor/production build, set VITE_API_URL to your hosted backend URL.
@@ -377,25 +385,52 @@ export const evaluateAnswer = async (
     sampleAnswer: string,
     grade: GradeLevel,
     language: string,
-    attemptNumber: number
+    attemptNumber: number,
+    options?: {
+        /** Deterministic verdict from the math engine — the AI must not contradict it */
+        verifiedCorrect?: boolean;
+        /** Topic for context so feedback stays relevant */
+        topic?: string;
+        /** Hints already shown, so the next one is different and more specific */
+        previousHints?: string[];
+    }
 ): Promise<AnswerEvaluation> => {
     const targetLang = LANG_MAP[language] || language;
+    const verdictBlock = options?.verifiedCorrect !== undefined
+        ? `\nVERIFIED VERDICT (from a deterministic math engine — this is FINAL, do not re-judge):
+The student's answer is ${options.verifiedCorrect ? 'CORRECT' : 'INCORRECT'}.
+Your job is ONLY to write feedback that matches this verdict. Set isCorrect=${options.verifiedCorrect}.`
+        : '';
+    const prevHints = options?.previousHints?.length
+        ? `\nHints already shown (do NOT repeat these; be more specific this time):\n${options.previousHints.map(h => `- ${h}`).join('\n')}`
+        : '';
 
-    const prompt = `You are an expert teacher evaluating a student's answer. Respond in ${targetLang}.
+    const prompt = `You are a warm, sharp tutor giving feedback on one answer. Respond in ${targetLang}.
 
 Question: "${question}"
+${options?.topic ? `Topic: "${options.topic}"` : ''}
 Expected Answer / Key Points: "${sampleAnswer}"
 Student's Answer: "${studentAnswer}"
 Student's Grade Level: ${grade}
 Attempt Number: ${attemptNumber} (max 3 attempts before full solution revealed)
+${verdictBlock}${prevHints}
+
+FEEDBACK RULES:
+- Talk about the student's ACTUAL answer — quote or reference what they wrote. Never give generic feedback.
+- If CORRECT: 1 short sentence of specific praise + at most 1 sentence of insight. No over-explaining.
+- If INCORRECT: name the specific mistake in their answer (sign error? wrong step? confused concepts?) in 1-2 sentences.
+  Then give a hint that guides toward the method — NEVER reveal the final answer before attempt 3.
+- Hint ladder: attempt 1 → nudge at the concept; attempt 2 → point at the exact step to fix; attempt 3 → fullSolution.
+- Do not invent facts, formulas or rules. If the expected answer covers it, use it; otherwise stay general.
+- Grade level ${grade}: match vocabulary and depth to it.
 
 Return ONLY a JSON object (no markdown, no code blocks):
 {
   "isCorrect": boolean,
   "score": number (0-100),
-  "feedback": "encouraging explanation of what was right/wrong in ${targetLang}",
+  "feedback": "specific feedback about THIS answer in ${targetLang} (1-2 sentences)",
   "followUp": "Socratic follow-up question to guide further (empty string if score >= 80)",
-  "hint": "helpful hint if score < 50 and attempt < 3 (empty string otherwise)",
+  "hint": "next-step hint if incorrect and attempt < 3 (empty string otherwise)",
   "fullSolution": "full worked solution if attempt >= 3 (empty string otherwise)"
 }`;
 
@@ -406,9 +441,25 @@ Return ONLY a JSON object (no markdown, no code blocks):
             messages: [{ role: 'user', content: prompt }],
         });
         if (!text) return { isCorrect: false, score: 0, feedback: "Could not evaluate. Please try again." };
-        return parseJson(text) as AnswerEvaluation;
+        const evalResult = parseJson(text) as AnswerEvaluation;
+        // The engine's verdict is final — the AI writes feedback, it does not judge.
+        if (options?.verifiedCorrect !== undefined) {
+            evalResult.isCorrect = options.verifiedCorrect;
+            evalResult.score = options.verifiedCorrect
+                ? Math.max(evalResult.score ?? 0, 90)
+                : Math.min(evalResult.score ?? 0, 50);
+        }
+        return evalResult;
     } catch (error: any) {
         console.error("Answer evaluation error:", error);
+        // Even if the AI is unreachable, a verified verdict still stands.
+        if (options?.verifiedCorrect !== undefined) {
+            return {
+                isCorrect: options.verifiedCorrect,
+                score: options.verifiedCorrect ? 100 : 0,
+                feedback: '',
+            };
+        }
         return { isCorrect: false, score: 0, feedback: `Evaluation error: ${error?.message || error}` };
     }
 };
@@ -555,45 +606,85 @@ EXAMPLE — FILL_IN_BLANK:
   "xpValue": 20,
   "explanation": "The Pacific Ocean covers more than 30% of Earth's surface — larger than all land combined.",
   "hint": "It borders the west coast of the Americas and the east coast of Asia."
+}
+
+EXAMPLE — NUMERIC (any question whose answer is a number, measurement, fraction or percentage):
+{
+  "id": "q4",
+  "questionType": "NUMERIC",
+  "difficulty": 3,
+  "question": "A shirt costs $40 and is discounted by 25%. What is the sale price in dollars?",
+  "options": [],
+  "correctOptionId": "",
+  "sampleAnswer": "30",
+  "answerExpression": "40 - 40*0.25",
+  "acceptableAnswers": ["$30", "30 dollars"],
+  "steps": [],
+  "skillTag": "percentage discount",
+  "xpValue": 30,
+  "explanation": "25% of 40 is 10, so the sale price is 40 - 10 = 30 dollars.",
+  "hint": "First find 25% of 40, then subtract it from the original price."
+}
+
+EXAMPLE — TRUE_FALSE:
+{
+  "id": "q5",
+  "questionType": "TRUE_FALSE",
+  "difficulty": 2,
+  "question": "The sum of the interior angles of any triangle is 180 degrees.",
+  "options": [{"id": "t", "text": "True"}, {"id": "f", "text": "False"}],
+  "correctOptionId": "t",
+  "sampleAnswer": "",
+  "steps": [],
+  "skillTag": "triangle angle sum",
+  "xpValue": 20,
+  "explanation": "In Euclidean geometry the interior angles of every triangle always add to exactly 180°.",
+  "hint": "Think about tearing the three corners off a paper triangle and lining them up."
+}
+
+EXAMPLE — MULTI_SELECT (more than one valid answer; say "Select all that apply" in the question):
+{
+  "id": "q6",
+  "questionType": "MULTI_SELECT",
+  "difficulty": 3,
+  "question": "Select all of the following that are prime numbers.",
+  "options": [
+    {"id": "a", "text": "2"},
+    {"id": "b", "text": "9"},
+    {"id": "c", "text": "11"},
+    {"id": "d", "text": "15"}
+  ],
+  "correctOptionIds": ["a", "c"],
+  "correctOptionId": "",
+  "sampleAnswer": "",
+  "steps": [],
+  "skillTag": "prime numbers",
+  "xpValue": 30,
+  "explanation": "2 and 11 have no divisors besides 1 and themselves; 9 = 3×3 and 15 = 3×5.",
+  "hint": "Check whether each number can be divided evenly by anything other than 1 and itself."
 }`;
 
 // ─── Validation: reject malformed questions before they reach the UI ──────────
-function validateQuestion(q: any): boolean {
-    if (!q || typeof q !== 'object') return false;
-    if (typeof q.question !== 'string' || q.question.trim().length < 5) return false;
-    if (typeof q.explanation !== 'string' || q.explanation.trim().length < 10) return false;
-
-    const qType = q.questionType || QuestionType.MULTIPLE_CHOICE;
-    if (qType === QuestionType.MULTIPLE_CHOICE) {
-        if (!Array.isArray(q.options) || q.options.length < 2) return false;
-        const validOptions = q.options.every((o: any) =>
-            o && typeof o.id === 'string' && typeof o.text === 'string' && o.text.trim().length > 0
-        );
-        if (!validOptions) return false;
-        // correctOptionId must match one of the options
-        if (typeof q.correctOptionId !== 'string') return false;
-        if (!q.options.some((o: any) => o.id === q.correctOptionId)) return false;
-    } else {
-        // Open-answer types must have a sampleAnswer
-        if (typeof q.sampleAnswer !== 'string' || q.sampleAnswer.trim().length < 1) return false;
-    }
-    return true;
-}
-
 function normalizeQuestion(q: any, index: number): Exercise {
     return {
         id: q.id || `q-${Date.now()}-${index}`,
         questionType: q.questionType || QuestionType.MULTIPLE_CHOICE,
         difficulty: typeof q.difficulty === 'number' ? Math.max(1, Math.min(5, q.difficulty)) : 3,
-        question: String(q.question).trim(),
+        question: String(q.question ?? '').trim(),
         options: Array.isArray(q.options) ? q.options : [],
         correctOptionId: q.correctOptionId || '',
+        correctOptionIds: Array.isArray(q.correctOptionIds) ? q.correctOptionIds.filter((x: any) => typeof x === 'string') : undefined,
         sampleAnswer: q.sampleAnswer || '',
+        answerExpression: typeof q.answerExpression === 'string' && q.answerExpression.trim() ? q.answerExpression.trim() : undefined,
+        acceptableAnswers: Array.isArray(q.acceptableAnswers) ? q.acceptableAnswers.filter((x: any) => typeof x === 'string') : undefined,
+        unitRequired: q.unitRequired === true,
+        tolerance: typeof q.tolerance === 'number' && q.tolerance >= 0 ? q.tolerance : undefined,
+        roundTo: typeof q.roundTo === 'number' && q.roundTo >= 0 ? q.roundTo : undefined,
         steps: Array.isArray(q.steps) ? q.steps : [],
         skillTag: q.skillTag || 'general',
         xpValue: typeof q.xpValue === 'number' ? q.xpValue : (q.difficulty || 3) * 10,
-        explanation: String(q.explanation).trim(),
-        hint: String(q.hint || '').trim(),
+        explanation: String(q.explanation ?? '').trim(),
+        hint: String(q.hint ?? '').trim(),
     } as Exercise;
 }
 
@@ -607,11 +698,33 @@ async function generateQuizOnce(
     questionTypes: QuestionType[],
     context: string | undefined,
     attachments: Attachment[] | undefined,
-    seed: number
+    seed: number,
+    performance?: QuizPerformance
 ): Promise<Exercise[]> {
     const targetLang = LANG_MAP[language] || language;
     const subjectGuidance = SUBJECT_GUIDANCE[subject] || '';
     const typeList = questionTypes.join(', ');
+
+    // Adapt the difficulty mix to the learner's demonstrated performance.
+    const mastery = performance?.mastery;
+    const recentRate = performance?.recentTotal
+        ? (performance.recentCorrect ?? 0) / performance.recentTotal
+        : undefined;
+    const signal = recentRate !== undefined ? recentRate * 100 : mastery;
+    let easyShare = 0.2, mediumShare = 0.4, hardShare = 0.3, challengeShare = 0.1;
+    let adaptNote = '';
+    if (signal !== undefined) {
+        if (signal < 40) {
+            easyShare = 0.5; mediumShare = 0.4; hardShare = 0.1; challengeShare = 0;
+            adaptNote = 'The learner is struggling with this topic — favor confidence-building questions and very clear wording.';
+        } else if (signal > 75) {
+            easyShare = 0.1; mediumShare = 0.3; hardShare = 0.4; challengeShare = 0.2;
+            adaptNote = 'The learner is strong on this topic — favor multi-step, applied and synthesis questions. No trivial recall.';
+        }
+    }
+    const performanceBlock = signal !== undefined
+        ? `\nLEARNER PERFORMANCE: topic mastery ${mastery ?? 'n/a'}/100${recentRate !== undefined ? `, last session ${(recentRate * 100).toFixed(0)}% correct` : ''}. ${adaptNote}`
+        : '';
 
     const system = `You are an expert educator who writes assessment questions used by millions of students.
 Every question you write is checked by other teachers. If a question has a wrong answer, an ambiguous prompt,
@@ -633,47 +746,64 @@ TOPIC: ${topic}
 LANGUAGE: ${targetLang} (every text field must be in ${targetLang}, except code/formulas which stay universal)
 QUESTION TYPES ALLOWED: ${typeList}
 RANDOMIZATION SEED: ${seed} (use this to ensure questions are different from your default templates)
-
+${performanceBlock}
 ${subjectGuidance ? `SUBJECT-SPECIFIC GUIDANCE:${subjectGuidance}` : ''}
 
 QUALITY REQUIREMENTS (NON-NEGOTIABLE):
 1. ACCURACY: Every fact, formula, date, name must be 100% correct. If you're unsure, choose a different question.
-2. SOLVABILITY: A reasonable student at grade ${grade} must be able to solve it.
-3. UNIQUENESS: Each of the ${count} questions tests a DIFFERENT skill or aspect of "${topic}". No duplicates.
-4. CLARITY: Questions must be unambiguous — only one defensible correct answer.
+2. SOLVABILITY: The question must contain every value and condition needed to solve it. A reasonable student at grade ${grade} must be able to solve it.
+3. UNIQUENESS: Each of the ${count} questions tests a DIFFERENT skill or aspect of "${topic}". No duplicates, no rewordings of the same problem.
+4. CLARITY: Questions must be unambiguous — only one defensible correct answer (except MULTI_SELECT, which says "Select all that apply").
 5. APPROPRIATE DIFFICULTY: Use this distribution:
-   - ${Math.ceil(count * 0.2)} easy (difficulty 1-2): direct recall or one-step
-   - ${Math.ceil(count * 0.4)} medium (difficulty 3): two-step or applied
-   - ${Math.floor(count * 0.3)} hard (difficulty 4): multi-step or synthesis
-   - ${Math.floor(count * 0.1)} challenging (difficulty 5): edge case or deeper insight
-6. DISTRACTORS (for multiple choice): Each wrong option must be plausible — a real mistake a student might make.
-   Never use "all of the above" or "none of the above" or absurd options.
-7. EXPLANATIONS: The "explanation" field must TEACH the concept, not just state the answer.
-   It should be 1-3 sentences that help a student who got it wrong understand why.
+   - ${Math.ceil(count * easyShare)} easy (difficulty 1-2): direct recall or one-step
+   - ${Math.ceil(count * mediumShare)} medium (difficulty 3): two-step or applied
+   - ${Math.floor(count * hardShare)} hard (difficulty 4): multi-step or synthesis
+   - ${Math.floor(count * challengeShare)} challenging (difficulty 5): edge case or deeper insight
+6. DISTRACTORS (option types): Each wrong option must be plausible — a real mistake a student might make —
+   but DEFINITELY incorrect and NOT mathematically equivalent to the correct answer (0.5, 1/2 and 50% are the SAME answer).
+   Never use "all of the above" or "none of the above" or absurd options. No two options may be equal or equivalent.
+7. EXPLANATIONS: The "explanation" field must TEACH, using the SAME numbers and method as the question — never generic filler.
+   1-3 sentences that help a student who got it wrong understand why.
+8. MATH ANSWERS ARE MACHINE-VERIFIED: for every question whose answer is a number, measurement, fraction or percentage,
+   you MUST provide "answerExpression" — a plain arithmetic expression (digits and + - * / ^ ( ) sqrt() only, NO words, NO LaTeX, NO '=' sign)
+   that computes the correct answer. A separate math engine evaluates it and REJECTS your question if the stored answer,
+   the marked option, or any distractor disagrees with it. Prefer NUMERIC type over SHORT_ANSWER for numeric answers.
 
 OUTPUT SCHEMA — return EXACTLY this structure as a JSON array:
 [
   {
     "id": "q1",
-    "questionType": "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "FILL_IN_BLANK",
+    "questionType": "MULTIPLE_CHOICE" | "TRUE_FALSE" | "NUMERIC" | "MULTI_SELECT" | "SHORT_ANSWER" | "FILL_IN_BLANK",
     "difficulty": 1-5,
     "question": "the question text in ${targetLang}",
     "options": [{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."},{"id":"d","text":"..."}],
     "correctOptionId": "a"|"b"|"c"|"d",
-    "sampleAnswer": "for non-MC types",
+    "correctOptionIds": ["a","c"],
+    "sampleAnswer": "for non-option types",
+    "answerExpression": "pure arithmetic expression for numeric answers, e.g. \\"40 - 40*0.25\\"",
+    "acceptableAnswers": ["optional alternate valid forms"],
+    "unitRequired": false,
+    "roundTo": null,
     "steps": [],
     "skillTag": "specific skill being tested in English",
     "xpValue": difficulty * 10,
     "explanation": "1-3 sentence teaching explanation in ${targetLang}",
-    "hint": "1 sentence hint in ${targetLang}"
+    "hint": "1 sentence hint in ${targetLang} that guides WITHOUT revealing the answer"
   }
 ]
 
 FIELD RULES BY TYPE:
 - MULTIPLE_CHOICE: REQUIRED options (4 items), REQUIRED correctOptionId. Leave sampleAnswer "" and steps [].
-- SHORT_ANSWER: REQUIRED sampleAnswer (a complete model answer). Leave options [] and correctOptionId "".
-- FILL_IN_BLANK: Use ___ in the question. REQUIRED sampleAnswer (the missing word/phrase).
-  Leave options [] and correctOptionId "".
+  If the answer is numeric, ALSO provide answerExpression so the engine can verify the marked option.
+- TRUE_FALSE: EXACTLY 2 options ({"id":"t","text":"True"},{"id":"f","text":"False"} translated to ${targetLang}), REQUIRED correctOptionId.
+  The statement must be verifiably true or false — no opinions.
+- NUMERIC: the answer is a number/measurement/fraction/percentage. REQUIRED answerExpression. Leave options [].
+  If the answer needs a unit, write the question to say so and set unitRequired true, with sampleAnswer like "5 cm".
+  If the question asks to round, set roundTo to the number of decimals.
+- MULTI_SELECT: 4-5 options, REQUIRED correctOptionIds (2 or more, but never all). The question MUST say "Select all that apply" in ${targetLang}.
+- SHORT_ANSWER: for conceptual/verbal answers only (never pure numbers). REQUIRED sampleAnswer (a complete model answer). Leave options [].
+- FILL_IN_BLANK: Use ___ in the question. REQUIRED sampleAnswer (the missing word/phrase). Leave options [].
+- MULTI_STEP: REQUIRED steps [] (2-4 expected solution steps) plus sampleAnswer for the final result; add answerExpression when numeric.
 
 LATEX RULES (math expressions only):
 - Inline math: $expression$ — example: "Solve $2x + 3 = 11$"
@@ -712,11 +842,15 @@ Now generate the JSON array. NO PROSE before or after — just the JSON.`;
         return [];
     }
 
-    const validated = raw
-        .filter(validateQuestion)
-        .map(normalizeQuestion);
-
-    return validated;
+    // Deterministic validation gate: the math engine re-verifies stored
+    // answers, duplicate/equivalent options are rejected, and anything that
+    // fails is discarded here — a broken question never reaches the learner.
+    const { valid, discarded } = sanitizeQuiz(raw.map(normalizeQuestion));
+    if (discarded.length) {
+        console.warn(`Quiz validation discarded ${discarded.length} question(s):`,
+            discarded.map(d => `"${d.question}" → ${d.reasons.join('; ')}`));
+    }
+    return valid;
 }
 
 // ─── Public API: tries up to 2 attempts, fills with simpler retry if needed ──
@@ -728,17 +862,18 @@ export const generateQuiz = async (
     context?: string,
     attachments?: Attachment[],
     questionTypes?: QuestionType[],
-    count: number = 10
+    count: number = 10,
+    performance?: QuizPerformance
 ): Promise<Exercise[]> => {
     const types = questionTypes && questionTypes.length > 0
         ? questionTypes
-        : [QuestionType.MULTIPLE_CHOICE];
+        : [QuestionType.MULTIPLE_CHOICE, QuestionType.TRUE_FALSE, QuestionType.NUMERIC, QuestionType.MULTI_SELECT];
 
     // Attempt 1: full quality
     const seed1 = Date.now() % 100000;
     let questions: Exercise[] = [];
     try {
-        questions = await generateQuizOnce(subject, grade, topic, language, count, types, context, attachments, seed1);
+        questions = await generateQuizOnce(subject, grade, topic, language, count, types, context, attachments, seed1, performance);
     } catch (e: any) {
         console.error('Quiz attempt 1 failed:', e?.message || e);
     }
@@ -755,7 +890,7 @@ export const generateQuiz = async (
         const retry = await generateQuizOnce(
             subject, grade, topic, language,
             count, [QuestionType.MULTIPLE_CHOICE],
-            context, attachments, seed2
+            context, attachments, seed2, performance
         );
         // Merge: keep originals first, fill with retry
         const seenQs = new Set(questions.map(q => q.question.toLowerCase().trim()));

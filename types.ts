@@ -41,6 +41,9 @@ export enum QuestionType {
   SHORT_ANSWER = 'SHORT_ANSWER',
   MULTI_STEP = 'MULTI_STEP',
   FILL_IN_BLANK = 'FILL_IN_BLANK',
+  TRUE_FALSE = 'TRUE_FALSE',
+  NUMERIC = 'NUMERIC',
+  MULTI_SELECT = 'MULTI_SELECT',
 }
 
 export interface Topic {
@@ -244,9 +247,18 @@ export interface Exercise {
   questionType: QuestionType;
   difficulty: number;
   question: string;
-  options: ExerciseOption[];           // for MULTIPLE_CHOICE
-  correctOptionId?: string;            // for MULTIPLE_CHOICE
-  sampleAnswer?: string;               // for SHORT_ANSWER / FILL_IN_BLANK
+  options: ExerciseOption[];           // for MULTIPLE_CHOICE / TRUE_FALSE / MULTI_SELECT
+  correctOptionId?: string;            // for MULTIPLE_CHOICE / TRUE_FALSE
+  correctOptionIds?: string[];         // for MULTI_SELECT (every correct option)
+  sampleAnswer?: string;               // for SHORT_ANSWER / FILL_IN_BLANK / NUMERIC
+  // Machine-checkable canonical answer: a pure math expression or value
+  // ("3/4", "0.5", "42", "5 cm"). The math engine — not the AI — verifies and
+  // judges answers against this.
+  answerExpression?: string;
+  acceptableAnswers?: string[];        // additional valid answers (synonyms, forms)
+  unitRequired?: boolean;              // answer must include a unit
+  tolerance?: number;                  // absolute tolerance for decimal answers
+  roundTo?: number;                    // question explicitly asks to round to N decimals
   steps?: string[];                    // for MULTI_STEP: expected step descriptions
   skillTag?: string;
   xpValue?: number;

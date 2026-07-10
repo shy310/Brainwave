@@ -3,9 +3,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Exercise, QuestionType, LearningSession, GradeLevel, Language, Translations, AnswerEvaluation } from '../types';
 import {
   CheckCircle, XCircle, Lightbulb, RefreshCw, ChevronRight, BookOpen,
-  Zap, Trophy, ArrowRight, Send, Eye, AlertTriangle, HelpCircle
+  Zap, Trophy, ArrowRight, Send, Eye, AlertTriangle, HelpCircle, SkipForward
 } from 'lucide-react';
-import { generateQuiz, evaluateAnswer } from '../services/aiService';
+import { generateQuiz, evaluateAnswer, QuizPerformance } from '../services/aiService';
+import { checkAnswer, looksNumeric } from '../services/mathEngine';
 import Logo from './Logo';
 import MathText from './MathText';
 import Confetti from './Confetti';
@@ -15,29 +16,38 @@ const MAX_ATTEMPTS = 3;
 type ExLangKey = 'en' | 'ru' | 'he' | 'ar';
 const EX_COPY: Record<ExLangKey, {
   multipleChoice: string; shortAnswer: string; multiStep: string; fillInBlank: string; questionLabel: string;
+  trueFalse: string; numeric: string; multiSelect: string; skip: string; skipped: string; selectAllApply: string;
   attemptsLeft: (n: number) => string; attemptsCount: (a: number, m: number) => string;
 }> = {
   en: {
     multipleChoice: 'Multiple Choice', shortAnswer: 'Short Answer', multiStep: 'Multi-Step',
     fillInBlank: 'Fill in the Blank', questionLabel: 'Question',
+    trueFalse: 'True or False', numeric: 'Numeric', multiSelect: 'Select All', skip: 'Skip', skipped: 'Skipped',
+    selectAllApply: 'Select every correct option, then submit.',
     attemptsLeft: (n) => `${n} left`,
     attemptsCount: (a, m) => `${a}/${m} attempts`,
   },
   ru: {
     multipleChoice: 'Выбор ответа', shortAnswer: 'Короткий ответ', multiStep: 'По шагам',
     fillInBlank: 'Заполни пропуск', questionLabel: 'Вопрос',
+    trueFalse: 'Верно или нет', numeric: 'Числовой', multiSelect: 'Несколько ответов', skip: 'Пропустить', skipped: 'Пропущено',
+    selectAllApply: 'Отметь все верные варианты и отправь.',
     attemptsLeft: (n) => `осталось ${n}`,
     attemptsCount: (a, m) => `${a}/${m} попыток`,
   },
   he: {
     multipleChoice: 'בחירה מרובה', shortAnswer: 'תשובה קצרה', multiStep: 'רב-שלבי',
     fillInBlank: 'מלא את החסר', questionLabel: 'שאלה',
+    trueFalse: 'נכון או לא', numeric: 'מספרי', multiSelect: 'בחר הכל', skip: 'דלג', skipped: 'דולג',
+    selectAllApply: 'סמן את כל התשובות הנכונות ושלח.',
     attemptsLeft: (n) => `נותרו ${n}`,
     attemptsCount: (a, m) => `${a}/${m} ניסיונות`,
   },
   ar: {
     multipleChoice: 'اختيار من متعدد', shortAnswer: 'إجابة قصيرة', multiStep: 'متعدد الخطوات',
     fillInBlank: 'املأ الفراغ', questionLabel: 'سؤال',
+    trueFalse: 'صح أم خطأ', numeric: 'رقمي', multiSelect: 'اختر الكل', skip: 'تخطى', skipped: 'تم التخطي',
+    selectAllApply: 'حدد كل الخيارات الصحيحة ثم أرسل.',
     attemptsLeft: (n) => `${n} متبقية`,
     attemptsCount: (a, m) => `${a}/${m} محاولات`,
   },
@@ -63,11 +73,13 @@ interface Props {
   onContextUpdate: (ctx: string) => void;
   onGoToLesson?: () => void;
   onQuizGenerated?: (quiz: Exercise[]) => void;
+  /** 0–100 mastery on this topic — used to adapt generated difficulty */
+  topicMastery?: number;
 }
 
 const ExercisePanel: React.FC<Props> = ({
   session, userGrade, language, translations,
-  onComplete, onBack, onContextUpdate, onGoToLesson, onQuizGenerated
+  onComplete, onBack, onContextUpdate, onGoToLesson, onQuizGenerated, topicMastery
 }) => {
   const ex = EX_COPY[(EX_COPY[language as ExLangKey] ? language : 'en') as ExLangKey];
 
@@ -90,13 +102,18 @@ const ExercisePanel: React.FC<Props> = ({
     return (_quizCache.get(key) ?? session.quiz ?? []).length === 0;
   });
 
-  // Multiple Choice state
+  // Single-choice state (MULTIPLE_CHOICE / TRUE_FALSE)
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  // Multi-select state (MULTI_SELECT)
+  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
 
-  // Open answer state (SHORT_ANSWER, MULTI_STEP, FILL_IN_BLANK)
+  // Open answer state (SHORT_ANSWER, MULTI_STEP, FILL_IN_BLANK, NUMERIC)
   const [openAnswer, setOpenAnswer] = useState('');
   const [evaluation, setEvaluation] = useState<AnswerEvaluation | null>(null);
   const [evaluating, setEvaluating] = useState(false);
+  const [shownHints, setShownHints] = useState<string[]>([]);
+  const [wasCorrect, setWasCorrect] = useState<boolean | null>(null);
+  const [skipped, setSkipped] = useState(false);
 
   const [showHint, setShowHint] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -144,11 +161,26 @@ const ExercisePanel: React.FC<Props> = ({
     const topicName = session.topicTitle;
     onContextUpdate(`Quiz: ${subjectName} — ${topicName} (${userGrade})`);
 
-    const contextStr = session.studyContext.length > 0
-      ? `Based on uploaded files: ${session.studyContext.map(a => a.name).join(', ')}`
-      : undefined;
+    // Give the AI everything it needs to stay ON-TOPIC: the lesson's key
+    // points (when the student came from a lesson) and any uploaded material.
+    const contextParts: string[] = [];
+    if (session.lesson?.keyPoints?.length) {
+      contextParts.push(`The student just completed a lesson on "${session.lesson.topicTitle}". Test THESE key points:\n- ${session.lesson.keyPoints.join('\n- ')}`);
+    }
+    if (session.studyContext.length > 0) {
+      contextParts.push(`Based on uploaded files: ${session.studyContext.map(a => a.name).join(', ')}`);
+    }
+    const contextStr = contextParts.length ? contextParts.join('\n\n') : undefined;
 
-    const questionTypes = [QuestionType.MULTIPLE_CHOICE, QuestionType.SHORT_ANSWER, QuestionType.FILL_IN_BLANK];
+    const questionTypes = [
+      QuestionType.MULTIPLE_CHOICE, QuestionType.TRUE_FALSE, QuestionType.NUMERIC,
+      QuestionType.MULTI_SELECT, QuestionType.SHORT_ANSWER, QuestionType.FILL_IN_BLANK,
+    ];
+
+    // Adapt difficulty to demonstrated performance on this topic
+    const performance: QuizPerformance | undefined = topicMastery !== undefined
+      ? { mastery: topicMastery, recentCorrect: attemptsCorrect, recentTotal: attemptsTotal }
+      : undefined;
 
     const newQuiz = await generateQuiz(
       subjectName,
@@ -158,7 +190,8 @@ const ExercisePanel: React.FC<Props> = ({
       contextStr,
       session.studyContext,
       questionTypes,
-      10
+      10,
+      performance
     );
 
     _loadingKeys.delete(cacheKey);
@@ -176,35 +209,57 @@ const ExercisePanel: React.FC<Props> = ({
 
   const resetQuestionState = () => {
     setSelectedOption(null);
+    setMultiSelected(new Set());
     setOpenAnswer('');
     setEvaluation(null);
     setShowHint(false);
     setIsSubmitted(false);
     setAttempts(0);
     setEvaluating(false);
+    setShownHints([]);
+    setWasCorrect(null);
+    setSkipped(false);
   };
 
   const currentExercise = quiz[currentIndex];
-  const isMultipleChoice = currentExercise?.questionType === QuestionType.MULTIPLE_CHOICE || !currentExercise?.questionType;
-  const isOpenType = !isMultipleChoice;
+  const qType = currentExercise?.questionType || QuestionType.MULTIPLE_CHOICE;
+  const isChoiceType = qType === QuestionType.MULTIPLE_CHOICE || qType === QuestionType.TRUE_FALSE;
+  const isMultiSelect = qType === QuestionType.MULTI_SELECT;
+  const isOpenType = !isChoiceType && !isMultiSelect;
   const solutionRevealed = isOpenType && attempts >= MAX_ATTEMPTS;
 
-  // ── MULTIPLE CHOICE SUBMIT ─────────────────────────────────────────────────
+  const markCorrect = () => {
+    setScore(s => s + 1);
+    setAttemptsCorrect(c => c + 1);
+    setTotalXp(x => x + (currentExercise?.xpValue || 50));
+    setConfettiBurst(n => n + 1);
+    setWasCorrect(true);
+  };
+
+  // ── SINGLE-CHOICE SUBMIT (MULTIPLE_CHOICE / TRUE_FALSE) ───────────────────
   const handleMCSubmit = () => {
     if (!selectedOption || !currentExercise) return;
     const correct = selectedOption === currentExercise.correctOptionId;
     setIsSubmitted(true);
     setAttempts(a => a + 1);
     setAttemptsTotal(t => t + 1);
-    if (correct) {
-      setScore(s => s + 1);
-      setAttemptsCorrect(c => c + 1);
-      setTotalXp(x => x + (currentExercise.xpValue || 50));
-      setConfettiBurst(n => n + 1);
-    }
+    if (correct) markCorrect();
+    else setWasCorrect(false);
   };
 
-  // ── OPEN ANSWER SUBMIT ────────────────────────────────────────────────────
+  // ── MULTI-SELECT SUBMIT ────────────────────────────────────────────────────
+  const handleMultiSelectSubmit = () => {
+    if (multiSelected.size === 0 || !currentExercise) return;
+    const expected = new Set(currentExercise.correctOptionIds ?? []);
+    const correct = expected.size === multiSelected.size && [...expected].every(id => multiSelected.has(id));
+    setIsSubmitted(true);
+    setAttempts(a => a + 1);
+    setAttemptsTotal(t => t + 1);
+    if (correct) markCorrect();
+    else setWasCorrect(false);
+  };
+
+  // ── OPEN ANSWER SUBMIT (engine-first, AI for feedback only) ───────────────
   const handleOpenSubmit = async () => {
     if (!openAnswer.trim() || !currentExercise || evaluating) return;
     setEvaluating(true);
@@ -212,30 +267,68 @@ const ExercisePanel: React.FC<Props> = ({
     setAttempts(attemptNum);
     setAttemptsTotal(t => t + 1);
 
-    const result = await evaluateAnswer(
-      currentExercise.question,
-      openAnswer,
-      currentExercise.sampleAnswer || currentExercise.explanation,
-      userGrade,
-      language,
-      attemptNum
-    );
+    // 1) Deterministic verdict from the math engine whenever the stored
+    //    answer is machine-checkable. The AI never judges math.
+    const expected = currentExercise.answerExpression || currentExercise.sampleAnswer || '';
+    let verified: boolean | undefined = undefined;
+    if (expected && (qType === QuestionType.NUMERIC || looksNumeric(expected))) {
+      const verdict = checkAnswer(openAnswer, expected, currentExercise.acceptableAnswers ?? [], {
+        tolerance: currentExercise.tolerance,
+        roundTo: currentExercise.roundTo,
+        unitRequired: currentExercise.unitRequired,
+      });
+      if (verdict.method === 'math' || verdict.correct) verified = verdict.correct;
+    } else if (expected && (currentExercise.acceptableAnswers?.length || qType === QuestionType.FILL_IN_BLANK)) {
+      // Exact/alternate text matches are definitive-correct without an AI roundtrip
+      const verdict = checkAnswer(openAnswer, expected, currentExercise.acceptableAnswers ?? []);
+      if (verdict.correct) verified = true;
+    }
+
+    // 2) Fast path: engine says correct → no AI needed for the verdict.
+    let result: AnswerEvaluation;
+    if (verified === true) {
+      result = { isCorrect: true, score: 100, feedback: '' };
+    } else {
+      // AI writes feedback (and judges ONLY when the engine had no verdict)
+      result = await evaluateAnswer(
+        currentExercise.question,
+        openAnswer,
+        currentExercise.sampleAnswer || currentExercise.explanation,
+        userGrade,
+        language,
+        attemptNum,
+        {
+          verifiedCorrect: verified,
+          topic: session.topicTitle,
+          previousHints: shownHints,
+        }
+      );
+    }
 
     setEvaluation(result);
+    if (result.hint) setShownHints(h => [...h, result.hint!]);
     setEvaluating(false);
 
-    if (result.isCorrect || result.score >= 80) {
+    if (result.isCorrect) {
       setIsSubmitted(true);
-      setScore(s => s + 1);
-      setAttemptsCorrect(c => c + 1);
-      setTotalXp(x => x + (currentExercise.xpValue || 50));
-      setConfettiBurst(n => n + 1);
+      markCorrect();
     } else if (attemptNum >= MAX_ATTEMPTS) {
       setIsSubmitted(true);
+      setWasCorrect(false);
     }
   };
 
   const handleRevealSolution = () => {
+    setWasCorrect(false);
+    setIsSubmitted(true);
+  };
+
+  // ── SKIP ───────────────────────────────────────────────────────────────────
+  const handleSkip = () => {
+    if (!currentExercise || isSubmitted) return;
+    setSkipped(true);
+    setWasCorrect(false);
+    setAttemptsTotal(t => t + 1);
     setIsSubmitted(true);
   };
 
@@ -351,10 +444,13 @@ const ExercisePanel: React.FC<Props> = ({
           <div className="bg-white dark:bg-ink-800 rounded-3xl border border-ink-100 dark:border-ink-700 p-8 shadow-sm">
             {/* Question type badge */}
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full inline-block mb-4 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
-              {currentExercise.questionType === QuestionType.MULTIPLE_CHOICE ? ex.multipleChoice :
-                currentExercise.questionType === QuestionType.SHORT_ANSWER ? ex.shortAnswer :
-                currentExercise.questionType === QuestionType.MULTI_STEP ? ex.multiStep :
-                currentExercise.questionType === QuestionType.FILL_IN_BLANK ? ex.fillInBlank : ex.questionLabel}
+              {qType === QuestionType.MULTIPLE_CHOICE ? ex.multipleChoice :
+                qType === QuestionType.TRUE_FALSE ? ex.trueFalse :
+                qType === QuestionType.NUMERIC ? ex.numeric :
+                qType === QuestionType.MULTI_SELECT ? ex.multiSelect :
+                qType === QuestionType.SHORT_ANSWER ? ex.shortAnswer :
+                qType === QuestionType.MULTI_STEP ? ex.multiStep :
+                qType === QuestionType.FILL_IN_BLANK ? ex.fillInBlank : ex.questionLabel}
             </span>
 
             {/* XP badge */}
@@ -386,9 +482,9 @@ const ExercisePanel: React.FC<Props> = ({
             )}
           </div>
 
-          {/* ── MULTIPLE CHOICE OPTIONS ─────────────────────────────── */}
-          {isMultipleChoice && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {/* ── SINGLE-CHOICE OPTIONS (MC / TRUE-FALSE) ─────────────── */}
+          {isChoiceType && (
+            <div className={`grid grid-cols-1 ${qType === QuestionType.TRUE_FALSE ? 'sm:grid-cols-2' : 'md:grid-cols-2'} gap-2`}>
               {currentExercise.options.map((option) => {
                 let stateStyle = "border-ink-100 dark:border-ink-700 hover:border-moss-300 hover:bg-moss-50 dark:hover:bg-moss-light/10";
                 if (isSubmitted) {
@@ -419,25 +515,80 @@ const ExercisePanel: React.FC<Props> = ({
             </div>
           )}
 
+          {/* ── MULTI-SELECT OPTIONS (checkboxes) ───────────────────── */}
+          {isMultiSelect && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-ink-400">{ex.selectAllApply}</p>
+              {currentExercise.options.map((option) => {
+                const checked = multiSelected.has(option.id);
+                const isRight = (currentExercise.correctOptionIds ?? []).includes(option.id);
+                let stateStyle = 'border-ink-100 dark:border-ink-700 hover:border-moss-300 hover:bg-moss-50 dark:hover:bg-moss-light/10';
+                if (isSubmitted) {
+                  if (isRight) stateStyle = 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300';
+                  else if (checked) stateStyle = 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300';
+                  else stateStyle = 'opacity-40 border-ink-100 dark:border-ink-700';
+                } else if (checked) {
+                  stateStyle = 'border-moss-500 bg-moss-50 dark:bg-moss-light/20 text-moss-700 dark:text-moss-300';
+                }
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => {
+                      if (isSubmitted) return;
+                      setMultiSelected(prev => {
+                        const next = new Set(prev);
+                        if (next.has(option.id)) next.delete(option.id);
+                        else next.add(option.id);
+                        return next;
+                      });
+                    }}
+                    disabled={isSubmitted}
+                    className={`w-full text-start px-5 py-4 rounded-xl border-2 font-medium text-ink-500 dark:text-ink-400 transition-all duration-150 flex items-center gap-4 min-h-[52px] ${stateStyle}`}
+                  >
+                    <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                      isSubmitted && isRight ? 'bg-green-500 border-green-500 text-white' :
+                      checked ? 'bg-moss-500 border-moss-500 text-white' : 'border-ink-200 dark:border-ink-600'
+                    }`}>
+                      {(checked || (isSubmitted && isRight)) && <CheckCircle size={14} />}
+                    </div>
+                    <MathText className="font-medium dark:text-ink-400">{option.text}</MathText>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* ── OPEN ANSWER INPUT ──────────────────────────────────── */}
           {isOpenType && !isSubmitted && (
             <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 shadow-sm p-6 space-y-4">
-              <textarea
-                ref={textAreaRef}
-                value={openAnswer}
-                onChange={e => setOpenAnswer(e.target.value)}
-                placeholder={translations.typeYourAnswer}
-                rows={4}
-                className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-xl text-sm outline-none focus:border-moss-500 focus:ring-2 focus:ring-moss-500/20 transition-all text-ink-600 dark:text-ink-400 resize-none"
-              />
+              {qType === QuestionType.NUMERIC ? (
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={openAnswer}
+                  onChange={e => setOpenAnswer(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleOpenSubmit(); }}
+                  placeholder={translations.typeYourAnswer}
+                  className="w-full px-4 py-3.5 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-xl text-base font-mono outline-none focus:border-moss-500 focus:ring-2 focus:ring-moss-500/20 transition-all text-ink-600 dark:text-ink-200"
+                />
+              ) : (
+                <textarea
+                  ref={textAreaRef}
+                  value={openAnswer}
+                  onChange={e => setOpenAnswer(e.target.value)}
+                  placeholder={translations.typeYourAnswer}
+                  rows={4}
+                  className="w-full px-4 py-3 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-xl text-sm outline-none focus:border-moss-500 focus:ring-2 focus:ring-moss-500/20 transition-all text-ink-600 dark:text-ink-400 resize-none"
+                />
+              )}
               {/* Evaluation feedback (before full submission) */}
               {evaluation && !isSubmitted && (
                 <div className={`p-5 rounded-2xl text-sm animate-in fade-in ${
-                  evaluation.isCorrect || evaluation.score >= 80
+                  evaluation.isCorrect
                     ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
                     : 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800'
                 }`}>
-                  <p className="font-semibold text-sm mb-2">{evaluation.score >= 80 ? translations.correct : translations.partiallyCorrect}</p>
+                  <p className="font-semibold text-sm mb-2">{evaluation.isCorrect ? translations.correct : translations.partiallyCorrect}</p>
                   <MathText className="text-sm leading-relaxed">{evaluation.feedback}</MathText>
                   {evaluation.followUp && <p className="mt-2 font-semibold text-sm"><MathText>{evaluation.followUp}</MathText></p>}
                   {evaluation.hint && <p className="mt-2 italic text-xs opacity-80">{translations.hint}: <MathText>{evaluation.hint}</MathText></p>}
@@ -450,19 +601,21 @@ const ExercisePanel: React.FC<Props> = ({
           {/* ── POST-SUBMISSION FEEDBACK ───────────────────────────── */}
           {isSubmitted && (
             <div className="bg-white dark:bg-ink-800 rounded-2xl border border-ink-100 dark:border-ink-700 shadow-sm p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
-              {/* Result badge */}
+              {/* Result badge — driven by the single verified verdict */}
               <div className={`p-4 rounded-2xl text-center font-bold text-lg flex items-center justify-center gap-3 ${
-                (isMultipleChoice ? selectedOption === currentExercise.correctOptionId : (evaluation?.isCorrect || (evaluation?.score ?? 0) >= 80))
+                wasCorrect
                   ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-                  : solutionRevealed
+                  : skipped || solutionRevealed
                     ? 'bg-cream-100 dark:bg-ink-800 border border-ink-100 dark:border-ink-700'
                     : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
               }`}>
-                {(isMultipleChoice ? selectedOption === currentExercise.correctOptionId : (evaluation?.isCorrect || (evaluation?.score ?? 0) >= 80))
+                {wasCorrect
                   ? <><CheckCircle size={22} className="text-green-600 dark:text-green-400" /> <span className="text-green-700 dark:text-green-300">{translations.correct}</span></>
-                  : solutionRevealed
-                    ? <><Eye size={22} className="text-ink-400" /> <span className="text-ink-500 dark:text-ink-400">{translations.revealSolution}</span></>
-                    : <><XCircle size={22} className="text-red-500" /> <span className="text-red-700 dark:text-red-400">{translations.incorrect}</span></>
+                  : skipped
+                    ? <><SkipForward size={22} className="text-ink-400" /> <span className="text-ink-500 dark:text-ink-400">{ex.skipped}</span></>
+                    : solutionRevealed
+                      ? <><Eye size={22} className="text-ink-400" /> <span className="text-ink-500 dark:text-ink-400">{translations.revealSolution}</span></>
+                      : <><XCircle size={22} className="text-red-500" /> <span className="text-red-700 dark:text-red-400">{translations.incorrect}</span></>
                 }
               </div>
 
@@ -484,8 +637,8 @@ const ExercisePanel: React.FC<Props> = ({
                 </p>
               </div>
 
-              {/* Full solution (open types, max attempts reached) */}
-              {isOpenType && (evaluation?.fullSolution || solutionRevealed) && (
+              {/* Full solution (open types: max attempts reached or skipped) */}
+              {isOpenType && (evaluation?.fullSolution || solutionRevealed || skipped) && (
                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-5 mt-4">
                   <h4 className="font-semibold text-sm mb-2 text-blue-600 dark:text-blue-400">{translations.revealSolution}</h4>
                   <p className="text-sm leading-relaxed">
@@ -506,11 +659,22 @@ const ExercisePanel: React.FC<Props> = ({
                   <BookOpen size={18} className="text-moss-600" /> {translations.tools}
                 </h3>
 
-                {/* MC submit */}
-                {isMultipleChoice && (
+                {/* Single-choice submit (MC / true-false) */}
+                {isChoiceType && (
                   <button
                     onClick={handleMCSubmit}
                     disabled={!selectedOption}
+                    className="w-full py-3.5 bg-moss-500 hover:bg-moss-600 text-white rounded-xl font-semibold shadow-moss transition-all duration-150 active:scale-[0.98] mt-4 disabled:opacity-30"
+                  >
+                    {translations.submit}
+                  </button>
+                )}
+
+                {/* Multi-select submit */}
+                {isMultiSelect && (
+                  <button
+                    onClick={handleMultiSelectSubmit}
+                    disabled={multiSelected.size === 0}
                     className="w-full py-3.5 bg-moss-500 hover:bg-moss-600 text-white rounded-xl font-semibold shadow-moss transition-all duration-150 active:scale-[0.98] mt-4 disabled:opacity-30"
                   >
                     {translations.submit}
@@ -547,10 +711,15 @@ const ExercisePanel: React.FC<Props> = ({
                   </>
                 )}
 
-                {/* Hint */}
-                <button onClick={() => setShowHint(true)} className="w-full py-3 text-ink-400 dark:text-ink-400 font-bold hover:text-moss-600 flex items-center justify-center gap-2 transition-colors duration-150">
-                  <Lightbulb size={18} /> {translations.hint}
-                </button>
+                {/* Hint + Skip */}
+                <div className="flex gap-2">
+                  <button onClick={() => setShowHint(true)} className="flex-1 py-3 text-ink-400 dark:text-ink-400 font-bold hover:text-moss-600 flex items-center justify-center gap-2 transition-colors duration-150 min-h-[44px]">
+                    <Lightbulb size={18} /> {translations.hint}
+                  </button>
+                  <button onClick={handleSkip} className="flex-1 py-3 text-ink-400 dark:text-ink-400 font-bold hover:text-clay-500 flex items-center justify-center gap-2 transition-colors duration-150 min-h-[44px]">
+                    <SkipForward size={18} /> {ex.skip}
+                  </button>
+                </div>
                 {showHint && (
                   <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm font-medium text-amber-800 dark:text-amber-200 animate-in slide-in-from-top-2">
                     <MathText>{currentExercise.hint}</MathText>
