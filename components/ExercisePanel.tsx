@@ -81,11 +81,13 @@ interface Props {
   onQuizGenerated?: (quiz: Exercise[]) => void;
   /** 0–100 mastery on this topic — used to adapt generated difficulty */
   topicMastery?: number;
+  /** Fires per answered question so mastery is recorded even if the quiz is abandoned */
+  onSkillEvent?: (ev: SkillAttemptEvent) => void;
 }
 
 const ExercisePanel: React.FC<Props> = ({
   session, userGrade, language, translations,
-  onComplete, onBack, onContextUpdate, onGoToLesson, onQuizGenerated, topicMastery
+  onComplete, onBack, onContextUpdate, onGoToLesson, onQuizGenerated, topicMastery, onSkillEvent
 }) => {
   const ex = EX_COPY[(EX_COPY[language as ExLangKey] ? language : 'en') as ExLangKey];
 
@@ -140,11 +142,13 @@ const ExercisePanel: React.FC<Props> = ({
   const firstMistakeRef = useRef<MistakeKind | null>(null);
 
   // One event per question, recorded exactly once when the question resolves.
+  // Delivered IMMEDIATELY via onSkillEvent so progress survives an abandoned
+  // quiz; the ref batch is only a fallback for callers without the handler.
   const recordSkillEvent = (correct: boolean, opts: { skipped?: boolean; studentAnswer?: string } = {}) => {
     const exercise = quiz[currentIndex];
     if (!exercise) return;
     const wasRetry = attempts > 0; // attempts counted BEFORE this resolution
-    skillEventsRef.current.push({
+    const event: SkillAttemptEvent = {
       skillTag: exercise.skillTag || session.topicTitle || 'general',
       subject: session.subject,
       topicId: session.topicId,
@@ -164,7 +168,9 @@ const ExercisePanel: React.FC<Props> = ({
         exercise.questionType !== QuestionType.MULTIPLE_CHOICE &&
         exercise.questionType !== QuestionType.TRUE_FALSE &&
         exercise.questionType !== QuestionType.MULTI_SELECT,
-    });
+    };
+    if (onSkillEvent) onSkillEvent(event);
+    else skillEventsRef.current.push(event);
   };
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);

@@ -8,7 +8,7 @@ import {
   DEFAULT_DAILY_GOAL, DEFAULT_STREAK_FREEZES, localDayKey, rolloverDailyXp,
   calculateStreakWithFreeze, applyXpGain, ACHIEVEMENTS_BY_ID
 } from './services/engagement';
-import { recordAttempt } from './services/masteryEngine';
+import { recordAttempt, mergeSkillMaps } from './services/masteryEngine';
 import { findQuestCandidates, buildQuest, scheduleQuestFollowUp, recordQuestCompletion, MAX_ACTIVE_QUESTS } from './services/questEngine';
 import MasteryMap from './components/MasteryMap';
 import ErrorQuestView from './components/ErrorQuest';
@@ -446,7 +446,7 @@ const App: React.FC = () => {
               bestStreak: serverData.bestStreak ?? prev.user.bestStreak,
               dailyGoalsMet: serverData.dailyGoalsMet ?? prev.user.dailyGoalsMet,
               unlockedAchievements: serverData.unlockedAchievements ?? prev.user.unlockedAchievements,
-              skillMap: serverData.skillMap ?? prev.user.skillMap,
+              skillMap: mergeSkillMaps(prev.user.skillMap, serverData.skillMap),
               activeQuests: serverData.activeQuests ?? prev.user.activeQuests,
               completedQuests: serverData.completedQuests ?? prev.user.completedQuests,
               questBadges: serverData.questBadges ?? prev.user.questBadges,
@@ -539,6 +539,17 @@ const App: React.FC = () => {
     if (gain.leveledUpTo) cels.push({ type: 'level', level: gain.leveledUpTo });
     enqueueCelebration(cels);
   }, [enqueueCelebration]);
+
+  // Record a single answered question into the mastery engine IMMEDIATELY.
+  // This must not wait for quiz completion — students who answer three
+  // questions and leave still deserve their Mastery Map progress.
+  const handleSkillEvent = useCallback((ev: SkillAttemptEvent) => {
+    setAppState(prev => {
+      const user = { ...prev.user, skillMap: recordAttempt(prev.user.skillMap || {}, ev) };
+      userRef.current = user;
+      return { ...prev, user };
+    });
+  }, []);
 
   // ── PERSONAL ERROR QUESTS ────────────────────────────────────────────────
   const handleStartQuest = useCallback((quest: ErrorQuest) => {
@@ -1090,6 +1101,7 @@ const App: React.FC = () => {
                   onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard', currentSession: null }))}
                   onContextUpdate={(ctx) => setAppState(p => ({ ...p, currentContext: ctx }))}
                   onLessonComplete={(xp) => handleExerciseComplete(xp, 0, 0, null)}
+                  onSkillEvent={handleSkillEvent}
                 />
               </div>
             )}
@@ -1103,6 +1115,7 @@ const App: React.FC = () => {
                   language={appState.language}
                   translations={t}
                   topicMastery={exerciseSession.topicId ? appState.user.progressMap?.[exerciseSession.topicId]?.mastery : undefined}
+                  onSkillEvent={handleSkillEvent}
                   onComplete={handleExerciseComplete}
                   onBack={() => {
                     setExerciseSession(null);

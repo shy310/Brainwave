@@ -251,6 +251,23 @@ export const weakestSkills = (map: SkillMap, n = 5): SkillRecord[] =>
     .sort((a, b) => (a.masteryScore - b.masteryScore) || (b.mistakesTotal - a.mistakesTotal))
     .slice(0, n);
 
+/**
+ * Merge two skill maps (e.g. local vs server copy), keeping whichever record
+ * of each skill was practiced more recently. Protects a fresh local map from
+ * being clobbered by a stale server snapshot at login.
+ */
+export const mergeSkillMaps = (a: SkillMap = {}, b: SkillMap = {}): SkillMap => {
+  const out: SkillMap = { ...a };
+  for (const [tag, rec] of Object.entries(b)) {
+    const mine = out[tag];
+    if (!mine) { out[tag] = rec; continue; }
+    const mineTime = mine.lastPracticed ? new Date(mine.lastPracticed).getTime() : 0;
+    const theirTime = rec.lastPracticed ? new Date(rec.lastPracticed).getTime() : 0;
+    out[tag] = theirTime > mineTime ? rec : mine;
+  }
+  return out;
+};
+
 /** The most frequent mistake kind for a skill, if any. */
 export const dominantMistake = (r: SkillRecord): MistakeKind | null => {
   let best: MistakeKind | null = null, max = 0;

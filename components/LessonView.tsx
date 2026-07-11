@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { LearningSession, Lesson, LessonSection, GradeLevel, Language, Translations, Attachment, UploadAnalysis, Subject } from '../types';
+import { LearningSession, Lesson, LessonSection, GradeLevel, Language, Translations, Attachment, UploadAnalysis, Subject, SkillAttemptEvent, QuestionType } from '../types';
 import { generateLesson, analyzeUpload } from '../services/aiService';
 import {
   BookOpen, ChevronRight, Lightbulb, ListChecks, FileText, Layers,
@@ -20,6 +20,8 @@ interface Props {
   onBack: () => void;
   onContextUpdate: (ctx: string) => void;
   onLessonComplete?: (xpEarned: number) => void;
+  /** Quick-check answers feed the Mastery Map immediately */
+  onSkillEvent?: (ev: SkillAttemptEvent) => void;
 }
 
 const SECTION_ICONS: Record<string, React.ReactNode> = {
@@ -141,7 +143,7 @@ const BodyText: React.FC<{ text: string }> = ({ text }) => (
 );
 
 const LessonView: React.FC<Props> = ({
-  session, userGrade, language, translations, onStartExercises, onBack, onContextUpdate, onLessonComplete
+  session, userGrade, language, translations, onStartExercises, onBack, onContextUpdate, onLessonComplete, onSkillEvent
 }) => {
   const sectionLabels = SECTION_LABELS[language] || SECTION_LABELS.en;
   const lc = LESSON_MISC[language] || LESSON_MISC.en;
@@ -430,7 +432,19 @@ const LessonView: React.FC<Props> = ({
   const handleAnswer = (optionIdx: number) => {
     if (answers[activeSection] !== undefined) return; // lock after first tap
     setAnswers(prev => ({ ...prev, [activeSection]: optionIdx }));
-    if (optionIdx === currentSection?.correctIndex) setConfettiBurst(n => n + 1);
+    const correct = optionIdx === currentSection?.correctIndex;
+    if (correct) setConfettiBurst(n => n + 1);
+    // Lesson quick-checks count toward mastery too — recorded immediately.
+    onSkillEvent?.({
+      skillTag: lesson?.topicTitle || session.topicTitle || 'general',
+      subject: session.subject,
+      topicId: session.topicId,
+      correct,
+      questionType: QuestionType.MULTIPLE_CHOICE,
+      difficulty: 2,
+      hintsUsed: 0,
+      mistakeKind: correct ? undefined : 'concept',
+    });
   };
 
   const handleFinish = () => {
