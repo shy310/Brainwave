@@ -1,6 +1,6 @@
 import {
   recordAttempt, computeStatus, classifyMistake, dueForReview, weakestSkills,
-  dominantMistake, averageConfidence, REVIEW_INTERVALS,
+  dominantMistake, averageConfidence, REVIEW_INTERVALS, mergeSkillMaps,
 } from '../services/masteryEngine';
 import { SkillMap, SkillAttemptEvent, QuestionType } from '../types';
 
@@ -116,6 +116,20 @@ const unitEx = { questionType: QuestionType.NUMERIC, answerExpression: '5 cm', s
 t('classify: missing unit', classifyMistake(unitEx, '5'), 'units');
 t('classify: MC wrong option is concept', classifyMistake({ questionType: QuestionType.MULTIPLE_CHOICE } as any, '9'), 'concept');
 t('classify: multi-select miss is incomplete', classifyMistake({ questionType: QuestionType.MULTI_SELECT } as any, ''), 'incomplete');
+
+// ── mergeSkillMaps: stale server data cannot clobber fresh local records ─────
+let localMap: SkillMap = {};
+localMap = recordAttempt(localMap, ev({ skillTag: 'geometry', correct: true, mistakeKind: undefined, ts: day(10) }));
+localMap = recordAttempt(localMap, ev({ skillTag: 'geometry', correct: true, mistakeKind: undefined, ts: day(10, 13) }));
+let serverMap: SkillMap = {};
+serverMap = recordAttempt(serverMap, ev({ skillTag: 'geometry', correct: true, mistakeKind: undefined, ts: day(2) })); // older
+serverMap = recordAttempt(serverMap, ev({ skillTag: 'algebra basics', correct: true, mistakeKind: undefined, ts: day(3) })); // only on server
+const merged = mergeSkillMaps(localMap, serverMap);
+t('merge keeps the fresher local record', merged['geometry'].attemptsTotal, 2);
+t('merge adopts server-only skills', 'algebra basics' in merged, true);
+t('merge prefers newer server record over older local',
+  mergeSkillMaps(serverMap, localMap)['geometry'].attemptsTotal, 2);
+t('merge handles empty inputs', Object.keys(mergeSkillMaps(undefined as any, undefined as any)).length, 0);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
