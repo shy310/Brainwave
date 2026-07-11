@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { UserProfile, Course, Topic, Subject, GradeLevel, Translations, TopicProgress, Language } from '../types';
+import { UserProfile, Course, Topic, Subject, GradeLevel, Translations, TopicProgress, Language, ErrorQuest } from '../types';
 import { ICON_MAP, SUBJECTS_DATA, CURRICULUM, getCurriculumCourse } from '../constants';
 import {
   ArrowRight, ArrowUpRight, BookOpen, Calculator, FlaskConical, Globe,
@@ -53,7 +53,20 @@ interface Props {
   onSelectSubjectGrade: (subject: Subject, grade: GradeLevel) => void;
   onSetDailyGoal?: (goal: number) => void;
   onOpenAchievements?: () => void;
+  missions?: ErrorQuest[];
+  onStartQuest?: (quest: ErrorQuest) => void;
 }
+
+// ── Personal missions copy (localized) ──────────────────────────────────────
+const MISSION_COPY: Record<'en' | 'ru' | 'he' | 'ar', {
+  header: string; sub: string; start: string; continueBtn: string;
+  minutes: (n: number) => string; reward: string; stagesDone: (a: number, b: number) => string;
+}> = {
+  en: { header: 'Personal missions', sub: 'Short repair quests built from your own patterns — a few minutes each.', start: 'Start mission', continueBtn: 'Continue', minutes: (n) => `~${n} min`, reward: 'Reward', stagesDone: (a, b) => `${a}/${b} stages` },
+  ru: { header: 'Личные миссии', sub: 'Короткие квесты-ремонты по твоим же паттернам — пара минут каждый.', start: 'Начать миссию', continueBtn: 'Продолжить', minutes: (n) => `~${n} мин`, reward: 'Награда', stagesDone: (a, b) => `${a}/${b} этапов` },
+  he: { header: 'משימות אישיות', sub: 'מסעות תיקון קצרים שנבנו מהדפוסים שלך — דקות ספורות כל אחד.', start: 'התחל משימה', continueBtn: 'המשך', minutes: (n) => `~${n} דק׳`, reward: 'פרס', stagesDone: (a, b) => `${a}/${b} שלבים` },
+  ar: { header: 'مهمات شخصية', sub: 'مهمات إصلاح قصيرة مبنية من أنماطك — دقائق قليلة لكل منها.', start: 'ابدأ المهمة', continueBtn: 'متابعة', minutes: (n) => `~${n} د`, reward: 'مكافأة', stagesDone: (a, b) => `${a}/${b} مراحل` },
+};
 
 // ─── Editorial copy translations (the new strings I added) ─────────────────
 type LangKey = 'en' | 'ru' | 'he' | 'ar';
@@ -384,8 +397,10 @@ function getGreeting(name: string, language?: Language): { greeting: string; emo
 
 const Dashboard: React.FC<Props> = ({
   user, courses, translations, searchQuery = '', language,
-  onSelectCourse, onResumeTopic, onSelectSubjectGrade, onSetDailyGoal, onOpenAchievements
+  onSelectCourse, onResumeTopic, onSelectSubjectGrade, onSetDailyGoal, onOpenAchievements,
+  missions = [], onStartQuest
 }) => {
+  const mc = MISSION_COPY[(MISSION_COPY[language as 'en' | 'ru' | 'he' | 'ar'] ? language : 'en') as 'en' | 'ru' | 'he' | 'ar'];
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [openGradeFolder, setOpenGradeFolder] = useState<string | null>(null);
 
@@ -592,6 +607,64 @@ const Dashboard: React.FC<Props> = ({
           )}
         </div>
       </section>
+
+      {/* ─── Personal missions (error-repair quests) ─────────────────────── */}
+      {missions.length > 0 && onStartQuest && (
+        <section className="fade-in stagger-1">
+          <div className="mb-4">
+            <h2 className="font-display text-2xl md:text-3xl font-semibold text-ink-700 dark:text-ink-100">{mc.header}</h2>
+            <p className="text-sm text-ink-400 dark:text-ink-400 mt-1">{mc.sub}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {missions.map(q => {
+              const started = (q.stages?.length ?? 0) > 0 && q.stageIndex > 0;
+              const totalStages = q.stages?.length || 7;
+              return (
+                <div key={q.id} className="paper-card p-5 bg-white dark:bg-ink-800 border-ink-100 dark:border-ink-700 flex flex-col">
+                  <div className="flex items-start gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-moss-50 dark:bg-moss-light/20 flex items-center justify-center text-2xl shrink-0">
+                      {q.badgeReward}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-ink-700 dark:text-ink-100 leading-tight break-words">{q.title}</h3>
+                      <p className="text-xs text-ink-400 capitalize truncate">{q.skillTag}</p>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-sm text-ink-500 dark:text-ink-300 leading-relaxed flex-1">{q.reason}</p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-semibold text-ink-400">
+                    <span className="inline-flex items-center gap-1"><Coffee size={11} />{mc.minutes(q.estimatedMinutes)}</span>
+                    <span className="inline-flex items-center gap-0.5" aria-label={`difficulty ${q.difficulty}/5`}>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span key={i} className={`w-1.5 h-1.5 rounded-full ${i < q.difficulty ? 'bg-amber-400' : 'bg-ink-100 dark:bg-ink-700'}`} />
+                      ))}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">{mc.reward}: +{q.xpReward} XP · {q.badgeReward}</span>
+                  </div>
+
+                  {started && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-cream-100 dark:bg-ink-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-moss-500 rounded-full transition-all duration-500" style={{ width: `${(q.stageIndex / totalStages) * 100}%` }} />
+                      </div>
+                      <span className="text-[10px] font-bold text-ink-400 tabular-nums">{mc.stagesDone(q.stageIndex, totalStages)}</span>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => onStartQuest(q)}
+                    className="mt-4 w-full py-3 bg-moss-500 hover:bg-moss-600 text-white rounded-xl font-semibold text-sm shadow-moss transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 min-h-[46px]"
+                  >
+                    <PlayCircle size={16} />
+                    {started ? mc.continueBtn : mc.start}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ─── Section 2: pick up where you left off ──────────────────────── */}
       {continueLearning ? (

@@ -180,6 +180,9 @@ export interface UserProfile {
   soundEnabled?: boolean;        // reward sound cues toggle
   // ── Adaptive learning ──────────────────────────────────────────────────────
   skillMap?: SkillMap;           // per-skill mastery records (Mastery Map)
+  activeQuests?: ErrorQuest[];   // personal error quests in progress (cap 3)
+  completedQuests?: CompletedQuest[]; // recent completions (cooldown window)
+  questBadges?: string[];        // collectible badges earned from quests
 }
 
 // ─── ADAPTIVE LEARNING: SKILL MASTERY ────────────────────────────────────────
@@ -261,6 +264,61 @@ export interface SkillRecord {
 
 export type SkillMap = Record<string, SkillRecord>;
 
+// ─── ADAPTIVE LEARNING: PERSONAL ERROR QUESTS ────────────────────────────────
+// Short personalized missions generated from a student's RECURRING mistake
+// pattern on a skill — targeting the misconception, never repeating the same
+// question, and always framed encouragingly.
+
+export type QuestStageType =
+  | 'reminder'      // quick visual re-explanation of the rule
+  | 'example'       // one clean worked example
+  | 'spot-mistake'  // find the error in a worked solution
+  | 'guided-fix'    // fix it with scaffolding
+  | 'independent'   // similar question, no help
+  | 'challenge'     // optional stretch question
+  | 'reflection';   // explain / pick the best explanation of the rule
+
+export interface QuestStage {
+  type: QuestStageType;
+  heading: string;
+  body: string;
+  bullets?: string[];
+  // Interactive stages (spot-mistake, guided-fix, independent, challenge, reflection)
+  question?: string;
+  options?: string[];
+  correctIndex?: number;
+  explanation?: string;
+}
+
+export interface ErrorQuest {
+  id: string;
+  skillTag: string;
+  subject?: Subject;
+  topicId?: string | null;
+  mistakeKind: MistakeKind;
+  title: string;             // adventurous, non-punitive (e.g. "The Sign Detective")
+  reason: string;            // encouraging explanation of why this quest exists
+  estimatedMinutes: number;
+  difficulty: number;        // 1–5
+  xpReward: number;
+  badgeReward: string;       // collectible emoji badge earned on completion
+  stages: QuestStage[];      // filled by AI generation when the quest starts
+  createdAt: string;
+  language: Language;        // language the stages were generated in
+  // Progress
+  stageIndex: number;
+  correctInQuest: number;
+  completedAt?: string;
+}
+
+// Record kept after completion (cooldown + review follow-up bookkeeping)
+export interface CompletedQuest {
+  id: string;
+  skillTag: string;
+  mistakeKind: MistakeKind;
+  completedAt: string;
+}
+
 // ─── ENGAGEMENT: ACHIEVEMENTS ─────────────────────────────────────────────────
 
 export type AchievementCategory = 'streak' | 'xp' | 'mastery' | 'goal' | 'milestone';
@@ -294,7 +352,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   language: Language;
   user: UserProfile;
-  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard' | 'mastery';
+  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard' | 'mastery' | 'quest';
   activeCourseId: string | null;
   activeTopicId: string | null;
   currentSession: LearningSession | null;
