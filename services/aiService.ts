@@ -1,5 +1,5 @@
 
-import { Message, Attachment, GradeLevel, Exercise, QuestionType, Lesson, AnswerEvaluation, UploadAnalysis, Subject, CodeLanguage, GameType, Presentation, PresentationSlide, CodingChallenge, GameQuestion, BuggyCode, DebateTurn, StoryChapter, StoryEvaluation, MysteryCase, ChallengeTestResult, CodeReview, ArgumentScore, BranchChoice, InlineSuggestion, CaseTheme, CaseDifficulty, PresentationAudience, PresStructure, ConceptNode, ConceptEdge, FlashCard, TrueFalseItem } from '../types';
+import { Message, Attachment, GradeLevel, Exercise, QuestionType, Lesson, AnswerEvaluation, UploadAnalysis, Subject, CodeLanguage, GameType, Presentation, PresentationSlide, CodingChallenge, GameQuestion, BuggyCode, DebateTurn, StoryChapter, StoryEvaluation, MysteryCase, ChallengeTestResult, CodeReview, ArgumentScore, BranchChoice, InlineSuggestion, CaseTheme, CaseDifficulty, PresentationAudience, PresStructure, ConceptNode, ConceptEdge, FlashCard, TrueFalseItem, ErrorQuest, QuestStage } from '../types';
 import { INITIAL_SYSTEM_INSTRUCTION } from '../constants';
 import { sanitizeQuiz } from './questionValidator';
 
@@ -389,6 +389,74 @@ Write "40 dollars" / the currency word in the target language instead.`;
 
     if (!text) throw new Error("generateLesson: empty response from model");
     return parseJson(text) as Lesson;
+};
+
+// ─── PERSONAL ERROR QUEST GENERATION ─────────────────────────────────────────
+
+export const generateErrorQuest = async (
+    quest: ErrorQuest,
+    grade: GradeLevel,
+    language: string
+): Promise<QuestStage[] | null> => {
+    const targetLang = LANG_MAP[language] || language;
+    const MISTAKE_DESC: Record<string, string> = {
+        sign: 'getting the sign wrong (answering -x when it should be x, dropping minus signs)',
+        magnitude: 'decimal point / order-of-magnitude slips (10x too big or too small)',
+        arithmetic: 'small calculation slips (close to right, but a step miscomputed)',
+        units: 'forgetting or mixing up measurement units',
+        concept: 'mixing up two related concepts or rules',
+        incomplete: 'stopping one step early / missing part of the answer',
+        recall: 'not being able to retrieve the fact or rule at all',
+        other: 'a recurring small error pattern',
+    };
+
+    const prompt = `You are a warm, expert tutor creating a SHORT personalized "repair mission" for one student.
+
+THE STUDENT'S PATTERN (why this quest exists):
+- Skill: "${quest.skillTag}" (subject: ${quest.subject ?? 'general'}, grade ${grade})
+- Recurring mistake: ${MISTAKE_DESC[quest.mistakeKind] ?? MISTAKE_DESC.other}
+- The goal is to repair the UNDERLYING MISCONCEPTION — never just repeat drill questions.
+
+TONE (CRITICAL):
+- Encouraging and confident: "you're close", "let's lock this in". The student should feel coached, never punished.
+- FORBIDDEN: any wording like "you keep failing", "you always get this wrong", "your mistake".
+- Not childish; clear and friendly for grade ${grade}.
+
+Language: ${targetLang} — every text VALUE in ${targetLang}. JSON structure and "type" values stay in English.
+
+Return ONLY a JSON array of EXACTLY 7 stages in this order and structure:
+[
+  { "type": "reminder", "heading": "2-4 words", "body": "the rule, re-explained fresh in 2-3 sentences", "bullets": ["3-4 short memory hooks"] },
+  { "type": "example", "heading": "...", "body": "one clean worked example showing the CORRECT way, steps as short lines", "bullets": ["step 1", "step 2", "step 3"] },
+  { "type": "spot-mistake", "heading": "...", "body": "a short worked solution that CONTAINS exactly the student's mistake pattern", "question": "Where did this solution go wrong?", "options": ["3 plausible descriptions of the error, one correct"], "correctIndex": 0, "explanation": "1-2 sentences naming the slip kindly" },
+  { "type": "guided-fix", "heading": "...", "body": "a strong scaffold/hint for the question below", "question": "a NEW question prone to this mistake", "options": ["3 options: the right answer, the classic-mistake answer, one other"], "correctIndex": 0, "explanation": "why, referencing the scaffold" },
+  { "type": "independent", "heading": "...", "body": "", "question": "a similar NEW question, no scaffold", "options": ["3 options as above"], "correctIndex": 0, "explanation": "short why" },
+  { "type": "challenge", "heading": "...", "body": "frame it as optional stretch", "question": "a harder twist on the same idea", "options": ["3 options"], "correctIndex": 0, "explanation": "short why" },
+  { "type": "reflection", "heading": "...", "body": "", "question": "Which statement best explains the rule (so you could teach it)?", "options": ["3 explanations: one precise and correct, two subtly flawed"], "correctIndex": 0, "explanation": "affirm the precise version in 1 sentence" }
+]
+
+RULES:
+- Every question is NEW — none may repeat another stage's numbers or wording.
+- The marked correctIndex MUST be genuinely correct; distractors plausible but definitely wrong; no duplicate options.
+- Vary correctIndex across stages (not always 0).
+- Keep bodies under 50 words. Use ONLY ASCII double quotes.
+- Math in LaTeX ($...$, backslashes DOUBLED for JSON). NEVER write money with a bare $ sign — use "40 dollars"/currency words.
+- Accuracy is non-negotiable: verify all arithmetic before answering.`;
+
+    const text = await callClaude({
+        model: HAIKU,
+        max_tokens: 3500,
+        messages: [{ role: 'user', content: prompt }],
+    });
+    if (!text) return null;
+    try {
+        const parsed = parseJson(text);
+        const stages = Array.isArray(parsed) ? parsed : parsed?.stages;
+        return Array.isArray(stages) ? (stages as QuestStage[]) : null;
+    } catch (e) {
+        console.error('Quest JSON parse failed:', e);
+        return null;
+    }
 };
 
 // ─── ANSWER EVALUATION ────────────────────────────────────────────────────────

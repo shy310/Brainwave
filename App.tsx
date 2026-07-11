@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
-  AppState, Subject, GradeLevel, UserProfile, Attachment, SkillAttemptEvent,
+  AppState, Subject, GradeLevel, UserProfile, Attachment, SkillAttemptEvent, ErrorQuest,
   LearningSession, ProgressMap, TopicProgress, Course
 } from './types';
 import { TRANSLATIONS, CURRICULUM, getCurriculumCourse, buildCourseFromCurriculum } from './constants';
@@ -9,7 +9,9 @@ import {
   calculateStreakWithFreeze, applyXpGain, ACHIEVEMENTS_BY_ID
 } from './services/engagement';
 import { recordAttempt } from './services/masteryEngine';
+import { findQuestCandidates, buildQuest, scheduleQuestFollowUp, recordQuestCompletion, MAX_ACTIVE_QUESTS } from './services/questEngine';
 import MasteryMap from './components/MasteryMap';
+import ErrorQuestView from './components/ErrorQuest';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
@@ -124,7 +126,10 @@ const DEFAULT_USER: UserProfile = {
   dailyGoalsMet: 0,
   unlockedAchievements: [],
   soundEnabled: false,
-  skillMap: {}
+  skillMap: {},
+  activeQuests: [],
+  completedQuests: [],
+  questBadges: []
 };
 
 const DEFAULT_STATE: AppState = {
@@ -233,6 +238,7 @@ const App: React.FC = () => {
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [exerciseSession, setExerciseSession] = useState<LearningSession | null>(null);
+  const [activeQuest, setActiveQuest] = useState<ErrorQuest | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeSubject, setActiveSubject] = useState<Subject | null>(null);
@@ -441,6 +447,9 @@ const App: React.FC = () => {
               dailyGoalsMet: serverData.dailyGoalsMet ?? prev.user.dailyGoalsMet,
               unlockedAchievements: serverData.unlockedAchievements ?? prev.user.unlockedAchievements,
               skillMap: serverData.skillMap ?? prev.user.skillMap,
+              activeQuests: serverData.activeQuests ?? prev.user.activeQuests,
+              completedQuests: serverData.completedQuests ?? prev.user.completedQuests,
+              questBadges: serverData.questBadges ?? prev.user.questBadges,
             }
           }));
         })
@@ -531,6 +540,49 @@ const App: React.FC = () => {
     enqueueCelebration(cels);
   }, [enqueueCelebration]);
 
+  // ── PERSONAL ERROR QUESTS ────────────────────────────────────────────────
+  const handleStartQuest = useCallback((quest: ErrorQuest) => {
+    setAppState(prev => {
+      const existing = (prev.user.activeQuests ?? []).some(q => q.id === quest.id);
+      const activeQuests = existing ? prev.user.activeQuests! : [...(prev.user.activeQuests ?? []), quest];
+      const user = { ...prev.user, activeQuests };
+      userRef.current = user;
+      return { ...prev, user, activeView: 'quest' as const };
+    });
+    setActiveQuest(quest);
+    setMobileMenuOpen(false);
+  }, []);
+
+  const handleQuestUpdate = useCallback((quest: ErrorQuest) => {
+    setActiveQuest(quest);
+    setAppState(prev => {
+      const activeQuests = (prev.user.activeQuests ?? []).map(q => (q.id === quest.id ? quest : q));
+      const user = { ...prev.user, activeQuests };
+      userRef.current = user;
+      return { ...prev, user };
+    });
+  }, []);
+
+  const handleQuestComplete = useCallback((quest: ErrorQuest, xpEarned: number, skillEvents: SkillAttemptEvent[]) => {
+    // XP, streak, daily goal, achievements + mastery events through the choke point
+    handleExerciseComplete(xpEarned, 0, 0, null, undefined, skillEvents);
+    // Quest bookkeeping + spaced follow-up so the repair is re-checked later
+    setAppState(prev => {
+      const cur = userRef.current;
+      const user: UserProfile = {
+        ...cur,
+        activeQuests: (cur.activeQuests ?? []).filter(q => q.id !== quest.id),
+        completedQuests: recordQuestCompletion(cur.completedQuests ?? [], quest),
+        questBadges: (cur.questBadges ?? []).includes(quest.badgeReward)
+          ? cur.questBadges!
+          : [...(cur.questBadges ?? []), quest.badgeReward],
+        skillMap: scheduleQuestFollowUp(cur.skillMap ?? {}, quest.skillTag),
+      };
+      userRef.current = user;
+      return { ...prev, user };
+    });
+  }, [handleExerciseComplete]);
+
   const startSubjectPractice = useCallback((s: Subject) => {
     const grade = appState.user.gradeLevel;
     const cc = getCurriculumCourse(s, grade);
@@ -554,6 +606,18 @@ const App: React.FC = () => {
   const ac = getAppCopy(appState.language);
   const isRtl = appState.language === 'he' || appState.language === 'ar';
   const sidebarHiddenClass = isRtl ? 'translate-x-full' : '-translate-x-full';
+
+  // Personal missions for the dashboard: quests already in progress first,
+  // then fresh candidates detected from recurring mistakes in the skill map.
+  // (Must sit above the logged-out early return — hooks order.)
+  const missions = useMemo(() => {
+    const active = (appState.user.activeQuests ?? []).filter(q => !q.completedAt);
+    const room = Math.max(0, MAX_ACTIVE_QUESTS - active.length);
+    const candidates = findQuestCandidates(
+      appState.user.skillMap ?? {}, active, appState.user.completedQuests ?? []
+    ).slice(0, room).map(cand => buildQuest(cand, appState.language));
+    return [...active, ...candidates];
+  }, [appState.user.skillMap, appState.user.activeQuests, appState.user.completedQuests, appState.language]);
 
   if (!appState.isLoggedIn) {
     return (
@@ -987,6 +1051,8 @@ const App: React.FC = () => {
                   }}
                   onSetDailyGoal={(goal) => setAppState(prev => ({ ...prev, user: { ...prev.user, dailyXpGoal: goal } }))}
                   onOpenAchievements={() => navigateTo('achievements')}
+                  missions={missions}
+                  onStartQuest={handleStartQuest}
                 />
               </div>
             )}
@@ -1058,6 +1124,24 @@ const App: React.FC = () => {
                   onStartPractice={(subject, topicId, topicTitle) => {
                     handleStartExercises(subject, appState.user.gradeLevel, topicId, topicTitle);
                   }}
+                />
+              </div>
+            )}
+
+            {appState.activeView === 'quest' && activeQuest && (
+              <div className="view-enter">
+                <ErrorQuestView
+                  key={activeQuest.id}
+                  quest={activeQuest}
+                  userGrade={appState.user.gradeLevel}
+                  language={appState.language}
+                  translations={t}
+                  onBack={() => {
+                    setActiveQuest(null);
+                    setAppState(prev => ({ ...prev, activeView: 'dashboard' }));
+                  }}
+                  onQuestUpdate={handleQuestUpdate}
+                  onComplete={handleQuestComplete}
                 />
               </div>
             )}
