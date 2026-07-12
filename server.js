@@ -11,9 +11,9 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Startup guard ─────────────────────────────────────────────────────────────
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-if (!GROQ_API_KEY) {
-  console.error('\n✗ FATAL: GROQ_API_KEY is not set.\n  Add it to .env.local for local dev.\n  (Production runs on Vercel via api/index.js — set the key in Vercel env vars.)\n');
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+if (!OPENROUTER_API_KEY) {
+  console.error('\n✗ FATAL: OPENROUTER_API_KEY is not set.\n  Add it to .env.local for local dev.\n  (Production runs on Vercel via api/index.js — set the key in Vercel env vars.)\n');
   process.exit(1);
 }
 
@@ -47,23 +47,22 @@ app.use((_req, res, next) => {
   next();
 });
 
-// ── Groq client (OpenAI-compatible chat completions, no SDK needed) ──────────
-const GROQ_API_URL = process.env.GROQ_API_URL ?? 'https://api.groq.com/openai/v1/chat/completions';
-const TEXT_MODEL = process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile';
-const VISION_MODEL = process.env.GROQ_VISION_MODEL ?? 'meta-llama/llama-4-scout-17b-16e-instruct';
-// Smaller model used automatically when the main model is rate-limited.
-// Set GROQ_FALLBACK_MODEL="" to disable the fallback entirely.
-const FALLBACK_MODEL = process.env.GROQ_FALLBACK_MODEL ?? 'llama-3.1-8b-instant';
+// ── OpenRouter client (OpenAI-compatible chat completions, no SDK needed) ────
+const OPENROUTER_API_URL = process.env.OPENROUTER_API_URL ?? 'https://openrouter.ai/api/v1/chat/completions';
+// Gemini 2.5 Flash: strong at maths, multimodal (handles image uploads too), cheap.
+const TEXT_MODEL = process.env.OPENROUTER_MODEL ?? 'google/gemini-2.5-flash';
+const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL ?? 'google/gemini-2.5-flash';
+// Model used automatically when the main model is rate-limited or unavailable.
+// Set OPENROUTER_FALLBACK_MODEL="" to disable the fallback entirely.
+const FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL ?? 'openai/gpt-4o-mini';
 
-// Groq counts max_completion_tokens against the tokens-per-minute quota even
-// when the reply is short, so over-reserving output tokens burns the whole
-// free-tier budget (12k TPM) in one call. Keep reservations tight.
+// Keep output reservations tight — they drive cost and latency.
 const DEFAULT_MAX_TOKENS = 4096;
 const MAX_TOKENS_CAP = 6000;
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// Groq 429 bodies include "Please try again in 18.13s" — extract the wait.
+// Some 429 bodies include "try again in 18.13s" — extract the wait if present.
 function parseRetryAfterSeconds(errBody, headers) {
   const headerVal = Number(headers?.get?.('retry-after'));
   if (Number.isFinite(headerVal) && headerVal > 0) return headerVal;
@@ -71,12 +70,12 @@ function parseRetryAfterSeconds(errBody, headers) {
   return m ? parseFloat(m[1]) : null;
 }
 
-// Convert Anthropic-style messages → OpenAI/Groq chat format
+// Convert Anthropic-style messages → OpenAI-compatible chat format
 // - system prompt → a leading { role: 'system' } message
 // - image blocks → image_url with a base64 data URI
-// - document blocks → dropped (not supported by Groq chat completions)
+// - document blocks → dropped (not supported by chat completions)
 // Returns the message list plus whether any image was present (for model routing).
-function toGroqMessages(messages, system) {
+function toChatMessages(messages, system) {
   let hasImage = false;
   const out = [];
   if (system) out.push({ role: 'system', content: system });
@@ -105,28 +104,30 @@ function toGroqMessages(messages, system) {
   return { messages: out, hasImage };
 }
 
-async function groqRequest(model, groqMessages, maxTokens, stream) {
-  return fetch(GROQ_API_URL, {
+async function openRouterRequest(model, chatMessages, maxTokens, stream) {
+  return fetch(OPENROUTER_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${GROQ_API_KEY}`,
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+      'HTTP-Referer': 'https://brainwave.app',
+      'X-Title': 'BrainWave',
     },
     body: JSON.stringify({
       model,
-      messages: groqMessages,
-      max_completion_tokens: maxTokens,
+      messages: chatMessages,
+      max_tokens: maxTokens,
       stream,
     }),
   });
 }
 
-async function callGroq({ messages, system, max_tokens, stream = false }) {
-  const { messages: groqMessages, hasImage } = toGroqMessages(messages, system);
+async function callOpenRouter({ messages, system, max_tokens, stream = false }) {
+  const { messages: chatMessages, hasImage } = toChatMessages(messages, system);
   const model = hasImage ? VISION_MODEL : TEXT_MODEL;
   const maxTokens = Math.min(max_tokens ?? DEFAULT_MAX_TOKENS, MAX_TOKENS_CAP);
 
-  let response = await groqRequest(model, groqMessages, maxTokens, stream);
+  let response = await openRouterRequest(model, chatMessages, maxTokens, stream);
 
   // Rate limited → wait out short limits, then retry once on the same model.
   if (response.status === 429) {
@@ -134,13 +135,13 @@ async function callGroq({ messages, system, max_tokens, stream = false }) {
     const waitSec = parseRetryAfterSeconds(errBody, response.headers);
     if (waitSec !== null && waitSec <= 12) {
       await sleep((waitSec + 0.5) * 1000);
-      response = await groqRequest(model, groqMessages, maxTokens, stream);
+      response = await openRouterRequest(model, chatMessages, maxTokens, stream);
     }
-    // Still limited (or the wait was too long) → fall back to the smaller
-    // model, which has its own separate per-model quota.
-    if (response.status === 429 && FALLBACK_MODEL && FALLBACK_MODEL !== model && !hasImage) {
-      console.warn(`Groq rate limit on ${model} — falling back to ${FALLBACK_MODEL}`);
-      response = await groqRequest(FALLBACK_MODEL, groqMessages, maxTokens, stream);
+    // Still limited (or the wait was too long) → fall back to the secondary
+    // model (also multimodal, so image requests can fall back too).
+    if (response.status === 429 && FALLBACK_MODEL && FALLBACK_MODEL !== model) {
+      console.warn(`OpenRouter rate limit on ${model} — falling back to ${FALLBACK_MODEL}`);
+      response = await openRouterRequest(FALLBACK_MODEL, chatMessages, maxTokens, stream);
     }
   }
 
@@ -149,7 +150,7 @@ async function callGroq({ messages, system, max_tokens, stream = false }) {
     const err = new Error(
       response.status === 429
         ? 'The AI is receiving too many requests right now. Please wait a few seconds and try again.'
-        : `Groq API ${response.status}: ${errBody.slice(0, 500)}`
+        : `OpenRouter API ${response.status}: ${errBody.slice(0, 500)}`
     );
     err.status = response.status;
     throw err;
@@ -242,12 +243,12 @@ app.post('/api/claude', async (req, res) => {
   }
 
   try {
-    const response = await callGroq({ messages, system, max_tokens });
+    const response = await callOpenRouter({ messages, system, max_tokens });
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content ?? '';
     res.json({ content: [{ type: 'text', text }] });
   } catch (err) {
-    console.error('Groq error:', err);
+    console.error('OpenRouter error:', err);
     res.status(err.status ?? 500).json({ error: err.message ?? String(err) });
   }
 });
@@ -266,9 +267,9 @@ app.post('/api/claude-stream', async (req, res) => {
   res.flushHeaders();
 
   try {
-    const response = await callGroq({ messages, system, max_tokens, stream: true });
+    const response = await callOpenRouter({ messages, system, max_tokens, stream: true });
 
-    // Re-emit Groq's OpenAI-style SSE stream as the { text } events the client expects.
+    // Re-emit the OpenAI-style SSE stream as the { text } events the client expects.
     const decoder = new TextDecoder();
     let buffer = '';
     for await (const chunk of response.body) {
@@ -287,7 +288,7 @@ app.post('/api/claude-stream', async (req, res) => {
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('Groq stream error:', err);
+    console.error('OpenRouter stream error:', err);
     res.write(`data: ${JSON.stringify({ error: err.message ?? String(err) })}\n\n`);
     res.end();
   }
@@ -299,5 +300,5 @@ app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.htm
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✓ Server running on port ${PORT}  (Groq: ${TEXT_MODEL})`);
+  console.log(`✓ Server running on port ${PORT}  (OpenRouter: ${TEXT_MODEL})`);
 });

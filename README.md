@@ -8,7 +8,7 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
 
 ## Features
 
-- **AI Tutor** — Adaptive lessons and Socratic exercises powered by Groq (Llama 3.3 70B)
+- **AI Tutor** — Adaptive lessons and Socratic exercises powered by OpenRouter (Gemini 2.5 Flash)
 - **Curriculum** — 24 courses across Math, Science, Language, History, Coding, and Economics
 - **Progress Tracking** — Per-topic mastery via exponential moving average, XP, streaks, and level-ups
 - **Upload & Learn** — Analyze uploaded documents (images, text) and generate custom quizzes
@@ -29,7 +29,7 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
 |---|---|
 | Frontend | React 19 + TypeScript + Vite |
 | Styling | Tailwind CSS + custom CSS animations |
-| AI | Groq API (`llama-3.3-70b-versatile` / `meta-llama/llama-4-scout-17b-16e-instruct` for vision) |
+| AI | OpenRouter API (`google/gemini-2.5-flash`, multimodal; `openai/gpt-4o-mini` rate-limit fallback) |
 | Backend | Express.js proxy + user data persistence (`data/users.json`) |
 | Charts | Recharts |
 | Math | KaTeX |
@@ -47,11 +47,11 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
    npm install
    ```
 
-2. Create `.env.local` with your Groq API key:
+2. Create `.env.local` with your OpenRouter API key:
    ```
-   GROQ_API_KEY=gsk_...
+   OPENROUTER_API_KEY=sk-or-v1-...
    ```
-   Get a free key at [console.groq.com](https://console.groq.com).
+   Get a key at [openrouter.ai/keys](https://openrouter.ai/keys).
 
 3. Start both the Vite dev server and Express backend:
    ```bash
@@ -70,7 +70,7 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
 ## Deployment (Vercel)
 
 1. Push to the `main` branch — Vercel auto-deploys production; every other branch gets a preview URL.
-2. Set `GROQ_API_KEY` in Vercel → Project → **Settings → Environment Variables**.
+2. Set `OPENROUTER_API_KEY` in Vercel → Project → **Settings → Environment Variables**.
 3. Vercel serves the built frontend (`dist/`) statically and routes `/api/*` to the serverless Express app in `api/index.js` (see `vercel.json`).
 
 > **Note:** user data on Vercel is stored in the serverless function's ephemeral `/tmp`, so server-side progress sync and the leaderboard reset whenever the function recycles. Per-device progress still persists in the browser via localStorage. For durable cross-device data, wire `api/index.js` to a store like Vercel KV or Postgres.
@@ -81,12 +81,12 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
 
 ```
 ├── App.tsx                  # Root state, routing, session handlers
-├── server.js                # Express server for local dev (Groq proxy + user data)
+├── server.js                # Express server for local dev (OpenRouter proxy + user data)
 ├── api/index.js             # Vercel serverless Express app (same API, production)
 ├── types.ts                 # All TypeScript interfaces and enums
 ├── constants.ts             # Translations, curriculum tree, AI prompts
 ├── services/
-│   └── aiService.ts         # All Groq API calls (lessons, quizzes, evaluation)
+│   └── aiService.ts         # All AI calls (lessons, quizzes, evaluation)
 ├── components/
 │   ├── AuthView.tsx          # Login / register (local, SHA-256 hashed passwords)
 │   ├── Dashboard.tsx
@@ -110,9 +110,9 @@ An AI-powered tutoring platform for students from Kindergarten through College. 
 
 | Variable | Required | Description |
 |---|---|---|
-| `GROQ_API_KEY` | Yes | Groq API key — set in Vercel Environment Variables for production, `.env.local` for local dev |
-| `GROQ_MODEL` | No | Override the text model (default `llama-3.3-70b-versatile`) |
-| `GROQ_VISION_MODEL` | No | Override the vision model (default `meta-llama/llama-4-scout-17b-16e-instruct`) |
-| `GROQ_FALLBACK_MODEL` | No | Model used automatically when the main model is rate-limited (default `llama-3.1-8b-instant`; set empty to disable) |
+| `OPENROUTER_API_KEY` | Yes | OpenRouter API key — set in Vercel Environment Variables for production, `.env.local` for local dev |
+| `OPENROUTER_MODEL` | No | Override the text model (default `google/gemini-2.5-flash`) |
+| `OPENROUTER_VISION_MODEL` | No | Override the vision model (default `google/gemini-2.5-flash`) |
+| `OPENROUTER_FALLBACK_MODEL` | No | Model used automatically when the main model is rate-limited (default `openai/gpt-4o-mini`; set empty to disable) |
 | `PORT` | No | Local dev server port (defaults to `3000`) |
 | `VITE_API_URL` | No | Override API base URL (for Capacitor/mobile builds) |
