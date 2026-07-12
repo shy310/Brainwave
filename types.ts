@@ -183,6 +183,9 @@ export interface UserProfile {
   activeQuests?: ErrorQuest[];   // personal error quests in progress (cap 3)
   completedQuests?: CompletedQuest[]; // recent completions (cooldown window)
   questBadges?: string[];        // collectible badges earned from quests
+  // ── Two-Minute Comeback ────────────────────────────────────────────────────
+  lastComebackDate?: string;     // YYYY-MM-DD the comeback was last offered/done
+  comebackHistory?: string[];    // recent comeback question texts (avoid repeats)
 }
 
 // ─── ADAPTIVE LEARNING: SKILL MASTERY ────────────────────────────────────────
@@ -352,7 +355,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   language: Language;
   user: UserProfile;
-  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard' | 'mastery' | 'quest';
+  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard' | 'mastery' | 'quest' | 'comeback';
   activeCourseId: string | null;
   activeTopicId: string | null;
   currentSession: LearningSession | null;

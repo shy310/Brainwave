@@ -4,7 +4,8 @@ import { ICON_MAP, SUBJECTS_DATA, CURRICULUM, getCurriculumCourse } from '../con
 import {
   ArrowRight, ArrowUpRight, BookOpen, Calculator, FlaskConical, Globe,
   Laptop, TrendingUp, Flame, Sparkles, ChevronDown, ChevronRight, X,
-  PlayCircle, Coffee, Pencil, BookMarked, Target, Award, Snowflake, Check
+  PlayCircle, Coffee, Pencil, BookMarked, Target, Award, Snowflake, Check,
+  Brain, Clock
 } from 'lucide-react';
 import { DEFAULT_DAILY_GOAL, localDayKey, nextAchievement } from '../services/engagement';
 
@@ -55,6 +56,8 @@ interface Props {
   onOpenAchievements?: () => void;
   missions?: ErrorQuest[];
   onStartQuest?: (quest: ErrorQuest) => void;
+  comebackAvailable?: boolean;
+  onStartComeback?: () => void;
 }
 
 // ── Personal missions copy (localized) ──────────────────────────────────────
@@ -66,6 +69,14 @@ const MISSION_COPY: Record<'en' | 'ru' | 'he' | 'ar', {
   ru: { header: 'Личные миссии', sub: 'Короткие квесты-ремонты по твоим же паттернам — пара минут каждый.', start: 'Начать миссию', continueBtn: 'Продолжить', minutes: (n) => `~${n} мин`, reward: 'Награда', stagesDone: (a, b) => `${a}/${b} этапов` },
   he: { header: 'משימות אישיות', sub: 'מסעות תיקון קצרים שנבנו מהדפוסים שלך — דקות ספורות כל אחד.', start: 'התחל משימה', continueBtn: 'המשך', minutes: (n) => `~${n} דק׳`, reward: 'פרס', stagesDone: (a, b) => `${a}/${b} שלבים` },
   ar: { header: 'مهمات شخصية', sub: 'مهمات إصلاح قصيرة مبنية من أنماطك — دقائق قليلة لكل منها.', start: 'ابدأ المهمة', continueBtn: 'متابعة', minutes: (n) => `~${n} د`, reward: 'مكافأة', stagesDone: (a, b) => `${a}/${b} مراحل` },
+};
+
+// ── Two-Minute Comeback banner copy (localized) ──────────────────────────────
+const COMEBACK_COPY: Record<'en' | 'ru' | 'he' | 'ar', { title: string; sub: string; cta: string; badge: string }> = {
+  en: { title: 'Two-Minute Comeback', sub: 'A quick recall warm-up on things you learned before — it keeps them from slipping.', cta: 'Start', badge: '~2 min' },
+  ru: { title: 'Двухминутное возвращение', sub: 'Быстрая разминка по пройденному — чтобы выученное не забылось.', cta: 'Начать', badge: '~2 мин' },
+  he: { title: 'קאמבק של שתי דקות', sub: 'חימום היזכרות קצר על מה שלמדת — כדי שלא יישכח.', cta: 'להתחיל', badge: '~2 דק׳' },
+  ar: { title: 'عودة في دقيقتين', sub: 'إحماء استذكار سريع لما تعلمته — كي لا يتلاشى.', cta: 'ابدأ', badge: '~دقيقتان' },
 };
 
 // ─── Editorial copy translations (the new strings I added) ─────────────────
@@ -398,9 +409,10 @@ function getGreeting(name: string, language?: Language): { greeting: string; emo
 const Dashboard: React.FC<Props> = ({
   user, courses, translations, searchQuery = '', language,
   onSelectCourse, onResumeTopic, onSelectSubjectGrade, onSetDailyGoal, onOpenAchievements,
-  missions = [], onStartQuest
+  missions = [], onStartQuest, comebackAvailable, onStartComeback
 }) => {
   const mc = MISSION_COPY[(MISSION_COPY[language as 'en' | 'ru' | 'he' | 'ar'] ? language : 'en') as 'en' | 'ru' | 'he' | 'ar'];
+  const cb = COMEBACK_COPY[(COMEBACK_COPY[language as 'en' | 'ru' | 'he' | 'ar'] ? language : 'en') as 'en' | 'ru' | 'he' | 'ar'];
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [openGradeFolder, setOpenGradeFolder] = useState<string | null>(null);
 
@@ -607,6 +619,34 @@ const Dashboard: React.FC<Props> = ({
           )}
         </div>
       </section>
+
+      {/* ─── Two-Minute Comeback (start-of-visit spaced review) ──────────── */}
+      {comebackAvailable && onStartComeback && (
+        <section className="fade-in stagger-1 -mt-6">
+          <button
+            onClick={onStartComeback}
+            className="w-full text-start paper-card p-5 md:p-6 bg-gradient-to-br from-sky-50 to-moss-50 dark:from-sky-900/20 dark:to-moss-900/10 border-sky-100 dark:border-sky-900/30 hover:shadow-md transition-all duration-200 active:scale-[0.995] group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-sky-400 to-moss-500 text-white flex items-center justify-center shadow-moss shrink-0">
+                <Brain size={26} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-display text-lg md:text-xl font-semibold text-ink-700 dark:text-ink-100 leading-tight">{cb.title}</h3>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/70 dark:bg-ink-800/70 text-sky-600 dark:text-sky-300">
+                    <Clock size={11} /> {cb.badge}
+                  </span>
+                </div>
+                <p className="text-sm text-ink-500 dark:text-ink-300 mt-0.5 line-clamp-2">{cb.sub}</p>
+              </div>
+              <div className="shrink-0 hidden sm:flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-moss-500 group-hover:bg-moss-600 text-white text-sm font-semibold transition-colors">
+                {cb.cta} <ChevronRight size={16} className="rtl:rotate-180" />
+              </div>
+            </div>
+          </button>
+        </section>
+      )}
 
       {/* ─── Personal missions (error-repair quests) ─────────────────────── */}
       {missions.length > 0 && onStartQuest && (

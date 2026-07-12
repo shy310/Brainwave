@@ -996,6 +996,113 @@ export const generateQuiz = async (
     return questions.slice(0, count);
 };
 
+// ─── TWO-MINUTE COMEBACK QUESTIONS ────────────────────────────────────────────
+// One quick-fire question per skill the comeback engine selected. Concepts are
+// reused but examples/wording/format are freshened every time (the avoid-list
+// blocks recent repeats), so the same skill never feels like the same question.
+
+export const generateComebackQuestions = async (
+    selections: { skillTag: string; subject?: Subject | string; topicId?: string | null; reason?: string }[],
+    grade: GradeLevel,
+    language: string,
+    avoid: string[] = []
+): Promise<Exercise[]> => {
+    if (!selections.length) return [];
+    const targetLang = LANG_MAP[language] || language;
+
+    const skillLines = selections
+        .map((s, i) => `${i + 1}. skillTag "${s.skillTag}"${s.subject ? ` (subject: ${s.subject})` : ''}`)
+        .join('\n');
+    const avoidBlock = avoid.length
+        ? `\nAVOID REPEATING these recently-asked questions — reuse the CONCEPT but change the numbers, wording, context and format:\n${avoid.slice(-25).map(a => `- ${a}`).join('\n')}\n`
+        : '';
+
+    const system = `You are an expert educator writing a short spaced-repetition warm-up ("Two-Minute Comeback").
+Each question must be quick to answer (well under 30 seconds), accurate, and unambiguous.
+CRITICAL OUTPUT FORMAT:
+- Respond with ONLY a valid JSON array. No prose, no markdown fences.
+- JSON structure/field names are English ASCII; only text VALUES are in the target language.
+- Use ONLY straight ASCII double quotes. Never smart quotes.`;
+
+    const prompt = `TASK: Write EXACTLY ${selections.length} quick review questions — ONE per skill below, in the SAME order.
+
+GRADE: ${grade}
+LANGUAGE: ${targetLang} (every text value in ${targetLang}; numbers/formulas stay universal)
+
+SKILLS (keep each "skillTag" EXACTLY as written — it links the answer back to the student's Mastery Map):
+${skillLines}
+${avoidBlock}
+RULES:
+- Quick-fire types ONLY: MULTIPLE_CHOICE (3 options), TRUE_FALSE, or NUMERIC. Pick whichever fits the skill and VARY the format across the set.
+- One question per skill; the question must genuinely test THAT skill.
+- Fresh every time: change examples, numbers, context and wording from anything in the avoid-list.
+- ACCURACY IS NON-NEGOTIABLE: recompute every answer before returning.
+- For numeric answers, provide "answerExpression": a pure arithmetic expression (digits and + - * / ^ ( ) sqrt() only, NO words, NO LaTeX, NO '='). A math engine verifies it and DISCARDS mismatches.
+- Distractors must be plausible but definitely wrong and never equivalent to the correct answer (0.5, 1/2, 50% are the same).
+- CURRENCY: never write money with a bare $ (it breaks math rendering) — write "40 dollars" etc.
+- Math in LaTeX ($...$) with backslashes DOUBLED for JSON.
+
+OUTPUT SCHEMA — a JSON array of exactly ${selections.length} objects:
+[
+  {
+    "id": "c1",
+    "questionType": "MULTIPLE_CHOICE" | "TRUE_FALSE" | "NUMERIC",
+    "difficulty": 1-4,
+    "question": "short question in ${targetLang}",
+    "options": [{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."}],
+    "correctOptionId": "a",
+    "answerExpression": "pure arithmetic for NUMERIC, else omit",
+    "sampleAnswer": "for NUMERIC only",
+    "skillTag": "COPY the exact skillTag from the list above",
+    "explanation": "1 short sentence teaching the answer in ${targetLang}",
+    "hint": "1 short guiding sentence in ${targetLang}"
+  }
+]
+For TRUE_FALSE use exactly 2 options (True/False translated). For NUMERIC leave options []. Vary correctOptionId across questions.
+
+Return ONLY the JSON array.`;
+
+    let text: string;
+    try {
+        text = await callClaude({ model: HAIKU, max_tokens: 3000, system, messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }] });
+    } catch (e: any) {
+        console.error('Comeback generation failed:', e?.message || e);
+        return [];
+    }
+    if (!text) return [];
+
+    let raw: any[];
+    try {
+        const parsed = parseJson(text);
+        raw = Array.isArray(parsed) ? parsed : (parsed?.questions || []);
+    } catch (err) {
+        console.error('Comeback JSON parse failed:', err);
+        return [];
+    }
+
+    const { valid } = sanitizeQuiz(raw.map(normalizeQuestion));
+
+    // Re-attach each question to the selection it belongs to (by skillTag, with a
+    // positional fallback) so mastery events record against the right skill, and
+    // keep at most one question per skill in the engine's chosen order.
+    const bySkill = new Map<string, typeof selections[number]>();
+    selections.forEach(s => bySkill.set(s.skillTag.trim().toLowerCase(), s));
+    const usedSkills = new Set<string>();
+    const aligned: Exercise[] = [];
+    valid.forEach((ex, i) => {
+        const key = (ex.skillTag || '').trim().toLowerCase();
+        const sel = bySkill.get(key) ?? selections[i];
+        if (!sel) return;
+        const selKey = sel.skillTag.trim().toLowerCase();
+        if (usedSkills.has(selKey)) return;
+        usedSkills.add(selKey);
+        ex.skillTag = sel.skillTag;
+        if (sel.topicId != null) ex.topicId = sel.topicId;
+        aligned.push(ex);
+    });
+    return aligned;
+};
+
 // ─── PRESENTATION GENERATION ──────────────────────────────────────────────────
 
 export const generatePresentation = async (
