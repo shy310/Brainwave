@@ -12,6 +12,8 @@ import { recordAttempt, mergeSkillMaps } from './services/masteryEngine';
 import { findQuestCandidates, buildQuest, scheduleQuestFollowUp, recordQuestCompletion, MAX_ACTIVE_QUESTS } from './services/questEngine';
 import MasteryMap from './components/MasteryMap';
 import ErrorQuestView from './components/ErrorQuest';
+import ComebackView from './components/ComebackView';
+import { comebackEligible, recordComebackQuestions } from './services/comebackEngine';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
@@ -594,6 +596,33 @@ const App: React.FC = () => {
     });
   }, [handleExerciseComplete]);
 
+  // ── TWO-MINUTE COMEBACK ──────────────────────────────────────────────────
+  // Mark it "offered" for today (whether done or skipped) so it doesn't nag.
+  const handleComebackSkip = useCallback(() => {
+    setAppState(prev => {
+      const user = { ...prev.user, lastComebackDate: localDayKey() };
+      userRef.current = user;
+      return { ...prev, user, activeView: 'dashboard' as const };
+    });
+  }, []);
+
+  // Finished: award modest XP through the choke point (skill events were already
+  // recorded live via handleSkillEvent, so DON'T pass them again here), then
+  // store the asked questions so the next comeback rotates to fresh examples.
+  const handleComebackFinish = useCallback((xpEarned: number, askedQuestions: string[]) => {
+    handleExerciseComplete(xpEarned, 0, 0, null);
+    setAppState(prev => {
+      const cur = userRef.current;
+      const user: UserProfile = {
+        ...cur,
+        lastComebackDate: localDayKey(),
+        comebackHistory: recordComebackQuestions(cur.comebackHistory ?? [], askedQuestions),
+      };
+      userRef.current = user;
+      return { ...prev, user };
+    });
+  }, [handleExerciseComplete]);
+
   const startSubjectPractice = useCallback((s: Subject) => {
     const grade = appState.user.gradeLevel;
     const cc = getCurriculumCourse(s, grade);
@@ -629,6 +658,13 @@ const App: React.FC = () => {
     ).slice(0, room).map(cand => buildQuest(cand, appState.language));
     return [...active, ...candidates];
   }, [appState.user.skillMap, appState.user.activeQuests, appState.user.completedQuests, appState.language]);
+
+  // Whether to offer the Two-Minute Comeback on the dashboard (once per day,
+  // once there's enough practiced history to review).
+  const comebackAvailable = useMemo(
+    () => comebackEligible(appState.user.skillMap ?? {}, appState.user.lastComebackDate),
+    [appState.user.skillMap, appState.user.lastComebackDate]
+  );
 
   if (!appState.isLoggedIn) {
     return (
@@ -1064,6 +1100,24 @@ const App: React.FC = () => {
                   onOpenAchievements={() => navigateTo('achievements')}
                   missions={missions}
                   onStartQuest={handleStartQuest}
+                  comebackAvailable={comebackAvailable}
+                  onStartComeback={() => setAppState(prev => ({ ...prev, activeView: 'comeback' }))}
+                />
+              </div>
+            )}
+
+            {appState.activeView === 'comeback' && (
+              <div className="view-enter">
+                <ComebackView
+                  user={appState.user}
+                  grade={appState.user.gradeLevel}
+                  language={appState.language}
+                  translations={t}
+                  onSkillEvent={handleSkillEvent}
+                  onSkip={handleComebackSkip}
+                  onFinish={handleComebackFinish}
+                  onStartQuest={handleStartQuest}
+                  onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
                 />
               </div>
             )}
