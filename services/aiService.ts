@@ -382,7 +382,7 @@ Write "40 dollars" / the currency word in the target language instead.`;
     const text = await callClaude({
         model: HAIKU,
         // Lessons are short cards now — a tight output budget keeps each call
-        // well inside Groq's tokens-per-minute quota.
+        // cheap and fast.
         max_tokens: 4096,
         messages: [{ role: 'user', content }],
     });
@@ -911,8 +911,8 @@ Now generate the JSON array. NO PROSE before or after — just the JSON.`;
 
     const text = await callClaude({
         model: HAIKU,
-        // 10 questions fit comfortably; over-reserving output tokens counts
-        // against Groq's TPM quota and triggers 429s on the free tier.
+        // 10 questions fit comfortably in this budget; keep it tight to
+        // control cost and latency.
         max_tokens: 4096,
         system,
         messages: [{ role: 'user', content }],
