@@ -1089,4 +1089,13 @@ export interface Translations {
   revealHint: string;
   stepsComplete: string;
   loadingSteps: string;
+  // Adaptive practice
+  practiceThis: string;
+  buildingPractice: string;
+  easierOne: string;
+  practiceComplete: string;
+  practiceScore: (correct: number, total: number) => string;
+  practiceEncouragement: string;
+  practiceNext: string;
+  practiceCheck: string;
 }

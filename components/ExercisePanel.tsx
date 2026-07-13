@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Exercise, QuestionType, LearningSession, GradeLevel, Language, Translations, AnswerEvaluation, SkillAttemptEvent, ConfidenceLevel, MistakeKind } from '../types';
 import {
   CheckCircle, XCircle, Lightbulb, RefreshCw, ChevronRight, BookOpen,
-  Zap, Trophy, ArrowRight, Send, Eye, AlertTriangle, HelpCircle, SkipForward
+  Zap, Trophy, ArrowRight, Send, Eye, AlertTriangle, HelpCircle, SkipForward, Dumbbell
 } from 'lucide-react';
 import { generateQuiz, evaluateAnswer, QuizPerformance } from '../services/aiService';
 import { checkAnswer, looksNumeric } from '../services/mathEngine';
@@ -12,6 +12,7 @@ import Logo from './Logo';
 import MathText from './MathText';
 import Confetti from './Confetti';
 import StepReveal from './StepReveal';
+import PracticePanel from './PracticePanel';
 
 const MAX_ATTEMPTS = 3;
 
@@ -136,6 +137,7 @@ const ExercisePanel: React.FC<Props> = ({
 
   // Adaptive-learning telemetry for the mastery engine
   const [confidence, setConfidence] = useState<ConfidenceLevel | undefined>(undefined);
+  const [practiceOpen, setPracticeOpen] = useState(false);
   const questionStartRef = useRef<number>(Date.now());
   const skillEventsRef = useRef<SkillAttemptEvent[]>([]);
   // First wrong try on this question — kept so a corrected answer still
@@ -475,6 +477,18 @@ const ExercisePanel: React.FC<Props> = ({
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 view-enter">
       <Confetti trigger={confettiBurst} count={50} />
+      {practiceOpen && currentExercise && (
+        <PracticePanel
+          skill={currentExercise.skillTag || session.topicTitle || 'practice'}
+          subject={session.subject}
+          topicId={session.topicId}
+          grade={session.grade}
+          language={language}
+          translations={translations}
+          onSkillEvent={(ev) => { if (onSkillEvent) onSkillEvent(ev); }}
+          onClose={() => setPracticeOpen(false)}
+        />
+      )}
       {/* Back button */}
       <button
         onClick={onBack}
@@ -702,15 +716,23 @@ const ExercisePanel: React.FC<Props> = ({
                 </p>
               </div>
 
-              {/* Progressive step-by-step worked solution (fetched on demand) */}
-              <StepReveal
-                key={currentExercise.id}
-                problem={currentExercise.question}
-                grade={session.grade}
-                language={language}
-                translations={translations}
-                context={currentExercise.skillTag ? `Skill: ${currentExercise.skillTag}` : undefined}
-              />
+              {/* Progressive step-by-step worked solution + adaptive practice (on demand) */}
+              <div className="flex flex-wrap items-start gap-2">
+                <StepReveal
+                  key={currentExercise.id}
+                  problem={currentExercise.question}
+                  grade={session.grade}
+                  language={language}
+                  translations={translations}
+                  context={currentExercise.skillTag ? `Skill: ${currentExercise.skillTag}` : undefined}
+                />
+                <button
+                  onClick={() => setPracticeOpen(true)}
+                  className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-clay-50 dark:bg-clay-900/20 text-clay-700 dark:text-clay-300 font-semibold text-sm hover:bg-clay-100 dark:hover:bg-clay-900/30 transition-colors min-h-[44px]"
+                >
+                  <Dumbbell size={16} /> {translations.practiceThis}
+                </button>
+              </div>
 
               {/* Full solution (open types: max attempts reached or skipped) */}
               {isOpenType && (evaluation?.fullSolution || solutionRevealed || skipped) && (
