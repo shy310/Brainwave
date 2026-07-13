@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Message, Attachment, GradeLevel, Translations, LearningSession } from '../types';
+import { Message, Attachment, GradeLevel, Translations, LearningSession, TutorMode } from '../types';
 import { generateTutorResponse } from '../services/aiService';
 import FileUpload from './FileUpload';
 import MathText from './MathText';
-import { MessageCircle, X, Send, User, Brain, Maximize2, Minimize2, Trash2, Eye } from 'lucide-react';
+import { MessageCircle, X, Send, User, Brain, Maximize2, Minimize2, Trash2, Eye, GraduationCap, ListChecks, SlidersHorizontal } from 'lucide-react';
 
 interface Props {
   userGrade: GradeLevel;
@@ -13,6 +13,10 @@ interface Props {
   translations: Translations;
   activeView: string;
   currentSession: LearningSession | null;
+  /** Compact cross-session learner summary injected into the tutor prompt. */
+  learnerSummary?: string;
+  /** Persist the student's preferred help style when they change modes. */
+  onModeChange?: (mode: TutorMode, customInstruction?: string) => void;
 }
 
 // ─── VIEW CONFIG ──────────────────────────────────────────────────────────────
@@ -223,7 +227,7 @@ function MarkdownMessage({ text, isUser }: { text: string; isUser: boolean }) {
 
 const INITIAL_MESSAGE_ID = 'init-0';
 
-const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translations, activeView, currentSession }) => {
+const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translations, activeView, currentSession, learnerSummary, onModeChange }) => {
   const cfg = getViewConfig(activeView, language);
 
   const makeInitialMessage = (config: ViewConfig): Message => ({
@@ -239,6 +243,8 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [mode, setMode] = useState<TutorMode>('tutor');
+  const [customInstruction, setCustomInstruction] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // Index into `messages` from which API history starts — reset on language change
@@ -319,7 +325,7 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
       historySnapshot,
       userMsg.text,
       userMsg.attachments,
-      { grade: userGrade, language, contextStr: fullContext }
+      { grade: userGrade, language, contextStr: fullContext, mode, customInstruction, learnerSummary }
     );
 
     setMessages(prev => [...prev, {
@@ -437,6 +443,38 @@ const FloatingChat: React.FC<Props> = ({ userGrade, language, context, translati
 
       {/* ── Input ── */}
       <div className="p-3 bg-white dark:bg-ink-800 border-t border-ink-100 dark:border-ink-700 flex-shrink-0">
+
+        {/* Response-mode selector */}
+        <div className="flex items-center gap-1.5 mb-2" role="group" aria-label={translations.responseMode}>
+          {([
+            { key: 'tutor', label: translations.tutorMe, hint: translations.tutorMeHint, icon: <GraduationCap size={13} /> },
+            { key: 'explain', label: translations.explainMode, hint: translations.explainHint, icon: <ListChecks size={13} /> },
+            { key: 'custom', label: translations.customMode, hint: translations.customHint, icon: <SlidersHorizontal size={13} /> },
+          ] as const).map(m => (
+            <button
+              key={m.key}
+              onClick={() => { setMode(m.key); onModeChange?.(m.key, customInstruction); }}
+              title={m.hint}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors min-h-[32px] ${
+                mode === m.key
+                  ? 'bg-moss-600 text-white'
+                  : 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-ink-300 hover:bg-cream-200 dark:hover:bg-ink-600'
+              }`}
+            >
+              {m.icon} {m.label}
+            </button>
+          ))}
+        </div>
+        {mode === 'custom' && (
+          <input
+            type="text"
+            value={customInstruction}
+            onChange={e => setCustomInstruction(e.target.value)}
+            onBlur={() => onModeChange?.('custom', customInstruction)}
+            placeholder={translations.customInstructionPlaceholder}
+            className="w-full mb-2 px-3 py-2 text-xs rounded-xl bg-cream-50 dark:bg-ink-900/50 border border-ink-100 dark:border-ink-700 outline-none focus:border-moss-400 text-ink-700 dark:text-ink-100"
+          />
+        )}
 
         <div className="flex items-end gap-2 bg-cream-50 dark:bg-ink-800 border border-ink-100 dark:border-ink-700 rounded-2xl px-3 py-2">
           <FileUpload onAttach={setAttachments} translations={translations} />

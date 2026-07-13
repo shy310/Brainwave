@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   AppState, Subject, GradeLevel, UserProfile, Attachment, SkillAttemptEvent, ErrorQuest,
-  LearningSession, ProgressMap, TopicProgress, Course
+  LearningSession, ProgressMap, TopicProgress, Course, TutorMode
 } from './types';
 import { TRANSLATIONS, CURRICULUM, getCurriculumCourse, buildCourseFromCurriculum } from './constants';
 import {
@@ -16,6 +16,7 @@ import ComebackView from './components/ComebackView';
 import { comebackEligible, recordComebackQuestions } from './services/comebackEngine';
 import MemoryDungeon from './components/MemoryDungeon';
 import { recordDungeonHistory, DungeonSkillSeed } from './services/dungeonEngine';
+import { buildLearnerSummary } from './services/learnerMemory';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
@@ -685,6 +686,23 @@ const App: React.FC = () => {
     () => comebackEligible(appState.user.skillMap ?? {}, appState.user.lastComebackDate),
     [appState.user.skillMap, appState.user.lastComebackDate]
   );
+
+  // Compact cross-session learner summary injected into the tutor prompt.
+  const learnerSummary = useMemo(
+    () => buildLearnerSummary(appState.user),
+    [appState.user.skillMap, appState.user.preferredExplanationStyle]
+  );
+
+  // Persist the student's preferred help style when they switch tutor modes.
+  const handleTutorModeChange = useCallback((mode: TutorMode, customInstruction?: string) => {
+    const style = mode === 'custom' ? (customInstruction?.trim() || 'custom') : mode;
+    setAppState(prev => {
+      if (prev.user.preferredExplanationStyle === style) return prev;
+      const user = { ...prev.user, preferredExplanationStyle: style };
+      userRef.current = user;
+      return { ...prev, user };
+    });
+  }, []);
 
   // Course topics feed the Memory Dungeon when the Mastery Map is still thin.
   const dungeonFallbackTopics = useMemo<DungeonSkillSeed[]>(
@@ -1391,6 +1409,8 @@ const App: React.FC = () => {
         translations={t}
         activeView={appState.activeView}
         currentSession={appState.currentSession}
+        learnerSummary={learnerSummary}
+        onModeChange={handleTutorModeChange}
       />
 
       {/* Logout confirmation */}

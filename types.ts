@@ -2,6 +2,12 @@
 export type Language = 'en' | 'he' | 'ar' | 'ru';
 export type Direction = 'ltr' | 'rtl';
 
+// How the AI tutor should respond in chat:
+// - 'tutor'   → Socratic: one hint/question at a time, withholds the answer
+// - 'explain' → full step-by-step explanation now
+// - 'custom'  → follow the student's own instruction (e.g. "match my teacher")
+export type TutorMode = 'tutor' | 'explain' | 'custom';
+
 export enum Subject {
   MATH = 'MATH',
   SCIENCE = 'SCIENCE',
@@ -121,6 +127,14 @@ export interface Lesson {
   diagramPrompt?: string;   // optional prompt for visual diagram
 }
 
+// One step of a progressively-revealed worked solution.
+export interface SolutionStep {
+  rule: string;        // the rule/concept applied ("Distributive property")
+  statement: string;   // what happens this step (KaTeX-friendly)
+  detail: string;      // the "why", shown on demand
+  hint: string;        // a nudge toward this step, before it is revealed
+}
+
 // Result of evaluating a student answer
 export interface AnswerEvaluation {
   isCorrect: boolean;
@@ -190,6 +204,8 @@ export interface UserProfile {
   activeDungeon?: Dungeon;       // an in-progress dungeon run (resume support)
   dungeonHistory?: string[];     // recent room question texts (avoid repeats)
   dungeonsCleared?: number;      // total dungeons finished
+  // ── Tutor personalization (cross-session memory) ───────────────────────────
+  preferredExplanationStyle?: string; // how the student likes to be helped
 }
 
 // ─── MEMORY DUNGEON ───────────────────────────────────────────────────────────
@@ -1057,4 +1073,20 @@ export interface Translations {
   keepStreakAlive: string;
   masteryMap: string;
   memoryDungeon: string;
+  // Tutor response modes
+  tutorMe: string;
+  explainMode: string;
+  customMode: string;
+  responseMode: string;
+  customInstructionPlaceholder: string;
+  tutorMeHint: string;
+  explainHint: string;
+  customHint: string;
+  // Step-by-step reveal
+  nextStep: string;
+  showWhy: string;
+  hideWhy: string;
+  revealHint: string;
+  stepsComplete: string;
+  loadingSteps: string;
 }
