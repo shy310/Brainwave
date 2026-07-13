@@ -186,6 +186,72 @@ export interface UserProfile {
   // ── Two-Minute Comeback ────────────────────────────────────────────────────
   lastComebackDate?: string;     // YYYY-MM-DD the comeback was last offered/done
   comebackHistory?: string[];    // recent comeback question texts (avoid repeats)
+  // ── Memory Dungeon ─────────────────────────────────────────────────────────
+  activeDungeon?: Dungeon;       // an in-progress dungeon run (resume support)
+  dungeonHistory?: string[];     // recent room question texts (avoid repeats)
+  dungeonsCleared?: number;      // total dungeons finished
+}
+
+// ─── MEMORY DUNGEON ───────────────────────────────────────────────────────────
+// A larger gamified study mode: a sequence of short "rooms", each a recall
+// challenge. Questions are drawn from the student's courses, past lessons,
+// Mastery Map and recurring mistakes, and use spaced repetition — struggled
+// concepts return later in ALTERED forms rather than repeating identically.
+
+export type DungeonRoomType =
+  | 'recall'            // answer from memory (short answer / numeric)
+  | 'mc-trap'           // multiple choice with tempting distractors
+  | 'explanation'       // pick / give the best explanation of a rule
+  | 'matching'          // match terms to their definitions/examples
+  | 'mistake-detective' // find the error in a worked solution
+  | 'mini-boss'         // several connected sub-questions
+  | 'final-boss';       // combines several important skills
+
+export interface DungeonMatchPair { left: string; right: string; }
+
+export interface DungeonSubQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation?: string;
+}
+
+export interface DungeonRoom {
+  id: string;
+  type: DungeonRoomType;
+  title: string;                 // short evocative room name
+  skillTag: string;
+  subject?: Subject;
+  topicId?: string | null;
+  difficulty: number;            // 1–5
+  revisit: boolean;              // a spaced return of an earlier/weak skill (altered example)
+  // Content (by type)
+  question?: string;
+  options?: string[];            // mc-trap / explanation(choose) / mistake-detective
+  correctIndex?: number;
+  answerExpression?: string;     // recall numeric — machine-verified
+  sampleAnswer?: string;         // recall / open explanation
+  acceptableAnswers?: string[];
+  unitRequired?: boolean;
+  pairs?: DungeonMatchPair[];    // matching
+  subQuestions?: DungeonSubQuestion[]; // mini-boss / final-boss
+  // Layered hints: [general reminder, strategic clue, partial step, full explanation]
+  hints: string[];
+  explanation: string;           // misconception explanation shown after attempts
+  xpValue: number;
+}
+
+export interface Dungeon {
+  id: string;
+  title: string;
+  createdAt: string;
+  language: Language;
+  rooms: DungeonRoom[];
+  spares: DungeonRoom[];         // altered-example rooms re-injected when a skill is missed
+  // Progress
+  roomIndex: number;
+  clearedRooms: number;
+  earnedXp: number;
 }
 
 // ─── ADAPTIVE LEARNING: SKILL MASTERY ────────────────────────────────────────
@@ -355,7 +421,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   language: Language;
   user: UserProfile;
-  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard' | 'mastery' | 'quest' | 'comeback';
+  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard' | 'mastery' | 'quest' | 'comeback' | 'dungeon';
   activeCourseId: string | null;
   activeTopicId: string | null;
   currentSession: LearningSession | null;
@@ -990,4 +1056,5 @@ export interface Translations {
   rewardSoundsDesc: string;
   keepStreakAlive: string;
   masteryMap: string;
+  memoryDungeon: string;
 }

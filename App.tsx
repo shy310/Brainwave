@@ -14,6 +14,8 @@ import MasteryMap from './components/MasteryMap';
 import ErrorQuestView from './components/ErrorQuest';
 import ComebackView from './components/ComebackView';
 import { comebackEligible, recordComebackQuestions } from './services/comebackEngine';
+import MemoryDungeon from './components/MemoryDungeon';
+import { recordDungeonHistory, DungeonSkillSeed } from './services/dungeonEngine';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
@@ -35,7 +37,7 @@ import {
   Calculator, FlaskConical, Globe, Laptop, BookOpen, TrendingUp,
   LogOut, BarChart2, Settings,
   GraduationCap, User as UserIcon, Trophy, Flame, Star,
-  ChevronLeft, ChevronRight, Sparkles, Zap, Target, Award, Map
+  ChevronLeft, ChevronRight, Sparkles, Zap, Target, Award, Map, Castle
 } from 'lucide-react';
 import Confetti from './components/Confetti';
 
@@ -623,6 +625,24 @@ const App: React.FC = () => {
     });
   }, [handleExerciseComplete]);
 
+  // ── MEMORY DUNGEON ───────────────────────────────────────────────────────
+  // Finished a dungeon run: award earned XP through the choke point (skill
+  // events already recorded live), bump the cleared count, and store the room
+  // questions so the next dungeon uses fresh examples.
+  const handleDungeonFinish = useCallback((xpEarned: number, askedTexts: string[], clearedAll: boolean) => {
+    handleExerciseComplete(xpEarned, 0, 0, null);
+    setAppState(prev => {
+      const cur = userRef.current;
+      const user: UserProfile = {
+        ...cur,
+        dungeonHistory: recordDungeonHistory(cur.dungeonHistory ?? [], askedTexts),
+        dungeonsCleared: (cur.dungeonsCleared ?? 0) + (clearedAll ? 1 : 0),
+      };
+      userRef.current = user;
+      return { ...prev, user };
+    });
+  }, [handleExerciseComplete]);
+
   const startSubjectPractice = useCallback((s: Subject) => {
     const grade = appState.user.gradeLevel;
     const cc = getCurriculumCourse(s, grade);
@@ -666,6 +686,16 @@ const App: React.FC = () => {
     [appState.user.skillMap, appState.user.lastComebackDate]
   );
 
+  // Course topics feed the Memory Dungeon when the Mastery Map is still thin.
+  const dungeonFallbackTopics = useMemo<DungeonSkillSeed[]>(
+    () => courses.flatMap(course =>
+      course.units.flatMap(u => u.topics.map(topic => ({
+        skillTag: topic.title, subject: course.subject, topicId: topic.id,
+      })))
+    ).slice(0, 30),
+    [courses]
+  );
+
   if (!appState.isLoggedIn) {
     return (
       <AuthView
@@ -686,6 +716,7 @@ const App: React.FC = () => {
     { view: 'courses', label: t.courses ?? 'Study Materials', icon: <Library size={18} />, section: 'learn' },
     { view: 'progress', label: t.progress, icon: <BarChart2 size={18} />, section: 'learn' },
     { view: 'mastery', label: t.masteryMap, icon: <Map size={18} />, section: 'learn' },
+    { view: 'dungeon', label: t.memoryDungeon, icon: <Castle size={18} />, section: 'learn' },
     { view: 'achievements', label: t.achievements, icon: <Award size={18} />, section: 'learn' },
     { view: 'leaderboard', label: t.leaderboard, icon: <Trophy size={18} />, section: 'learn' },
     { view: 'profile', label: t.profile, icon: <UserIcon size={18} />, section: 'account' },
@@ -1116,6 +1147,22 @@ const App: React.FC = () => {
                   onSkillEvent={handleSkillEvent}
                   onSkip={handleComebackSkip}
                   onFinish={handleComebackFinish}
+                  onStartQuest={handleStartQuest}
+                  onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
+                />
+              </div>
+            )}
+
+            {appState.activeView === 'dungeon' && (
+              <div className="view-enter">
+                <MemoryDungeon
+                  user={appState.user}
+                  grade={appState.user.gradeLevel}
+                  language={appState.language}
+                  translations={t}
+                  fallbackTopics={dungeonFallbackTopics}
+                  onSkillEvent={handleSkillEvent}
+                  onFinish={handleDungeonFinish}
                   onStartQuest={handleStartQuest}
                   onBack={() => setAppState(prev => ({ ...prev, activeView: 'dashboard' }))}
                 />
