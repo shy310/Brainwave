@@ -2,6 +2,8 @@
 import { Message, Attachment, GradeLevel, Exercise, QuestionType, Lesson, AnswerEvaluation, UploadAnalysis, Subject, CodeLanguage, GameType, Presentation, PresentationSlide, CodingChallenge, GameQuestion, BuggyCode, DebateTurn, StoryChapter, StoryEvaluation, MysteryCase, ChallengeTestResult, CodeReview, ArgumentScore, BranchChoice, InlineSuggestion, CaseTheme, CaseDifficulty, PresentationAudience, PresStructure, ConceptNode, ConceptEdge, FlashCard, TrueFalseItem, ErrorQuest, QuestStage } from '../types';
 import { INITIAL_SYSTEM_INSTRUCTION } from '../constants';
 import { sanitizeQuiz } from './questionValidator';
+import { validateDungeonRooms, RoomPlan } from './dungeonEngine';
+import { DungeonRoom, DungeonRoomType } from '../types';
 
 const HAIKU = 'claude-haiku-4-5-20251001';
 
@@ -1101,6 +1103,121 @@ Return ONLY the JSON array.`;
         aligned.push(ex);
     });
     return aligned;
+};
+
+// ─── MEMORY DUNGEON ROOMS ─────────────────────────────────────────────────────
+// Fills the planned room sequence with content. dungeonEngine decides the
+// structure (types, target skills, which rooms are spaced revisits); this only
+// writes the questions + the 4-tier hint ladder, then hands them back through
+// validateDungeonRooms. Room metadata (id/type/skillTag/difficulty/revisit) is
+// taken from the plan, not the model, so the structure is guaranteed.
+
+export const generateDungeon = async (
+    plan: RoomPlan[],
+    grade: GradeLevel,
+    language: string,
+    avoid: string[] = []
+): Promise<{ rooms: DungeonRoom[]; spares: DungeonRoom[] }> => {
+    if (!plan.length) return { rooms: [], spares: [] };
+    const targetLang = LANG_MAP[language] || language;
+
+    const TYPE_SPEC: Record<string, string> = {
+        'recall': 'open recall — a question answered from memory. Provide "sampleAnswer" (and "answerExpression" if the answer is numeric). No options.',
+        'mc-trap': 'multiple choice with 3 options where the wrong ones are TEMPTING classic mistakes. Provide "options" (3) + "correctIndex".',
+        'explanation': 'concept check — "Which explanation of the rule is correct?" with 3 options (one precise, two subtly wrong). Provide "options" (3) + "correctIndex".',
+        'matching': 'a matching puzzle. Provide "pairs": 3 objects { "left": term, "right": its definition/example }. No options.',
+        'mistake-detective': 'show a SHORT worked solution that contains one specific error inside "question", then ask where it went wrong. Provide "options" (3 descriptions of the error, one correct) + "correctIndex".',
+        'mini-boss': 'a mini-boss: provide "subQuestions" = 2-3 connected MC objects { "question", "options"(3), "correctIndex", "explanation" } that build on each other.',
+        'final-boss': 'the final boss: provide "subQuestions" = 3 MC objects { "question", "options"(3), "correctIndex", "explanation" } that COMBINE the related skills listed.',
+    };
+
+    const roomLines = plan.map((p, i) => {
+        const rel = p.relatedSkills?.length ? ` — combine skills: ${p.relatedSkills.join(', ')}` : '';
+        const rev = p.revisit ? ' [REVISIT: use a DIFFERENT example than any earlier room testing this skill]' : '';
+        return `Room ${i + 1}: type "${p.type}", skill "${p.skillTag}", difficulty ${p.difficulty}${rel}${rev}\n   → ${TYPE_SPEC[p.type]}`;
+    }).join('\n');
+
+    const revisitSkills = Array.from(new Set(plan.filter(p => p.revisit).map(p => p.skillTag)));
+    const spareBlock = revisitSkills.length
+        ? `\nALSO produce "spares": one extra room per skill in [${revisitSkills.join(', ')}], each a "recall" or "mc-trap" on that skill using YET ANOTHER fresh example (these reappear only if the student slips).`
+        : '';
+    const avoidBlock = avoid.length
+        ? `\nAVOID repeating these recently-seen questions — reuse the concept but change everything else:\n${avoid.slice(-30).map(a => `- ${a}`).join('\n')}\n`
+        : '';
+
+    const system = `You are a master quiz designer building a "Memory Dungeon" — a sequence of short recall rooms a student clears from memory.
+Accuracy is non-negotiable: every marked answer must be correct, every distractor plausible but definitely wrong.
+TONE: adventurous and encouraging. Give each room a short evocative "title". NEVER punitive wording ("you keep failing", etc.).
+OUTPUT: ONLY valid JSON. JSON structure/field names in English ASCII; only text VALUES in the target language. Straight ASCII quotes only.`;
+
+    const prompt = `Build the content for this dungeon. Language for all text values: ${targetLang}. Grade: ${grade}.
+
+Return ONLY a JSON object: { "rooms": [ ... ], "spares": [ ... ] }.
+Produce EXACTLY ${plan.length} rooms, in this order, each matching its type:
+
+${roomLines}
+${spareBlock}
+${avoidBlock}
+EVERY room object must include:
+- "title": a short evocative room name (2-4 words) in ${targetLang}
+- its type-specific content fields (above)
+- "hints": EXACTLY 4 strings forming an escalating ladder — [1] a general reminder, [2] a strategic clue, [3] a partially-worked step, [4] the full explanation. Each hint reveals a little more; only the 4th gives it away.
+- "explanation": 1-2 sentences naming the misconception kindly (shown after the student's attempts)
+
+RULES:
+- Every question is NEW and self-contained; REVISIT rooms and spares must use different examples/numbers from earlier rooms.
+- Distractors must be plausible but wrong and never equivalent to the correct answer (0.5, 1/2, 50% are the same). No duplicate options. Vary correctIndex.
+- Math in LaTeX ($...$) with backslashes DOUBLED for JSON. NEVER write money with a bare $ — use currency words.
+- Keep every text field tight. Verify all arithmetic before returning.
+
+Return ONLY the JSON object.`;
+
+    let text: string;
+    try {
+        text = await callClaude({ model: HAIKU, max_tokens: 6000, system, messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }] });
+    } catch (e: any) {
+        console.error('Dungeon generation failed:', e?.message || e);
+        return { rooms: [], spares: [] };
+    }
+    if (!text) return { rooms: [], spares: [] };
+
+    let parsed: any;
+    try { parsed = parseJson(text); } catch (err) { console.error('Dungeon JSON parse failed:', err); return { rooms: [], spares: [] }; }
+    const rawRooms: any[] = Array.isArray(parsed) ? parsed : (parsed?.rooms || []);
+    const rawSpares: any[] = Array.isArray(parsed?.spares) ? parsed.spares : [];
+
+    // Stamp plan metadata onto AI content by position so structure is guaranteed.
+    const merged: DungeonRoom[] = rawRooms.slice(0, plan.length).map((r, i) => {
+        const p = plan[i];
+        return {
+            ...r,
+            id: `room-${i}-${p.type}`,
+            type: p.type,
+            skillTag: p.skillTag,
+            subject: p.subject,
+            topicId: p.topicId ?? null,
+            difficulty: p.difficulty,
+            revisit: p.revisit,
+            xpValue: typeof r?.xpValue === 'number' ? r.xpValue : p.difficulty * 10,
+        } as DungeonRoom;
+    });
+
+    const { valid, discarded } = validateDungeonRooms(merged);
+    if (discarded.length) console.warn(`Dungeon validation discarded ${discarded.length} room(s):`, discarded);
+
+    // Spares: attach to their revisit skill by position, force recall/mc-trap type.
+    const spares: DungeonRoom[] = rawSpares.slice(0, revisitSkills.length).map((r, i) => ({
+        ...r,
+        id: `spare-${i}`,
+        type: (r?.type === 'mc-trap' ? 'mc-trap' : 'recall') as DungeonRoomType,
+        skillTag: revisitSkills[i] ?? plan.find(p => p.revisit)?.skillTag ?? plan[0].skillTag,
+        difficulty: 3,
+        revisit: true,
+        xpValue: 20,
+    } as DungeonRoom));
+    const { valid: validSpares } = validateDungeonRooms(spares);
+
+    return { rooms: valid, spares: validSpares };
 };
 
 // ─── PRESENTATION GENERATION ──────────────────────────────────────────────────

@@ -1080,6 +1080,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     rewardSoundsDesc: "Play a chime on celebrations",
     keepStreakAlive: "Keep your streak alive",
     masteryMap: "Mastery Map",
+    memoryDungeon: "Memory Dungeon",
   },
   ru: {
     signIn: "Войти",
@@ -1481,6 +1482,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     rewardSoundsDesc: "Проигрывать звук при наградах",
     keepStreakAlive: "Сохрани свою серию",
     masteryMap: "Карта навыков",
+    memoryDungeon: "Подземелье памяти",
   },
   he: {
     signIn: "התחברות",
@@ -1882,6 +1884,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     rewardSoundsDesc: "השמע צליל בעת חגיגות",
     keepStreakAlive: "שמור על הרצף שלך",
     masteryMap: "מפת שליטה",
+    memoryDungeon: "מבוך הזיכרון",
   },
   ar: {
     signIn: "تسجيل الدخول",
@@ -2283,6 +2286,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     rewardSoundsDesc: "تشغيل نغمة عند الاحتفالات",
     keepStreakAlive: "حافظ على سلسلتك",
     masteryMap: "خريطة الإتقان",
+    memoryDungeon: "زنزانة الذاكرة",
   }
 };
 
