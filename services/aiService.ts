@@ -469,6 +469,66 @@ RULES:
     }
 };
 
+// ─── ADAPTIVE PRACTICE ────────────────────────────────────────────────────────
+// A short set of similar problems for "Practice this", plus an easier variant to
+// drop in after a miss. Both reuse the same validation gate as the main quiz.
+
+export const generatePracticeSet = async (
+    skill: string,
+    subject: string,
+    grade: GradeLevel,
+    language: string,
+    count = 4
+): Promise<Exercise[]> => {
+    // Reuse the hardened quiz generator, scoped tightly to the one skill.
+    const types = [QuestionType.MULTIPLE_CHOICE, QuestionType.NUMERIC, QuestionType.TRUE_FALSE];
+    return generateQuiz(subject, grade, skill, language, `Focus every question narrowly on the skill: ${skill}.`, undefined, types, count);
+};
+
+export const generateEasierVariant = async (
+    problem: string,
+    skill: string,
+    grade: GradeLevel,
+    language: string
+): Promise<Exercise | null> => {
+    const targetLang = LANG_MAP[language] || language;
+    const system = `You write ONE easier practice question that rebuilds confidence on a skill the student just missed.
+Accuracy is non-negotiable. Respond with ONLY a JSON object (not an array). Straight ASCII quotes only. JSON field names stay English; text values in the target language.`;
+    const prompt = `The student just missed a question on "${skill}". Write ONE noticeably EASIER question on the SAME skill — smaller numbers, one step, clearer wording — so they can succeed and rebuild the idea.
+
+MISSED PROBLEM (make yours simpler than this, different numbers): """${problem}"""
+GRADE: ${grade}
+LANGUAGE: ${targetLang}
+
+Return ONLY a JSON object:
+{
+  "questionType": "MULTIPLE_CHOICE" | "NUMERIC" | "TRUE_FALSE",
+  "difficulty": 1,
+  "question": "the easier question in ${targetLang}",
+  "options": [{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."}],
+  "correctOptionId": "a",
+  "answerExpression": "pure arithmetic for NUMERIC, else omit",
+  "sampleAnswer": "for NUMERIC",
+  "skillTag": "${skill}",
+  "explanation": "1 short teaching sentence in ${targetLang}",
+  "hint": "1 short hint in ${targetLang}"
+}
+For TRUE_FALSE use exactly 2 options. For NUMERIC leave options []. Never write money with a bare $. Verify the answer.
+Return ONLY the JSON object.`;
+    try {
+        const text = await callClaude({ model: HAIKU, max_tokens: 1200, system, messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }] });
+        if (!text) return null;
+        const parsed = parseJson(text);
+        const obj = Array.isArray(parsed) ? parsed[0] : parsed;
+        if (!obj) return null;
+        const { valid } = sanitizeQuiz([normalizeQuestion({ ...obj, skillTag: skill }, 0)]);
+        return valid[0] ?? null;
+    } catch (e) {
+        console.error('Easier variant generation failed:', e);
+        return null;
+    }
+};
+
 // ─── STEP-BY-STEP WORKED SOLUTION ─────────────────────────────────────────────
 // Returns the solution as an ordered list of steps for progressive reveal.
 // Each step names the rule applied, states what happens, explains why, and
