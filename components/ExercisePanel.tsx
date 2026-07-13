@@ -11,6 +11,7 @@ import { classifyMistake } from '../services/masteryEngine';
 import Logo from './Logo';
 import MathText from './MathText';
 import Confetti from './Confetti';
+import StepReveal from './StepReveal';
 
 const MAX_ATTEMPTS = 3;
 
@@ -700,6 +701,16 @@ const ExercisePanel: React.FC<Props> = ({
                   <MathText>{currentExercise.explanation}</MathText>
                 </p>
               </div>
+
+              {/* Progressive step-by-step worked solution (fetched on demand) */}
+              <StepReveal
+                key={currentExercise.id}
+                problem={currentExercise.question}
+                grade={session.grade}
+                language={language}
+                translations={translations}
+                context={currentExercise.skillTag ? `Skill: ${currentExercise.skillTag}` : undefined}
+              />
 
               {/* Full solution (open types: max attempts reached or skipped) */}
               {isOpenType && (evaluation?.fullSolution || solutionRevealed || skipped) && (

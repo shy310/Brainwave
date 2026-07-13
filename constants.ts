@@ -1081,6 +1081,20 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     keepStreakAlive: "Keep your streak alive",
     masteryMap: "Mastery Map",
     memoryDungeon: "Memory Dungeon",
+    tutorMe: "Tutor me",
+    explainMode: "Explain",
+    customMode: "Custom",
+    responseMode: "Response mode",
+    customInstructionPlaceholder: "How should I help? e.g. explain like my teacher, use football examples…",
+    tutorMeHint: "Socratic — I guide with hints, one step at a time",
+    explainHint: "Full step-by-step explanation",
+    customHint: "Tell me exactly how to help you",
+    nextStep: "Next step",
+    showWhy: "Show me why",
+    hideWhy: "Hide why",
+    revealHint: "Give me a hint",
+    stepsComplete: "That's the full solution — nicely done.",
+    loadingSteps: "Working through the steps…",
   },
   ru: {
     signIn: "Войти",
@@ -1483,6 +1497,20 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     keepStreakAlive: "Сохрани свою серию",
     masteryMap: "Карта навыков",
     memoryDungeon: "Подземелье памяти",
+    tutorMe: "Наставляй",
+    explainMode: "Объясни",
+    customMode: "Свой стиль",
+    responseMode: "Режим ответа",
+    customInstructionPlaceholder: "Как мне помогать? напр. объясняй как мой учитель, примеры про футбол…",
+    tutorMeHint: "Сократический — веду подсказками, шаг за шагом",
+    explainHint: "Полное пошаговое объяснение",
+    customHint: "Скажи, как именно тебе помогать",
+    nextStep: "Следующий шаг",
+    showWhy: "Показать почему",
+    hideWhy: "Скрыть почему",
+    revealHint: "Дай подсказку",
+    stepsComplete: "Это полное решение — отлично!",
+    loadingSteps: "Разбираем по шагам…",
   },
   he: {
     signIn: "התחברות",
@@ -1885,6 +1913,20 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     keepStreakAlive: "שמור על הרצף שלך",
     masteryMap: "מפת שליטה",
     memoryDungeon: "מבוך הזיכרון",
+    tutorMe: "הדריך אותי",
+    explainMode: "הסבר",
+    customMode: "מותאם",
+    responseMode: "מצב תשובה",
+    customInstructionPlaceholder: "איך לעזור לך? למשל הסבר כמו המורה שלי, דוגמאות מכדורגל…",
+    tutorMeHint: "סוקרטי — מנחה ברמזים, צעד אחר צעד",
+    explainHint: "הסבר מלא שלב אחר שלב",
+    customHint: "אמור לי בדיוק איך לעזור לך",
+    nextStep: "השלב הבא",
+    showWhy: "הראה לי למה",
+    hideWhy: "הסתר למה",
+    revealHint: "תן לי רמז",
+    stepsComplete: "זה הפתרון המלא — כל הכבוד!",
+    loadingSteps: "עוברים על השלבים…",
   },
   ar: {
     signIn: "تسجيل الدخول",
@@ -2287,6 +2329,20 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     keepStreakAlive: "حافظ على سلسلتك",
     masteryMap: "خريطة الإتقان",
     memoryDungeon: "زنزانة الذاكرة",
+    tutorMe: "علّمني",
+    explainMode: "اشرح",
+    customMode: "مخصص",
+    responseMode: "نمط الرد",
+    customInstructionPlaceholder: "كيف أساعدك؟ مثلاً اشرح مثل معلمي، استخدم أمثلة كرة القدم…",
+    tutorMeHint: "سقراطي — أرشدك بالتلميحات خطوة بخطوة",
+    explainHint: "شرح كامل خطوة بخطوة",
+    customHint: "أخبرني بالضبط كيف أساعدك",
+    nextStep: "الخطوة التالية",
+    showWhy: "أرني لماذا",
+    hideWhy: "إخفاء لماذا",
+    revealHint: "أعطني تلميحاً",
+    stepsComplete: "هذا هو الحل الكامل — أحسنت!",
+    loadingSteps: "نعمل على الخطوات…",
   }
 };
 
@@ -2318,6 +2374,36 @@ LANGUAGE:
 - Always respond in the language specified in the student's profile
 - Never switch languages mid-conversation, even if the student writes in a different language
 `;
+
+// ─── TUTOR RESPONSE MODES ─────────────────────────────────────────────────────
+// Injected at the TOP of the tutor system prompt so it overrides default behavior.
+// Always English (it steers the model, not the student-facing text).
+export const TUTOR_MODE_PROMPTS: Record<'tutor' | 'explain' | 'custom', string> = {
+  tutor: `RESPONSE MODE — "TUTOR ME" (Socratic, highest priority):
+- Do NOT reveal the final answer or a full worked solution, even if asked directly, until the student has made a genuine attempt at the current step.
+- Respond with ONE guiding question OR ONE small hint at a time — never a chain of steps.
+- After the student attempts: first name what they got RIGHT, then pinpoint the FIRST thing that is off, then nudge them toward fixing it themselves.
+- Escalate to a larger hint ONLY when the student explicitly asks ("hint", "I'm stuck") or has genuinely tried and missed 2+ times on the same step.
+- Reveal the full solution ONLY if the student clearly gives up (e.g. "just show me the answer") AND has attempted at least once — and even then, walk it one step at a time.
+- Keep every turn short: one idea, ending with a question that hands the thinking back to the student.`,
+  explain: `RESPONSE MODE — "EXPLAIN" (full worked walkthrough):
+- Give a complete, clear, step-by-step explanation now.
+- Number the steps; for each, name the rule or concept being applied.
+- Render all math in LaTeX ($...$ / $$...$$). Show the work, don't just state results.
+- Finish with a one-line recap and a single quick check-in question.`,
+  custom: `RESPONSE MODE — "CUSTOM" (follow the student's own teaching instruction):
+- The student has told you how they want to be helped: """{instruction}"""
+- Honor that instruction as faithfully as you can (tone, format, worked-example style, "explain like my teacher", etc.).
+- Only deviate if it would actively harm their learning (e.g. it asks you to just hand over answers with no reasoning) — then adapt gently and say why in one line.`,
+};
+
+/** Build the mode directive block for the tutor system prompt. */
+export const buildModePrompt = (mode: 'tutor' | 'explain' | 'custom', customInstruction?: string): string => {
+  const base = TUTOR_MODE_PROMPTS[mode] ?? TUTOR_MODE_PROMPTS.tutor;
+  return mode === 'custom'
+    ? base.replace('{instruction}', (customInstruction || 'Explain clearly and simply.').slice(0, 500))
+    : base;
+};
 
 // Legacy helper for components that still use Course[] directly
 export const GET_MOCK_COURSES = (lang: Language): Course[] => {

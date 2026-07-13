@@ -1,6 +1,6 @@
 
-import { Message, Attachment, GradeLevel, Exercise, QuestionType, Lesson, AnswerEvaluation, UploadAnalysis, Subject, CodeLanguage, GameType, Presentation, PresentationSlide, CodingChallenge, GameQuestion, BuggyCode, DebateTurn, StoryChapter, StoryEvaluation, MysteryCase, ChallengeTestResult, CodeReview, ArgumentScore, BranchChoice, InlineSuggestion, CaseTheme, CaseDifficulty, PresentationAudience, PresStructure, ConceptNode, ConceptEdge, FlashCard, TrueFalseItem, ErrorQuest, QuestStage } from '../types';
-import { INITIAL_SYSTEM_INSTRUCTION } from '../constants';
+import { Message, Attachment, GradeLevel, Exercise, QuestionType, Lesson, AnswerEvaluation, UploadAnalysis, Subject, CodeLanguage, GameType, Presentation, PresentationSlide, CodingChallenge, GameQuestion, BuggyCode, DebateTurn, StoryChapter, StoryEvaluation, MysteryCase, ChallengeTestResult, CodeReview, ArgumentScore, BranchChoice, InlineSuggestion, CaseTheme, CaseDifficulty, PresentationAudience, PresStructure, ConceptNode, ConceptEdge, FlashCard, TrueFalseItem, ErrorQuest, QuestStage, TutorMode, SolutionStep } from '../types';
+import { INITIAL_SYSTEM_INSTRUCTION, buildModePrompt } from '../constants';
 import { sanitizeQuiz } from './questionValidator';
 import { validateDungeonRooms, RoomPlan } from './dungeonEngine';
 import { DungeonRoom, DungeonRoomType } from '../types';
@@ -260,12 +260,20 @@ export const generateTutorResponse = async (
     history: Message[],
     currentInput: string,
     attachments: Attachment[] = [],
-    userContext: { contextStr: string; grade: GradeLevel; language: string }
+    userContext: {
+        contextStr: string; grade: GradeLevel; language: string;
+        mode?: TutorMode; customInstruction?: string; learnerSummary?: string;
+    }
 ): Promise<TutorResponse> => {
     const targetLang = LANG_MAP[userContext.language] || userContext.language;
+    const modeBlock = buildModePrompt(userContext.mode ?? 'tutor', userContext.customInstruction);
+    const memoryBlock = userContext.learnerSummary
+        ? `\nWHAT YOU KNOW ABOUT THIS STUDENT (personalize accordingly; do not read it back verbatim):\n${userContext.learnerSummary}\n`
+        : '';
 
     const system = `${INITIAL_SYSTEM_INSTRUCTION}
-CURRENT APP CONTEXT: """ ${userContext.contextStr} """
+${modeBlock}
+${memoryBlock}CURRENT APP CONTEXT: """ ${userContext.contextStr} """
 STUDENT PROFILE: Grade: ${userContext.grade} | Language: ${targetLang}
 INSTRUCTIONS:
 1. CRITICAL — You MUST respond ONLY in ${targetLang}. This overrides all previous messages in the conversation history. Even if earlier messages were in a different language, your response must be in ${targetLang}.
@@ -458,6 +466,63 @@ RULES:
     } catch (e) {
         console.error('Quest JSON parse failed:', e);
         return null;
+    }
+};
+
+// ─── STEP-BY-STEP WORKED SOLUTION ─────────────────────────────────────────────
+// Returns the solution as an ordered list of steps for progressive reveal.
+// Each step names the rule applied, states what happens, explains why, and
+// carries a hint that points toward the step without giving it away.
+
+export const generateSolutionSteps = async (
+    problem: string,
+    grade: GradeLevel,
+    language: string,
+    context?: string
+): Promise<SolutionStep[]> => {
+    const targetLang = LANG_MAP[language] || language;
+    const system = `You are an expert tutor who explains worked solutions as clear, ordered steps.
+Accuracy is non-negotiable: verify every calculation. Respond with ONLY a JSON array. Straight ASCII quotes only.
+JSON field names stay English; only text VALUES are in the target language.`;
+    const prompt = `Break the full solution to this problem into 3-6 ordered steps a student can reveal one at a time.
+
+PROBLEM: """${problem}"""
+GRADE: ${grade}
+LANGUAGE: ${targetLang} (all text values in ${targetLang})
+${context ? `CONTEXT: ${context}` : ''}
+
+Return ONLY a JSON array:
+[
+  {
+    "rule": "the rule/concept applied this step (2-5 words, e.g. 'Combine like terms')",
+    "statement": "what happens in this step — show the actual work, math in LaTeX $...$",
+    "detail": "1-2 sentences on WHY this step is valid / why we do it",
+    "hint": "a nudge that points toward this step WITHOUT giving it away"
+  }
+]
+RULES:
+- The steps together must fully and correctly solve the problem; the final step states the answer.
+- Math in LaTeX with backslashes DOUBLED for JSON. Never write money with a bare $.
+- Keep each field tight. Verify all arithmetic.
+Return ONLY the JSON array.`;
+
+    try {
+        const text = await callClaude({ model: HAIKU, max_tokens: 2500, system, messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }] });
+        if (!text) return [];
+        const parsed = parseJson(text);
+        const arr = Array.isArray(parsed) ? parsed : (parsed?.steps || []);
+        return (arr as any[])
+            .filter(s => s && (s.statement || s.rule))
+            .map(s => ({
+                rule: String(s.rule ?? '').trim(),
+                statement: String(s.statement ?? '').trim(),
+                detail: String(s.detail ?? '').trim(),
+                hint: String(s.hint ?? '').trim(),
+            }))
+            .filter(s => s.statement);
+    } catch (e) {
+        console.error('Solution steps generation failed:', e);
+        return [];
     }
 };
 
