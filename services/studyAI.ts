@@ -145,6 +145,7 @@ Make 4 flashcards and 8 DISTINCT questions. Mix recognition, numeric or short re
       generated = validateStudySet(json(raw), source);
       break;
     } catch (cause) {
+      console.warn('Study validation attempt', attempt + 1, cause instanceof Error ? cause.message : 'Invalid response');
       if (attempt === 1) throw new Error('STUDY_INVALID_RESPONSE');
       const reason = cause instanceof Error ? cause.message : 'Invalid JSON';
       request.messages = [...request.messages,
