@@ -17,7 +17,7 @@ import {
 } from "../services/studyEngine";
 import { loadLibrary, saveLibrary, legacyNotes } from "../services/studyStore";
 import { emptyRecord, recordAttempt } from "../services/masteryEngine";
-import { validateStudySet } from "../services/studyAI";
+import { validateStudySet, generateStudySet } from "../services/studyAI";
 import { studyCopy } from "../services/studyCopy";
 import type { ActivityResult, StudySet } from "../services/studyTypes";
 
@@ -78,6 +78,18 @@ assert.equal(validateStudySet(withoutOptions, source).questions.length, 8);
 assert(validateStudySet(withoutOptions, source).questions.every(q => q.options.length === 0));
 const missingChoiceOptions = { ...generated, questions: generated.questions.map(q => ({ ...q, questionType: QuestionType.MULTIPLE_CHOICE, options: undefined })) };
 assert.throws(() => validateStudySet(missingChoiceOptions, source));
+const originalFetch = globalThis.fetch;
+let generationCalls = 0;
+globalThis.fetch = async () => new Response(JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(++generationCalls === 1 ? missingChoiceOptions : withoutOptions) }] }), { status: 200 });
+try {
+  const repaired = await generateStudySet(source, user, 'en');
+  assert.equal(repaired.questions.length, 8);
+  assert.equal(generationCalls, 2);
+  generationCalls = 0;
+  globalThis.fetch = async () => { generationCalls++; return new Response(JSON.stringify({content:[{type:'text',text:'invalid'}]}), {status:200}); };
+  await assert.rejects(generateStudySet(source, user, 'en'), /STUDY_INVALID_RESPONSE/);
+  assert.equal(generationCalls, 2, 'repair is bounded, not an endless loop');
+} finally { globalThis.fetch = originalFetch; }
 const sprint = createSprint(set, 5, user);
 assert.equal(sprint.questionIds.length, 3);
 assert.equal(createSprint(set, 10, user).questionIds.length, 5);
