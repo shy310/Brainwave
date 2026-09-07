@@ -27,3 +27,5 @@ dist-ssr
 
 # Runtime user data (server-generated)
 data/
+test-results/
+playwright-report/

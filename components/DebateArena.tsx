@@ -69,7 +69,7 @@ const DebateArena: React.FC<Props> = ({
     setLoadingSetup(true);
     onContextUpdate(`Debate Arena — ${topic}`);
     try {
-      const data = await generateDebateTopicV2(topic, format, 'pro', difficulty, userGrade, language);
+      const data = await generateDebateTopicV2(topic, format, 'FOR', difficulty, userGrade, language);
       setDebateData(data);
       setPhase('debate');
       setTurns([]);
@@ -168,7 +168,7 @@ const DebateArena: React.FC<Props> = ({
 
   const radarData = avgScores ? [
     { subject: translations.logic,          A: avgScores.logic },
-    { subject: translations.evidence,       A: avgScores.evidence },
+    { subject: translations.evidenceBtn,       A: avgScores.evidence },
     { subject: translations.persuasiveness, A: avgScores.persuasiveness },
     { subject: translations.relevance,      A: avgScores.relevance },
   ] : [];
@@ -195,12 +195,12 @@ const DebateArena: React.FC<Props> = ({
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
           {/* Topic */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{translations.debateTopic}</label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{translations.enterTopicForSlides}</label>
             <input
               value={topic}
               onChange={e => setTopic(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleStartDebate()}
-              placeholder={translations.debateTopicPlaceholder}
+              placeholder={translations.topicPlaceholder}
               className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-red-400 rounded-xl outline-none font-medium text-gray-900 dark:text-white transition-all"
             />
           </div>
@@ -279,7 +279,7 @@ const DebateArena: React.FC<Props> = ({
           >
             {loadingSetup
               ? <><Loader2 size={20} className="animate-spin" /> Loading...</>
-              : <><Swords size={20} /> {translations.startDebate}</>
+              : <><Swords size={20} /> {translations.start}</>
             }
           </button>
         </div>

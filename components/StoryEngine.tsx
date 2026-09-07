@@ -318,7 +318,7 @@ const StoryEngine: React.FC<Props> = ({
           >
             {loadingSetup
               ? <><Loader2 size={20} className="animate-spin" /> Creating story...</>
-              : <><Feather size={20} /> {translations.startStory}</>
+              : <><Feather size={20} /> {translations.start}</>
             }
           </button>
         </div>

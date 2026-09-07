@@ -91,7 +91,7 @@ const ConceptConnector: React.FC<Props> = ({ subject, userGrade, language, trans
     setEvaluating(true);
     try {
       const result = await evaluateConceptConnections(nodes, userEdges, idealEdges, language);
-      setEvalResult(result);
+      setEvalResult({ ...result, edgeScores: result.edgeScores.map(s => ({ ...s, correct: s.score >= 70 })) });
       setDone(true);
       const xp = Math.round(result.totalScore * 0.6 + (userEdges.length > 0 ? 10 : 0));
       onComplete(result.totalScore, xp);

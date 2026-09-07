@@ -1,3 +1,4 @@
+import { callClaude } from '../services/aiService';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Youtube, FileText, Lightbulb, BookOpen, Mic, MicOff, RotateCcw,
@@ -11,7 +12,7 @@ const API_BASE = (import.meta as any).env?.VITE_API_URL ?? '';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type SourceMode = 'youtube' | 'text' | 'topic';
+type SourceMode = 'transcript' | 'text' | 'topic';
 type NoteTab = 'notes' | 'flashcards' | 'quiz' | 'podcast';
 type Confidence = 'new' | 'hard' | 'good' | 'easy';
 
@@ -65,19 +66,7 @@ function extractVideoId(url: string): string | null {
 }
 
 async function callAI(system: string, userContent: string, maxTokens = 2000): Promise<string> {
-  const res = await fetch(`${API_BASE}/api/claude`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      system,
-      messages: [{ role: 'user', content: userContent }],
-      max_tokens: maxTokens,
-    }),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  const block = (data.content ?? []).find((b: any) => b.type === 'text');
-  return block?.text ?? '';
+  return callClaude({ system, messages: [{ role: 'user', content: userContent }], max_tokens: maxTokens });
 }
 
 function parseJSON<T>(raw: string): T | null {
@@ -124,7 +113,7 @@ interface Props {
 
 const NotesView: React.FC<Props> = ({ userGrade, language, theme, onBack, onXpEarned, onContextUpdate }) => {
   const [sourceMode, setSourceMode] = useState<SourceMode>('topic');
-  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [transcriptText, setTranscriptText] = useState('');
   const [textInput, setTextInput] = useState('');
   const [topicInput, setTopicInput] = useState('');
 
@@ -155,7 +144,7 @@ const NotesView: React.FC<Props> = ({ userGrade, language, theme, onBack, onXpEa
   const [showHistory, setShowHistory] = useState(false);
 
   // Video ID
-  const videoId = sourceMode === 'youtube' ? extractVideoId(youtubeUrl) : null;
+
 
   useEffect(() => {
     const saved: SavedNote[] = JSON.parse(localStorage.getItem(NOTES_DB_KEY) || '[]');
@@ -183,9 +172,10 @@ const NotesView: React.FC<Props> = ({ userGrade, language, theme, onBack, onXpEa
     let sourcePrompt = '';
     let sourceLabel = '';
 
-    if (sourceMode === 'youtube' && youtubeUrl.trim()) {
-      sourcePrompt = `Generate comprehensive study notes for a video at: ${youtubeUrl}\nBased on the URL/topic, create detailed educational notes as if the video covers this subject.`;
-      sourceLabel = `YouTube: ${youtubeUrl}`;
+    if (sourceMode === 'transcript' && transcriptText.trim()) {
+      if (transcriptText.trim().length < 30 || /^https?:\/\/\S+$/.test(transcriptText.trim())) return;
+      sourcePrompt = `Create notes ONLY from this supplied transcript. Never invent missing video content:\n${transcriptText}`;
+      sourceLabel = 'Pasted transcript';
     } else if (sourceMode === 'text' && textInput.trim()) {
       sourcePrompt = `Convert this content into structured study notes:\n\n${textInput}`;
       sourceLabel = 'Text input';
@@ -223,7 +213,7 @@ Include 4-7 sections, 5-8 key points, appropriate equations for math/science top
       const parsed = parseJSON<GeneratedNote>(raw);
       if (parsed && parsed.title && parsed.sections) {
         setNote(parsed);
-        onXpEarned(10);
+        // Generating notes is preparation, not evidence of learning.
         onContextUpdate(`Notes: ${parsed.title}`);
         // Auto-generate flashcards
         doGenerateFlashcards(parsed, sourceLabel);
@@ -373,7 +363,7 @@ Create 5-7 multiple choice questions. correctIndex is 0-based index into options
   // ── Render ────────────────────────────────────────────────────────────────
 
   const canGenerate =
-    (sourceMode === 'youtube' && youtubeUrl.trim()) ||
+    (sourceMode === 'transcript' && transcriptText.trim()) ||
     (sourceMode === 'text' && textInput.trim()) ||
     (sourceMode === 'topic' && topicInput.trim());
 
@@ -406,7 +396,7 @@ Create 5-7 multiple choice questions. correctIndex is 0-based index into options
           <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-3">
             {[
               { mode: 'topic' as const, icon: <Brain size={12} />, label: 'Topic' },
-              { mode: 'youtube' as const, icon: <Youtube size={12} />, label: 'YouTube' },
+              { mode: 'transcript' as const, icon: <Youtube size={12} />, label: 'Transcript' },
               { mode: 'text' as const, icon: <AlignLeft size={12} />, label: 'Text' },
             ].map(({ mode, icon, label }) => (
               <button
@@ -434,26 +424,16 @@ Create 5-7 multiple choice questions. correctIndex is 0-based index into options
             />
           )}
 
-          {sourceMode === 'youtube' && (
+          {sourceMode === 'transcript' && (
             <div className="space-y-2">
               <input
-                value={youtubeUrl}
-                onChange={e => setYoutubeUrl(e.target.value)}
+                value={transcriptText}
+                onChange={e => setTranscriptText(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && generateNotes()}
-                placeholder="https://youtube.com/watch?v=..."
+                placeholder="Paste the actual video transcript here"
                 className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all text-gray-900 dark:text-white placeholder-gray-400"
               />
-              {videoId && (
-                <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${videoId}`}
-                    className="w-full aspect-video"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title="YouTube video"
-                  />
-                </div>
-              )}
+
             </div>
           )}
 
