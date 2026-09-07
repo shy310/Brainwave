@@ -72,6 +72,12 @@ const set: StudySet = {
   language: "en",
   createdAt: new Date().toISOString(),
 };
+// Providers commonly omit choices for free-response questions, as instructed.
+const withoutOptions = { ...generated, questions: generated.questions.map(({ options, ...q }) => q) };
+assert.equal(validateStudySet(withoutOptions, source).questions.length, 8);
+assert(validateStudySet(withoutOptions, source).questions.every(q => q.options.length === 0));
+const missingChoiceOptions = { ...generated, questions: generated.questions.map(q => ({ ...q, questionType: QuestionType.MULTIPLE_CHOICE, options: undefined })) };
+assert.throws(() => validateStudySet(missingChoiceOptions, source));
 const sprint = createSprint(set, 5, user);
 assert.equal(sprint.questionIds.length, 3);
 assert.equal(createSprint(set, 10, user).questionIds.length, 5);

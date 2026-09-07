@@ -98,6 +98,25 @@ async function setup(page: any, language = "en") {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 }
 
+test("Hebrew math topic accepts numeric questions without choice arrays", async ({ page }) => {
+  await setup(page);
+  await page.route("**/api/claude", route => route.fulfill({ json: { content: [{ type: "text", text: JSON.stringify({
+    ...fixture,
+    title: "חיבור וחיסור חזקות",
+    subject: "MATH",
+    questions: Array.from({ length: 8 }, (_, i) => ({
+      questionType: "NUMERIC", question: `What is ${i + 2} squared?`,
+      sampleAnswer: String((i + 2) ** 2), skillTag: "powers",
+      hint: "Multiply the base by itself.", explanation: "Squaring multiplies a number by itself.", sourcePages: [],
+    })),
+  }) }] } }));
+  await page.getByRole("button", { name: "Add study material", exact: true }).first().click();
+  await page.getByLabel("What are we learning?", { exact: true }).fill("חיבור וחיסור חזקות");
+  await page.getByRole("button", { name: "Create study set", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "חיבור וחיסור חזקות", exact: true })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
 test("material → notes → sprint → help → recap → progress → restore", async ({
   page,
 }) => {

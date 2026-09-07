@@ -1,5 +1,6 @@
 import type { Language } from "../types";
 const rows = {
+  invalidGeneration: ["The AI returned an incomplete or invalid study set. Your topic is saved here—please try again.", "ИИ вернул неполный или некорректный набор. Тема сохранена здесь — попробуйте ещё раз.", "הבינה המלאכותית החזירה ערכת לימוד לא תקינה או חלקית. הנושא נשמר כאן — נסו שוב.", "أعاد الذكاء الاصطناعي مجموعة غير مكتملة أو غير صالحة. موضوعك محفوظ هنا — حاول مرة أخرى."],
   independentDays: [
     "days with independent answers",
     "дней с самостоятельными ответами",

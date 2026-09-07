@@ -144,8 +144,8 @@ function MaterialForm({
               reviewed: true,
             };
       onDone(await generateStudySet(input, user, language));
-    } catch {
-      setError(c.error);
+    } catch (cause) {
+      setError(cause instanceof Error && cause.message === "STUDY_INVALID_RESPONSE" ? c.invalidGeneration : c.error);
     } finally {
       setBusy(false);
     }
