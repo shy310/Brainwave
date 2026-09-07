@@ -62,7 +62,7 @@ export async function callClaude(body: {
         }
         if (!res.ok) {
             const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-            throw new Error(err.error ?? `HTTP ${res.status}`);
+            throw Object.assign(new Error(err.error ?? `HTTP ${res.status}`), { status: res.status });
         }
         const data = await res.json();
         const block = (data.content ?? []).find((b: any) => b.type === 'text');

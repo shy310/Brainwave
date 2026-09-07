@@ -146,7 +146,7 @@ function MaterialForm({
       onDone(await generateStudySet(input, user, language));
     } catch (cause) {
       console.warn('Study set creation failed:', cause instanceof Error ? cause.message : 'Unknown failure');
-      setError(cause instanceof Error && cause.message === "STUDY_INVALID_RESPONSE" ? c.invalidGeneration : c.error);
+      setError((cause as {status?: number})?.status === 402 ? c.providerCredits : cause instanceof Error && cause.message === "STUDY_INVALID_RESPONSE" ? c.invalidGeneration : c.error);
     } finally {
       setBusy(false);
     }

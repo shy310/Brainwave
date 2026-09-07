@@ -1,5 +1,6 @@
 import type { Language } from "../types";
 const rows = {
+  providerCredits: ["The AI provider has insufficient credits for this request. The app owner needs to check OpenRouter credits. Your topic is still here.", "У провайдера ИИ недостаточно средств для запроса. Владельцу приложения нужно проверить баланс OpenRouter. Тема сохранена здесь.", "אין לספק הבינה המלאכותית מספיק קרדיטים לבקשה. על בעלי האפליקציה לבדוק את יתרת OpenRouter. הנושא נשמר כאן.", "رصيد مزود الذكاء الاصطناعي غير كافٍ لهذا الطلب. على مالك التطبيق التحقق من رصيد OpenRouter. موضوعك لا يزال هنا."],
   invalidGeneration: ["The AI returned an incomplete or invalid study set. Your topic is saved here—please try again.", "ИИ вернул неполный или некорректный набор. Тема сохранена здесь — попробуйте ещё раз.", "הבינה המלאכותית החזירה ערכת לימוד לא תקינה או חלקית. הנושא נשמר כאן — נסו שוב.", "أعاد الذكاء الاصطناعي مجموعة غير مكتملة أو غير صالحة. موضوعك محفوظ هنا — حاول مرة أخرى."],
   independentDays: [
     "days with independent answers",
