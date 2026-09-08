@@ -79,6 +79,21 @@ assert(validateStudySet(withoutOptions, source).questions.every(q => q.options.l
 const missingChoiceOptions = { ...generated, questions: generated.questions.map(q => ({ ...q, questionType: QuestionType.MULTIPLE_CHOICE, options: undefined })) };
 assert.throws(() => validateStudySet(missingChoiceOptions, source));
 const originalFetch = globalThis.fetch;
+const topicSource = { ...source, kind: 'topic' as const };
+const unreferencedTopic = {
+  ...withoutOptions,
+  cards: generated.cards.map(({pages, ...card}) => card),
+  questions: withoutOptions.questions.map(({sourcePages, ...question}) => question),
+};
+assert.equal(validateStudySet(unreferencedTopic, topicSource).questions.length, 8, 'topic lessons do not need invented page references');
+assert(validateStudySet(unreferencedTopic, topicSource).cards.every(card => card.pages.length === 0));
+assert.throws(() => validateStudySet(unreferencedTopic, source), 'uploaded-source references remain mandatory');
+assert.throws(() => validateStudySet({...unreferencedTopic, cards: generated.cards.map(c => ({...c,pages:[99]}))},topicSource), 'explicit unknown references are not repaired');
+assert.throws(() => validateStudySet({...unreferencedTopic, cards: generated.cards.map(c => ({...c,pages:'1'}))},topicSource), 'malformed references are not repaired');
+const invalidBeforeValid = { ...generated, questions: [
+  ...generated.questions.map(q => ({...q, options: 'invalid'})), ...generated.questions,
+] };
+assert.equal(validateStudySet(invalidBeforeValid, source).questions.length, 8, 'invalid duplicates must not hide valid questions');
 let generationCalls = 0;
 globalThis.fetch = async () => new Response(JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(++generationCalls === 1 ? missingChoiceOptions : withoutOptions) }] }), { status: 200 });
 try {
