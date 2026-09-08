@@ -15,6 +15,12 @@ try {
   assert.equal(saveMaterialDraft('alice', draft), true);
   assert.deepEqual(loadMaterialDraft('alice'), draft);
   assert.equal(loadMaterialDraft('bob'), null, 'drafts do not leak to another profile');
+  for (const language of ['en', 'he', 'ar', 'ru'] as const) {
+    saveMaterialDraft('alice', {...draft, language});
+    assert.deepEqual(loadMaterialDraft('alice'), {...draft, language});
+  }
+  records.set('brainwave-material-draft-v1:alice', JSON.stringify({...draft, language:'invalid'}));
+  assert.deepEqual(loadMaterialDraft('alice'), draft, 'invalid language preserves usable legacy input');
   saveMaterialDraft('bob', {...draft, title: 'Bob'});
   clearMaterialDraft('alice');
   assert.equal(loadMaterialDraft('alice'), null);

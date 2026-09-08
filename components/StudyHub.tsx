@@ -86,9 +86,10 @@ function MaterialForm({
   const [title, setTitle] = useState(initialTopic || draft?.title || ""),
     [body, setBody] = useState(draft?.body ?? "");
   const [draftSaved, setDraftSaved] = useState(true);
+  const [learningLanguage, setLearningLanguage] = useState<Language>(draft?.language ?? language);
   useEffect(() => {
-    if (kind !== 'file') setDraftSaved(saveMaterialDraft(user.id, {kind, title, body}));
-  }, [user.id, kind, title, body]);
+    if (kind !== 'file') setDraftSaved(saveMaterialDraft(user.id, {kind, title, body, language: learningLanguage}));
+  }, [user.id, kind, title, body, learningLanguage]);
   const [source, setSource] = useState<StudySource | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false),
@@ -149,7 +150,7 @@ function MaterialForm({
               ],
               reviewed: true,
             };
-      onDone(await generateStudySet(input, user, language));
+      onDone(await generateStudySet(input, user, learningLanguage));
       if (kind !== 'file') clearMaterialDraft(user.id);
     } catch (cause) {
       console.warn('Study set creation failed:', cause instanceof Error ? cause.message : 'Unknown failure');
@@ -210,6 +211,17 @@ function MaterialForm({
             </button>
           ))}
         </div>
+        <div className="bw-field">
+          <label htmlFor="learning-language">{c.learningLanguage}</label>
+          <select id="learning-language" value={learningLanguage} disabled={busy} aria-describedby="learning-language-help"
+            onChange={(e) => setLearningLanguage(e.target.value as Language)}>
+            <option value="en">English</option>
+            <option value="he">עברית</option>
+            <option value="ar">العربية</option>
+            <option value="ru">Русский</option>
+          </select>
+        </div>
+        <p id="learning-language-help" className="bw-muted">{c.learningLanguageHelp}</p>
         {kind === "file" ? (
           <>
             <label className="bw-upload">
@@ -655,6 +667,7 @@ export default function StudyHub({
               user={user}
               language={language}
               context={`${activeSet.notes}\n${activeSet.source.pages.map((p) => `[Page ${p.number}] ${p.text}`).join("\n")}`}
+              responseLanguage={activeSet.language}
               messages={activeSet.messages ?? []}
               onMessages={(messages) =>
                 persist({

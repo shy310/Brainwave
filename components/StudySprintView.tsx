@@ -106,7 +106,7 @@ export default function StudySprintView({
           q?.sampleAnswer ?? set.notes,
           sourceText(set.source),
           user.gradeLevel,
-          language,
+          set.language,
           activity === "teach",
         );
         correct = response.correct;
@@ -403,6 +403,7 @@ export default function StudySprintView({
               user={user}
               language={language}
               context={context}
+              responseLanguage={set.language}
               messages={sprint.messages}
               onMessages={(messages) =>
                 onChange({
