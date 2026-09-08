@@ -34,6 +34,7 @@ import { loadMaterialDraft, saveMaterialDraft, clearMaterialDraft } from '../ser
 import StudySprintView from "./StudySprintView";
 import MathText from "./MathText";
 import StudyTutor from "./StudyTutor";
+import { activityCopy } from './ActivityHeader';
 
 const Games = lazy(() => import("./EducationalGames"));
 const Code = lazy(() => import("./CodeLab"));
@@ -397,6 +398,7 @@ export default function StudyHub({
   resultCallback.current = onResults;
   const [legacy] = useState(legacyNotes);
   const [legacyChoice, setLegacyChoice] = useState("");
+  const [chosenTool, setChosenTool] = useState("games");
   useEffect(() => {
     let alive = true;
     loadLibrary(user.id)
@@ -496,7 +498,7 @@ export default function StudyHub({
           pages: [{ number: 1, text: set.notes }],
         },
         user,
-        language,
+        set.language,
       );
       persist({ ...current.current, sets: [fresh, ...current.current.sets] });
       openSet(fresh);
@@ -549,7 +551,7 @@ export default function StudyHub({
     );
   if (Tool)
     return (
-      <div className="bw-hub">
+      <div className="bw-hub bw-activity-page" dir={language === 'he' || language === 'ar' ? 'rtl' : 'ltr'}>
         <Suspense fallback={<p>{c.working}</p>}>
           <Tool
             userGrade={user.gradeLevel}
@@ -595,31 +597,20 @@ export default function StudyHub({
     </fieldset>
   );
   const explorer = (
-    <section className="bw-section">
-      <div className="bw-section-heading">
-        <div>
-          <h2>{c.explore}</h2>
-          <p className="bw-muted">{c.exploreDesc}</p>
-        </div>
-        <Gamepad2 size={24} />
-      </div>
-      <div className="bw-tools">
-        {(Object.keys(tools) as (keyof typeof tools)[]).map((id, i) => (
-          <button className="bw-tool-card" key={id} onClick={() => setTool(id)}>
-            <span className={`bw-tool-icon bw-tool-${i}`}>
-              {["✦", "⌘", "↗", "✎", "▤", "⌕"][i]}
-            </span>
-            <strong>{c[id]}</strong>
-            <ArrowRight size={17} />
-          </button>
-        ))}
-        <button className="bw-tool-card" onClick={() => onNavigate("dungeon")}>
-          <span className="bw-tool-icon">♜</span>
-          <strong>{translations.memoryDungeon}</strong>
-          <ArrowRight size={17} />
+    <details className="bw-activity-menu">
+      <summary>{c.moreTools}</summary>
+      <div className="bw-activity-picker">
+        <label htmlFor="activity-picker">{c.pickActivity}</label>
+        <select id="activity-picker" value={chosenTool} onChange={e => setChosenTool(e.target.value)}>
+          {(Object.keys(tools) as (keyof typeof tools)[]).map(id =>
+            <option key={id} value={id}>{activityCopy(id, language).title}</option>)}
+          <option value="dungeon">{translations.memoryDungeon}</option>
+        </select>
+        <button className="bw-button" onClick={() => chosenTool === 'dungeon' ? onNavigate('dungeon') : setTool(chosenTool)}>
+          {c.openActivity}<ArrowRight size={18}/>
         </button>
       </div>
-    </section>
+    </details>
   );
   return (
     <div className="bw-hub">
@@ -986,7 +977,6 @@ export default function StudyHub({
                   <ArrowRight size={18} />
                 </button>
               </section>
-              {explorer}
             </>
           )}
           {view === "courses" && (

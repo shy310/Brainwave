@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ActivityHeader from './ActivityHeader';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Eye, EyeOff, Loader2,
   Presentation as PresentationIcon, Maximize2, Minimize2, Printer,
@@ -702,18 +703,7 @@ const PresentationView: React.FC<Props> = ({
   if (phase === 'setup') {
     return (
       <div className="px-4 py-6 space-y-6 max-w-2xl mx-auto">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"><ArrowLeft size={20} /></button>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center">
-              <PresentationIcon size={24} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white">{t.presentationGenerator}</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t.presentationGeneratorDesc}</p>
-            </div>
-          </div>
-        </div>
+<ActivityHeader kind="slides" language={language} onBack={onBack}/>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
           {/* Topic + Subject */}

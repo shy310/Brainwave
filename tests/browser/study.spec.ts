@@ -194,7 +194,7 @@ test("material → notes → sprint → help → recap → progress → restore"
   page.on("pageerror", (e) => errors.push(e.message));
   await setup(page);
   await expect(
-    page.getByRole("heading", { name: "A little curiosity. A big next step." }),
+    page.getByRole("heading", { name: "What will you crack today?" }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Add study material", exact: true })
@@ -294,6 +294,28 @@ test("material → notes → sprint → help → recap → progress → restore"
   ).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+for (const language of ["en", "he", "ar", "ru"])
+  test(`activity pages replace the old grid: ${language}`, async ({page}) => {
+    await page.setViewportSize({width:390,height:844});
+    await setup(page, language);
+    await page.locator('.bw-main-nav button').nth(2).click();
+    await expect(page.locator('.bw-tool-card')).toHaveCount(0);
+    await expect(page.locator('.bw-activity-menu')).toHaveCount(0);
+    await page.locator('.bw-main-nav button').nth(1).click();
+    for (const kind of ['games', 'code', 'debate', 'story', 'slides', 'sql']) {
+      await page.locator('.bw-activity-menu summary').click();
+      await page.locator('#activity-picker').selectOption(kind);
+      await page.locator('.bw-activity-picker button').click();
+      const header = page.locator('.bw-activity-header');
+      await expect(header.getByRole('heading',{level:1})).toBeVisible();
+      expect((await header.locator('p').innerText()).length).toBeLessThan(65);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      if (kind === 'story' && language === 'he') await page.screenshot({path:'../outputs/story-refresh-he.png', fullPage:true});
+      await header.getByRole('button').click();
+      await expect(page.locator('.bw-activity-menu')).toBeVisible();
+    }
+  });
 
 for (const language of ["en", "he", "ar", "ru"])
   test(`phone layout and navigation: ${language}`, async ({ page }) => {

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ActivityHeader from './ActivityHeader';
 import Editor from '@monaco-editor/react';
 import type { editor as MonacoEditor } from 'monaco-editor';
 import {
@@ -291,20 +292,7 @@ const CodeLab: React.FC<Props> = ({
   return (
     <div className="px-4 py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-            <Code2 size={24} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 dark:text-white">{translations.codeLab}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{translations.codeLabDesc}</p>
-          </div>
-        </div>
-      </div>
+<ActivityHeader kind="code" language={language} onBack={onBack}/>
 
       {/* Language + Controls bar */}
       <div className="flex flex-wrap items-center gap-3">

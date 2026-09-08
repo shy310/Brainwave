@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ActivityHeader from './ActivityHeader';
 import {
   ArrowLeft, Loader2, BookOpen, Send, Star, Feather, CheckCircle,
   ChevronRight, Lightbulb, RefreshCw, Trophy
@@ -28,6 +29,12 @@ interface Chapter {
 type Phase = 'setup' | 'writing' | 'results';
 
 const GENRES = ['Fantasy', 'Sci-Fi', 'Mystery', 'Adventure', 'Historical', 'Humor'];
+const GENRE_NAMES = {
+  en: ['Fantasy', 'Sci-Fi', 'Mystery', 'Adventure', 'Historical', 'Humor'],
+  he: ['פנטזיה', 'מדע בדיוני', 'תעלומה', 'הרפתקה', 'היסטוריה', 'הומור'],
+  ar: ['خيال', 'خيال علمي', 'غموض', 'مغامرة', 'تاريخ', 'كوميديا'],
+  ru: ['Фэнтези', 'Фантастика', 'Детектив', 'Приключения', 'История', 'Юмор'],
+};
 const GENRE_EMOJIS: Record<string, string> = {
   Fantasy: '🧙', 'Sci-Fi': '🚀', Mystery: '🔍', Adventure: '⚔️', Historical: '🏛️', Humor: '😄'
 };
@@ -36,11 +43,11 @@ const MIN_WORDS: Partial<Record<GradeLevel, number>> = {
   [GradeLevel.KINDER]: 10,
   [GradeLevel.ELEMENTARY_1_3]: 20,
   [GradeLevel.ELEMENTARY_4_6]: 30,
-  [GradeLevel.MIDDLE_7_8]: 80,
-  [GradeLevel.HIGH_9_10]: 150,
-  [GradeLevel.HIGH_11_12]: 150,
-  [GradeLevel.COLLEGE_FRESHMAN]: 150,
-  [GradeLevel.COLLEGE_ADVANCED]: 150,
+  [GradeLevel.MIDDLE_7_8]: 40,
+  [GradeLevel.HIGH_9_10]: 60,
+  [GradeLevel.HIGH_11_12]: 60,
+  [GradeLevel.COLLEGE_FRESHMAN]: 80,
+  [GradeLevel.COLLEGE_ADVANCED]: 80,
 };
 
 const CHAPTER_COUNTS: Record<StoryLength, number> = { short: 3, medium: 5, epic: 8 };
@@ -195,18 +202,7 @@ const StoryEngine: React.FC<Props> = ({
   if (phase === 'setup') {
     return (
       <div className="px-4 py-6 space-y-6 max-w-2xl mx-auto">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"><ArrowLeft size={20} /></button>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-              <BookOpen size={24} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white">{translations.storyEngine}</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{translations.storyEngineDesc}</p>
-            </div>
-          </div>
-        </div>
+<ActivityHeader kind="story" language={language} onBack={onBack}/>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
           {/* Mode */}
@@ -237,9 +233,9 @@ const StoryEngine: React.FC<Props> = ({
           <div className="space-y-2">
             <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{translations.storyLength}</label>
             <div className="grid grid-cols-3 gap-3">
-              {([ ['short', translations.shortStory, '3 ch.'],
-                  ['medium', translations.mediumStory, '5 ch.'],
-                  ['epic', translations.epicStory, '8 ch.'],
+              {([ ['short', {en:'Quick', he:'קצר', ar:'قصير', ru:'Коротко'}[language], '3'],
+                  ['medium', {en:'More', he:'עוד קצת', ar:'أطول', ru:'Подлиннее'}[language], '5'],
+                  ['epic', {en:'Epic', he:'ארוך', ar:'ملحمي', ru:'Эпично'}[language], '8'],
               ] as [StoryLength, string, string][]).map(([l, label, sub]) => (
                 <button
                   key={l}
@@ -251,7 +247,7 @@ const StoryEngine: React.FC<Props> = ({
                   }`}
                 >
                   {label}
-                  <div className="text-xs font-normal text-gray-400 mt-0.5">{sub}</div>
+                  <div className="text-xs font-normal text-gray-400 mt-0.5">{sub} {{en:'chapters', he:'פרקים', ar:'فصول', ru:'глав'}[language]}</div>
                 </button>
               ))}
             </div>
@@ -259,7 +255,7 @@ const StoryEngine: React.FC<Props> = ({
 
           {/* Genre */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Genre</label>
+            <p className="text-xs font-black text-gray-400">{{en:'Genre', he:'סוג הסיפור', ar:'نوع القصة', ru:'Жанр'}[language]}</p>
             <div className="flex flex-wrap gap-2">
               {GENRES.map(g => (
                 <button
@@ -271,7 +267,7 @@ const StoryEngine: React.FC<Props> = ({
                       : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300'
                   }`}
                 >
-                  {GENRE_EMOJIS[g]} {g}
+                  {GENRE_EMOJIS[g]} {GENRE_NAMES[language][GENRES.indexOf(g)]}
                 </button>
               ))}
             </div>
@@ -279,7 +275,7 @@ const StoryEngine: React.FC<Props> = ({
 
           {/* Writing Focus (optional) */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{translations.writingFocus} <span className="font-normal normal-case tracking-normal">(optional)</span></label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{{en:'Writing focus', he:'על מה מתרגלים?', ar:'مهارة الكتابة', ru:'Что тренируем?'}[language]} <span className="font-normal normal-case tracking-normal">({{en:'optional', he:'לא חובה', ar:'اختياري', ru:'необязательно'}[language]})</span></label>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setWritingFocus('')}
@@ -289,7 +285,7 @@ const StoryEngine: React.FC<Props> = ({
                     : 'border-gray-200 dark:border-gray-700 text-gray-500'
                 }`}
               >
-                None
+                {{en:'Any', he:'הכול', ar:'أي نوع', ru:'Любой'}[language]}
               </button>
               {([ ['descriptive', translations.descriptiveFocus],
                   ['dialogue', translations.dialogueFocus],

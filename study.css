@@ -1635,3 +1635,25 @@
     transform: none;
   }
 }
+.bw-activity-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 16px;
+  border-block-end: 3px solid var(--bw-blue);
+  color: var(--bw-ink);
+}
+.bw-activity-header h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; line-height: 1.2; }
+.bw-activity-header p { margin-block-start: 6px; color: var(--bw-muted); font-size: 14px; }
+.bw-activity-header .bw-activity-spark { margin-inline-start: auto; flex-shrink: 0; color: var(--bw-blue); }
+.bw-activity-header[dir="rtl"] .bw-icon-button svg { transform: rotate(180deg); }
+.bw-activity-page { background: var(--bw-paper); }
+.bw-activity-menu { margin-block: 24px; border-block: 1px solid var(--bw-line); padding: 16px 0; }
+.bw-activity-menu summary { cursor: pointer; font-weight: 700; min-height: 44px; display: list-item; align-content: center; }
+.bw-activity-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-block: 12px; }
+.bw-activity-picker label { font-size: 13px; }
+.bw-activity-picker select { flex: 1; min-width: 180px; }
+@media (max-width: 480px) {
+  .bw-activity-picker label { flex-basis: 100%; }
+  .bw-activity-header { gap: 10px; padding-inline: 0; }
+}

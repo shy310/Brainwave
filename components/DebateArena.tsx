@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import ActivityHeader from './ActivityHeader';
 import {
   ArrowLeft, Loader2, Swords, Send, Shield, Brain, Users,
   ChevronRight, Trophy, Zap, HelpCircle, Star
@@ -177,20 +178,7 @@ const DebateArena: React.FC<Props> = ({
   if (phase === 'setup') {
     return (
       <div className="px-4 py-6 space-y-6 max-w-2xl mx-auto">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors">
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
-              <Swords size={24} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white">{translations.debateArena}</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{translations.debateArenaDesc}</p>
-            </div>
-          </div>
-        </div>
+<ActivityHeader kind="debate" language={language} onBack={onBack}/>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
           {/* Topic */}
