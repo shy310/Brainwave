@@ -50,11 +50,14 @@ export function validateStudySet(
     Array.isArray(v) &&
     (source.kind === "topic" || v.length > 0) &&
     v.every((p) => Number.isInteger(p) && pages.has(p));
-  const cards = r.cards.filter(
+  // A topic has no uploaded source to cite. Normalize only absent references;
+  // never erase explicit invalid references or invent citations for uploads.
+  const cards = r.cards.map((c: any) => c && source.kind === 'topic' && c.pages == null ? {...c, pages: []} : c).filter(
     (c: any) => text(c?.front) && text(c?.back) && refs(c.pages),
   );
   const seen = new Set<string>();
   const questions = r.questions
+    .map((q: any) => q && source.kind === 'topic' && q.sourcePages == null ? {...q, sourcePages: []} : q)
     .map((q: any) => q && q.questionType !== QuestionType.MULTIPLE_CHOICE && q.options == null
       ? { ...q, options: [] }
       : q)
@@ -78,7 +81,6 @@ export function validateStudySet(
         return false;
       const fingerprint = q.question.toLowerCase().replace(/\s+/g, " ").trim();
       if (seen.has(fingerprint)) return false;
-      seen.add(fingerprint);
       if (
         !Array.isArray(q.options) ||
         q.options.some((o: any) => !text(o?.id) || !text(o?.text))
@@ -96,7 +98,9 @@ export function validateStudySet(
         !text(q.answerExpression)
       )
         return false;
-      return validateExercise({ ...q, id: "validate" }).ok;
+      if (!validateExercise({ ...q, id: "validate" }).ok) return false;
+      seen.add(fingerprint);
+      return true;
     })
     .map((q: any) => ({
       ...q,
