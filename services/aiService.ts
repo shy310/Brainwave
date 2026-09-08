@@ -16,7 +16,7 @@ export interface QuizPerformance {
 
 // In dev, Vite's proxy forwards /api → localhost:3001 (leave VITE_API_URL unset).
 // In a Capacitor/production build, set VITE_API_URL to your hosted backend URL.
-const API_BASE = import.meta.env.VITE_API_URL ?? '';
+const API_BASE = import.meta.env?.VITE_API_URL ?? '';
 
 export interface TutorResponse {
     text: string;
@@ -40,7 +40,7 @@ function contentBlock(att: Attachment) {
     };
 }
 
-async function callClaude(body: {
+export async function callClaude(body: {
     messages: object[];
     system?: string;
     max_tokens?: number;
@@ -51,6 +51,7 @@ async function callClaude(body: {
     // wait out the per-minute window once, then surrender with a clear error.
     for (let attempt = 0; ; attempt++) {
         const res = await fetch(`${API_BASE}/api/claude`, {
+            signal: AbortSignal.timeout(90000),
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -61,7 +62,7 @@ async function callClaude(body: {
         }
         if (!res.ok) {
             const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-            throw new Error(err.error ?? `HTTP ${res.status}`);
+            throw Object.assign(new Error(err.error ?? `HTTP ${res.status}`), { status: res.status });
         }
         const data = await res.json();
         const block = (data.content ?? []).find((b: any) => b.type === 'text');
@@ -1914,7 +1915,7 @@ Suggestions must be constructive, specific (reference exact code), and grade-app
 // ─── DEBATE ARENA v2 ──────────────────────────────────────────────────────────
 
 export const generateDebateTopicV2 = async (
-    subject: Subject,
+    subject: string,
     format: string,
     userSide: string,
     difficulty: string,

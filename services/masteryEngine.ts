@@ -133,14 +133,15 @@ export const recordAttempt = (map: SkillMap, ev: SkillAttemptEvent): SkillMap =>
 
   if (ev.correct) {
     r.attemptsCorrect += 1;
-    r.streak += 1;
-    if (!r.successDays.includes(day)) {
+    const independent = ev.hintsUsed === 0 && !ev.corrected;
+    r.streak = independent ? r.streak + 1 : 0;
+    if (independent && !r.successDays.includes(day)) {
       r.successDays = [...r.successDays, day].slice(-SUCCESS_DAYS_CAP);
     }
-    if (!r.formatsCorrect.includes(ev.questionType)) {
+    if (independent && !r.formatsCorrect.includes(ev.questionType)) {
       r.formatsCorrect = [...r.formatsCorrect, ev.questionType].slice(-FORMATS_CAP);
     }
-    if (ev.explainEvidence) r.canExplain = true;
+    if (independent && ev.explainEvidence) r.canExplain = true;
     if (ev.corrected) {
       r.correctedCount += 1;
       // A corrected answer still started as a mistake — profile it so the
@@ -155,7 +156,7 @@ export const recordAttempt = (map: SkillMap, ev: SkillAttemptEvent): SkillMap =>
     // successful review — advance the ladder. Early correct answers keep the
     // current schedule (no cramming shortcut).
     const due = r.reviewDue ? new Date(r.reviewDue).getTime() : 0;
-    if (!r.reviewDue || new Date(ts).getTime() >= due) {
+    if (independent && (!r.reviewDue || new Date(ts).getTime() >= due)) {
       const idx = REVIEW_INTERVALS.indexOf(r.reviewIntervalDays);
       const next = REVIEW_INTERVALS[Math.min(idx + 1, REVIEW_INTERVALS.length - 1)] ?? REVIEW_INTERVALS[0];
       r.reviewIntervalDays = r.reviewDue ? next : REVIEW_INTERVALS[0];

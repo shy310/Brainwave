@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ActivityHeader from './ActivityHeader';
 import {
   ArrowLeft, Layers, Bug, Share2, Image, CheckSquare, AlignLeft,
   Trophy, Zap, Star, Gamepad2
@@ -134,20 +135,7 @@ const EducationalGames: React.FC<Props> = ({
   return (
     <div className="px-4 py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center">
-            <Gamepad2 size={24} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 dark:text-white">{t.educationalGames}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t.educationalGamesDesc}</p>
-          </div>
-        </div>
-      </div>
+      <ActivityHeader kind="games" language={language} onBack={onBack}/>
 
       {/* Subject selector */}
       <div className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-2 w-fit">

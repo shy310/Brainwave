@@ -1,3 +1,4 @@
+import { callClaude } from '../services/aiService';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowLeft, Send, Loader2, Mic, Camera, Pencil, Lightbulb,
@@ -59,22 +60,7 @@ Never skip steps. Be thorough.`;
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 async function callAI(system: string, userContent: object[] | string, maxTokens = 2000): Promise<string> {
-  const content = typeof userContent === 'string'
-    ? userContent
-    : userContent;
-  const res = await fetch(`${API_BASE}/api/claude`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      system,
-      messages: [{ role: 'user', content }],
-      max_tokens: maxTokens,
-    }),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  const block = (data.content ?? []).find((b: any) => b.type === 'text');
-  return block?.text ?? '';
+  return callClaude({ system, messages: [{ role: 'user', content: userContent }], max_tokens: maxTokens });
 }
 
 function parseSteps(text: string): string[] {

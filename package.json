@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "test:study": "esbuild tests/study.test.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/study.test.mjs && node node_modules/.cache/study.test.mjs",
+    "test:browser": "playwright test",
     "build": "vite build",
     "preview": "vite preview",
     "server": "node server.js",
@@ -25,15 +28,23 @@
     "katex": "^0.16.28",
     "lucide-react": "^0.563.0",
     "mathjs": "^15.2.0",
+    "pdfjs-dist": "^4.10.38",
     "pptxgenjs": "^4.0.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "^22.14.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.5.5",
     "concurrently": "^9.1.2",
+    "fake-indexeddb": "^6.2.5",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

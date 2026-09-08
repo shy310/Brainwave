@@ -169,6 +169,8 @@ export interface LearningSession {
 }
 
 export interface UserProfile {
+  studyResultIds?: string[];
+  celebrationsEnabled?: boolean;
   id: string;
   username: string;
   name: string;
@@ -437,7 +439,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   language: Language;
   user: UserProfile;
-  activeView: 'dashboard' | 'courses' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard' | 'mastery' | 'quest' | 'comeback' | 'dungeon';
+  activeView: 'dashboard' | 'courses' | 'practice' | 'exercise' | 'settings' | 'profile' | 'lesson' | 'progress' | 'review' | 'achievements' | 'leaderboard' | 'mastery' | 'quest' | 'comeback' | 'dungeon';
   activeCourseId: string | null;
   activeTopicId: string | null;
   currentSession: LearningSession | null;

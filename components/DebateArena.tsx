@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import ActivityHeader from './ActivityHeader';
 import {
   ArrowLeft, Loader2, Swords, Send, Shield, Brain, Users,
   ChevronRight, Trophy, Zap, HelpCircle, Star
@@ -69,7 +70,7 @@ const DebateArena: React.FC<Props> = ({
     setLoadingSetup(true);
     onContextUpdate(`Debate Arena — ${topic}`);
     try {
-      const data = await generateDebateTopicV2(topic, format, 'pro', difficulty, userGrade, language);
+      const data = await generateDebateTopicV2(topic, format, 'FOR', difficulty, userGrade, language);
       setDebateData(data);
       setPhase('debate');
       setTurns([]);
@@ -168,7 +169,7 @@ const DebateArena: React.FC<Props> = ({
 
   const radarData = avgScores ? [
     { subject: translations.logic,          A: avgScores.logic },
-    { subject: translations.evidence,       A: avgScores.evidence },
+    { subject: translations.evidenceBtn,       A: avgScores.evidence },
     { subject: translations.persuasiveness, A: avgScores.persuasiveness },
     { subject: translations.relevance,      A: avgScores.relevance },
   ] : [];
@@ -177,30 +178,17 @@ const DebateArena: React.FC<Props> = ({
   if (phase === 'setup') {
     return (
       <div className="px-4 py-6 space-y-6 max-w-2xl mx-auto">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors">
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
-              <Swords size={24} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white">{translations.debateArena}</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{translations.debateArenaDesc}</p>
-            </div>
-          </div>
-        </div>
+<ActivityHeader kind="debate" language={language} onBack={onBack}/>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
           {/* Topic */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{translations.debateTopic}</label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{translations.enterTopicForSlides}</label>
             <input
               value={topic}
               onChange={e => setTopic(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleStartDebate()}
-              placeholder={translations.debateTopicPlaceholder}
+              placeholder={translations.topicPlaceholder}
               className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-red-400 rounded-xl outline-none font-medium text-gray-900 dark:text-white transition-all"
             />
           </div>
@@ -279,7 +267,7 @@ const DebateArena: React.FC<Props> = ({
           >
             {loadingSetup
               ? <><Loader2 size={20} className="animate-spin" /> Loading...</>
-              : <><Swords size={20} /> {translations.startDebate}</>
+              : <><Swords size={20} /> {translations.start}</>
             }
           </button>
         </div>
