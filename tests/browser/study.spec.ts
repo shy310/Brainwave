@@ -110,21 +110,24 @@ test("provider credit failures explain the issue and retain the topic", async ({
 
 test("Hebrew math topic accepts numeric questions without choice arrays", async ({ page }) => {
   await setup(page);
-  await page.route("**/api/claude", route => route.fulfill({ json: { content: [{ type: "text", text: JSON.stringify({
+  let requests = 0;
+  await page.route("**/api/claude", route => { requests++; return route.fulfill({ json: { content: [{ type: "text", text: JSON.stringify({
     ...fixture,
+    cards: fixture.cards.map(({pages, ...card}) => card),
     title: "חיבור וחיסור חזקות",
     subject: "MATH",
     questions: Array.from({ length: 8 }, (_, i) => ({
       questionType: "NUMERIC", question: `What is ${i + 2} squared?`,
       sampleAnswer: String((i + 2) ** 2), skillTag: "powers",
-      hint: "Multiply the base by itself.", explanation: "Squaring multiplies a number by itself.", sourcePages: [],
+      hint: "Multiply the base by itself.", explanation: "Squaring multiplies a number by itself.",
     })),
-  }) }] } }));
+  }) }] } }); });
   await page.getByRole("button", { name: "Add study material", exact: true }).first().click();
   await page.getByLabel("What are we learning?", { exact: true }).fill("חיבור וחיסור חזקות");
   await page.getByRole("button", { name: "Create study set", exact: true }).click();
   await expect(page.getByRole("heading", { name: "חיבור וחיסור חזקות", exact: true })).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
+  expect(requests).toBe(1);
 });
 
 test("material → notes → sprint → help → recap → progress → restore", async ({
