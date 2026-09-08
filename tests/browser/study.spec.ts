@@ -117,6 +117,29 @@ test("material draft survives close and refresh, then clears after success", asy
   await expect(page.getByLabel('What are we learning?', {exact:true})).toHaveValue('');
 });
 
+test('learning language is explicit, restored, and used by generation and tutor', async ({page}) => {
+  await setup(page);
+  const prompts: string[] = [];
+  page.on('request', request => { if(request.url().includes('/api/claude')) prompts.push(request.postDataJSON().system); });
+  const open = () => page.getByRole('button',{name:'Add study material',exact:true}).first().click();
+  await open();
+  await page.getByLabel('Learning language',{exact:true}).selectOption('he');
+  await page.getByLabel('What are we learning?',{exact:true}).fill('Photosynthesis');
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  await page.reload();
+  await open();
+  await expect(page.getByLabel('Learning language',{exact:true})).toHaveValue('he');
+  await page.getByRole('button',{name:'Create study set',exact:true}).click();
+  await expect(page.getByRole('heading',{name:fixture.title})).toBeVisible();
+  expect(prompts[0]).toContain('language he');
+  await expect(page.getByRole('navigation').getByRole('button',{name:'Today',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Your study partner',exact:true}).click();
+  await page.getByLabel('Ask about this step…').fill('Explain this');
+  await page.getByRole('button',{name:'Send',exact:true}).click();
+  await expect(page.getByRole('log')).toContainText('Try connecting sunlight');
+  expect(prompts[1]).toContain('Respond in he');
+});
+
 test("blocked draft storage warns without losing text", async ({page}) => {
   await setup(page);
   await page.evaluate(() => {
