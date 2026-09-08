@@ -112,7 +112,7 @@ test("material draft survives close and refresh, then clears after success", asy
   await expect(page.getByLabel('Paste the actual content.', {exact:false})).toHaveValue(source);
   await page.getByRole('button', {name:'Create study set',exact:true}).click();
   await expect(page.getByRole('heading', {name:fixture.title})).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', {name:'Today',exact:true}).click();
+  await page.getByRole('button', {name:'Back',exact:true}).click();
   await open();
   await expect(page.getByLabel('What are we learning?', {exact:true})).toHaveValue('');
 });

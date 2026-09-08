@@ -30,6 +30,7 @@ import {
 } from "../services/studyEngine";
 import { extractSource, generateStudySet } from "../services/studyAI";
 import { legacyNotes, loadLibrary, saveLibrary } from "../services/studyStore";
+import { loadMaterialDraft, saveMaterialDraft, clearMaterialDraft } from '../services/materialDraft';
 import StudySprintView from "./StudySprintView";
 import MathText from "./MathText";
 import StudyTutor from "./StudyTutor";
@@ -78,11 +79,16 @@ function MaterialForm({
   onClose: () => void;
 }) {
   const c = studyCopy(language);
+  const [draft] = useState(() => initialTopic ? null : loadMaterialDraft(user.id));
   const [kind, setKind] = useState<"topic" | "text" | "transcript" | "file">(
-    "topic",
+    draft?.kind ?? "topic",
   );
-  const [title, setTitle] = useState(initialTopic ?? ""),
-    [body, setBody] = useState("");
+  const [title, setTitle] = useState(initialTopic || draft?.title || ""),
+    [body, setBody] = useState(draft?.body ?? "");
+  const [draftSaved, setDraftSaved] = useState(true);
+  useEffect(() => {
+    if (kind !== 'file') setDraftSaved(saveMaterialDraft(user.id, {kind, title, body}));
+  }, [user.id, kind, title, body]);
   const [source, setSource] = useState<StudySource | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false),
@@ -144,6 +150,7 @@ function MaterialForm({
               reviewed: true,
             };
       onDone(await generateStudySet(input, user, language));
+      if (kind !== 'file') clearMaterialDraft(user.id);
     } catch (cause) {
       console.warn('Study set creation failed:', cause instanceof Error ? cause.message : 'Unknown failure');
       setError((cause as {status?: number})?.status === 402 ? c.providerCredits : cause instanceof Error && cause.message === "STUDY_INVALID_RESPONSE" ? c.invalidGeneration : c.error);
@@ -289,6 +296,11 @@ function MaterialForm({
               </label>
             )}
           </>
+        )}
+        {kind !== 'file' && (title || body) && (
+          <p className={draftSaved ? 'bw-muted' : 'bw-error'} role={draftSaved ? 'status' : 'alert'}>
+            {draftSaved ? c.draftSaved : c.draftError}
+          </p>
         )}
         {error && (
           <p className="bw-error" role="alert">

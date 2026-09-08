@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import './materialDraft.test';
 import "fake-indexeddb/auto";
 import {
   GradeLevel,
