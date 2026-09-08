@@ -98,6 +98,16 @@ async function setup(page: any, language = "en") {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 }
 
+test("provider credit failures explain the issue and retain the topic", async ({page}) => {
+  await setup(page);
+  await page.route('**/api/claude', route => route.fulfill({status:402,json:{error:'Insufficient credits'}}));
+  await page.getByRole('button', {name:'Add study material',exact:true}).first().click();
+  await page.getByLabel('What are we learning?', {exact:true}).fill('חיבור וחיסור חזקות');
+  await page.getByRole('button', {name:'Create study set',exact:true}).click();
+  await expect(page.getByRole('alert')).toContainText('insufficient credits');
+  await expect(page.getByLabel('What are we learning?', {exact:true})).toHaveValue('חיבור וחיסור חזקות');
+});
+
 test("Hebrew math topic accepts numeric questions without choice arrays", async ({ page }) => {
   await setup(page);
   await page.route("**/api/claude", route => route.fulfill({ json: { content: [{ type: "text", text: JSON.stringify({
