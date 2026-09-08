@@ -98,6 +98,25 @@ async function setup(page: any, language = "en") {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 }
 
+test("material draft survives close and refresh, then clears after success", async ({page}) => {
+  await setup(page);
+  const open = () => page.getByRole('button', {name:'Add study material',exact:true}).first().click();
+  await open();
+  await page.getByRole('button', {name:'Text',exact:true}).click();
+  await page.getByLabel('Title', {exact:true}).fill('My saved lesson');
+  await page.getByLabel('Paste the actual content.', {exact:false}).fill(source);
+  await page.getByRole('button', {name:'Cancel',exact:true}).click();
+  await page.reload();
+  await open();
+  await expect(page.getByLabel('Title', {exact:true})).toHaveValue('My saved lesson');
+  await expect(page.getByLabel('Paste the actual content.', {exact:false})).toHaveValue(source);
+  await page.getByRole('button', {name:'Create study set',exact:true}).click();
+  await expect(page.getByRole('heading', {name:fixture.title})).toBeVisible();
+  await page.getByRole('navigation').getByRole('button', {name:'Today',exact:true}).click();
+  await open();
+  await expect(page.getByLabel('What are we learning?', {exact:true})).toHaveValue('');
+});
+
 test("provider credit failures explain the issue and retain the topic", async ({page}) => {
   await setup(page);
   await page.route('**/api/claude', route => route.fulfill({status:402,json:{error:'Insufficient credits'}}));
