@@ -117,6 +117,21 @@ test("material draft survives close and refresh, then clears after success", asy
   await expect(page.getByLabel('What are we learning?', {exact:true})).toHaveValue('');
 });
 
+test("blocked draft storage warns without losing text", async ({page}) => {
+  await setup(page);
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key.startsWith('brainwave-material-draft-v1:')) throw new DOMException('Full','QuotaExceededError');
+      return original.call(this,key,value);
+    };
+  });
+  await page.getByRole('button',{name:'Add study material',exact:true}).first().click();
+  await page.getByLabel('What are we learning?',{exact:true}).fill('Keep this topic');
+  await expect(page.getByRole('alert')).toContainText('Draft autosave is unavailable');
+  await expect(page.getByLabel('What are we learning?',{exact:true})).toHaveValue('Keep this topic');
+});
+
 test("provider credit failures explain the issue and retain the topic", async ({page}) => {
   await setup(page);
   await page.route('**/api/claude', route => route.fulfill({status:402,json:{error:'Insufficient credits'}}));
