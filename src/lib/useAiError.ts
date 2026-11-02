@@ -12,6 +12,8 @@ export const useAiError = () => {
       if (err.status === 429) return t.errors.rateLimit;
       if (err.status === 401) return t.errors.signedOut;
       if (err.status === 503) return t.errors.unavailable;
+      if (err.status === 402) return t.errors.credits;
+      return `${t.errors.ai} (${err.code ?? err.status})`;
     }
     return t.errors.ai;
   }, [t]);

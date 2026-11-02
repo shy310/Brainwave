@@ -121,6 +121,7 @@ export const en = {
     ai: 'The AI couldn’t answer just now. Please try again.',
     rateLimit: 'You’ve hit today’s AI limit, or are going a bit fast. Try again in a minute.',
     unavailable: 'The AI isn’t set up on this server yet.',
+    credits: 'The AI account has run out of credits. Please tell the site owner.',
     signedOut: 'Your session ended. Please sign in again.',
     offline: 'You seem to be offline. Check your connection and try again.',
   },

@@ -44,7 +44,7 @@ const request = (model: string, o: ChatOptions) =>
       temperature: o.temperature ?? 0.4,
       stream: o.stream ?? false,
       ...(o.jsonSchema
-        ? { response_format: { type: 'json_schema', json_schema: { name: o.jsonSchema.name, strict: true, schema: o.jsonSchema.schema } } }
+        ? { response_format: { type: 'json_schema', json_schema: { name: o.jsonSchema.name, strict: false, schema: o.jsonSchema.schema } } }
         : {}),
       ...(o.hasPdf ? { plugins: [{ id: 'file-parser', pdf: { engine: 'native' } }] } : {}),
     }),
@@ -63,12 +63,11 @@ export const callModel = async (o: ChatOptions): Promise<Response> => {
   }
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    console.error('OpenRouter error', res.status, body.slice(0, 400));
-    throw new AiError(
-      res.status === 429 ? 'The AI is busy right now. Please try again in a moment.' : 'The AI service had a problem. Please try again.',
-      res.status === 429 ? 429 : 502,
-      res.status,
-    );
+    console.error('OpenRouter error', res.status, body.slice(0, 600));
+    if (res.status === 429) throw new AiError('The AI is busy right now. Please try again in a moment.', 429, 429);
+    if (res.status === 402) throw new AiError('The AI account is out of credits.', 402, 402);
+    if (res.status === 401 || res.status === 403) throw new AiError('The AI key was rejected by the provider.', 503, res.status);
+    throw new AiError('The AI service had a problem. Please try again.', 502, res.status);
   }
   return res;
 };

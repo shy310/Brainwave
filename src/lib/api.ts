@@ -3,7 +3,7 @@ import type { Locale } from '@shared/locales';
 import type { Grade } from '@shared/grades';
 
 export class ApiError extends Error {
-  constructor(message: string, public status: number) { super(message); }
+  constructor(message: string, public status: number, public code?: number) { super(message); }
 }
 
 // Locale and grade are attached to every AI call so the server can tailor prompts.
@@ -27,7 +27,8 @@ const post = async (path: string, body: unknown, signal?: AbortSignal) =>
 
 const failure = async (res: Response) => {
   const data = await res.json().catch(() => ({}));
-  return new ApiError((data as { error?: string }).error ?? `Request failed (${res.status})`, res.status);
+  const body = data as { error?: string; code?: number };
+  return new ApiError(body.error ?? `Request failed (${res.status})`, res.status, body.code ?? res.status);
 };
 
 /** Run a named AI operation that returns structured data. */

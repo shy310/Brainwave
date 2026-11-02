@@ -115,6 +115,42 @@ describe('learn operations', () => {
   });
 });
 
+describe('structured output fallbacks', () => {
+  it('sends a provider-friendly schema and also puts it in the prompt', async () => {
+    const spy = mockModel(['{"echo":"ok"}']);
+    await post('/api/ai/testEcho', { input: { word: 'x' } });
+    const call = spy.mock.calls.find(c => !String(c[0]).startsWith(base))!;
+    const body = JSON.parse(String((call[1] as RequestInit).body));
+    const schemaText = JSON.stringify(body.response_format.json_schema.schema);
+    expect(body.response_format.json_schema.strict).toBe(false);
+    expect(schemaText).not.toMatch(/minLength|maxLength|additionalProperties|\$schema/);
+    expect(body.messages[0]).toMatchObject({ role: 'system' });
+    expect(body.messages[0].content).toContain('"echo"');
+  });
+
+  it('retries without response_format when the provider rejects the schema', async () => {
+    const bodies: Record<string, unknown>[] = [];
+    globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      if (String(url).startsWith(base)) return realFetch(url, init);
+      const body = JSON.parse(String(init?.body));
+      bodies.push(body);
+      if (body.response_format) return new Response('{"error":{"message":"Invalid schema"}}', { status: 422 });
+      return new Response(JSON.stringify({ choices: [{ message: { content: '{"echo":"plain"}' } }] }), { status: 200 });
+    }) as typeof fetch;
+    const res = await post('/api/ai/testEcho', { input: { word: 'x' } });
+    expect(await res.json()).toEqual({ data: { echo: 'plain' } });
+    expect(bodies.at(-1)!.response_format).toBeUndefined();
+  });
+
+  it('reports out-of-credits clearly', async () => {
+    globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) =>
+      String(url).startsWith(base) ? realFetch(url, init) : new Response('{}', { status: 402 })) as typeof fetch;
+    const res = await post('/api/ai/testEcho', { input: { word: 'x' } });
+    expect(res.status).toBe(402);
+    expect(await res.json()).toMatchObject({ code: 402 });
+  });
+});
+
 describe('security', () => {
   it('never allows demo mode in production', async () => {
     vi.resetModules();

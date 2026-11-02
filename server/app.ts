@@ -32,7 +32,10 @@ app.get('/api/health', (_req, res) => {
 
 const sendError = (res: Response, err: unknown) => {
   if (res.headersSent) return;
-  if (err instanceof AiError) return res.status(err.status).json({ error: err.message });
+  if (err instanceof AiError) {
+    console.error('AI error', err.status, err.upstreamStatus ?? '', err.message);
+    return res.status(err.status).json({ error: err.message, code: err.upstreamStatus ?? err.status });
+  }
   console.error(err);
   return res.status(500).json({ error: 'Something went wrong. Please try again.' });
 };
