@@ -17,6 +17,8 @@ export default defineConfig({
     proxy: { '/api': 'http://localhost:3000' },
   },
   build: {
+    // mathjs (~650 kB) is only loaded when a typed answer is checked.
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         manualChunks: { react: ['react', 'react-dom', 'react-router'] },

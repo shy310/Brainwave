@@ -1,7 +1,8 @@
 import { createBrowserRouter } from 'react-router';
 import { AppShell } from './AppShell';
 import { RequireAuth, RequireGuest, RequireUser } from '@/features/auth/guards';
-import { LearnSoon, LecturesSoon, VideosSoon, PodcastsSoon } from '@/features/home/ComingSoonPage';
+import { LecturesSoon, VideosSoon, PodcastsSoon } from '@/features/home/ComingSoonPage';
+import { ProgressProvider } from '@/features/learn/ProgressProvider';
 
 // Pages are code-split: each loads only when visited.
 const page = (load: () => Promise<{ default: React.ComponentType }>) => async () => ({ Component: (await load()).default });
@@ -18,10 +19,14 @@ export const router = createBrowserRouter([
   {
     element: <RequireAuth />,
     children: [{
-      element: <AppShell />,
+      element: <ProgressProvider><AppShell /></ProgressProvider>,
       children: [
         { index: true, lazy: page(() => import('@/features/home/HomePage')) },
-        { path: 'learn', element: <LearnSoon /> },
+        { path: 'learn', lazy: page(() => import('@/features/learn/LearnPage')) },
+        { path: 'learn/course/:courseId', lazy: page(() => import('@/features/learn/CoursePage')) },
+        { path: 'learn/topic/:topicId', lazy: page(() => import('@/features/learn/TopicPage')) },
+        { path: 'learn/topic/:topicId/quiz', lazy: page(() => import('@/features/learn/QuizPage')) },
+        { path: 'tutor', lazy: page(() => import('@/features/tutor/TutorPage')) },
         { path: 'lectures', element: <LecturesSoon /> },
         { path: 'videos', element: <VideosSoon /> },
         { path: 'podcasts', element: <PodcastsSoon /> },

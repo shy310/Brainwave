@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { ArrowRight, BookOpen, Mic, Clapperboard, Headphones } from 'lucide-react';
+import { ArrowRight, BookOpen, Mic, Clapperboard, Headphones, MessageCircle } from 'lucide-react';
 import { useT } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Card } from '@/ui/Card';
@@ -19,6 +19,18 @@ export default function HomePage() {
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t.home.greeting(profile?.display_name ?? '')}</h1>
         <p className="mt-2 text-lg text-muted">{t.home.subtitle}</p>
       </header>
+      <Link to="/tutor" className="group block rounded-[var(--radius-card)]">
+        <Card className="flex items-center gap-4 p-4 transition-shadow group-hover:shadow-[var(--shadow-lift)]">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-200">
+            <MessageCircle className="size-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold">{t.tutor.title}</h2>
+            <p className="truncate text-sm text-muted">{t.tutor.subtitle}</p>
+          </div>
+          <ArrowRight className="size-5 text-muted rtl:rotate-180" aria-hidden="true" />
+        </Card>
+      </Link>
       <div className="grid gap-4 sm:grid-cols-2">
         {pillars.map((p, i) => (
           <Link key={p.to} to={p.to} className="group rounded-[var(--radius-card)] focus-visible:outline-offset-4" style={{ animationDelay: `${i * 60}ms` }}>

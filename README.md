@@ -7,9 +7,9 @@ An AI study partner for students from kindergarten to college, in **English and 
 - **Video lessons** — any topic or lecture as a short animated, narrated lesson.
 - **Podcasts** — two hosts talk through any topic.
 
-> **Status:** v2 is being rebuilt from scratch in phases. Phase 0 (this foundation) ships the
-> app shell, design system, English/Hebrew, accounts and the secure AI gateway. Learn, Lectures,
-> Video lessons and Podcasts land in the next phases.
+> **Status:** v2 is being rebuilt from scratch in phases. Done: the foundation (app shell, design
+> system, English/Hebrew, accounts, secure AI gateway) and **Learn** (42 courses / 180 topics,
+> lessons, quizzes, AI tutor, progress). Lectures, Video lessons and Podcasts come next.
 
 ## Stack
 
@@ -34,7 +34,8 @@ An AI study partner for students from kindergarten to college, in **English and 
 ### 1. Supabase (free)
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor**, paste the contents of `supabase/migrations/0001_foundation.sql`, and run it.
+2. Open **SQL Editor** and run each file in `supabase/migrations/` in order
+   (`0001_foundation.sql`, then `0002_learning.sql`). Each one is safe to re-run.
 3. **Authentication → URL Configuration**: set the Site URL to your Vercel URL and add
    `http://localhost:5173` to the redirect URLs.
 4. Optional — **Authentication → Providers → Google**: enable it and add your Google OAuth client.
@@ -64,6 +65,14 @@ browser). Demo mode is disabled in production, so the AI can never be used anony
 npm install
 npm run dev:all        # web on :5173, API on :3000
 ```
+
+## How Learn works
+
+- **Curriculum** — `shared/curriculumData.ts`: 6 subjects × 7 levels (K → college), every title in English and Hebrew.
+- **AI operations** — `server/ai/ops/learn.ts` (`lesson`, `quiz`, `practice`, `steps`, `grade`) and `server/ai/ops/tutor.ts` (streaming chat with *Tutor me* / *Explain* / *Custom* modes and image/PDF attachments).
+- **Correct answers are checked by code, not the AI** — `shared/math/check.ts` compares answers exactly (½ = 0.5 = 50%, 5 cm = 0.05 m), and `shared/math/validate.ts` verifies every generated question before a student sees it, fixing or dropping wrong ones. The AI grader is only used for worded answers.
+- **Progress** — the `topic_progress` table (or the browser in demo mode). A topic is *mastered* at 80% on a quiz.
+- Lessons are cached in the browser, so reopening a topic doesn't use AI budget.
 
 ## Scripts
 

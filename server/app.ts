@@ -55,7 +55,9 @@ app.post('/api/ai/:op', requireUser, (req: AuthedRequest, res, next) => {
 
   try {
     if (op.stream) {
-      const upstream = await callModel({ messages: op.build(parsed.data, ctx), maxTokens: op.maxTokens, temperature: op.temperature, stream: true });
+      const messages = op.build(parsed.data, ctx);
+      const hasPdf = messages.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'file'));
+      const upstream = await callModel({ messages, maxTokens: op.maxTokens, temperature: op.temperature, stream: true, hasPdf });
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache, no-transform');
       res.setHeader('Connection', 'keep-alive');

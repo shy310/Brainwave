@@ -74,6 +74,47 @@ describe('AI gateway', () => {
   });
 });
 
+const q = (prompt: string, over: Record<string, unknown> = {}) => ({
+  kind: 'input', prompt, options: [], correctIndex: -1, answer: '4', accepted: [], check: '2+2', hint: '', explanation: 'Two plus two.', ...over,
+});
+
+describe('learn operations', () => {
+  it('rejects unknown topics', async () => {
+    const res = await post('/api/ai/quiz', { input: { topicId: 'nope' } });
+    expect(res.status).toBe(400);
+  });
+
+  it('verifies and trims generated quizzes', async () => {
+    const questions = [q('What is 2+2?'), q('Add two and two', { answer: '5' }), q('What is undefined?'), q('Double 2?'), q('2 squared?')];
+    mockModel([JSON.stringify({ questions })]);
+    const res = await post('/api/ai/quiz', { input: { topicId: 'math-k-t3', count: 3 } });
+    const { data } = await res.json() as { data: { questions: { prompt: string; answer: string }[] } };
+    expect(data.questions).toHaveLength(3);
+    expect(data.questions.map(x => x.answer)).toEqual(['4', '4', '4']);
+    expect(data.questions.some(x => x.prompt.includes('undefined'))).toBe(false);
+  });
+
+  it('builds tutor prompts with mode, topic and attachments', async () => {
+    const { tutorOp } = await import('../../server/ai/ops/tutor');
+    const input = tutorOp.input.parse({
+      messages: [{ role: 'user', content: 'help' }], mode: 'custom', custom: 'Use pirate talk', topicId: 'math-h1-t1',
+      attachment: { kind: 'pdf', name: 'hw.pdf', dataUrl: 'data:application/pdf;base64,AAAA' },
+    });
+    const msgs = tutorOp.build(input, { userId: 'u', demo: true, locale: 'he', grade: '10' });
+    const sys = String(msgs[0].content);
+    expect(sys).toContain('pirate talk');
+    expect(sys).toContain('Quadratic Equations');
+    expect(sys).toContain('Hebrew');
+    expect(Array.isArray(msgs[1].content) && msgs[1].content[1].type).toBe('file');
+  });
+
+  it('refuses oversized or non-image attachments', () => {
+    return import('../../shared/learn').then(({ AttachmentSchema }) => {
+      expect(AttachmentSchema.safeParse({ kind: 'image', name: 'x', dataUrl: 'data:text/html;base64,AAAA' }).success).toBe(false);
+    });
+  });
+});
+
 describe('security', () => {
   it('never allows demo mode in production', async () => {
     vi.resetModules();

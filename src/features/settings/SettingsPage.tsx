@@ -4,7 +4,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { useTheme, type Theme } from '@/app/ThemeProvider';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
-import { Field, Input, Select } from '@/ui/Field';
+import { Field, Input, Select, Textarea } from '@/ui/Field';
 import { Segmented } from '@/ui/Segmented';
 import { Alert } from '@/ui/Alert';
 import { GRADES, type Grade } from '@shared/grades';
@@ -16,12 +16,13 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState(profile?.display_name ?? '');
   const [grade, setGrade] = useState<Grade>(profile?.grade ?? '9');
+  const [style, setStyle] = useState(profile?.tutor_style ?? '');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setStatus('saving');
-    try { await updateProfile({ display_name: name.trim() || profile?.display_name, grade }); setStatus('saved'); }
+    try { await updateProfile({ display_name: name.trim() || profile?.display_name, grade, tutor_style: style.trim() || null }); setStatus('saved'); }
     catch { setStatus('error'); }
   };
 
@@ -41,6 +42,9 @@ export default function SettingsPage() {
                 {GRADES.map(g => <option key={g} value={g}>{t.grades[g]}</option>)}
               </Select>
             )}
+          </Field>
+          <Field label={t.tutor.styleLabel} hint={t.tutor.styleHint}>
+            {id => <Textarea id={id} rows={2} maxLength={500} value={style} onChange={e => { setStyle(e.target.value); setStatus('idle'); }} />}
           </Field>
           {status === 'error' && <Alert tone="error">{t.auth.errors.generic}</Alert>}
           <Button type="submit" loading={status === 'saving'}>{status === 'saved' ? t.common.saved : t.common.save}</Button>
