@@ -2,8 +2,8 @@
 // The checker independently verifies numeric answers; questions that can't be
 // trusted are dropped rather than risk marking a right answer wrong.
 
-import type { Question } from '../learn';
-import { equivalent, formatNumber, looksNumeric, parseAnswer } from './check';
+import type { Question } from '../learn.js';
+import { equivalent, formatNumber, looksNumeric, parseAnswer } from './check.js';
 
 const BROKEN = /\bundefined\b|\bNaN\b|\[object |\bTODO\b|<\/?(script|div|span)\b/i;
 const norm = (s: string) => s.toLowerCase().normalize('NFKD').replace(/\s+/g, ' ').trim();

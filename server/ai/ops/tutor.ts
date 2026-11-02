@@ -1,8 +1,8 @@
-import { defineOp } from '../ops';
-import { audience } from '../prompts';
-import type { ChatMessage, ContentPart } from '../openrouter';
-import { findTopic } from '../../../shared/curriculum';
-import { TutorInputSchema, type TutorMode } from '../../../shared/learn';
+import { defineOp } from '../ops.js';
+import { audience } from '../prompts.js';
+import type { ChatMessage, ContentPart } from '../openrouter.js';
+import { findTopic } from '../../../shared/curriculum.js';
+import { TutorInputSchema, type TutorMode } from '../../../shared/learn.js';
 
 const MODES: Record<TutorMode, string> = {
   tutor: `MODE — "Tutor me" (Socratic):

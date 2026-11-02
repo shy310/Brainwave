@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { createHash } from 'node:crypto';
-import { env, supabaseConfigured, demoModeActive } from './env';
+import { env, supabaseConfigured, demoModeActive } from './env.js';
 
 export interface AuthedRequest extends Request {
   userId?: string;

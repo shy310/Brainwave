@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from 'express';
-import type { AuthedRequest } from './auth';
-import { env } from './env';
+import type { AuthedRequest } from './auth.js';
+import { env } from './env.js';
 
 /**
  * Per-student AI budget, enforced in Postgres (works across serverless

@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import type { AiOp, OpContext } from './ops';
-import { AiError, completeText, type ChatMessage } from './openrouter';
-import { parseJson } from './jsonRepair';
+import type { AiOp, OpContext } from './ops.js';
+import { AiError, completeText, type ChatMessage } from './openrouter.js';
+import { parseJson } from './jsonRepair.js';
 
 const hasPdf = (messages: ChatMessage[]) =>
   messages.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'file'));

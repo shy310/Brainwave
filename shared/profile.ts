@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { GRADES } from './grades';
-import { LOCALES } from './locales';
+import { GRADES } from './grades.js';
+import { LOCALES } from './locales.js';
 
 export const ProfileSchema = z.object({
   id: z.string(),

@@ -1,7 +1,7 @@
 import type { ZodType } from 'zod';
-import type { ChatMessage } from './openrouter';
-import type { Grade } from '../../shared/grades';
-import type { Locale } from '../../shared/locales';
+import type { ChatMessage } from './openrouter.js';
+import type { Grade } from '../../shared/grades.js';
+import type { Locale } from '../../shared/locales.js';
 
 /** Who is asking, used to tailor prompts. */
 export interface OpContext {

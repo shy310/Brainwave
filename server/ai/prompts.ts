@@ -1,6 +1,6 @@
-import { gradeBand, type Grade } from '../../shared/grades';
-import { LOCALE_NAME } from '../../shared/locales';
-import type { OpContext } from './ops';
+import { gradeBand, type Grade } from '../../shared/grades.js';
+import { LOCALE_NAME } from '../../shared/locales.js';
+import type { OpContext } from './ops.js';
 
 const GRADE_LABEL = (g: Grade) => (g === 'k' ? 'kindergarten' : g === 'college' ? 'college' : `grade ${g}`);
 

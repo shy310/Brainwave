@@ -1,8 +1,8 @@
-import type { Grade } from './grades';
-import { COURSES } from './curriculumData';
-import type { Band, Course, Subject, Topic, Unit } from './curriculumTypes';
+import type { Grade } from './grades.js';
+import { COURSES } from './curriculumData.js';
+import type { Band, Course, Subject, Topic, Unit } from './curriculumTypes.js';
 
-export * from './curriculumTypes';
+export * from './curriculumTypes.js';
 export { COURSES };
 
 export const bandForGrade = (g: Grade): Band => {

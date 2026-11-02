@@ -1,13 +1,13 @@
 import express, { type Response } from 'express';
-import { env, supabaseConfigured, demoModeActive } from './env';
-import { requireUser, type AuthedRequest } from './auth';
-import { quota } from './usage';
-import { getOp, type OpContext } from './ai/ops';
-import { runStructured } from './ai/run';
-import { AiError, callModel } from './ai/openrouter';
-import { isGrade } from '../shared/grades';
-import { isLocale } from '../shared/locales';
-import './ai/registry';
+import { env, supabaseConfigured, demoModeActive } from './env.js';
+import { requireUser, type AuthedRequest } from './auth.js';
+import { quota } from './usage.js';
+import { getOp, type OpContext } from './ai/ops.js';
+import { runStructured } from './ai/run.js';
+import { AiError, callModel } from './ai/openrouter.js';
+import { isGrade } from '../shared/grades.js';
+import { isLocale } from '../shared/locales.js';
+import './ai/registry.js';
 
 export const app = express();
 app.disable('x-powered-by');

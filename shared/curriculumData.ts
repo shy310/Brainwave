@@ -1,8 +1,8 @@
 // Generated from the v1 curriculum, with Hebrew added. Edit freely — this file is the source of truth.
 // Each topic: t(id, [English title, Hebrew title], [English description, Hebrew description], prerequisites)
 
-import type { Course } from './curriculumTypes';
-import { t, u } from './curriculumTypes';
+import type { Course } from './curriculumTypes.js';
+import { t, u } from './curriculumTypes.js';
 
 export const COURSES: Course[] = [
   {

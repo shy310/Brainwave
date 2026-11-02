@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import { defineOp, type OpContext } from '../ops';
-import { audience, QUESTION_RULES } from '../prompts';
-import { findTopic } from '../../../shared/curriculum';
-import { LOCALE_NAME } from '../../../shared/locales';
+import { defineOp, type OpContext } from '../ops.js';
+import { audience, QUESTION_RULES } from '../prompts.js';
+import { findTopic } from '../../../shared/curriculum.js';
+import { LOCALE_NAME } from '../../../shared/locales.js';
 import {
   DIFFICULTIES, GradeSchema, LessonSchema, QuestionSchema, QuizSchema, StepsSchema, type Question,
-} from '../../../shared/learn';
-import { sanitizeQuestion, sanitizeQuestions } from '../../../shared/math/validate';
-import { AiError } from '../openrouter';
+} from '../../../shared/learn.js';
+import { sanitizeQuestion, sanitizeQuestions } from '../../../shared/math/validate.js';
+import { AiError } from '../openrouter.js';
 
 const topicId = z.string().min(1).max(60).refine((id) => Boolean(findTopic(id)), 'Unknown topic');
 

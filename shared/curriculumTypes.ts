@@ -1,4 +1,4 @@
-import type { Locale } from './locales';
+import type { Locale } from './locales.js';
 
 export const SUBJECTS = ['math', 'science', 'geography', 'history', 'coding', 'economics'] as const;
 export type Subject = (typeof SUBJECTS)[number];

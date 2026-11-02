@@ -1,4 +1,4 @@
-import { env } from '../env';
+import { env } from '../env.js';
 
 // OpenAI-compatible message shapes accepted by OpenRouter.
 export type ContentPart =

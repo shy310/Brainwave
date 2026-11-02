@@ -13,7 +13,7 @@ for (const file of ['.env', '.env.local']) {
   }
 }
 
-const { app } = await import('./app');
+const { app } = await import('./app.js');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
 if (fs.existsSync(dist)) {
