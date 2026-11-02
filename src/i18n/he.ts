@@ -1,0 +1,68 @@
+import type { Dict } from './en';
+
+export const he: Dict = {
+  app: { name: 'BrainWave', tagline: 'שותף הלמידה שלך עם בינה מלאכותית' },
+  nav: {
+    home: 'בית', learn: 'לימוד', lectures: 'הרצאות', videos: 'שיעורי וידאו',
+    podcasts: 'פודקאסטים', settings: 'הגדרות', signOut: 'התנתקות', menu: 'תפריט', account: 'חשבון',
+  },
+  common: {
+    loading: 'טוען…', save: 'שמירה', saving: 'שומר…', saved: 'נשמר', cancel: 'ביטול',
+    continue: 'המשך', back: 'חזרה', tryAgain: 'נסו שוב', comingSoon: 'בקרוב',
+    close: 'סגירה', or: 'או', open: 'פתיחה',
+  },
+  auth: {
+    welcomeTitle: 'ללמוד כל דבר, בדרך שלך.',
+    welcomeBody: 'שיעורים שמתאימים את עצמם אליך, סיכומי הרצאות שנכתבים בשבילך, ושיעורי וידאו ופודקאסטים מכל חומר שאת/ה לומד/ת.',
+    signInTitle: 'התחברות',
+    signUpTitle: 'יצירת חשבון',
+    email: 'אימייל', password: 'סיסמה',
+    passwordHint: 'לפחות 8 תווים',
+    signIn: 'התחברות', signUp: 'יצירת חשבון',
+    google: 'המשך עם Google',
+    haveAccount: 'כבר יש לך חשבון?', noAccount: 'חדש/ה ב-BrainWave?',
+    switchToSignIn: 'התחברות', switchToSignUp: 'יצירת חשבון',
+    checkEmail: 'בדקו את תיבת הדואר כדי לאשר את האימייל, ואז התחברו.',
+    forgot: 'שכחת סיסמה?',
+    resetSent: 'אם קיים חשבון עם האימייל הזה, קישור לאיפוס בדרך.',
+    demoTitle: 'מצב הדגמה',
+    demoBody: 'חשבונות עדיין לא הוגדרו בשרת הזה, לכן ההתקדמות תישמר רק בדפדפן הזה.',
+    demoStart: 'נסו את BrainWave',
+    errors: {
+      generic: 'משהו השתבש. נסו שוב.',
+      invalid: 'האימייל או הסיסמה שגויים.',
+      weakPassword: 'יש להשתמש בלפחות 8 תווים.',
+      emailTaken: 'כבר קיים חשבון עם האימייל הזה.',
+    },
+  },
+  onboarding: {
+    title: 'בואו נתחיל',
+    subtitle: 'כך BrainWave יוכל להסביר ברמה המתאימה לך.',
+    name: 'איך לקרוא לך?', namePlaceholder: 'השם הפרטי שלך',
+    grade: 'מה את/ה לומד/ת?', language: 'שפת האפליקציה',
+    finish: 'מתחילים ללמוד',
+  },
+  grades: {
+    k: 'גן חובה', '1': 'כיתה א׳', '2': 'כיתה ב׳', '3': 'כיתה ג׳', '4': 'כיתה ד׳', '5': 'כיתה ה׳',
+    '6': 'כיתה ו׳', '7': 'כיתה ז׳', '8': 'כיתה ח׳', '9': 'כיתה ט׳', '10': 'כיתה י׳', '11': 'כיתה י״א',
+    '12': 'כיתה י״ב', college: 'אקדמיה / אוניברסיטה',
+  },
+  languages: { en: 'English (אנגלית)', he: 'עברית' },
+  home: {
+    greeting: (name: string) => (name ? `היי, ${name}` : 'היי'),
+    subtitle: 'על מה נעבוד היום?',
+    learnTitle: 'לימוד', learnBody: 'קורסים מהגן ועד האקדמיה, עם מורה פרטי שמדריך צעד אחר צעד.',
+    lecturesTitle: 'הרצאות', lecturesBody: 'הקליטו או העלו שיעור וקבלו תמלול, סיכום, בוחן וכרטיסיות.',
+    videosTitle: 'שיעורי וידאו', videosBody: 'הפכו כל נושא או הרצאה לשיעור קצר, מונפש ומדובב.',
+    podcastsTitle: 'פודקאסטים', podcastsBody: 'האזינו לשני מנחים שמסבירים כל נושא — מושלם לחזרה בדרכים.',
+  },
+  settings: {
+    title: 'הגדרות',
+    profile: 'פרופיל', appearance: 'מראה', theme: 'ערכת נושא',
+    themeLight: 'בהירה', themeDark: 'כהה', themeSystem: 'לפי המכשיר',
+    account: 'חשבון', signedInAs: (email: string) => `מחובר/ת בתור ${email}`,
+    demoNote: 'מצב הדגמה: ההתקדמות נשמרת רק בדפדפן הזה.',
+  },
+  notFound: { title: 'הדף לא נמצא', body: 'לא מצאנו את הדף הזה.', home: 'לדף הבית' },
+  errors: { boundary: 'משהו השתבש בדף הזה.', reload: 'טעינה מחדש' },
+};

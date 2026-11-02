@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* Dark mode is driven by a `.dark` class on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Rubik", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-brand-50: #f2f1ff;
+  --color-brand-100: #e6e4ff;
+  --color-brand-200: #cfcbff;
+  --color-brand-300: #ada5ff;
+  --color-brand-400: #8a7bff;
+  --color-brand-500: #6d55fb;
+  --color-brand-600: #5b3df0;
+  --color-brand-700: #4b2fd3;
+  --color-brand-800: #3d28aa;
+  --color-brand-900: #332686;
+
+  --color-accent-300: #ffb393;
+  --color-accent-400: #ff8a5c;
+  --color-accent-500: #ff6b3d;
+  --color-accent-600: #ed4f1f;
+
+  --radius-card: 1.25rem;
+  --shadow-soft: 0 1px 2px rgb(16 12 40 / 0.04), 0 8px 24px -8px rgb(16 12 40 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(16 12 40 / 0.06), 0 16px 40px -12px rgb(16 12 40 / 0.22);
+
+  --animate-fade-up: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-in: fade-in 0.3s ease both;
+}
+
+/* Semantic surface colours that flip with the theme. */
+:root {
+  --bg: #f7f7fb;
+  --surface: #ffffff;
+  --surface-2: #f0f0f7;
+  --line: #e4e4ee;
+  --fg: #15131f;
+  --muted: #6b6880;
+}
+.dark {
+  --bg: #0d0c14;
+  --surface: #16141f;
+  --surface-2: #1e1b2b;
+  --line: #2a2739;
+  --fg: #f2f1f8;
+  --muted: #a19db6;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    min-height: 100dvh;
+  }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; }
+  ::selection { @apply bg-brand-200 text-brand-900; }
+}
+
+/* Respect users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
