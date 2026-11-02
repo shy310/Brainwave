@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useAuth } from './AuthProvider';
 import { useT } from '@/i18n';
 import { Button } from '@/ui/Button';
@@ -7,6 +7,23 @@ import { Field, Input } from '@/ui/Field';
 import { Alert } from '@/ui/Alert';
 import { Logo } from '@/ui/Logo';
 import { LanguageToggle } from '@/app/LanguageToggle';
+
+/** Ask Supabase whether Google sign-in is switched on, so the button only shows when it works. */
+const useGoogleEnabled = () => {
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (!url || !key) return;
+    let alive = true;
+    fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } })
+      .then(r => (r.ok ? r.json() : null))
+      .then((s: { external?: { google?: boolean } } | null) => { if (alive) setEnabled(Boolean(s?.external?.google)); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  return enabled;
+};
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
@@ -17,6 +34,7 @@ const GoogleIcon = () => (
 export default function SignInPage() {
   const t = useT();
   const auth = useAuth();
+  const googleEnabled = useGoogleEnabled();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,12 +93,16 @@ export default function SignInPage() {
             ) : (
               <form onSubmit={submit} className="space-y-4" noValidate>
                 <h2 className="text-xl font-semibold">{mode === 'signin' ? t.auth.signInTitle : t.auth.signUpTitle}</h2>
-                <Button variant="secondary" block icon={<GoogleIcon />} onClick={() => auth.signInWithGoogle().catch(err => setError(friendly(err)))}>
-                  {t.auth.google}
-                </Button>
-                <div className="flex items-center gap-3 text-xs uppercase text-muted">
-                  <span className="h-px flex-1 bg-line" />{t.common.or}<span className="h-px flex-1 bg-line" />
-                </div>
+                {googleEnabled && (
+                  <>
+                    <Button variant="secondary" block icon={<GoogleIcon />} onClick={() => auth.signInWithGoogle().catch(err => setError(friendly(err)))}>
+                      {t.auth.google}
+                    </Button>
+                    <div className="flex items-center gap-3 text-xs uppercase text-muted">
+                      <span className="h-px flex-1 bg-line" />{t.common.or}<span className="h-px flex-1 bg-line" />
+                    </div>
+                  </>
+                )}
                 {error && <Alert tone="error">{error}</Alert>}
                 {notice && <Alert tone="success">{notice}</Alert>}
                 <Field label={t.auth.email}>
