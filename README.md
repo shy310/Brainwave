@@ -48,10 +48,10 @@ Copy `.env.example` to `.env.local` for local development. On Vercel, add the sa
 | Variable | Where | What |
 |---|---|---|
 | `VITE_SUPABASE_URL` | browser | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | browser | Supabase anon (public) key |
+| `VITE_SUPABASE_ANON_KEY` | browser | Publishable key (`sb_publishable_…`) or legacy anon key |
 | `SUPABASE_URL` | server | Same project URL |
-| `SUPABASE_ANON_KEY` | server | Same anon key (used to verify sign-ins) |
-| `SUPABASE_SERVICE_ROLE_KEY` | server | Service-role key (quota tracking) — **never** prefix with `VITE_` |
+| `SUPABASE_ANON_KEY` | server | Same publishable key (used to verify sign-ins) |
+| `SUPABASE_SERVICE_ROLE_KEY` | server | Secret key (`sb_secret_…`) or legacy service_role key (quota tracking) — **never** prefix with `VITE_` |
 | `OPENROUTER_API_KEY` | server | Your OpenRouter key |
 | `OPENROUTER_MODEL` | server | Optional, defaults to `google/gemini-2.5-flash` |
 | `AI_DAILY_LIMIT`, `AI_PER_MINUTE_LIMIT` | server | Optional per-student limits (defaults 200 / 20) |

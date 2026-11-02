@@ -12,7 +12,9 @@ export const consumeQuota = async (userId: string, op: string, cost: number): Pr
     method: 'POST',
     headers: {
       apikey: env.supabaseServiceKey,
-      Authorization: `Bearer ${env.supabaseServiceKey}`,
+      // New-style keys (sb_secret_…) are not JWTs and go only in `apikey`;
+      // legacy service_role JWTs also need the Bearer header.
+      ...(env.supabaseServiceKey.startsWith('sb_') ? {} : { Authorization: `Bearer ${env.supabaseServiceKey}` }),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
