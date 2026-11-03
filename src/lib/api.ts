@@ -65,3 +65,10 @@ export const streamAi = async (
   }
   return full;
 };
+
+/** Natural-voice narration for one sentence, as MP3. */
+export const fetchSpeech = async (text: string, voice: string, signal?: AbortSignal): Promise<Blob> => {
+  const res = await post('/api/tts', { text, voice }, signal);
+  if (!res.ok) throw await failure(res);
+  return res.blob();
+};

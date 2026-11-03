@@ -4,6 +4,12 @@
 
 import { useEffect, useState } from 'react';
 import type { Locale } from '@shared/locales';
+import type { CloudVoice } from '@shared/tts';
+import { audioElement, loadSpeech } from './cloudVoice';
+
+/** A natural server voice, a built-in device voice, or none (timed captions). */
+export type Voice = { cloud: CloudVoice } | SpeechSynthesisVoice | null;
+const isCloud = (v: Voice): v is { cloud: CloudVoice } => Boolean(v && 'cloud' in v);
 
 export const hasSpeech = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
 
@@ -42,20 +48,46 @@ export const useVoices = (locale: Locale): SpeechSynthesisVoice[] => {
  * Say one sentence. Calls `onEnd` exactly once when it finishes (or when the
  * fallback timer runs out). Returns a function that stops it without calling onEnd.
  */
-export const speak = (text: string, opts: { voice: SpeechSynthesisVoice | null; rate: number; pitch?: number }, onEnd: () => void): (() => void) => {
+export const speak = (text: string, opts: { voice: Voice; rate: number; pitch?: number }, onEnd: () => void): (() => void) => {
   let done = false;
   let safety: ReturnType<typeof setTimeout> | undefined;
   const finish = () => { if (!done) { done = true; clearTimeout(safety); onEnd(); } };
   const expected = estimateMs(text, opts.rate);
+  const voice = opts.voice;
 
-  if (!opts.voice || !hasSpeech()) {
+  if (isCloud(voice)) {
+    const audio = audioElement();
+    let url = '';
+    // If the natural voice fails, keep going with timed captions for this sentence.
+    const fallback = () => { if (!done) { clearTimeout(safety); safety = setTimeout(finish, expected); } };
+    safety = setTimeout(finish, expected * 3 + 15000);
+    loadSpeech(text, voice.cloud).then((blob) => {
+      if (done) return;
+      url = URL.createObjectURL(blob);
+      audio.onended = finish;
+      audio.onerror = fallback;
+      audio.src = url;
+      audio.playbackRate = opts.rate;
+      void audio.play().catch(fallback);
+    }).catch(fallback);
+    return () => {
+      done = true;
+      clearTimeout(safety);
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      if (url) URL.revokeObjectURL(url);
+    };
+  }
+
+  if (!voice || !hasSpeech()) {
     safety = setTimeout(finish, expected);
     return () => { done = true; clearTimeout(safety); };
   }
 
   const u = new SpeechSynthesisUtterance(text);
-  u.voice = opts.voice;
-  u.lang = opts.voice.lang;
+  u.voice = voice;
+  u.lang = voice.lang;
   u.rate = opts.rate;
   u.pitch = opts.pitch ?? 1;
   u.onend = finish;
@@ -65,4 +97,9 @@ export const speak = (text: string, opts: { voice: SpeechSynthesisVoice | null; 
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
   return () => { done = true; clearTimeout(safety); speechSynthesis.cancel(); };
+};
+
+/** Start downloading a sentence before it is needed, so there is no gap. */
+export const prefetch = (text: string, voice: Voice) => {
+  if (isCloud(voice)) void loadSpeech(text, voice.cloud).catch(() => {});
 };

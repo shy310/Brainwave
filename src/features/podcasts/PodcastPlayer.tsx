@@ -5,7 +5,9 @@ import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
 import type { Locale } from '@shared/locales';
 import type { PodcastScript } from '@shared/media';
-import { estimateMs, useVoices } from '@/features/media/speech';
+import { estimateMs, useVoices, type Voice } from '@/features/media/speech';
+import { primeAudio, useCloudVoices } from '@/features/media/cloudVoice';
+import { VOICE_PAIRS } from '@shared/tts';
 import { usePlayback } from '@/features/media/usePlayback';
 
 const RATES = [0.75, 1, 1.25, 1.5, 2];
@@ -24,15 +26,16 @@ interface Props {
 export const PodcastPlayer = ({ script, locale, title, onAsk }: Props) => {
   const t = useT();
   const voices = useVoices(locale);
+  const cloud = useCloudVoices();
   const [rate, setRate] = useState(1);
   const [voicesChecked, setVoicesChecked] = useState(false);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
   useEffect(() => { const id = setTimeout(() => setVoicesChecked(true), 1500); return () => clearTimeout(id); }, []);
 
   // Two different voices when the device has them; otherwise one voice at two pitches.
-  const v0 = voices[0] ?? null;
-  const v1 = voices.find((v) => v !== v0) ?? v0;
-  const samePitch = v0 === v1;
+  const v0: Voice = cloud ? { cloud: VOICE_PAIRS[locale][0] } : voices[0] ?? null;
+  const v1: Voice = cloud ? { cloud: VOICE_PAIRS[locale][1] } : voices.find((v) => v !== v0) ?? v0;
+  const samePitch = !cloud && v0 === v1;
   const units = useMemo(() => script.lines.map((l) => ({
     text: l.text,
     voice: l.speaker === 1 ? v1 : v0,
@@ -46,7 +49,7 @@ export const PodcastPlayer = ({ script, locale, title, onAsk }: Props) => {
   const minutesLeft = Math.max(1, Math.round(script.lines.slice(index).reduce((ms, l) => ms + estimateMs(l.text, rate) + 250, 0) / 60000));
 
   const jump = (i: number) => { seek(i); };
-  const playFrom = (i: number) => { seek(i); play(); };
+  const playFrom = (i: number) => { primeAudio(); seek(i); play(); };
 
   useEffect(() => {
     if (playing) lineRefs.current[index]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -89,7 +92,7 @@ export const PodcastPlayer = ({ script, locale, title, onAsk }: Props) => {
           <Button variant="ghost" size="sm" className="size-10 px-0" aria-label={t.podcasts.back} onClick={() => jump(index - 1)}>
             <SkipBack className="size-5 rtl:rotate-180" aria-hidden="true" />
           </Button>
-          <Button className="size-14 rounded-full px-0" aria-label={ended ? t.podcasts.replay : playing ? t.podcasts.pause : t.podcasts.play} onClick={toggle}>
+          <Button className="size-14 rounded-full px-0" aria-label={ended ? t.podcasts.replay : playing ? t.podcasts.pause : t.podcasts.play} onClick={() => { primeAudio(); toggle(); }}>
             {ended ? <RotateCcw className="size-6" aria-hidden="true" /> : playing ? <Pause className="size-6" aria-hidden="true" /> : <Play className="size-6" aria-hidden="true" />}
           </Button>
           <Button variant="ghost" size="sm" className="size-10 px-0" aria-label={t.podcasts.forward} onClick={() => jump(index + 1)}>
@@ -105,7 +108,7 @@ export const PodcastPlayer = ({ script, locale, title, onAsk }: Props) => {
             {RATES.map((r) => <option key={r} value={r}>{r}×</option>)}
           </select>
         </div>
-        {voicesChecked && voices.length === 0 && <p className="mt-3 text-center text-sm text-muted">{t.podcasts.noVoice}</p>}
+        {voicesChecked && !cloud && voices.length === 0 && <p className="mt-3 text-center text-sm text-muted">{t.podcasts.noVoice}</p>}
         {voicesChecked && voices.length > 0 && samePitch && <p className="mt-3 text-center text-xs text-muted">{t.podcasts.oneVoice}</p>}
       </div>
 

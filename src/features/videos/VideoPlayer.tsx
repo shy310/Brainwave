@@ -5,7 +5,9 @@ import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
 import type { Locale } from '@shared/locales';
 import type { VideoScript } from '@shared/media';
-import { splitSentences, useVoices } from '@/features/media/speech';
+import { splitSentences, useVoices, type Voice } from '@/features/media/speech';
+import { primeAudio, useCloudVoices } from '@/features/media/cloudVoice';
+import { VOICE_PAIRS } from '@shared/tts';
 import { usePlayback, type Unit } from '@/features/media/usePlayback';
 import { SceneView } from './SceneView';
 
@@ -21,6 +23,7 @@ interface Props {
 export const VideoPlayer = ({ script, locale, onAsk }: Props) => {
   const t = useT();
   const voices = useVoices(locale);
+  const cloud = useCloudVoices();
   const [voiceOn, setVoiceOn] = useState(true);
   const [captions, setCaptions] = useState(true);
   const [rate, setRate] = useState(1);
@@ -30,7 +33,7 @@ export const VideoPlayer = ({ script, locale, onAsk }: Props) => {
 
   useEffect(() => { const id = setTimeout(() => setVoicesChecked(true), 1500); return () => clearTimeout(id); }, []);
 
-  const voice = voiceOn ? voices[0] ?? null : null;
+  const voice: Voice = !voiceOn ? null : cloud ? { cloud: VOICE_PAIRS[locale][0] } : voices[0] ?? null;
   const units = useMemo(() => script.scenes.flatMap((scene, si) => {
     const sentences = splitSentences(scene.narration);
     return sentences.map((text, k) => ({ text, scene: si, k, n: sentences.length, voice, pauseAfter: k === sentences.length - 1 ? 700 : 120 }));
@@ -44,12 +47,12 @@ export const VideoPlayer = ({ script, locale, onAsk }: Props) => {
   const sceneStart = (si: number) => Math.max(0, units.findIndex((u) => u.scene === si));
   const goScene = (si: number) => { if (si >= 0 && si < script.scenes.length) { setStarted(true); seek(sceneStart(si)); } };
 
-  const start = () => { setStarted(true); play(); };
+  const start = () => { primeAudio(); setStarted(true); play(); };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest('input, textarea, select, [contenteditable="true"]')) return;
-      if (e.key === ' ' || e.key === 'k') { e.preventDefault(); setStarted(true); toggle(); }
+      if (e.key === ' ' || e.key === 'k') { e.preventDefault(); primeAudio(); setStarted(true); toggle(); }
       const forward = document.documentElement.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
       const back = document.documentElement.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
       if (e.key === forward) goScene(sceneIndex + 1);
@@ -110,7 +113,7 @@ export const VideoPlayer = ({ script, locale, onAsk }: Props) => {
           <Button variant="ghost" size="sm" className="size-10 px-0" aria-label={t.videos.prevScene} onClick={() => goScene(sceneIndex - 1)} disabled={sceneIndex === 0}>
             <ChevronLeft className="size-5 rtl:rotate-180" aria-hidden="true" />
           </Button>
-          <Button size="sm" className="size-10 px-0" aria-label={playing ? t.videos.pause : t.videos.play} onClick={() => (started ? toggle() : start())}>
+          <Button size="sm" className="size-10 px-0" aria-label={playing ? t.videos.pause : t.videos.play} onClick={() => { primeAudio(); if (started) toggle(); else start(); }}>
             {playing ? <Pause className="size-5" aria-hidden="true" /> : <Play className="size-5" aria-hidden="true" />}
           </Button>
           <Button variant="ghost" size="sm" className="size-10 px-0" aria-label={t.videos.nextScene} onClick={() => goScene(sceneIndex + 1)} disabled={sceneIndex >= script.scenes.length - 1}>
@@ -141,7 +144,7 @@ export const VideoPlayer = ({ script, locale, onAsk }: Props) => {
             )}
           </div>
         </div>
-        {voicesChecked && voiceOn && voices.length === 0 && <p className="text-sm text-muted">{t.videos.noVoice}</p>}
+        {voicesChecked && voiceOn && !cloud && voices.length === 0 && <p className="text-sm text-muted">{t.videos.noVoice}</p>}
       </div>
     </div>
   );

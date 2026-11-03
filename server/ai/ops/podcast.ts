@@ -22,7 +22,7 @@ export const podcastScriptOp = defineOp({
       content: `${describeSource(source)}
 
 Write a ${length === 'long' ? 'deep-dive episode of about 8–10 minutes (50–80 lines) in 3–5 chapters' : 'short episode of about 3–4 minutes (18–30 lines) in 2–3 chapters'}.
-- "hosts": two hosts with first names that fit ${LOCALE_NAME[ctx.locale]} speakers, and a short "role" each — host 0 is the curious host who asks what students would ask; host 1 is the expert who explains.
+- "hosts": two hosts with first names that fit ${LOCALE_NAME[ctx.locale]} speakers — host 0 has a woman's name, host 1 a man's name (they are voiced that way) — and a short "role" each. Host 0 is the curious host who asks what students would ask; host 1 is the expert who explains.
 - "lines": alternate naturally between speaker 0 and 1 (short back-and-forth turns, occasionally two lines in a row). Each line is 1–3 spoken sentences.
 - Open with a hook, use vivid everyday analogies and at least one concrete worked example, have host 0 voice a common misconception that host 1 gently corrects, and end with a quick recap of the key takeaways.
 - "chapter": a short chapter title on the first line of each chapter, "" on every other line.

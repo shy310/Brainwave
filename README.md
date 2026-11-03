@@ -38,7 +38,7 @@ An AI study partner for students from kindergarten to college, in **English and 
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run each file in `supabase/migrations/` in order
-   (`0001_foundation.sql` … `0004_media.sql`). Each one is safe to re-run.
+   (`0001_foundation.sql` … `0005_tts.sql`). Each one is safe to re-run.
 3. **Authentication → URL Configuration**: set the Site URL to your Vercel URL and add
    `http://localhost:5173` to the redirect URLs.
 4. Optional — **Authentication → Providers → Google**: enable it and add your Google OAuth client.
@@ -58,6 +58,8 @@ Copy `.env.example` to `.env.local` for local development. On Vercel, add the sa
 | `OPENROUTER_API_KEY` | server | Your OpenRouter key |
 | `OPENROUTER_MODEL` | server | Optional, defaults to `google/gemini-2.5-flash` |
 | `AI_DAILY_LIMIT`, `AI_PER_MINUTE_LIMIT` | server | Optional per-student limits (defaults 200 / 20) |
+| `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | server | Optional natural voices for videos and podcasts (Azure AI Speech, free F0 tier works). Without them the device's built-in voice is used. |
+| `TTS_DAILY_CHARS` | server | Optional per-student daily narration limit in characters (default 60000) |
 
 Without the Supabase variables the app runs in **demo mode** locally (progress saved in the
 browser). Demo mode is disabled in production, so the AI can never be used anonymously on the live site.
@@ -105,8 +107,16 @@ npm run dev:all        # web on :5173, API on :3000
 - The player uses two of the device's voices when available, otherwise one voice at two pitches,
   highlights and follows the current line, and supports chapters, skipping, speed and headphone /
   lock-screen controls (Media Session API). Any line can be played from or asked about.
-- Episodes are saved in the `media` table. The script can be downloaded as text. MP3 export needs
-  server-side text-to-speech and is not included yet.
+- Episodes are saved in the `media` table. The script can be downloaded as text, and as MP3 when
+  natural voices are set up.
+
+## Natural voices (optional)
+
+With `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` set, videos and podcasts are narrated by Azure neural
+voices (Ava/Andrew in English, Hila/Avri in Hebrew) through `POST /api/tts`: signed-in only, a fixed
+list of voices, at most 1,500 characters per request, and a per-student daily character allowance
+(`consume_tts`, migration 0005). The browser prefetches the next sentences and keeps audio in Cache
+Storage, so replays are free. If the service is missing or fails, playback falls back to device voices.
 
 ## Scripts
 

@@ -239,6 +239,48 @@ describe('podcast operations', () => {
   });
 });
 
+describe('narration voices', () => {
+  it('escapes text inside SSML', async () => {
+    const { ssml } = await import('../../server/tts');
+    expect(ssml('a < b & "c"', 'he-IL-HilaNeural')).toContain('a &lt; b &amp; &quot;c&quot;');
+    expect(ssml('hi', 'he-IL-HilaNeural')).toContain('xml:lang="he-IL"');
+  });
+
+  it('says so when natural voices are not set up', async () => {
+    const res = await post('/api/tts', { text: 'Hello', voice: 'en-US-AvaNeural' });
+    expect(res.status).toBe(503);
+  });
+
+  it('sends allowed voices to Azure and returns MP3', async () => {
+    vi.resetModules();
+    process.env.AZURE_SPEECH_KEY = 'azure-test-key';
+    process.env.AZURE_SPEECH_REGION = 'westeurope';
+    const { app } = await import('../../server/app');
+    const s = app.listen(0);
+    const url = `http://127.0.0.1:${(s.address() as AddressInfo).port}`;
+    let sent: { url: string; body: string; key: string } | null = null;
+    globalThis.fetch = vi.fn(async (u: string | URL | Request, init?: RequestInit) => {
+      if (String(u).startsWith(url)) return realFetch(u, init);
+      sent = { url: String(u), body: String(init?.body), key: (init?.headers as Record<string, string>)['Ocp-Apim-Subscription-Key'] };
+      return new Response(new Uint8Array([0xff, 0xfb, 0x90, 0x00]), { status: 200 });
+    }) as typeof fetch;
+    const call = (body: unknown) => realFetch(`${url}/api/tts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+    const ok = await call({ text: 'שלום', voice: 'he-IL-HilaNeural' });
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get('content-type')).toBe('audio/mpeg');
+    expect(sent!.url).toBe('https://westeurope.tts.speech.microsoft.com/cognitiveservices/v1');
+    expect(sent!.body).toContain('he-IL-HilaNeural');
+    expect(sent!.key).toBe('azure-test-key');
+    expect((await call({ text: 'hi', voice: 'en-US-SomeoneElse' })).status).toBe(400);
+    expect((await call({ text: 'x'.repeat(2000), voice: 'en-US-AvaNeural' })).status).toBe(400);
+    expect(await (await realFetch(`${url}/api/health`)).json()).toMatchObject({ tts: true });
+    s.close();
+    delete process.env.AZURE_SPEECH_KEY;
+    delete process.env.AZURE_SPEECH_REGION;
+  });
+});
+
 describe('security', () => {
   it('never allows demo mode in production', async () => {
     vi.resetModules();

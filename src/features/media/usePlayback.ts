@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { speak } from './speech';
+import { prefetch, speak, type Voice } from './speech';
 
-export interface Unit { text: string; voice: SpeechSynthesisVoice | null; pitch?: number; pauseAfter?: number }
+export interface Unit { text: string; voice: Voice; pitch?: number; pauseAfter?: number }
 
 /**
  * Plays a list of text units one after another with speech (or timed captions),
@@ -19,6 +19,7 @@ export const usePlayback = (units: Unit[], rate: number) => {
     const unit = unitsRef.current[index];
     if (!unit) { setPlaying(false); setEnded(true); return; }
     let gap: ReturnType<typeof setTimeout> | undefined;
+    for (const next of unitsRef.current.slice(index + 1, index + 3)) prefetch(next.text, next.voice);
     const stop = speak(unit.text, { voice: unit.voice, rate, pitch: unit.pitch }, () => {
       gap = setTimeout(() => {
         if (index + 1 < unitsRef.current.length) setIndex(index + 1);

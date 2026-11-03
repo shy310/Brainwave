@@ -14,7 +14,14 @@ export const env = {
   dailyLimit: num(process.env.AI_DAILY_LIMIT, 200),
   perMinuteLimit: num(process.env.AI_PER_MINUTE_LIMIT, 20),
   allowDemo: process.env.ALLOW_DEMO_MODE === 'true',
+  // Natural narration voices (Microsoft Azure AI Speech). Optional: without them
+  // the app falls back to the device's built-in voices.
+  azureSpeechKey: process.env.AZURE_SPEECH_KEY ?? '',
+  azureSpeechRegion: (process.env.AZURE_SPEECH_REGION ?? '').trim().toLowerCase(),
+  ttsDailyChars: num(process.env.TTS_DAILY_CHARS, 60_000),
 };
+
+export const ttsConfigured = () => Boolean(env.azureSpeechKey && /^[a-z0-9]+$/.test(env.azureSpeechRegion));
 
 export const supabaseConfigured = () => Boolean(env.supabaseUrl && env.supabaseAnonKey);
 

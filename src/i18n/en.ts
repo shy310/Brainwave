@@ -186,6 +186,7 @@ export const en = {
     askEmpty: 'What would you like to know?', askStarters: ['Explain this part more simply', 'Give me an example', 'Is that always true?'],
     noVoice: 'Your device has no voice for this language, so the episode plays as a read-along transcript.',
     oneVoice: 'Your device has one voice for this language, so the hosts use different pitches.',
+    downloadMp3: 'Download MP3', preparingMp3: (n: number, m: number) => `Preparing audio… ${n}/${m}`, mp3Failed: 'Could not make the MP3. Please try again.',
     downloadScript: 'Download script', delete: 'Delete episode', confirmDelete: 'Delete this episode?', notFound: 'We couldn’t find that episode.',
     listen: 'Listen to a podcast', finished: 'Episode finished', replay: 'Play again',
   },

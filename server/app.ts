@@ -1,5 +1,6 @@
 import express, { type Response } from 'express';
-import { env, supabaseConfigured, demoModeActive } from './env.js';
+import { env, supabaseConfigured, demoModeActive, ttsConfigured } from './env.js';
+import { ttsHandler } from './tts.js';
 import { requireUser, type AuthedRequest } from './auth.js';
 import { quota } from './usage.js';
 import { getOp, type OpContext } from './ai/ops.js';
@@ -25,6 +26,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
     ai: Boolean(env.openrouterKey),
+    tts: ttsConfigured(),
     auth: supabaseConfigured(),
     demo: demoModeActive(),
   });
@@ -39,6 +41,9 @@ const sendError = (res: Response, err: unknown) => {
   console.error(err);
   return res.status(500).json({ error: 'Something went wrong. Please try again.' });
 };
+
+/** Natural-voice narration (Azure). */
+app.post('/api/tts', requireUser, ttsHandler);
 
 /** One endpoint per named AI operation. */
 app.post('/api/ai/:op', requireUser, (req: AuthedRequest, res, next) => {

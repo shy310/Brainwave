@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Download, Trash2, X } from 'lucide-react';
+import { Download, FileAudio, Trash2, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
@@ -10,6 +10,8 @@ import { BackLink } from '@/features/learn/CoursePage';
 import { ChatPanel } from '@/features/tutor/ChatPanel';
 import { mediaRepo, type Media } from '@/features/media/repo';
 import type { PodcastScript } from '@shared/media';
+import { VOICE_PAIRS } from '@shared/tts';
+import { loadSpeech, useCloudVoices } from '@/features/media/cloudVoice';
 import { PodcastPlayer } from './PodcastPlayer';
 
 const scriptText = (p: PodcastScript) =>
@@ -22,6 +24,9 @@ export default function PodcastPage() {
   const [episode, setEpisode] = useState<Media<PodcastScript> | null | undefined>(undefined);
   const [askLine, setAskLine] = useState<number | null>(null);
   const askRef = useRef<HTMLDivElement>(null);
+  const cloud = useCloudVoices();
+  const [mp3, setMp3] = useState<{ done: number; total: number } | null>(null);
+  const [mp3Error, setMp3Error] = useState(false);
 
   useEffect(() => { mediaRepo.get<PodcastScript>(id).then(setEpisode).catch(() => setEpisode(null)); }, [id]);
 
@@ -56,6 +61,29 @@ export default function PodcastPage() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  // Natural-voice MP3s concatenate cleanly, so the episode is just every line joined.
+  const downloadMp3 = async () => {
+    const { lines } = episode.script;
+    const pair = VOICE_PAIRS[episode.locale];
+    setMp3Error(false);
+    setMp3({ done: 0, total: lines.length });
+    try {
+      const parts: Blob[] = [];
+      for (let i = 0; i < lines.length; i++) {
+        parts.push(await loadSpeech(lines[i].text, pair[lines[i].speaker]));
+        setMp3({ done: i + 1, total: lines.length });
+      }
+      const url = URL.createObjectURL(new Blob(parts, { type: 'audio/mpeg' }));
+      const a = Object.assign(document.createElement('a'), { href: url, download: `${episode.title}.mp3` });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch {
+      setMp3Error(true);
+    } finally {
+      setMp3(null);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <BackLink to="/podcasts" label={t.podcasts.title} />
@@ -64,6 +92,11 @@ export default function PodcastPage() {
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl" dir="auto">{episode.title}</h1>
           <p className="text-sm text-muted" dir="auto">{episode.origin.label}</p>
         </div>
+        {cloud && (
+          <Button variant="secondary" size="sm" icon={<FileAudio className="size-4" />} loading={mp3 !== null} onClick={downloadMp3}>
+            {mp3 ? t.podcasts.preparingMp3(mp3.done, mp3.total) : t.podcasts.downloadMp3}
+          </Button>
+        )}
         <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={t.podcasts.downloadScript} title={t.podcasts.downloadScript} onClick={download}>
           <Download className="size-4" aria-hidden="true" />
         </Button>
@@ -71,6 +104,8 @@ export default function PodcastPage() {
           <Trash2 className="size-4" aria-hidden="true" />
         </Button>
       </header>
+
+      {mp3Error && <Alert tone="error">{t.podcasts.mp3Failed}</Alert>}
 
       {askLine !== null && (
         <Card ref={askRef} className="space-y-3 p-4 sm:p-6">
