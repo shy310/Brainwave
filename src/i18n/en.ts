@@ -7,7 +7,7 @@ export const en = {
   },
   common: {
     loading: 'Loading…', save: 'Save', saving: 'Saving…', saved: 'Saved', cancel: 'Cancel',
-    continue: 'Continue', back: 'Back', tryAgain: 'Try again', comingSoon: 'Coming soon',
+    continue: 'Continue', back: 'Back', tryAgain: 'Try again',
     close: 'Close', or: 'or', open: 'Open',
   },
   auth: {
@@ -154,7 +154,7 @@ export const en = {
     askEmpty: 'Ask anything about this lecture', askStarters: ['What were the main points?', 'Explain the hardest part simply', 'What might be on the exam?'],
     delete: 'Delete lecture', confirmDelete: 'Delete this lecture? This can’t be undone.', notFound: 'We couldn’t find that lecture.',
     rename: 'Rename', save: 'Save',
-    turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast', soon: 'soon',
+    turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
   },
   videos: {
@@ -171,6 +171,23 @@ export const en = {
     askEmpty: 'What would you like to understand better?', askStarters: ['Explain this part again, more simply', 'Give me another example', 'Why is this true?'],
     delete: 'Delete video', confirmDelete: 'Delete this video?', notFound: 'We couldn’t find that video.',
     watchVideo: 'Watch a video lesson', loadingSource: 'Loading…',
+  },
+  podcasts: {
+    title: 'Podcasts', subtitle: 'Two hosts talk through anything you are learning — great for revision on the go.',
+    createTitle: 'Make a podcast episode', promptLabel: 'What should the episode be about?',
+    promptPlaceholder: 'e.g. Black holes · How the stock market works · The French Revolution',
+    from: 'From', length: 'Length', lengths: { short: 'Short (3–4 min)', long: 'Deep dive (8–10 min)' },
+    create: 'Make the episode', writing: 'Writing your episode…', saved: 'Your episodes', none: 'No episodes yet.',
+    suggestions: ['How do black holes form?', 'What is inflation?', 'How does DNA copy itself?'],
+    loadingSource: 'Loading…',
+    play: 'Play', pause: 'Pause', back: 'Previous line', forward: 'Next line', prevChapter: 'Previous chapter', nextChapter: 'Next chapter',
+    speed: 'Speed', chapters: 'Chapters', transcript: 'Transcript', left: (m: number) => `about ${m} min left`,
+    playFrom: 'Play from here', askLine: 'Ask about this', askTitle: 'Ask about this moment',
+    askEmpty: 'What would you like to know?', askStarters: ['Explain this part more simply', 'Give me an example', 'Is that always true?'],
+    noVoice: 'Your device has no voice for this language, so the episode plays as a read-along transcript.',
+    oneVoice: 'Your device has one voice for this language, so the hosts use different pitches.',
+    downloadScript: 'Download script', delete: 'Delete episode', confirmDelete: 'Delete this episode?', notFound: 'We couldn’t find that episode.',
+    listen: 'Listen to a podcast', finished: 'Episode finished', replay: 'Play again',
   },
   notFound: { title: 'Page not found', body: "We couldn't find that page.", home: 'Go home' },
   errors: {

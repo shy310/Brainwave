@@ -3,3 +3,4 @@ import './ops/learn.js';
 import './ops/tutor.js';
 import './ops/lectures.js';
 import './ops/media.js';
+import './ops/podcast.js';

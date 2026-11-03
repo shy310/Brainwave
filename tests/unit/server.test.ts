@@ -220,6 +220,25 @@ describe('video operations', () => {
   });
 });
 
+describe('podcast operations', () => {
+  const line = (speaker: number, text: string, chapter = '') => ({ speaker, text, chapter });
+  it('cleans the script and keeps hosts', async () => {
+    const lines = Array.from({ length: 10 }, (_, i) => line(i % 2, `Line ${i} with **bold** and $x^2$.`));
+    mockModel([JSON.stringify({ title: 'Black holes', hosts: [{ name: 'Maya', role: 'host' }, { name: 'Sam', role: 'expert' }], lines })]);
+    const res = await post('/api/ai/podcastScript', { input: { source: { prompt: 'black holes' }, length: 'short' } });
+    const { data } = await res.json() as { data: { lines: { text: string; chapter: string }[]; hosts: unknown[] } };
+    expect(data.hosts).toHaveLength(2);
+    expect(data.lines[0]).toMatchObject({ text: 'Line 0 with bold and x^2.', chapter: 'Black holes' });
+  });
+
+  it('writes hosts and lines in the student language', async () => {
+    const { podcastScriptOp } = await import('../../server/ai/ops/podcast');
+    const msgs = podcastScriptOp.build({ source: { topicId: 'sci-mid-t2' }, length: 'long' }, { userId: 'u', demo: true, locale: 'he', grade: '8' });
+    expect(String(msgs[1].content)).toContain('Write all lines in Hebrew');
+    expect(String(msgs[1].content)).toContain('Genetics & Heredity');
+  });
+});
+
 describe('security', () => {
   it('never allows demo mode in production', async () => {
     vi.resetModules();

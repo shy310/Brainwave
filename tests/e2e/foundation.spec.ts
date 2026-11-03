@@ -35,7 +35,7 @@ test('navigation, deep links and the back button work', async ({ page }) => {
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
   await page.goto('/podcasts');
-  await expect(page.getByText('Coming soon')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Podcasts' })).toBeVisible();
   await page.goto('/no-such-page');
   await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
 });

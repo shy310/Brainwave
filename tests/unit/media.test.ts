@@ -52,3 +52,19 @@ describe('narration', () => {
     expect(estimateMs('hi', 2)).toBe(1200);
   });
 });
+
+import { cleanSpoken, sanitizePodcast } from '../../shared/media';
+
+describe('podcasts', () => {
+  it('strips Markdown and LaTeX from spoken lines', () => {
+    expect(cleanSpoken('So **x squared** is $x^2$ \\cdot fun # yes')).toBe('So x squared is x^2 fun yes');
+  });
+
+  it('cleans lines and always starts with a chapter', () => {
+    const p = sanitizePodcast({
+      title: 'Ep', hosts: [{ name: 'Maya', role: '' }, { name: 'Sam', role: '' }],
+      lines: [{ speaker: 0, text: 'Hi!', chapter: '' }, { speaker: 1, text: '**', chapter: '' }, { speaker: 1, text: 'Hello.', chapter: ' Part 2 ' }],
+    });
+    expect(p.lines).toEqual([{ speaker: 0, text: 'Hi!', chapter: 'Ep' }, { speaker: 1, text: 'Hello.', chapter: 'Part 2' }]);
+  });
+});

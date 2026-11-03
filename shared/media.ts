@@ -62,3 +62,36 @@ export type MediaKind = (typeof MEDIA_KINDS)[number];
 
 /** Where a saved video/podcast came from, for display and links. */
 export interface MediaOrigin { type: 'topic' | 'lecture' | 'prompt'; ref?: string; label: string }
+
+// ── Podcasts ───────────────────────────────────────────────────────────────
+// Two hosts talk through a topic. Each line is spoken by host 0 or 1; a line
+// may start a new chapter.
+
+export const PodcastLineSchema = z.object({
+  speaker: z.number().int().min(0).max(1),
+  text: z.string().min(1).max(700),
+  /** Set on the first line of a new chapter; otherwise "". */
+  chapter: z.string().max(120),
+});
+export type PodcastLine = z.infer<typeof PodcastLineSchema>;
+
+export const PodcastScriptSchema = z.object({
+  title: z.string().min(1).max(160),
+  hosts: z.array(z.object({ name: z.string().min(1).max(40), role: z.string().max(80) })).length(2),
+  lines: z.array(PodcastLineSchema).min(8).max(90),
+});
+export type PodcastScript = z.infer<typeof PodcastScriptSchema>;
+
+export const PodcastInputSchema = z.object({ source: MediaSourceSchema, length: z.enum(LENGTHS).default('short') });
+
+/** Spoken text must not contain Markdown or LaTeX symbols. */
+export const cleanSpoken = (s: string) =>
+  s.replace(/\$+/g, '').replace(/\*\*?|__|`|#+\s/g, '').replace(/\\[a-zA-Z]+/g, '').replace(/\s+/g, ' ').trim();
+
+export const sanitizePodcast = (p: PodcastScript): PodcastScript => {
+  const lines = p.lines
+    .map((l) => ({ speaker: l.speaker === 1 ? 1 : 0, text: cleanSpoken(l.text), chapter: l.chapter.trim() }))
+    .filter((l) => l.text);
+  if (lines[0] && !lines[0].chapter) lines[0].chapter = p.title;
+  return { ...p, lines };
+};

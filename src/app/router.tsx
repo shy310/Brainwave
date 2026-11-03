@@ -1,7 +1,6 @@
 import { createBrowserRouter } from 'react-router';
 import { AppShell } from './AppShell';
 import { RequireAuth, RequireGuest, RequireUser } from '@/features/auth/guards';
-import { PodcastsSoon } from '@/features/home/ComingSoonPage';
 import { ProgressProvider } from '@/features/learn/ProgressProvider';
 
 // Pages are code-split: each loads only when visited.
@@ -32,7 +31,8 @@ export const router = createBrowserRouter([
         { path: 'lectures/:id', lazy: page(() => import('@/features/lectures/LecturePage')) },
         { path: 'videos', lazy: page(() => import('@/features/videos/VideosPage')) },
         { path: 'videos/:id', lazy: page(() => import('@/features/videos/VideoPage')) },
-        { path: 'podcasts', element: <PodcastsSoon /> },
+        { path: 'podcasts', lazy: page(() => import('@/features/podcasts/PodcastsPage')) },
+        { path: 'podcasts/:id', lazy: page(() => import('@/features/podcasts/PodcastPage')) },
         { path: 'settings', lazy: page(() => import('@/features/settings/SettingsPage')) },
         { path: '*', lazy: page(() => import('./NotFoundPage')) },
       ],

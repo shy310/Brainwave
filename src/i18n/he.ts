@@ -8,7 +8,7 @@ export const he: Dict = {
   },
   common: {
     loading: 'טוען…', save: 'שמירה', saving: 'שומר…', saved: 'נשמר', cancel: 'ביטול',
-    continue: 'המשך', back: 'חזרה', tryAgain: 'נסו שוב', comingSoon: 'בקרוב',
+    continue: 'המשך', back: 'חזרה', tryAgain: 'נסו שוב',
     close: 'סגירה', or: 'או', open: 'פתיחה',
   },
   auth: {
@@ -153,7 +153,7 @@ export const he: Dict = {
     askEmpty: 'שאלו כל דבר על ההרצאה', askStarters: ['מה היו הנקודות העיקריות?', 'הסבירו בפשטות את החלק הכי קשה', 'מה עשוי להופיע במבחן?'],
     delete: 'מחיקת ההרצאה', confirmDelete: 'למחוק את ההרצאה? אי אפשר לבטל.', notFound: 'לא מצאנו את ההרצאה.',
     rename: 'שינוי שם', save: 'שמירה',
-    turnInto: 'להפוך ל', video: 'שיעור וידאו', podcast: 'פודקאסט', soon: 'בקרוב',
+    turnInto: 'להפוך ל', video: 'שיעור וידאו', podcast: 'פודקאסט',
     emptyTranscript: 'לא נמצא דיבור בהקלטה.',
   },
   videos: {
@@ -170,6 +170,23 @@ export const he: Dict = {
     askEmpty: 'מה תרצו להבין טוב יותר?', askStarters: ['הסבירו את החלק הזה שוב, בפשטות', 'תנו לי עוד דוגמה', 'למה זה נכון?'],
     delete: 'מחיקת הסרטון', confirmDelete: 'למחוק את הסרטון?', notFound: 'לא מצאנו את הסרטון.',
     watchVideo: 'לצפייה בשיעור וידאו', loadingSource: 'טוען…',
+  },
+  podcasts: {
+    title: 'פודקאסטים', subtitle: 'שני מגישים משוחחים על כל מה שאתם לומדים — מעולה לחזרה בדרכים.',
+    createTitle: 'יצירת פרק פודקאסט', promptLabel: 'על מה יהיה הפרק?',
+    promptPlaceholder: 'למשל: חורים שחורים · איך עובדת הבורסה · המהפכה הצרפתית',
+    from: 'מתוך', length: 'אורך', lengths: { short: 'קצר (3–4 דק׳)', long: 'לעומק (8–10 דק׳)' },
+    create: 'יצירת הפרק', writing: 'כותבים את הפרק…', saved: 'הפרקים שלכם', none: 'עוד אין פרקים.',
+    suggestions: ['איך נוצרים חורים שחורים?', 'מה זה אינפלציה?', 'איך DNA משכפל את עצמו?'],
+    loadingSource: 'טוען…',
+    play: 'הפעלה', pause: 'השהיה', back: 'למשפט הקודם', forward: 'למשפט הבא', prevChapter: 'לפרק הקודם', nextChapter: 'לפרק הבא',
+    speed: 'מהירות', chapters: 'פרקים', transcript: 'תמליל', left: (m: number) => `נותרו כ-${m} דק׳`,
+    playFrom: 'להשמיע מכאן', askLine: 'שאלה על זה', askTitle: 'שאלה על הרגע הזה',
+    askEmpty: 'מה תרצו לדעת?', askStarters: ['הסבירו את החלק הזה בפשטות', 'תנו לי דוגמה', 'זה תמיד נכון?'],
+    noVoice: 'במכשיר שלכם אין קול לשפה הזו, ולכן הפרק מוצג כתמליל לקריאה.',
+    oneVoice: 'במכשיר שלכם יש קול אחד לשפה הזו, ולכן למגישים יש גובה קול שונה.',
+    downloadScript: 'הורדת התסריט', delete: 'מחיקת הפרק', confirmDelete: 'למחוק את הפרק?', notFound: 'לא מצאנו את הפרק.',
+    listen: 'להאזנה לפודקאסט', finished: 'הפרק הסתיים', replay: 'להשמיע שוב',
   },
   notFound: { title: 'הדף לא נמצא', body: 'לא מצאנו את הדף הזה.', home: 'לדף הבית' },
   errors: {

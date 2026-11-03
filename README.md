@@ -11,7 +11,8 @@ An AI study partner for students from kindergarten to college, in **English and 
 > system, English/Hebrew, accounts, secure AI gateway), **Learn** (42 courses / 180 topics,
 > lessons, quizzes, AI tutor, progress) and **Lectures** (record / upload / paste → transcript,
 > notes, quiz, flashcards, lecture Q&A) and **Video lessons** (animated, narrated scenes from any topic,
-> lecture or request, with "ask about this moment"). Podcasts come next.
+> lecture or request, with "ask about this moment") and **Podcasts** (two hosts, highlighted transcript,
+> chapters, tap a line to ask).
 
 ## Stack
 
@@ -96,6 +97,16 @@ npm run dev:all        # web on :5173, API on :3000
   (Web Speech API — free). Without a voice for the language, the lesson plays with timed captions.
 - Videos are saved in the `media` table (podcasts will share it). "Ask about this moment" sends the
   paused scene and the script to the tutor.
+
+## How Podcasts work
+
+- `podcastScript` writes a two-host conversation (curious host + expert) in chapters, for speech:
+  no Markdown or LaTeX (anything left over is stripped by `sanitizePodcast`).
+- The player uses two of the device's voices when available, otherwise one voice at two pitches,
+  highlights and follows the current line, and supports chapters, skipping, speed and headphone /
+  lock-screen controls (Media Session API). Any line can be played from or asked about.
+- Episodes are saved in the `media` table. The script can be downloaded as text. MP3 export needs
+  server-side text-to-speech and is not included yet.
 
 ## Scripts
 
