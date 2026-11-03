@@ -39,6 +39,7 @@ export const tutorOp = defineOp({
       mode,
       topic ? `The student is studying: ${topic.topic.title.en} (${topic.unit.title.en}) — ${topic.topic.description.en}` : '',
       weak.length ? `They have recently struggled with: ${weak.join(', ')}. Watch for related gaps, but don't mention this list unless it helps.` : '',
+      input.lecture ? `The student is asking about a lecture they attended, "${input.lecture.title}". Answer from the lecture first; quote or point to the part you are using. If the lecture doesn't cover something, say so, then explain it anyway.\n\nLecture:\n"""\n${input.lecture.text}\n"""` : '',
       'If a file or image is attached, read it carefully and refer to what it actually shows. If it is unreadable, say so.',
       'Stay on learning topics. If asked for something harmful or unrelated to studying, decline kindly and steer back.',
     ].filter(Boolean).join('\n\n');

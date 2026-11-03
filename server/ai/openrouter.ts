@@ -58,7 +58,9 @@ export const callModel = async (o: ChatOptions): Promise<Response> => {
     await sleep(1500);
     res = await request(env.model, o);
   }
-  if ((res.status === 429 || res.status >= 500) && env.fallbackModel && !o.hasPdf) {
+  // The fallback model can't read PDFs or audio, so only use it for text and images.
+  const media = o.messages.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'file' || p.type === 'input_audio'));
+  if ((res.status === 429 || res.status >= 500) && env.fallbackModel && !media) {
     res = await request(env.fallbackModel, o);
   }
   if (!res.ok) {

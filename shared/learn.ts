@@ -82,5 +82,7 @@ export const TutorInputSchema = z.object({
   /** Topics the student is struggling with (from their progress). */
   weakTopicIds: z.array(z.string().max(60)).max(5).optional(),
   attachment: AttachmentSchema.optional(),
+  /** Ground the tutor in a lecture the student recorded or uploaded. */
+  lecture: z.object({ title: z.string().max(200), text: z.string().max(200_000) }).optional(),
 });
 export type TutorInput = z.input<typeof TutorInputSchema>;

@@ -151,6 +151,47 @@ describe('structured output fallbacks', () => {
   });
 });
 
+describe('lecture operations', () => {
+  it('sends audio to the main model only, never the fallback', async () => {
+    const models: string[] = [];
+    globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      if (String(url).startsWith(base)) return realFetch(url, init);
+      const body = JSON.parse(String(init?.body));
+      models.push(body.model);
+      expect(JSON.stringify(body.messages)).toContain('"input_audio"');
+      return new Response('{}', { status: 503 });
+    }) as typeof fetch;
+    const res = await post('/api/ai/transcribe', { input: { audio: 'UklGR'.padEnd(200, 'A'), language: 'he' } });
+    expect(res.status).toBe(502);
+    expect(new Set(models).size).toBe(1);
+  });
+
+  it('rejects audio that is not base64', async () => {
+    const res = await post('/api/ai/transcribe', { input: { audio: '<script>'.repeat(30) } });
+    expect(res.status).toBe(400);
+  });
+
+  it('writes notes in the student language and grounds the tutor in a lecture', async () => {
+    const { lectureNotesOp } = await import('../../server/ai/ops/lectures');
+    const msgs = lectureNotesOp.build({ transcript: 'Today we talk about derivatives and limits.' }, { userId: 'u', demo: true, locale: 'he', grade: 'college' });
+    expect(String(msgs[0].content)).toContain('Hebrew');
+    const { tutorOp } = await import('../../server/ai/ops/tutor');
+    const tutorMsgs = tutorOp.build(tutorOp.input.parse({
+      messages: [{ role: 'user', content: 'what was the main idea?' }],
+      lecture: { title: 'Week 3', text: 'The derivative measures rate of change.' },
+    }), { userId: 'u', demo: true, locale: 'en', grade: 'college' });
+    expect(String(tutorMsgs[0].content)).toContain('The derivative measures rate of change.');
+  });
+
+  it('verifies lecture quiz questions', async () => {
+    const questions = [q('What is 2+2?'), q('2 times 2?', { answer: '5' }), q('What is undefined?'), q('Four?')];
+    mockModel([JSON.stringify({ questions })]);
+    const res = await post('/api/ai/lectureQuiz', { input: { transcript: 'We learned that two plus two is four, always.', count: 3 } });
+    const { data } = await res.json() as { data: { questions: { answer: string }[] } };
+    expect(data.questions.map(x => x.answer)).toEqual(['4', '4', '4']);
+  });
+});
+
 describe('security', () => {
   it('never allows demo mode in production', async () => {
     vi.resetModules();

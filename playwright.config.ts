@@ -12,7 +12,12 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'retain-on-failure',
-    launchOptions: executablePath ? { executablePath } : {},
+    // A fake microphone (a steady tone) lets the lecture recorder run in tests.
+    launchOptions: {
+      ...(executablePath ? { executablePath } : {}),
+      args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+    },
+    permissions: ['microphone'],
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },

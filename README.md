@@ -8,8 +8,9 @@ An AI study partner for students from kindergarten to college, in **English and 
 - **Podcasts** — two hosts talk through any topic.
 
 > **Status:** v2 is being rebuilt from scratch in phases. Done: the foundation (app shell, design
-> system, English/Hebrew, accounts, secure AI gateway) and **Learn** (42 courses / 180 topics,
-> lessons, quizzes, AI tutor, progress). Lectures, Video lessons and Podcasts come next.
+> system, English/Hebrew, accounts, secure AI gateway), **Learn** (42 courses / 180 topics,
+> lessons, quizzes, AI tutor, progress) and **Lectures** (record / upload / paste → transcript,
+> notes, quiz, flashcards, lecture Q&A). Video lessons and Podcasts come next.
 
 ## Stack
 
@@ -35,7 +36,7 @@ An AI study partner for students from kindergarten to college, in **English and 
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run each file in `supabase/migrations/` in order
-   (`0001_foundation.sql`, then `0002_learning.sql`). Each one is safe to re-run.
+   (`0001_foundation.sql`, `0002_learning.sql`, `0003_lectures.sql`). Each one is safe to re-run.
 3. **Authentication → URL Configuration**: set the Site URL to your Vercel URL and add
    `http://localhost:5173` to the redirect URLs.
 4. Optional — **Authentication → Providers → Google**: enable it and add your Google OAuth client.
@@ -73,6 +74,17 @@ npm run dev:all        # web on :5173, API on :3000
 - **Correct answers are checked by code, not the AI** — `shared/math/check.ts` compares answers exactly (½ = 0.5 = 50%, 5 cm = 0.05 m), and `shared/math/validate.ts` verifies every generated question before a student sees it, fixing or dropping wrong ones. The AI grader is only used for worded answers.
 - **Progress** — the `topic_progress` table (or the browser in demo mode). A topic is *mastered* at 80% on a quiz.
 - Lessons are cached in the browser, so reopening a topic doesn't use AI budget.
+
+## How Lectures work
+
+- **Audio never leaves the browser as a file.** It is decoded (uploads) or captured (live recording,
+  via an AudioWorklet) as 16 kHz mono, cut into one-minute WAV pieces (~2.6 MB as base64) and sent to
+  the `transcribe` operation, three at a time with retries. Silent minutes are skipped.
+- Live recordings are transcribed while you record; progress is saved after every minute.
+- Slides (PDF ≤ 2 MB) are read once by `slidesText` and stored as text with the lecture.
+- `lectureNotes`, `lectureQuiz` and `flashcards` work from the transcript (+ slides); results are saved in
+  the `lectures` table, so reopening a lecture costs no AI budget. The tutor's *Ask* tab is grounded in the lecture.
+- YouTube: paste the video's transcript ("Show transcript" under the video).
 
 ## Scripts
 

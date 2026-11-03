@@ -18,6 +18,5 @@ export const ComingSoon = ({ title, body }: { title: (t: Dict) => string; body: 
   );
 };
 
-export const LecturesSoon = () => <ComingSoon title={t => t.home.lecturesTitle} body={t => t.home.lecturesBody} />;
 export const VideosSoon = () => <ComingSoon title={t => t.home.videosTitle} body={t => t.home.videosBody} />;
 export const PodcastsSoon = () => <ComingSoon title={t => t.home.podcastsTitle} body={t => t.home.podcastsBody} />;
