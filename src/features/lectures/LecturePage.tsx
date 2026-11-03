@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { AlertTriangle, Clapperboard, Copy, Download, Headphones, Pencil, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
@@ -207,12 +207,13 @@ export default function LecturePage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4 text-sm text-muted">
                   <span>{t.lectures.turnInto}:</span>
-                  {[{ icon: Clapperboard, label: t.lectures.video }, { icon: Headphones, label: t.lectures.podcast }].map(({ icon: Icon, label }) => (
-                    <span key={label} className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-line px-3 py-1">
-                      <Icon className="size-4" aria-hidden="true" />{label}
-                      <span className="rounded-full bg-surface-2 px-1.5 text-[10px] uppercase">{t.lectures.soon}</span>
-                    </span>
-                  ))}
+                  <Link to={`/videos?lecture=${id}`} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 font-medium text-fg hover:bg-surface-2">
+                    <Clapperboard className="size-4" aria-hidden="true" />{t.lectures.video}
+                  </Link>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-line px-3 py-1">
+                    <Headphones className="size-4" aria-hidden="true" />{t.lectures.podcast}
+                    <span className="rounded-full bg-surface-2 px-1.5 text-[10px] uppercase">{t.lectures.soon}</span>
+                  </span>
                 </div>
               </article>
             ) : (

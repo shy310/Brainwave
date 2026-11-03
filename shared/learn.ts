@@ -84,5 +84,12 @@ export const TutorInputSchema = z.object({
   attachment: AttachmentSchema.optional(),
   /** Ground the tutor in a lecture the student recorded or uploaded. */
   lecture: z.object({ title: z.string().max(200), text: z.string().max(200_000) }).optional(),
+  /** A video lesson or podcast the student paused, and the moment they paused at. */
+  material: z.object({
+    kind: z.enum(['video', 'podcast']),
+    title: z.string().max(200),
+    text: z.string().max(80_000),
+    focus: z.string().max(3000),
+  }).optional(),
 });
 export type TutorInput = z.input<typeof TutorInputSchema>;

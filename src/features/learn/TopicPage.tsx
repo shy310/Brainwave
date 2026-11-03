@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router';
-import { BookOpen, CheckCircle2, MessageCircle, RefreshCw, Sparkles, Target } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clapperboard, MessageCircle, RefreshCw, Sparkles, Target } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { callAi } from '@/lib/api';
@@ -91,6 +91,9 @@ export default function TopicPage() {
         </Link>
         <Link to={`/tutor?topic=${topicId}`} className={cn(linkButton, 'border border-line bg-surface hover:bg-surface-2')}>
           <MessageCircle className="size-4" aria-hidden="true" />{t.learn.askTutor}
+        </Link>
+        <Link to={`/videos?topic=${topicId}`} className={cn(linkButton, 'border border-line bg-surface hover:bg-surface-2')}>
+          <Clapperboard className="size-4" aria-hidden="true" />{t.videos.watchVideo}
         </Link>
       </nav>
 

@@ -192,6 +192,34 @@ describe('lecture operations', () => {
   });
 });
 
+describe('video operations', () => {
+  const sc = (over: Record<string, unknown>) => ({ kind: 'title', heading: 'H', items: [], latex: '', fn: '', xMin: -5, xMax: 5, narration: 'Hello.', ...over });
+
+  it('makes every scene drawable', async () => {
+    mockModel([JSON.stringify({ title: 'Parabolas', scenes: [
+      sc({ kind: 'title' }), sc({ kind: 'graph', fn: 'process.exit()', items: ['a'] }), sc({ kind: 'graph', fn: 'x^2' }),
+    ] })]);
+    const res = await post('/api/ai/videoScript', { input: { source: { prompt: 'parabolas' } } });
+    const { data } = await res.json() as { data: { scenes: { kind: string }[] } };
+    expect(data.scenes.map(s => s.kind)).toEqual(['title', 'bullets', 'graph']);
+  });
+
+  it('needs exactly one source and a real topic', async () => {
+    expect((await post('/api/ai/videoScript', { input: { source: {} } })).status).toBe(400);
+    mockModel(['{}']);
+    expect((await post('/api/ai/videoScript', { input: { source: { topicId: 'nope' } } })).status).toBe(400);
+  });
+
+  it('grounds "ask about this moment" in the paused scene', async () => {
+    const { tutorOp } = await import('../../server/ai/ops/tutor');
+    const msgs = tutorOp.build(tutorOp.input.parse({
+      messages: [{ role: 'user', content: 'why?' }],
+      material: { kind: 'video', title: 'Parabolas', text: 'Scene 1…', focus: 'The vertex is the lowest point.' },
+    }), { userId: 'u', demo: true, locale: 'en', grade: '10' });
+    expect(String(msgs[0].content)).toContain('The vertex is the lowest point.');
+  });
+});
+
 describe('security', () => {
   it('never allows demo mode in production', async () => {
     vi.resetModules();

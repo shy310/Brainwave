@@ -10,7 +10,8 @@ An AI study partner for students from kindergarten to college, in **English and 
 > **Status:** v2 is being rebuilt from scratch in phases. Done: the foundation (app shell, design
 > system, English/Hebrew, accounts, secure AI gateway), **Learn** (42 courses / 180 topics,
 > lessons, quizzes, AI tutor, progress) and **Lectures** (record / upload / paste → transcript,
-> notes, quiz, flashcards, lecture Q&A). Video lessons and Podcasts come next.
+> notes, quiz, flashcards, lecture Q&A) and **Video lessons** (animated, narrated scenes from any topic,
+> lecture or request, with "ask about this moment"). Podcasts come next.
 
 ## Stack
 
@@ -36,7 +37,7 @@ An AI study partner for students from kindergarten to college, in **English and 
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run each file in `supabase/migrations/` in order
-   (`0001_foundation.sql`, `0002_learning.sql`, `0003_lectures.sql`). Each one is safe to re-run.
+   (`0001_foundation.sql` … `0004_media.sql`). Each one is safe to re-run.
 3. **Authentication → URL Configuration**: set the Site URL to your Vercel URL and add
    `http://localhost:5173` to the redirect URLs.
 4. Optional — **Authentication → Providers → Google**: enable it and add your Google OAuth client.
@@ -85,6 +86,16 @@ npm run dev:all        # web on :5173, API on :3000
 - `lectureNotes`, `lectureQuiz` and `flashcards` work from the transcript (+ slides); results are saved in
   the `lectures` table, so reopening a lecture costs no AI budget. The tutor's *Ask* tab is grounded in the lecture.
 - YouTube: paste the video's transcript ("Show transcript" under the video).
+
+## How Video lessons work
+
+- `videoScript` writes 5–12 scenes. Each scene is one visual — title, bullets, equation, steps, graph,
+  flow or summary — plus spoken narration. Graph functions are checked by `shared/math/plot.ts`
+  (plain math in `x` only) and any scene that can't be drawn falls back to a simpler visual.
+- The browser draws scenes with React, KaTeX and SVG, and narrates with the device's built-in voices
+  (Web Speech API — free). Without a voice for the language, the lesson plays with timed captions.
+- Videos are saved in the `media` table (podcasts will share it). "Ask about this moment" sends the
+  paused scene and the script to the tutor.
 
 ## Scripts
 
