@@ -46,16 +46,16 @@ export const pageText = async (doc: PdfDoc, n: number): Promise<string> => {
  */
 export const SCANNED_BELOW = 3;
 
-const canvasToJpeg = (canvas: HTMLCanvasElement): string => {
+const canvasToJpeg = (canvas: HTMLCanvasElement, maxChars = MAX_IMAGE_DATA_URL): string => {
   for (const q of [0.85, 0.7, 0.55, 0.4]) {
     const url = canvas.toDataURL('image/jpeg', q);
-    if (url.length <= MAX_IMAGE_DATA_URL) return url;
+    if (url.length <= maxChars) return url;
   }
   return canvas.toDataURL('image/jpeg', 0.3);
 };
 
 /** Render one page (1-based) as a JPEG data URL for the vision model. */
-export const pageImage = async (doc: PdfDoc, n: number, maxSide = 1800): Promise<string> => {
+export const pageImage = async (doc: PdfDoc, n: number, maxSide = 1800, maxChars = MAX_IMAGE_DATA_URL): Promise<string> => {
   const page = await doc.getPage(n);
   const base = page.getViewport({ scale: 1 });
   const viewport = page.getViewport({ scale: Math.min(3, maxSide / Math.max(base.width, base.height)) });
@@ -67,8 +67,11 @@ export const pageImage = async (doc: PdfDoc, n: number, maxSide = 1800): Promise
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   await page.render({ canvas, canvasContext: ctx, viewport }).promise;
   page.cleanup();
-  return canvasToJpeg(canvas);
+  return canvasToJpeg(canvas, maxChars);
 };
+
+/** True when a page's text layer is too thin to be real text (a scan or a picture). */
+export const looksScanned = (text: string) => text.replace(/\s/g, '').length < SCANNED_BELOW;
 
 /** Shrink a photo to at most `maxSide` pixels and encode it as JPEG under the size limit. */
 export const photoToDataUrl = async (file: Blob, maxSide = 1800): Promise<string> => {
