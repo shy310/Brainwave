@@ -36,3 +36,13 @@ describe('class schedule', () => {
     expect(reminderClock(slot({ weekday: 0, starts: '00:05', remindMinutes: 10 }))).toEqual({ weekday: 6, hour: 23, minute: 55 });
   });
 });
+
+describe('invite links', async () => {
+  const { inviteCodeFrom } = await import('../../src/features/groups/GroupsPage');
+  it('reads the code from a link or a bare code', () => {
+    expect(inviteCodeFrom('https://brainwave.app/join/0123456789abcdef01234567')).toBe('0123456789abcdef01234567');
+    expect(inviteCodeFrom('  0123456789abcdef01234567 ')).toBe('0123456789abcdef01234567');
+    expect(inviteCodeFrom('https://brainwave.app/join/short')).toBe('');
+    expect(inviteCodeFrom('../../etc')).toBe('');
+  });
+});

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { useAuth } from './AuthProvider';
+import { takeReturnTo } from './guards';
 import { useI18n } from '@/i18n';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -36,7 +37,7 @@ export default function OnboardingPage() {
         // The goal sets how notes are written; both can be changed later in Settings.
         study_goal: goal, summary_mode: summaryModeForGoal(goal), lecture_language: lectureLanguage,
       });
-      navigate('/', { replace: true });
+      navigate(takeReturnTo(), { replace: true });
     } catch { setError(true); } finally { setBusy(false); }
   };
 
