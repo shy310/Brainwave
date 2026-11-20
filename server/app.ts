@@ -22,6 +22,21 @@ app.use((_req, res, next) => {
   next();
 });
 
+// The Android app's WebView (https://localhost) calls the deployed API. Requests
+// carry a bearer token, never cookies, so allowing these origins is safe.
+app.use('/api', (req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && env.corsOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Max-Age', '600');
+  }
+  if (req.method === 'OPTIONS') return res.status(origin && env.corsOrigins.includes(origin) ? 204 : 403).end();
+  return next();
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,

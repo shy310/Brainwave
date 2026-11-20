@@ -74,6 +74,23 @@ npm install
 npm run dev:all        # web on :5173, API on :3000
 ```
 
+## Android app
+
+The Android app (`android/`, Capacitor, app id `com.brainwave.app`) wraps the same web build and uses the
+same backend and Supabase accounts, so lectures recorded on the phone show up on the web and the other way round.
+Lectures are recorded by a native **foreground service** (type `microphone`, with a "Recording lecture"
+notification), so recording keeps going with the screen off. Pieces are written to app storage and moved
+into the same recovery queue as the web recorder.
+
+```bash
+# Point the app at the deployed backend, then build a debug APK (needs the Android SDK; set sdk.dir in android/local.properties)
+VITE_API_URL=https://your-deployment.vercel.app npm run android:apk
+# → android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+The server allows the app's WebView origin (`https://localhost`) by default. Change it with `CORS_ORIGINS`
+(comma-separated). Email sign-in works in the app. Google sign-in in the app still needs a deep-link redirect (not set up yet).
+
 ## How Learn works
 
 - **Curriculum** — `shared/curriculumData.ts`: 6 subjects × 7 levels (K → college), every title in English and Hebrew.

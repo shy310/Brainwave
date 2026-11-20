@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { apiUrl } from './platform';
 import type { Locale } from '@shared/locales';
 import type { Grade } from '@shared/grades';
 
@@ -18,7 +19,7 @@ const authHeaders = async (): Promise<Record<string, string>> => {
 };
 
 const post = async (path: string, body: unknown, signal?: AbortSignal) =>
-  fetch(path, {
+  fetch(apiUrl(path), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(body),

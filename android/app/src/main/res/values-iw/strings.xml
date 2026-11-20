@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="recording_channel">הקלטת הרצאות</string>
+    <string name="recording_lecture">מקליטים הרצאה</string>
+    <string name="recording_paused">ההקלטה מושהית</string>
+    <string name="recording_hint">BrainWave ממשיכה להקליט גם כשהמסך כבוי.</string>
+    <string name="recording_stop">עצירה</string>
+</resources>
