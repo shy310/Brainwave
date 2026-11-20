@@ -14,10 +14,10 @@ import { Spinner } from '@/ui/Spinner';
 import { BackLink } from '@/features/learn/CoursePage';
 import { QuizRunner } from '@/features/learn/QuizRunner';
 import { ChatPanel } from '@/features/tutor/ChatPanel';
-import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, type Flashcards, type Notes } from '@shared/lectures';
+import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, type Flashcards, type Notes, type Segment } from '@shared/lectures';
 import type { Quiz } from '@shared/learn';
-import { formatTime } from './audio';
 import { FlashcardDeck } from './Flashcards';
+import { TranscriptPanel } from './TranscriptPanel';
 import { lectureTitle } from './LecturesPage';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
 
@@ -51,6 +51,9 @@ export default function LecturePage() {
   const [name, setName] = useState('');
   const [quizRound, setQuizRound] = useState(0);
   const autoNotes = useRef(false);
+  /** The transcript was edited after notes, a quiz or flashcards were made. */
+  const [stale, setStale] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     lectureRepo.get(id).then(setLecture).catch(() => setLecture(null));
@@ -90,6 +93,18 @@ export default function LecturePage() {
       setBusy('');
     }
   }, [input, transcript, patch, lecture?.title, toMessage]);
+
+  /** Make again whatever was made from the old transcript. */
+  const updateFromEdits = async () => {
+    if (!lecture) return;
+    const had = { notes: Boolean(lecture.notes), quiz: Boolean(lecture.quiz), cards: Boolean(lecture.flashcards) };
+    setUpdating(true);
+    if (had.notes) await generate('notes');
+    if (had.quiz) await generate('quiz');
+    if (had.cards) await generate('cards');
+    setUpdating(false);
+    setStale(false);
+  };
 
   // Write notes automatically the first time a finished lecture is opened.
   useEffect(() => {
@@ -167,6 +182,15 @@ export default function LecturePage() {
 
           {error && <Alert tone="error">{error}</Alert>}
 
+          {stale && (
+            <Alert>
+              <p>{t.lectures.transcriptTools.stale}</p>
+              <Button size="sm" className="mt-2" icon={<RefreshCw className="size-4" />} loading={updating} onClick={() => void updateFromEdits()}>
+                {updating ? t.lectures.transcriptTools.updating : t.lectures.transcriptTools.updateAll}
+              </Button>
+            </Alert>
+          )}
+
           {tab === 'notes' && (
             busy === 'notes' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.writingNotes}</Card>
             : lecture.notes ? (
@@ -223,17 +247,11 @@ export default function LecturePage() {
           )}
 
           {tab === 'transcript' && (
-            <Card className="space-y-4 p-6">
-              <div className="flex justify-end gap-2">
-                <Button variant="secondary" size="sm" icon={<Download className="size-4" />} onClick={() => download(`${title}.txt`, transcript)}>{t.lectures.download}</Button>
-              </div>
-              {lecture.segments.filter((s) => s.text.trim()).map((s, i) => (
-                <div key={i} className="flex gap-3">
-                  {lecture.source !== 'text' && <span className="w-12 shrink-0 pt-0.5 text-xs tabular-nums text-muted">{formatTime(s.start)}</span>}
-                  <Rich text={s.text} className="min-w-0 flex-1" />
-                </div>
-              ))}
-            </Card>
+            <TranscriptPanel segments={lecture.segments} timed={lecture.source !== 'text'} fileName={title}
+              onSave={async (segments: Segment[]) => {
+                await patch({ segments });
+                if (lecture.notes || lecture.quiz || lecture.flashcards) setStale(true);
+              }} />
           )}
 
           {tab === 'quiz' && (

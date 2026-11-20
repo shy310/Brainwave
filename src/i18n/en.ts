@@ -187,6 +187,14 @@ export const en = {
     rename: 'Rename', save: 'Save',
     turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
+    transcriptTools: {
+      search: 'Search the transcript', clear: 'Clear search',
+      matches: (n: number) => (n === 1 ? '1 match' : `${n} matches`), noMatches: 'No matches',
+      edit: 'Edit', editHint: 'Fix any words that were heard wrong. Your notes, quiz and flashcards can then be made again from your version.',
+      saveEdits: 'Save changes', cancel: 'Cancel', part: (time: string) => `Part at ${time}`,
+      stale: 'You edited the transcript. The notes, quiz and flashcards were made from the earlier version.',
+      updateAll: 'Update them from my version', updating: 'Updating…',
+    },
   },
   videos: {
     title: 'Video lessons', subtitle: 'Short animated lessons on anything you are learning, narrated for you.',

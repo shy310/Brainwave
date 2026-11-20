@@ -185,6 +185,14 @@ export const he: Dict = {
     delete: 'מחיקת ההרצאה', confirmDelete: 'למחוק את ההרצאה? אי אפשר לבטל.', notFound: 'לא מצאנו את ההרצאה.',
     rename: 'שינוי שם', save: 'שמירה',
     turnInto: 'להפוך ל', video: 'שיעור וידאו', podcast: 'פודקאסט',
+    transcriptTools: {
+      search: 'חיפוש בתמלול', clear: 'ניקוי החיפוש',
+      matches: (n: number) => (n === 1 ? 'תוצאה אחת' : `${n} תוצאות`), noMatches: 'אין תוצאות',
+      edit: 'עריכה', editHint: 'תקנו מילים ששמענו לא נכון. אחר כך אפשר ליצור מחדש את הסיכום, הבוחן והכרטיסיות מהגרסה שלכם.',
+      saveEdits: 'שמירת השינויים', cancel: 'ביטול', part: (time: string) => `קטע ב-${time}`,
+      stale: 'ערכת את התמלול. הסיכום, הבוחן והכרטיסיות נוצרו מהגרסה הקודמת.',
+      updateAll: 'לעדכן אותם לפי הגרסה שלי', updating: 'מעדכנים…',
+    },
     emptyTranscript: 'לא נמצא דיבור בהקלטה.',
   },
   videos: {
