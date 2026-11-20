@@ -15,6 +15,8 @@ export interface Lecture {
   notes: Notes | null;
   quiz: Quiz | null;
   flashcards: Flashcards | null;
+  /** Set while the notes are shared by link (needs migration 0009). */
+  share_token?: string | null;
   /** The folder it's in, if any (needs migration 0007). */
   folder_id?: string | null;
   created_at: string;
@@ -23,6 +25,15 @@ export interface Lecture {
 
 export type LectureSummary = Pick<Lecture, 'id' | 'title' | 'source' | 'status' | 'duration_sec' | 'created_at' | 'folder_id'>;
 export type NewLecture = Pick<Lecture, 'title' | 'source' | 'language'> & Partial<Pick<Lecture, 'segments' | 'slides_text' | 'status' | 'duration_sec'>>;
+/** What a share link shows: the notes and flashcards, nothing else. */
+export interface SharedLecture { title: string; source: LectureSource; notes: Notes; flashcards: Flashcards | null; created_at: string }
+
+/** A long random token for a share link (128 bits, URL-safe). */
+export const newShareToken = (): string => {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+
 export type StudyLecture = Pick<Lecture, 'id' | 'title' | 'created_at' | 'status' | 'folder_id' | 'flashcards' | 'quiz'>;
 export type LecturePatch = Partial<Omit<Lecture, 'id' | 'created_at' | 'updated_at'>>;
 
@@ -97,6 +108,30 @@ export const lectureRepo = {
     }
     const { error } = await supabase.from('lectures').update({ ...patch, updated_at }).eq('id', id);
     if (error) throw error;
+  },
+
+  /** Turn on a share link. Needs an account (demo lectures live only in this browser). */
+  async share(id: string): Promise<string> {
+    if (!supabase) throw new Error('sharing-needs-account');
+    const token = newShareToken();
+    const { error } = await supabase.from('lectures').update({ share_token: token }).eq('id', id);
+    if (error) throw error;
+    return token;
+  },
+
+  async unshare(id: string): Promise<void> {
+    if (!supabase) return;
+    const { error } = await supabase.from('lectures').update({ share_token: null }).eq('id', id);
+    if (error) throw error;
+  },
+
+  /** A shared lecture, for anyone with the link (no sign-in). */
+  async getShared(token: string): Promise<SharedLecture | null> {
+    if (!supabase || token.length < 20) return null;
+    const { data, error } = await supabase.rpc('shared_lecture', { p_token: token });
+    if (error) throw error;
+    const row = (Array.isArray(data) ? data[0] : data) as SharedLecture | undefined;
+    return row ?? null;
   },
 
   async remove(id: string): Promise<void> {

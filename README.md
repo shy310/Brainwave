@@ -57,6 +57,7 @@ Copy `.env.example` to `.env.local` for local development. On Vercel, add the sa
 | `SUPABASE_SERVICE_ROLE_KEY` | server | Secret key (`sb_secret_…`) or legacy service_role key (quota tracking) — **never** prefix with `VITE_` |
 | `OPENROUTER_API_KEY` | server | Your OpenRouter key |
 | `OPENROUTER_MODEL` | server | Optional, defaults to `google/gemini-2.5-flash` |
+| `VITE_PUBLIC_URL` | browser | Optional public web address (e.g. `https://brainwave.app`), used for share links made in the Android app. The web app uses its own address. |
 | `TRANSCRIBE_MODE` | server | Optional. `llm` (default) transcribes lectures with the chat model. `stt` uses a dedicated speech-to-text model and falls back to `llm` if it fails. |
 | `TRANSCRIBE_MODEL` | server | Optional speech-to-text model for `stt` mode (default `openai/gpt-4o-mini-transcribe`). Choose it with `scripts/eval-transcription.ts` (see `eval/transcription/README.md`). |
 | `TRANSCRIBE_CLEANUP` | server | Optional. `true` runs the LLM cleanup (fillers, math as LaTeX) on the speech-to-text **text** afterwards. |
