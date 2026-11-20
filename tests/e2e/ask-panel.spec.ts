@@ -56,3 +56,21 @@ for (const lang of ['en', 'he'] as const) {
     await expect(page.getByRole('button', { name: ta.open, exact: true })).toHaveCount(0);
   });
 }
+
+test('the floating Ask button never covers the last buttons on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await onboard(page);
+  // Long notes, so the page scrolls and its last row ends up next to the floating button.
+  const long = { ...lecture, notes: { ...NOTES, sections: Array.from({ length: 6 }, (_, i) => ({ heading: `Part ${i + 1}`, points: ['A derivative measures the instantaneous rate of change.'] })) } };
+  await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), long);
+  await page.goto('/lectures/lec1');
+  await page.getByRole('link', { name: 'Podcast', exact: true }).waitFor();
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForTimeout(300);
+  const ask = await page.getByRole('button', { name: en.lectures.askPanel.open, exact: true }).boundingBox();
+  for (const link of ['Video lesson', 'Podcast']) {
+    const box = await page.getByRole('link', { name: link, exact: true }).boundingBox();
+    const overlap = box!.x < ask!.x + ask!.width && ask!.x < box!.x + box!.width && box!.y < ask!.y + ask!.height && ask!.y < box!.y + box!.height;
+    expect(overlap, `${link} is covered by the Ask button`).toBe(false);
+  }
+});
