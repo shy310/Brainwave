@@ -113,7 +113,26 @@ describe('learn operations', () => {
   it('refuses oversized or non-image attachments', () => {
     return import('../../shared/learn').then(({ AttachmentSchema }) => {
       expect(AttachmentSchema.safeParse({ kind: 'image', name: 'x', dataUrl: 'data:text/html;base64,AAAA' }).success).toBe(false);
+      expect(AttachmentSchema.safeParse({ kind: 'image', name: 'x', dataUrl: 'data:application/pdf;base64,AAAA' }).success).toBe(false);
+      expect(AttachmentSchema.safeParse({ kind: 'pdfText', name: 'x', text: 'a'.repeat(150_001) }).success).toBe(false);
+      expect(AttachmentSchema.safeParse({ kind: 'pdfText', name: 'x', text: '', pages: Array(4).fill('data:image/jpeg;base64,AA') }).success).toBe(false);
     });
+  });
+
+  it('gives the tutor a big PDF as its text, or as page pictures when it is a scan', async () => {
+    const { tutorOp } = await import('../../server/ai/ops/tutor');
+    const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
+    const parts = (attachment: unknown) => {
+      const msgs = tutorOp.build(tutorOp.input.parse({ messages: [{ role: 'user', content: 'help' }], attachment }), ctx);
+      return msgs[1].content as { type: string; text?: string; image_url?: { url: string } }[];
+    };
+    const text = parts({ kind: 'pdfText', name: 'book.pdf', text: 'Page 1:\nDerivatives' });
+    expect(text.map((p) => p.type)).toEqual(['text', 'text']);
+    expect(text[1].text).toContain('Attached PDF "book.pdf"');
+    expect(text[1].text).toContain('Page 1:\nDerivatives');
+    const scan = parts({ kind: 'pdfText', name: 'scan.pdf', text: '', pages: ['data:image/jpeg;base64,AA', 'data:image/jpeg;base64,BB'] });
+    expect(scan.map((p) => p.type)).toEqual(['text', 'text', 'image_url', 'image_url']);
+    expect(scan[1].text).toContain('a scan');
   });
 });
 
