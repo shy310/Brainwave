@@ -77,6 +77,10 @@ export const NotesSchema = z.object({
   keyTerms: z.array(z.object({ term: z.string().max(200), definition: z.string().max(1000) })).max(30),
   /** Homework, deadlines and exam hints the lecturer mentioned. */
   reminders: z.array(z.string().max(500)).max(15),
+  /** Exam prep only: likely exam questions with short model answers. */
+  practice: z.array(z.object({ question: z.string().min(1).max(1000), answer: z.string().min(1).max(2000) })).max(10).optional(),
+  /** Exam prep only: mistakes and traps students often fall into on this material. */
+  mistakes: z.array(z.string().max(600)).max(10).optional(),
   /** Which style these notes were written in (set by the server, not the model). */
   mode: z.enum(SUMMARY_MODES).optional(),
   /** Learn topics this lecture covers (ids from the curriculum, checked by the server). */

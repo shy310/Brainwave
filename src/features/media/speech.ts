@@ -31,6 +31,13 @@ const matchesLocale = (v: SpeechSynthesisVoice, locale: Locale) => {
 const quality = (v: SpeechSynthesisVoice) =>
   (/natural|neural|premium|enhanced|online/i.test(v.name) ? 4 : 0) + (/google|microsoft/i.test(v.name) ? 2 : 0) + (v.localService ? 0 : 1);
 
+/** The best device voice for the language of a natural voice, if the device has one. */
+const deviceVoiceFor = (cloud: CloudVoice): SpeechSynthesisVoice | null => {
+  if (!hasSpeech()) return null;
+  const locale: Locale = cloud.startsWith('he') ? 'he' : 'en';
+  return speechSynthesis.getVoices().filter((v) => matchesLocale(v, locale)).sort((a, b) => quality(b) - quality(a))[0] ?? null;
+};
+
 /** The voices available for a language, best first. Loads asynchronously in some browsers. */
 export const useVoices = (locale: Locale): SpeechSynthesisVoice[] => {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -58,8 +65,13 @@ export const speak = (text: string, opts: { voice: Voice; rate: number; pitch?: 
   if (isCloud(voice)) {
     const audio = audioElement();
     let url = '';
-    // If the natural voice fails, keep going with timed captions for this sentence.
-    const fallback = () => { if (!done) { clearTimeout(safety); safety = setTimeout(finish, expected); } };
+    let stopDevice: (() => void) | null = null;
+    // If the natural voice fails, say this sentence with the device's voice (or timed captions).
+    const fallback = () => {
+      if (done || stopDevice) return;
+      clearTimeout(safety);
+      stopDevice = speak(text, { ...opts, voice: deviceVoiceFor(voice.cloud) }, finish);
+    };
     safety = setTimeout(finish, expected * 3 + 15000);
     loadSpeech(text, voice.cloud).then((blob) => {
       if (done) return;
@@ -73,6 +85,7 @@ export const speak = (text: string, opts: { voice: Voice; rate: number; pitch?: 
     return () => {
       done = true;
       clearTimeout(safety);
+      stopDevice?.();
       audio.onended = null;
       audio.onerror = null;
       audio.pause();
