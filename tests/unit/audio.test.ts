@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { bytesToBase64, downsample, encodeWav, formatTime, isSilent, splitIntoChunks } from '../../src/features/lectures/audio';
+import {
+  bytesToBase64, downsample, encodeWav, formatTime, fromPcm16, isSilent, quietCut, splitAtQuietPoints, splitIntoChunks, toPcm16,
+} from '../../src/features/lectures/audio';
 import { MAX_AUDIO_BASE64, TranscribeInputSchema } from '../../shared/lectures';
 
 const tone = (seconds: number, rate = 16000) => {
@@ -42,5 +44,63 @@ describe('lecture audio', () => {
     expect(formatTime(5)).toBe('0:05');
     expect(formatTime(125)).toBe('2:05');
     expect(formatTime(3725)).toBe('1:02:05');
+  });
+});
+
+describe('cutting at quiet moments', () => {
+  const RATE = 16000;
+  /** Steady "speech" with a short pause at `pauseAt` seconds. */
+  const speechWithPause = (seconds: number, pauses: number[], pauseLen = 0.4) => {
+    const s = tone(seconds);
+    for (const at of pauses) s.fill(0.001, Math.floor(at * RATE), Math.floor((at + pauseLen) * RATE));
+    return s;
+  };
+
+  it('ends a piece in the pause between 50 and 70 seconds', () => {
+    const at = quietCut(speechWithPause(90, [57.3]));
+    expect(at / RATE).toBeGreaterThan(57.3);
+    expect(at / RATE).toBeLessThan(57.7);
+  });
+
+  it('ignores pauses outside the 50–70 second range', () => {
+    const at = quietCut(speechWithPause(90, [20, 45, 75])) / RATE;
+    expect(at).toBeGreaterThanOrEqual(50);
+    expect(at).toBeLessThanOrEqual(70);
+    expect(Math.abs(at - 60)).toBeLessThan(0.5); // no pause in range: as close to a minute as possible
+  });
+
+  it('picks the quietest of several pauses', () => {
+    const s = speechWithPause(90, [52, 66]);
+    s.fill(0, 66 * RATE, Math.floor(66.4 * RATE)); // the second pause is fully silent
+    expect(quietCut(s) / RATE).toBeCloseTo(66.2, 0);
+  });
+
+  it('does not cut audio shorter than the maximum', () => {
+    expect(quietCut(tone(65))).toBe(65 * RATE);
+  });
+
+  it('splits a long recording into pieces of 50–70 seconds that cover everything', () => {
+    const s = speechWithPause(300, [55, 123, 190, 251]);
+    const pieces = splitAtQuietPoints(s);
+    expect(pieces.reduce((n, p) => n + p.samples.length, 0)).toBe(s.length);
+    pieces.slice(0, -1).forEach((p) => {
+      expect(p.samples.length / RATE).toBeGreaterThanOrEqual(50);
+      expect(p.samples.length / RATE).toBeLessThanOrEqual(70);
+    });
+    expect(pieces.map((p) => Math.round(p.start))).toEqual([0, 55, 123, 190, 251]);
+    const b64 = bytesToBase64(encodeWav(tone(70)));
+    expect(TranscribeInputSchema.safeParse({ audio: b64 }).success).toBe(true); // the longest piece still fits
+  });
+
+  it('honours custom limits', () => {
+    const pieces = splitAtQuietPoints(tone(10), RATE, { min: 2, target: 3, max: 4 });
+    expect(pieces.map((p) => p.samples.length / RATE)).toEqual([3, 3, 4]); // the last 4 s fit in one piece
+  });
+
+  it('stores audio as 16-bit PCM without changing the WAV', () => {
+    const s = tone(1);
+    expect(encodeWav(toPcm16(s))).toEqual(encodeWav(s));
+    const back = fromPcm16(toPcm16(s));
+    expect(Math.max(...back.map((v, i) => Math.abs(v - s[i])))).toBeLessThan(1e-4);
   });
 });
