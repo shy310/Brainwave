@@ -7,6 +7,7 @@ import { AccountMenu } from './AccountMenu';
 import { LanguageToggle } from './LanguageToggle';
 import { RecoveryBanner } from '@/features/lectures/RecoveryBanner';
 import { useStudyTimer } from '@/features/stats/activity';
+import { ClassReminders } from '@/features/schedule/UpNext';
 
 export const AppShell = () => {
   const t = useT();
@@ -38,6 +39,7 @@ export const AppShell = () => {
       </header>
 
       <main id="main" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+        <ClassReminders />
         <RecoveryBanner />
         <Outlet />
       </main>

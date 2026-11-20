@@ -4,6 +4,7 @@ import { useT } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Card } from '@/ui/Card';
 import { WeekCard } from '@/features/stats/WeekCard';
+import { UpNextBanner } from '@/features/schedule/UpNext';
 
 export default function HomePage() {
   const t = useT();
@@ -20,6 +21,7 @@ export default function HomePage() {
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t.home.greeting(profile?.display_name ?? '')}</h1>
         <p className="mt-2 text-lg text-muted">{t.home.subtitle}</p>
       </header>
+      <UpNextBanner />
       <WeekCard />
       <div className="grid gap-3 sm:grid-cols-2">
         {[

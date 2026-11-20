@@ -25,7 +25,7 @@ export interface Lecture {
 }
 
 export type LectureSummary = Pick<Lecture, 'id' | 'title' | 'source' | 'status' | 'duration_sec' | 'created_at' | 'folder_id'>;
-export type NewLecture = Pick<Lecture, 'title' | 'source' | 'language'> & Partial<Pick<Lecture, 'segments' | 'slides_text' | 'status' | 'duration_sec'>>;
+export type NewLecture = Pick<Lecture, 'title' | 'source' | 'language'> & Partial<Pick<Lecture, 'segments' | 'slides_text' | 'status' | 'duration_sec' | 'folder_id'>>;
 /** What a share link shows: the notes and flashcards, nothing else. */
 export interface SharedLecture { title: string; source: LectureSource; notes: Notes; flashcards: Flashcards | null; created_at: string }
 

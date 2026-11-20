@@ -68,6 +68,18 @@ export const he: Dict = {
     best: (n: number) => `השיא: ${n}`, newBest: 'שיא חדש!', missed: 'כדאי לחזור על אלה', again: 'לטפס שוב', reviewCards: 'חזרה על כרטיסיות',
     from: (title: string) => `מתוך: ${title}`,
   },
+  schedule: {
+    title: 'מערכת שעות', subtitle: 'הוסיפו את השיעורים השבועיים. BrainWave תזכיר להקליט אותם ותיתן שם לכל הרצאה.',
+    open: 'מערכת שעות', add: 'הוספת שיעור', edit: 'עריכה', remove: 'מחיקה', confirmRemove: (n: string) => `למחוק את „${n}” ממערכת השעות?`,
+    name: 'שם השיעור', namePlaceholder: 'למשל: חדו״א 1', day: 'יום', starts: 'מתחיל', ends: 'נגמר',
+    folder: 'לשמור הרצאות בתיקייה', noFolder: 'בלי תיקייה', remind: 'תזכורת',
+    remindOption: (m: number) => (m === 0 ? 'בלי תזכורת' : `${m} דק׳ לפני`),
+    save: 'שמירה', empty: 'עוד אין שיעורים. הוסיפו את מערכת השעות כדי לקבל תזכורות.', endBeforeStart: 'השיעור צריך להיגמר אחרי שהוא מתחיל.',
+    enable: 'הפעלת תזכורות', enabled: 'התזכורות פעילות.', blocked: 'ההתראות חסומות. אפשרו אותן בהגדרות הדפדפן או הטלפון.',
+    webNote: 'באתר, תזכורות מופיעות כש-BrainWave פתוחה בלשונית. באפליקציית האנדרואיד הן מגיעות גם כשהיא סגורה.',
+    reminderTitle: (n: string) => `${n} מתחיל בקרוב`, reminderBody: (m: number) => `בעוד ${m} דקות. הקישו כדי להתחיל להקליט.`,
+    soon: (n: string, time: string) => `${n} מתחיל ב-${time}`, on: (n: string) => `${n} מתקיים עכשיו`, record: 'להקליט',
+  },
   week: {
     title: 'השבוע שלך', streak: (n: number) => (n === 1 ? 'יום אחד ברצף' : `${n} ימים ברצף`), noStreak: 'מתחילים רצף היום',
     best: (n: number) => `השיא: ${n === 1 ? 'יום אחד' : `${n} ימים`}`,

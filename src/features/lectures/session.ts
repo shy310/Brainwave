@@ -25,6 +25,7 @@ export interface NewSession {
   title: string;
   language: LectureLanguage;
   slidesText: string | null;
+  folderId?: string | null;
 }
 
 const LOCK = (id: string) => `bw-lecture-draft:${id}`;
@@ -163,6 +164,7 @@ export class LectureSession {
     if (!this.draft.lectureId) {
       const lecture = await this.repo.create({
         title: this.draft.title, source: this.draft.source, language: this.draft.language, slides_text: this.draft.slidesText,
+        ...(this.draft.folderId ? { folder_id: this.draft.folderId } : {}),
       });
       await this.patchDraft({ lectureId: lecture.id });
     }

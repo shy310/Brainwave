@@ -21,6 +21,8 @@ export interface Draft {
   title: string;
   language: LectureLanguage;
   slidesText: string | null;
+  /** Folder for the new lecture (from the class schedule). */
+  folderId?: string | null;
   /** 'recording' until the recorder is stopped on purpose. */
   state: 'recording' | 'stopped';
   /** Seconds of audio so far. */
