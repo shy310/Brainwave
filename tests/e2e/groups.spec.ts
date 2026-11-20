@@ -80,3 +80,49 @@ for (const lang of ['en', 'he'] as const) {
     await expect(page.getByRole('heading', { level: 1, name: 'Physics' })).toBeVisible();
   });
 }
+
+for (const lang of ['en', 'he'] as const) {
+  const t = lang === 'he' ? he : en;
+  const ts = t.lectures.shareGroup;
+
+  test(`share a lecture with a group from the lecture itself, without other note styles (${lang})`, async ({ page }) => {
+    await onboard(page, { hebrew: lang === 'he' });
+    // Notes saved in another style stay private.
+    const withStyles = { ...lecture, notes: { ...NOTES, mode: 'detailed', other: { short: { ...NOTES, summary: 'Private short notes.', mode: 'short' } } } };
+    await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), withStyles);
+
+    // Not in a group yet: the panel offers to make one.
+    await page.goto('/lectures/lec1');
+    await page.getByRole('button', { name: ts.button }).click();
+    await expect(page.getByText(ts.none)).toBeVisible();
+    await page.getByRole('link', { name: ts.create }).click();
+    await page.getByRole('button', { name: t.groups.create }).click();
+    await page.getByLabel(t.groups.name).fill('Calculus');
+    await page.getByRole('button', { name: t.groups.make }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Calculus' })).toBeVisible();
+
+    await page.goto('/lectures/lec1');
+    await page.getByRole('button', { name: ts.button }).click();
+    await expect(page.getByLabel(ts.pick)).toHaveValue(/.+/); // the only group is picked
+    await page.getByRole('button', { name: ts.share }).click();
+    await expect(page.getByText(ts.done('Calculus'))).toBeVisible();
+    await page.getByRole('link', { name: ts.open }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Calculus' })).toBeVisible();
+    await expect(page.getByText('Derivatives', { exact: true })).toBeVisible();
+    const shared = await page.evaluate(() => JSON.parse(localStorage.getItem('bw.groups') ?? '{}').shares[0]);
+    expect(shared.notes.summary).toBe(NOTES.summary);
+    expect(shared.notes).not.toHaveProperty('other');
+    expect(JSON.stringify(shared)).not.toContain('Secret transcript text.');
+  });
+}
+
+test('the Lectures page has the study tools: review, Summit, study groups and the class schedule', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/lectures');
+  const tools = page.getByRole('region', { name: en.lectures.tools.title });
+  for (const [name, path] of [[en.lectures.tools.review, '/lectures/review'], [en.lectures.tools.summit, '/play'], [en.lectures.tools.groups, '/groups'], [en.lectures.tools.schedule, '/lectures/schedule']]) {
+    await expect(tools.getByRole('link', { name: new RegExp(name) })).toHaveAttribute('href', path);
+  }
+  await tools.getByRole('link', { name: new RegExp(en.lectures.tools.summit) }).click();
+  await expect(page.getByRole('heading', { level: 1, name: en.game.name })).toBeVisible();
+});

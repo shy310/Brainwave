@@ -336,6 +336,17 @@ export const en = {
       notFound: 'This link doesn’t work anymore. The person who shared it may have stopped sharing.',
       madeWith: 'Notes made with BrainWave', tryIt: 'Make your own notes',
     },
+    tools: {
+      title: 'Study tools', review: 'Review flashcards', summit: 'Summit', summitBody: 'A quick quiz game from your lectures',
+      groups: 'Study groups', groupsBody: 'Share notes with classmates', schedule: 'Class schedule', scheduleBody: 'Reminders to record',
+      reviewBody: 'A few minutes a day',
+    },
+    shareGroup: {
+      button: 'Share with a group', title: 'Share with a study group',
+      body: 'Your group gets a copy of the notes, flashcards and quiz — never the recording or the transcript.',
+      pick: 'Choose a group', share: 'Send to group', done: (name: string) => `Shared with ${name}.`, open: 'Open the group',
+      none: 'You’re not in a study group yet.', create: 'Make a group', failed: 'Couldn’t share just now. Please try again.',
+    },
     review: {
       title: 'Review flashcards', due: (n: number) => (n === 1 ? '1 card to review' : `${n} cards to review`), start: 'Review now',
       explain: 'Cards you know come back after longer and longer gaps; cards you miss come back soon. A few minutes a day is enough.',

@@ -1,10 +1,9 @@
-import { useEffect, useState, type ComponentType } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Sparkles, X } from 'lucide-react';
+import { Sparkles, X, type LucideIcon } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { useAiError } from '@/lib/useAiError';
-import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -15,6 +14,7 @@ import { LENGTHS, type MediaKind, type MediaLength } from '@shared/media';
 import { LOCALES, type Locale } from '@shared/locales';
 import { mediaRepo, type Media } from './repo';
 import { useMediaSource } from './useMediaSource';
+import { IconTile } from '@/ui/IconTile';
 
 export interface StudioStrings {
   title: string; subtitle: string; createTitle: string; promptLabel: string; promptPlaceholder: string;
@@ -27,7 +27,7 @@ interface Props {
   /** AI operation that writes the script; its result must have a `title`. */
   op: 'videoScript' | 'podcastScript';
   strings: StudioStrings;
-  icon: ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   tint: string;
 }
 
@@ -129,9 +129,7 @@ export const MediaStudio = ({ kind, op, strings: s, icon: Icon, tint }: Props) =
               {saved.map((m) => (
                 <Link key={m.id} to={`${base}/${m.id}`} className="rounded-[var(--radius-card)]">
                   <Card className="flex items-center gap-3 p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
-                    <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white', tint)}>
-                      <Icon className="size-5" />
-                    </span>
+                    <IconTile icon={Icon} tint={tint} size="sm" />
                     <div className="min-w-0">
                       <p className="truncate font-medium" dir="auto">{m.title}</p>
                       <p className="truncate text-sm text-muted" dir="auto">{m.origin.label}</p>

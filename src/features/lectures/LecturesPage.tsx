@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
-import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, CalendarDays, Camera, FileText, Layers, Mountain, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, CalendarDays, Camera, FileText, Layers, Mountain, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
@@ -16,6 +16,7 @@ import { useDragReorder } from './useDragReorder';
 import { reviewCards, reviewRepo } from './reviews';
 import { dueCount } from '@shared/srs';
 import { UpNextBanner } from '@/features/schedule/UpNext';
+import { IconTile } from '@/ui/IconTile';
 
 const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera } as const;
 const VIEW_KEY = 'bw.lectures.view';
@@ -122,9 +123,6 @@ export default function LecturesPage() {
           <p className="text-muted">{t.lectures.subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link to="/lectures/schedule" className={cn(linkButton, 'border border-line bg-surface hover:bg-surface-2')}>
-            <CalendarDays className="size-4" aria-hidden="true" />{t.schedule.open}
-          </Link>
           <Link to="/lectures/new" className={cn(linkButton, 'bg-brand-600 text-white hover:bg-brand-700')}>
             <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
           </Link>
@@ -138,9 +136,7 @@ export default function LecturesPage() {
 
       {items?.length === 0 && (
         <Card className="flex flex-col items-center gap-4 p-10 text-center">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-400 to-accent-600 text-white">
-            <Mic className="size-7" aria-hidden="true" />
-          </span>
+          <IconTile icon={Mic} tint="from-accent-400 to-accent-600" size="lg" />
           <div>
             <h2 className="text-lg font-semibold">{t.lectures.empty}</h2>
             <p className="mt-1 max-w-md text-muted">{t.lectures.emptyBody}</p>
@@ -151,13 +147,7 @@ export default function LecturesPage() {
         </Card>
       )}
 
-      {due > 0 && (
-        <Link to="/lectures/review" className="flex items-center gap-3 rounded-[var(--radius-card)] border border-brand-200 bg-brand-50 p-4 hover:bg-brand-100 dark:border-brand-800 dark:bg-brand-900/30">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white"><Layers className="size-5" aria-hidden="true" /></span>
-          <span className="min-w-0 flex-1 font-medium">{t.lectures.review.due(due)}</span>
-          <span className="text-sm font-medium text-brand-700 dark:text-brand-200">{t.lectures.review.start}</span>
-        </Link>
-      )}
+      <StudyTools due={due} />
 
       {hasAny && (
         <>
@@ -275,3 +265,36 @@ export default function LecturesPage() {
     </div>
   );
 }
+
+/** Everything for studying the lectures, in one place: review, Summit, study groups and the class schedule. */
+const StudyTools = ({ due }: { due: number }) => {
+  const { t } = useI18n();
+  const tt = t.lectures.tools;
+  const tools = [
+    { to: '/lectures/review', icon: Layers, title: tt.review, body: due > 0 ? t.lectures.review.due(due) : tt.reviewBody, tint: 'bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-200', highlight: due > 0 },
+    { to: '/play', icon: Mountain, title: tt.summit, body: tt.summitBody, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },
+    { to: '/groups', icon: Users, title: tt.groups, body: tt.groupsBody, tint: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' },
+    { to: '/lectures/schedule', icon: CalendarDays, title: tt.schedule, body: tt.scheduleBody, tint: 'bg-sky-500/12 text-sky-700 dark:text-sky-300' },
+  ];
+  return (
+    <section aria-label={tt.title}>
+      {/* One surface split by hairlines (the gap shows the border colour), not four separate cards. */}
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line bg-line shadow-[var(--shadow-soft)] lg:grid-cols-4">
+        {tools.map((x) => (
+          <Link key={x.to} to={x.to}
+            className={cn('group flex min-w-0 flex-col gap-2.5 p-4 transition-colors focus-visible:-outline-offset-2 sm:flex-row sm:items-center sm:gap-3',
+              x.highlight ? 'bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:hover:bg-brand-900/50' : 'bg-surface hover:bg-surface-2')}>
+            <span className={cn('relative flex size-10 shrink-0 items-center justify-center rounded-xl', x.tint)}>
+              <x.icon className="size-5" aria-hidden="true" />
+              {x.highlight && <span className="absolute -end-0.5 -top-0.5 size-2.5 rounded-full bg-accent-500 ring-2 ring-brand-50 dark:ring-brand-900" aria-hidden="true" />}
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold leading-tight">{x.title}</span>
+              <span className={cn('mt-0.5 block text-sm leading-snug', x.highlight ? 'font-medium text-brand-700 dark:text-brand-200' : 'text-muted')}>{x.body}</span>
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+};

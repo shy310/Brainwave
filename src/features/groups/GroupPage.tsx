@@ -12,6 +12,7 @@ import { BackLink } from '@/features/learn/CoursePage';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { lectureRepo, type Lecture, type LectureSummary } from '@/features/lectures/repo';
 import { lectureTitle } from '@/features/lectures/LecturesPage';
+import { lectureShare } from './share';
 import { groupsRepo, type Group, type Member, type Share } from './groupsRepo';
 
 export default function GroupPage() {
@@ -47,7 +48,7 @@ export default function GroupPage() {
     await run(async () => {
       const l: Lecture | null = await lectureRepo.get(pick);
       if (!l || !(l.notes || l.flashcards || l.quiz)) { setError(tg.nothingToShare); return; }
-      await groupsRepo.share(id, { title: lectureTitle(l, t.lectures.untitled, locale).slice(0, 200), notes: l.notes, flashcards: l.flashcards, quiz: l.quiz }, profile?.display_name ?? '', user.id);
+      await groupsRepo.share(id, lectureShare(l, lectureTitle(l, t.lectures.untitled, locale)), profile?.display_name ?? '', user.id);
       setSharing(false); setPick('');
       await load();
     });

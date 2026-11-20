@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Link2, Pencil, RefreshCw, Share2, Sparkles, Trash2 } from 'lucide-react';
+import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Link2, Pencil, RefreshCw, Share2, Sparkles, Trash2, Users } from 'lucide-react';
 import { publicUrl } from '@/lib/platform';
 import { useI18n, useT } from '@/i18n';
 import { callAi } from '@/lib/api';
@@ -23,6 +23,7 @@ import { TranscriptPanel } from './TranscriptPanel';
 import { NotesView } from './NotesView';
 import { notifyIfAway } from '@/features/schedule/notify';
 import { AskPanel } from './AskPanel';
+import { ShareToGroupPanel } from './ShareToGroupPanel';
 import { rate, reviewRepo } from './reviews';
 import { cardKey, type CardState } from '@shared/srs';
 import { folderRepo, type Folder } from './folders';
@@ -57,6 +58,7 @@ export default function LecturePage() {
   const toMessage = useAiError();
   const { profile, demo } = useAuth();
   const [sharing, setSharing] = useState(false);
+  const [groupSharing, setGroupSharing] = useState(false);
   const [shareNote, setShareNote] = useState('');
   const [lecture, setLecture] = useState<Lecture | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>('notes');
@@ -262,9 +264,11 @@ export default function LecturePage() {
                   <Link to={`/lectures/${id}/print`} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-sm font-medium hover:bg-surface-2">
                     <FileDown className="size-4" aria-hidden="true" />{t.lectures.share.savePdf}
                   </Link>
-                  <Button variant="secondary" size="sm" icon={<Share2 className="size-4" />} aria-expanded={sharing} onClick={() => { setSharing((v) => !v); setShareNote(''); }}>{t.lectures.share.share}</Button>
+                  <Button variant="secondary" size="sm" icon={<Share2 className="size-4" />} aria-expanded={sharing} onClick={() => { setSharing((v) => !v); setGroupSharing(false); setShareNote(''); }}>{t.lectures.share.share}</Button>
+                  <Button variant="secondary" size="sm" icon={<Users className="size-4" />} aria-expanded={groupSharing} onClick={() => { setGroupSharing((v) => !v); setSharing(false); }}>{t.lectures.shareGroup.button}</Button>
                   <Button variant="ghost" size="sm" icon={<RefreshCw className="size-4" />} onClick={() => generate('notes')}>{t.lectures.regenerate}</Button>
                 </div>
+                {groupSharing && <ShareToGroupPanel lecture={lecture} />}
                 {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
                   onChange={(token, note) => { setLecture((l) => (l ? { ...l, share_token: token } : l)); setShareNote(note); }} />}
                 <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4 text-sm text-muted">

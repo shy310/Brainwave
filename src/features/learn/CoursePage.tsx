@@ -3,12 +3,12 @@ import { ChevronLeft } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { Card } from '@/ui/Card';
 import { Alert } from '@/ui/Alert';
-import { cn } from '@/lib/cn';
 import { findCourse } from '@shared/curriculum';
 import { SUBJECT_META } from './subjects';
 import { useProgress } from './ProgressProvider';
 import { topicStatus } from './progress';
 import { StatusIcon } from './StatusBadge';
+import { IconTile } from '@/ui/IconTile';
 
 export const BackLink = ({ to, label }: { to: string; label: string }) => (
   <Link to={to} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg">
@@ -28,9 +28,7 @@ export default function CoursePage() {
     <div className="space-y-6">
       <BackLink to="/learn" label={t.learn.backToLearn} />
       <header className="flex items-center gap-4">
-        <span className={cn('flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br text-white', meta.tint)}>
-          <meta.icon className="size-7" aria-hidden="true" />
-        </span>
+        <IconTile icon={meta.icon} tint={meta.tint} size="lg" />
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{t.subjects[course.subject]}</h1>
           <p className="text-muted">{t.bands[course.band]}</p>
