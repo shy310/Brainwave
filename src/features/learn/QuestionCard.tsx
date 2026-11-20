@@ -4,14 +4,15 @@ import { useT } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
-import { Input } from '@/ui/Field';
+import { Input, Textarea } from '@/ui/Field';
 import { Rich, RichInline } from '@/ui/Rich';
 import { Spinner } from '@/ui/Spinner';
 import { Alert } from '@/ui/Alert';
 import type { GradeResult, Question, Steps } from '@shared/learn';
+import type { GradeAnswer } from '@shared/grading';
 import { useAiTask } from './useAiTask';
 
-interface Verdict { correct: boolean; feedback?: string }
+interface Verdict { correct: boolean; feedback?: string; grade?: GradeAnswer }
 
 interface Props {
   question: Question;
@@ -23,16 +24,21 @@ interface Props {
   /** Offer worked steps and practice questions after answering. */
   extras?: boolean;
   onPractice?: () => void;
+  /** Course text written answers are graded against (e.g. the lecture). */
+  context?: string;
 }
 
-export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = true, onPractice }: Props) => {
+export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = true, onPractice, context }: Props) => {
   const t = useT();
   const inputId = useId();
   const [choice, setChoice] = useState<number | null>(null);
   const [typed, setTyped] = useState('');
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [checking, setChecking] = useState(false);
-  const [showHint, setShowHint] = useState(false);
+  /** How many hints are showing; each one gives a little more away. */
+  const [hintsShown, setHintsShown] = useState(0);
+  const [gradeError, setGradeError] = useState('');
+  const hints = [question.hint, ...(question.moreHints ?? [])].filter(Boolean);
   const steps = useAiTask<Steps>();
   const practice = useAiTask<Question>();
 
@@ -50,6 +56,20 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
     }
     if (!typed.trim()) return;
     setChecking(true);
+    if (question.kind === 'open') {
+      setGradeError('');
+      try {
+        const grade = await callAi<GradeAnswer>('gradeAnswer', {
+          question: question.prompt, answer: typed.trim(), reference: question.answer, kind: 'quiz', context: context?.slice(0, 20_000) || undefined,
+        });
+        finish({ correct: grade.verdict === 'correct', feedback: grade.feedback, grade });
+      } catch {
+        setGradeError(t.quiz.gradeFailed); // let them try again instead of marking it wrong
+      } finally {
+        setChecking(false);
+      }
+      return;
+    }
     try {
       const { checkAnswer } = await import('@shared/math/check');
       const local = checkAnswer(typed, question.answer, question.accepted);
@@ -101,6 +121,13 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
               );
             })}
           </div>
+        ) : question.kind === 'open' ? (
+          <div className="space-y-1.5">
+            <label htmlFor={inputId} className="text-sm text-muted">{t.quiz.writeAnswer}</label>
+            <Textarea id={inputId} value={typed} onChange={(e) => setTyped(e.target.value)} disabled={answered || checking}
+              rows={4} maxLength={4000} dir="auto"
+              className={cn(answered && (verdict.correct ? 'border-emerald-500' : 'border-amber-400'))} />
+          </div>
         ) : (
           <div className="space-y-1.5">
             <label htmlFor={inputId} className="sr-only">{t.quiz.yourAnswer}</label>
@@ -114,28 +141,47 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
           <div className="flex flex-wrap items-center gap-2">
             <Button type="submit" loading={checking}
               disabled={question.kind === 'choice' ? choice === null : !typed.trim()}>
-              {checking ? t.quiz.checking : t.quiz.check}
+              {checking ? (question.kind === 'open' ? t.quiz.grading : t.quiz.checking) : t.quiz.check}
             </Button>
-            {question.hint && !showHint && (
-              <Button variant="ghost" icon={<Lightbulb className="size-4" />} onClick={() => setShowHint(true)}>{t.quiz.hint}</Button>
+            {hintsShown < hints.length && (
+              <Button variant="ghost" icon={<Lightbulb className="size-4" />} onClick={() => setHintsShown((n) => n + 1)}>
+                {hintsShown === 0 ? t.quiz.hint : t.quiz.anotherHint}
+              </Button>
             )}
           </div>
         )}
       </form>
 
-      {showHint && !answered && <Alert><RichInline text={question.hint} /></Alert>}
+      {gradeError && !answered && <Alert tone="error">{gradeError}</Alert>}
+      {!answered && hints.slice(0, hintsShown).map((h, i) => (
+        <Alert key={i}>
+          {hints.length > 1 && <p className="mb-0.5 text-xs font-semibold">{t.quiz.hintOf(i + 1, hints.length)}</p>}
+          <RichInline text={h} />
+        </Alert>
+      ))}
 
       {answered && (
         <div className="space-y-4 animate-fade-up" aria-live="polite">
           <div className={cn('rounded-xl border p-4',
             verdict.correct ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/40'
-              : 'border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40')}>
+              : verdict.grade?.verdict === 'partial' ? 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40'
+                : 'border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40')}>
             <p className="flex items-center gap-2 font-semibold">
               {verdict.correct ? <Check className="size-5 text-emerald-600" aria-hidden="true" /> : <X className="size-5 text-rose-600" aria-hidden="true" />}
-              {verdict.correct ? t.quiz.correct : t.quiz.incorrect}
+              {verdict.correct ? t.quiz.correct : verdict.grade?.verdict === 'partial' ? t.quiz.partial : t.quiz.incorrect}
+              {verdict.grade && <span className="ms-auto tabular-nums">{t.quiz.outOf100(verdict.grade.score)}</span>}
             </p>
-            {verdict.feedback && <p className="mt-1 text-sm">{verdict.feedback}</p>}
-            {!verdict.correct && (
+            {verdict.feedback && <p className="mt-1 text-sm" dir="auto">{verdict.feedback}</p>}
+            {verdict.grade && (
+              <ul className="mt-2 space-y-1 text-sm">
+                {verdict.grade.criteria.map((c, i) => (
+                  <li key={i} dir="auto"><span className="font-medium">{c.name} {c.score}/10</span> — {c.comment}</li>
+                ))}
+              </ul>
+            )}
+            {question.kind === 'open' ? (
+              <div className="mt-2 text-sm"><p className="font-medium">{t.quiz.modelAnswer}:</p><Rich text={question.answer} /></div>
+            ) : !verdict.correct && (
               <p className="mt-2 text-sm"><span className="font-medium">{t.quiz.answerWas}: </span><RichInline text={question.kind === 'choice' ? question.options[question.correctIndex] ?? question.answer : question.answer} /></p>
             )}
             <div className="mt-3 border-t border-black/5 pt-3 text-sm dark:border-white/10">

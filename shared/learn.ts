@@ -4,11 +4,13 @@ import { z } from 'zod';
 // One flat shape for every question so the AI's structured output stays simple:
 //  - kind "choice": `options` + `correctIndex`
 //  - kind "input":  typed answer in `answer`, alternatives in `accepted`
+//  - kind "open":   a written answer of a few sentences, graded by the AI
+//                   against the model answer in `answer`
 // `check` is an optional plain-arithmetic expression for the right answer; the
 // server evaluates it to verify (and fix) what the AI marked as correct.
 
 export const QuestionSchema = z.object({
-  kind: z.enum(['choice', 'input']),
+  kind: z.enum(['choice', 'input', 'open']),
   prompt: z.string().min(3).max(1200),
   options: z.array(z.string().max(300)).max(6),
   correctIndex: z.number().int().min(-1).max(5),
@@ -16,6 +18,8 @@ export const QuestionSchema = z.object({
   accepted: z.array(z.string().max(300)).max(6),
   check: z.string().max(200),
   hint: z.string().max(600),
+  /** Further hints, each giving a little more away (shown one at a time after `hint`). */
+  moreHints: z.array(z.string().max(600)).max(2).optional(),
   explanation: z.string().min(1).max(2000),
 });
 export type Question = z.infer<typeof QuestionSchema>;

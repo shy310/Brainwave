@@ -2,7 +2,7 @@ import { defineOp, type AiOp, type OpContext } from '../ops.js';
 import { runStructured } from '../run.js';
 import { transcribeSpeech } from '../stt.js';
 import { env } from '../../env.js';
-import { audience, QUESTION_RULES } from '../prompts.js';
+import { audience, OPEN_QUESTION_RULES, QUESTION_RULES } from '../prompts.js';
 import { AiError } from '../openrouter.js';
 import { LOCALE_NAME } from '../../../shared/locales.js';
 import { QuizSchema } from '../../../shared/learn.js';
@@ -164,9 +164,10 @@ export const lectureQuizOp = defineOp({
       role: 'user',
       content: `${lectureBlock(transcript, slides, title)}
 
-Write ${count + 2} questions that test the most important ideas of THIS lecture (not general trivia). Mix "choice" and "input" questions and order them from easier to harder. In each explanation, say briefly where in the lecture the idea came from.
+Write ${count + 2} questions that test the most important ideas of THIS lecture (not general trivia). Mix "choice" and "input" questions, and include 1–2 "open" questions near the end. Order them from easier to harder. In each explanation, say briefly where in the lecture the idea came from.
 
-${QUESTION_RULES}`,
+${QUESTION_RULES}
+${OPEN_QUESTION_RULES}`,
     },
   ],
   post: (quiz, { count }) => {

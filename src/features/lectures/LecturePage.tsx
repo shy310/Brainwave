@@ -271,7 +271,7 @@ export default function LecturePage() {
           {tab === 'quiz' && (
             busy === 'quiz' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.makingQuiz}</Card>
             : lecture.quiz ? (
-              <QuizRunner key={quizRound} questions={lecture.quiz.questions}
+              <QuizRunner key={quizRound} questions={lecture.quiz.questions} context={transcript}
                 resultActions={<>
                   <Button variant="secondary" onClick={() => setQuizRound((r) => r + 1)}>{t.quiz.retry}</Button>
                   <Button icon={<Sparkles className="size-4" />} onClick={() => generate('quiz')}>{t.lectures.newQuiz}</Button>
