@@ -344,6 +344,7 @@ export const he: Dict = {
       open: 'שאלה', title: 'שאלות על ההרצאה', close: 'סגירה',
       aboutSelection: 'לשאול על זה', quote: (q: string) => `לגבי „${q}”: `,
     },
+    relatedTopics: 'נושאים קשורים בלימוד', relatedTopicsHint: 'תרגלו אותם עם שיעורים, בחנים והמורה הפרטי.',
     notesStyle: 'סגנון הסיכום', notesStyleHint: 'איך ייכתבו סיכומי הרצאות חדשים. אפשר להחליף בכל הרצאה.',
     summaryModes: { short: 'קצר', detailed: 'מפורט', exam: 'הכנה למבחן' },
     emptyTranscript: 'לא נמצא דיבור בהקלטה.',

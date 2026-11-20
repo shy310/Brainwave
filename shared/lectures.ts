@@ -54,6 +54,8 @@ export const NotesSchema = z.object({
   reminders: z.array(z.string().max(500)).max(15),
   /** Which style these notes were written in (set by the server, not the model). */
   mode: z.enum(SUMMARY_MODES).optional(),
+  /** Learn topics this lecture covers (ids from the curriculum, checked by the server). */
+  topics: z.array(z.string().max(80)).max(6).optional(),
 });
 export type Notes = z.infer<typeof NotesSchema>;
 

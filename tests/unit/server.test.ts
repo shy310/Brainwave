@@ -210,6 +210,19 @@ describe('lecture operations', () => {
     expect((await post('/api/ai/gradeAnswer', { input: { question: 'Q?', answer: '' } })).status).toBe(400);
   });
 
+  it('offers matching Learn topics to the notes model and keeps only real ones', async () => {
+    const { lectureNotesOp } = await import('../../server/ai/ops/lectures');
+    const { candidateTopics } = await import('../../shared/topicMatch');
+    const text = 'Photosynthesis: plants use light, water and carbon dioxide to make glucose. Photosynthesis releases oxygen.';
+    const [real] = candidateTopics(text);
+    const prompt = String(lectureNotesOp.build({ transcript: text, mode: 'detailed' }, { userId: 'u', demo: true, locale: 'en', grade: '9' })[1].content);
+    expect(prompt).toContain(`${real} — `);
+    const NOTE = { title: 'T', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [], reminders: [], topics: ['made-up-topic', real] };
+    mockModel([JSON.stringify(NOTE)]);
+    const res = await post('/api/ai/lectureNotes', { input: { transcript: text } });
+    expect((await res.json()).data.topics).toEqual([real]);
+  });
+
   it('rejects audio that is not base64', async () => {
     const res = await post('/api/ai/transcribe', { input: { audio: '<script>'.repeat(30) } });
     expect(res.status).toBe(400);
