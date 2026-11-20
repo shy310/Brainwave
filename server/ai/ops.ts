@@ -29,6 +29,8 @@ export interface AiOp<I = unknown, O = unknown> {
   build: (input: I, ctx: OpContext) => ChatMessage[];
   /** Optional deterministic post-processing (e.g. drop invalid quiz items). */
   post?: (output: O, input: I) => O;
+  /** Replace the standard structured call entirely (e.g. a speech-to-text endpoint). */
+  run?: (input: I, ctx: OpContext) => Promise<O>;
 }
 
 const registry = new Map<string, AiOp<any, any>>();

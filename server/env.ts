@@ -8,6 +8,16 @@ export const env = {
   openrouterUrl: process.env.OPENROUTER_API_URL ?? 'https://openrouter.ai/api/v1/chat/completions',
   model: process.env.OPENROUTER_MODEL ?? 'google/gemini-2.5-flash',
   fallbackModel: process.env.OPENROUTER_FALLBACK_MODEL ?? 'openai/gpt-4o-mini',
+  /**
+   * How lecture audio is transcribed:
+   *  - 'llm' (default): an audio-capable chat model, with a cleanup prompt.
+   *  - 'stt': a dedicated speech-to-text model (OpenRouter /audio/transcriptions),
+   *    falling back to 'llm' if it fails.
+   */
+  transcribeMode: (process.env.TRANSCRIBE_MODE === 'stt' ? 'stt' : 'llm') as 'stt' | 'llm',
+  transcribeModel: process.env.TRANSCRIBE_MODEL ?? 'openai/gpt-4o-mini-transcribe',
+  /** In 'stt' mode, also run the LLM cleanup prompt on the text (fillers, math as LaTeX). */
+  transcribeCleanup: process.env.TRANSCRIBE_CLEANUP === 'true',
   supabaseUrl: (process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? '').replace(/\/$/, ''),
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY ?? '',
   supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
