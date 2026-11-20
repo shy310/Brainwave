@@ -114,6 +114,29 @@ test('upload a recording: it is cut into pieces of about a minute and transcribe
   await expect(page.getByText(/Part \d: the derivative/).first()).toBeVisible();
 });
 
+test('paragraph times from speech-to-text show in the transcript', async ({ page }) => {
+  await page.route('**/api/ai/*', (route) => {
+    const op = new URL(route.request().url()).pathname.split('/').pop();
+    if (op === 'transcribe') return route.fulfill({ json: { data: { text: 'First. Second. Third.', segments: [{ start: 0, text: 'First part.' }, { start: 25, text: 'Second part.' }, { start: 47, text: 'Third part.' }] } } });
+    return route.fulfill({ json: { data: NOTES } });
+  });
+  await onboard(page);
+  await page.goto('/lectures/new');
+  await page.getByRole('radio', { name: 'Upload' }).click();
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Choose a file' }).click();
+  await (await chooser).setFiles(wavFile(130));
+  await page.getByRole('button', { name: 'Transcribe', exact: true }).click();
+  await expect(page).toHaveURL(/\/lectures\/(?!new)[\w-]+$/, { timeout: 20_000 });
+  await page.getByRole('radio', { name: 'Transcript' }).click();
+  // Two pieces (0 s and 60 s), three paragraphs each.
+  for (const time of ['0:00', '0:25', '0:47', '1:00', '1:25', '1:47']) await expect(page.getByText(time, { exact: true })).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download' }).click();
+  const { readFile } = await import('node:fs/promises');
+  expect(await readFile((await (await download).path())!, 'utf8')).toContain('[1:25] Second part.');
+});
+
 test('record live with the microphone', async ({ page }) => {
   const calls = await mockAi(page);
   await onboard(page);

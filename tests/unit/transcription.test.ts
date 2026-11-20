@@ -36,3 +36,20 @@ describe('speech-to-text replies', () => {
     expect(parseStt({ text: 'x' })).toEqual({ text: 'x', cost: null, seconds: null, segments: [] });
   });
 });
+
+describe('paragraph times from speech-to-text', async () => {
+  const { groupSegments } = await import('../../shared/lectures');
+  const s = (start: number, text: string) => ({ start, end: start + 3, text });
+  it('joins sentences into paragraphs of at least 15 s, ending at a sentence', () => {
+    const parts = [s(0, 'Today we start.'), s(4, 'Derivatives are rates'), s(9, 'of change.'), s(16, 'Next, the definition'), s(21, 'uses a limit.'), s(33, 'Example:'), s(36, 'x squared.')];
+    expect(groupSegments(parts)).toEqual([
+      { start: 0, text: 'Today we start. Derivatives are rates of change.' },
+      { start: 16, text: 'Next, the definition uses a limit.' },
+      { start: 33, text: 'Example: x squared.' },
+    ]);
+  });
+  it('breaks a long run without punctuation at 40 s, and skips empty parts', () => {
+    const parts = [s(0, 'and so'), s(20, 'we keep'), s(41, 'going'), s(45, ' ')];
+    expect(groupSegments(parts).map((p) => p.start)).toEqual([0, 41]);
+  });
+});

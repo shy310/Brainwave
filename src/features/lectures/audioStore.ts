@@ -34,7 +34,7 @@ export interface Draft {
 }
 
 export interface PieceMeta { draftId: string; index: number; start: number; duration: number }
-export interface SavedSegment extends Segment { draftId: string; index: number }
+export interface SavedSegment extends Segment { draftId: string; index: number; /** Paragraphs with lecture times, when the transcriber gave them. */ parts?: Segment[] }
 
 const DB_NAME = 'bw-lecture-audio';
 const VERSION = 1;
@@ -141,9 +141,9 @@ export const audioStore = {
    * transaction, so the audio can't disappear without the text being saved.
    * `text` may be empty (no speech) — then only the audio is removed.
    */
-  async commitPiece(draftId: string, index: number, segment: Segment) {
+  async commitPiece(draftId: string, index: number, segment: Segment, parts?: Segment[]) {
     const t = await tx([PIECES, AUDIO, SEGMENTS], 'readwrite');
-    if (segment.text) t.objectStore(SEGMENTS).put({ draftId, index, ...segment } satisfies SavedSegment);
+    if (segment.text) t.objectStore(SEGMENTS).put({ draftId, index, ...segment, ...(parts?.length ? { parts } : {}) } satisfies SavedSegment);
     t.objectStore(PIECES).delete([draftId, index] as Key);
     t.objectStore(AUDIO).delete([draftId, index] as Key);
     await done(t);
