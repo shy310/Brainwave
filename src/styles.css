@@ -85,6 +85,9 @@
   /* Even heading lines; no single word left alone on a paragraph's last line. */
   h1, h2, h3 { text-wrap: balance; }
   p, li, dd { text-wrap: pretty; }
+  /* A long name with no spaces (e.g. a file name used as a title) may break instead of pushing the page sideways. */
+  h1, h2, h3, h4 { overflow-wrap: anywhere; }
+  p, li, dt, dd, td, th, figcaption, blockquote { overflow-wrap: break-word; }
   ::selection { @apply bg-brand-200 text-brand-900; }
 }
 

@@ -11,8 +11,8 @@ import { StatusIcon } from './StatusBadge';
 import { IconTile } from '@/ui/IconTile';
 
 export const BackLink = ({ to, label }: { to: string; label: string }) => (
-  <Link to={to} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg">
-    <ChevronLeft className="size-4 rtl:rotate-180" aria-hidden="true" />{label}
+  <Link to={to} className="inline-flex max-w-full items-center gap-1 text-sm font-medium text-muted hover:text-fg">
+    <ChevronLeft className="size-4 shrink-0 rtl:rotate-180" aria-hidden="true" /><span className="truncate" dir="auto">{label}</span>
   </Link>
 );
 
