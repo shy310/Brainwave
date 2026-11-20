@@ -27,3 +27,12 @@ dist-ssr
 
 # Runtime user data (server-generated)
 data/
+
+# Env files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Test output
+test-results/
+playwright-report/

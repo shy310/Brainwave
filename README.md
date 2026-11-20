@@ -1,118 +1,146 @@
-# BrainWave — Personal Learning System
+# BrainWave
 
-An AI-powered tutoring platform for students from Kindergarten through College. Multilingual, adaptive, and packed with interactive learning tools.
+An AI study partner for students from kindergarten to college, in **English and Hebrew**.
 
-**Live:** deployed on [Vercel](https://vercel.com) (project `brainwave`)
+- **Learn** — courses K–college, short interactive lessons, quizzes whose math is checked by code, and an AI tutor (*Tutor me*, *Explain* or *Custom*).
+- **Lectures** — record or upload a class and get a transcript, notes, a quiz and flashcards.
+- **Video lessons** — any topic or lecture as a short animated, narrated lesson.
+- **Podcasts** — two hosts talk through any topic.
 
----
+> **Status:** v2 is being rebuilt from scratch in phases. Done: the foundation (app shell, design
+> system, English/Hebrew, accounts, secure AI gateway), **Learn** (42 courses / 180 topics,
+> lessons, quizzes, AI tutor, progress) and **Lectures** (record / upload / paste → transcript,
+> notes, quiz, flashcards, lecture Q&A) and **Video lessons** (animated, narrated scenes from any topic,
+> lecture or request, with "ask about this moment") and **Podcasts** (two hosts, highlighted transcript,
+> chapters, tap a line to ask).
 
-## Features
+## Stack
 
-- **AI Tutor** — Adaptive lessons and Socratic exercises powered by OpenRouter (Gemini 2.5 Flash)
-- **Curriculum** — 24 courses across Math, Science, Language, History, Coding, and Economics
-- **Progress Tracking** — Per-topic mastery via exponential moving average, XP, streaks, and level-ups
-- **Upload & Learn** — Analyze uploaded documents (images, text) and generate custom quizzes
-- **Presentation Generator** — AI-generated slide decks with speaker notes, keyboard navigation, and print/PDF export
-- **Code Lab** — In-browser code editor (Monaco) with live execution via Piston API; supports Python, JavaScript, Java, C++
-- **Educational Games** — Balloon Pop, Math Rush, Memory Match, Bug Fix, Cave Runner, Picture Tap, Word Scramble
-- **Debate Arena** — Argue a position against an AI opponent with per-round scoring
-- **Story Engine** — Collaborative AI storytelling with creativity and vocabulary evaluation
-- **SQL Detective** — Solve mysteries by writing real SQL queries against a live in-browser database
-- **Multilingual** — English, Russian, Hebrew (RTL), Arabic (RTL)
-- **Dark mode** — System-aware with manual toggle
-
----
-
-## Tech Stack
-
-| Layer | Technology |
+| Layer | Choice |
 |---|---|
-| Frontend | React 19 + TypeScript + Vite |
-| Styling | Tailwind CSS + custom CSS animations |
-| AI | OpenRouter API (`google/gemini-2.5-flash`, multimodal; `openai/gpt-4o-mini` rate-limit fallback) |
-| Backend | Express.js proxy + user data persistence (`data/users.json`) |
-| Charts | Recharts |
-| Math | KaTeX |
-| Code editor | Monaco Editor |
-| Deployment | Vercel (static `dist/` + serverless `api/index.js`, auto-deploy from `main`) |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, React Router 7 |
+| Accounts & data | Supabase (Auth, Postgres with row-level security, Storage) |
+| AI | OpenRouter (`google/gemini-2.5-flash`) behind a server-side gateway |
+| Server | One Express app (`server/`), deployed as a single Vercel function (`api/index.ts`) |
+| Tests | Vitest (unit), Playwright (end-to-end, desktop + mobile) |
 
----
+## Security model
 
-## Local Development
+- The browser never sees the OpenRouter key or any server secret.
+- Every AI request must carry a valid Supabase sign-in; the server verifies it.
+- Each student has a daily AI budget and a per-minute rate limit, enforced in Postgres.
+- Prompts live on the server. The browser can only call named operations with validated inputs.
+- Database tables use row-level security: students can only read and write their own rows.
 
-**Prerequisites:** Node.js 18+
+## Setup
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+### 1. Supabase (free)
 
-2. Create `.env.local` with your OpenRouter API key:
-   ```
-   OPENROUTER_API_KEY=sk-or-v1-...
-   ```
-   Get a key at [openrouter.ai/keys](https://openrouter.ai/keys).
+1. Create a project at [supabase.com](https://supabase.com).
+2. Open **SQL Editor** and run each file in `supabase/migrations/` in order
+   (`0001_foundation.sql` … `0005_tts.sql`). Each one is safe to re-run.
+3. **Authentication → URL Configuration**: set the Site URL to your Vercel URL and add
+   `http://localhost:5173` to the redirect URLs.
+4. Optional — **Authentication → Providers → Google**: enable it and add your Google OAuth client.
 
-3. Start both the Vite dev server and Express backend:
-   ```bash
-   npm run dev:all
-   ```
-   - Frontend: `http://localhost:5173`
-   - Backend API: `http://localhost:3000`
+### 2. Environment variables
 
-4. TypeScript check:
-   ```bash
-   npx tsc --noEmit
-   ```
+Copy `.env.example` to `.env.local` for local development. On Vercel, add the same variables in
+**Project → Settings → Environment Variables**:
 
----
-
-## Deployment (Vercel)
-
-1. Push to the `main` branch — Vercel auto-deploys production; every other branch gets a preview URL.
-2. Set `OPENROUTER_API_KEY` in Vercel → Project → **Settings → Environment Variables**.
-3. Vercel serves the built frontend (`dist/`) statically and routes `/api/*` to the serverless Express app in `api/index.js` (see `vercel.json`).
-
-> **Note:** user data on Vercel is stored in the serverless function's ephemeral `/tmp`, so server-side progress sync and the leaderboard reset whenever the function recycles. Per-device progress still persists in the browser via localStorage. For durable cross-device data, wire `api/index.js` to a store like Vercel KV or Postgres.
-
----
-
-## Project Structure
-
-```
-├── App.tsx                  # Root state, routing, session handlers
-├── server.js                # Express server for local dev (OpenRouter proxy + user data)
-├── api/index.js             # Vercel serverless Express app (same API, production)
-├── types.ts                 # All TypeScript interfaces and enums
-├── constants.ts             # Translations, curriculum tree, AI prompts
-├── services/
-│   └── aiService.ts         # All AI calls (lessons, quizzes, evaluation)
-├── components/
-│   ├── AuthView.tsx          # Login / register (local, SHA-256 hashed passwords)
-│   ├── Dashboard.tsx
-│   ├── LessonView.tsx        # AI lesson + upload analysis
-│   ├── ExercisePanel.tsx     # MC, short answer, fill-in-blank, multi-step
-│   ├── ProgressDashboard.tsx # Radar + bar charts
-│   ├── PresentationView.tsx  # Slide deck generator with fullscreen + print
-│   ├── CodeLab.tsx           # Monaco editor + Piston execution
-│   ├── EducationalGames.tsx  # All 7 games
-│   ├── DebateArena.tsx
-│   ├── StoryEngine.tsx
-│   ├── SqlDetective.tsx
-│   └── FloatingChat.tsx      # Persistent AI tutor chat
-├── index.css                # Global styles + custom keyframe animations
-└── vercel.json              # Vercel build/routing config
-```
-
----
-
-## Environment Variables
-
-| Variable | Required | Description |
+| Variable | Where | What |
 |---|---|---|
-| `OPENROUTER_API_KEY` | Yes | OpenRouter API key — set in Vercel Environment Variables for production, `.env.local` for local dev |
-| `OPENROUTER_MODEL` | No | Override the text model (default `google/gemini-2.5-flash`) |
-| `OPENROUTER_VISION_MODEL` | No | Override the vision model (default `google/gemini-2.5-flash`) |
-| `OPENROUTER_FALLBACK_MODEL` | No | Model used automatically when the main model is rate-limited (default `openai/gpt-4o-mini`; set empty to disable) |
-| `PORT` | No | Local dev server port (defaults to `3000`) |
-| `VITE_API_URL` | No | Override API base URL (for Capacitor/mobile builds) |
+| `VITE_SUPABASE_URL` | browser | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | browser | Publishable key (`sb_publishable_…`) or legacy anon key |
+| `SUPABASE_URL` | server | Same project URL |
+| `SUPABASE_ANON_KEY` | server | Same publishable key (used to verify sign-ins) |
+| `SUPABASE_SERVICE_ROLE_KEY` | server | Secret key (`sb_secret_…`) or legacy service_role key (quota tracking) — **never** prefix with `VITE_` |
+| `OPENROUTER_API_KEY` | server | Your OpenRouter key |
+| `OPENROUTER_MODEL` | server | Optional, defaults to `google/gemini-2.5-flash` |
+| `AI_DAILY_LIMIT`, `AI_PER_MINUTE_LIMIT` | server | Optional per-student limits (defaults 200 / 20) |
+| `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | server | Optional natural voices for videos and podcasts (Azure AI Speech, free F0 tier works). Without them the device's built-in voice is used. |
+| `TTS_DAILY_CHARS` | server | Optional per-student daily narration limit in characters (default 60000) |
+
+Without the Supabase variables the app runs in **demo mode** locally (progress saved in the
+browser). Demo mode is disabled in production, so the AI can never be used anonymously on the live site.
+
+### 3. Run locally
+
+```bash
+npm install
+npm run dev:all        # web on :5173, API on :3000
+```
+
+## How Learn works
+
+- **Curriculum** — `shared/curriculumData.ts`: 6 subjects × 7 levels (K → college), every title in English and Hebrew.
+- **AI operations** — `server/ai/ops/learn.ts` (`lesson`, `quiz`, `practice`, `steps`, `grade`) and `server/ai/ops/tutor.ts` (streaming chat with *Tutor me* / *Explain* / *Custom* modes and image/PDF attachments).
+- **Correct answers are checked by code, not the AI** — `shared/math/check.ts` compares answers exactly (½ = 0.5 = 50%, 5 cm = 0.05 m), and `shared/math/validate.ts` verifies every generated question before a student sees it, fixing or dropping wrong ones. The AI grader is only used for worded answers.
+- **Progress** — the `topic_progress` table (or the browser in demo mode). A topic is *mastered* at 80% on a quiz.
+- Lessons are cached in the browser, so reopening a topic doesn't use AI budget.
+
+## How Lectures work
+
+- **Audio never leaves the browser as a file.** It is decoded (uploads) or captured (live recording,
+  via an AudioWorklet) as 16 kHz mono, cut into one-minute WAV pieces (~2.6 MB as base64) and sent to
+  the `transcribe` operation, three at a time with retries. Silent minutes are skipped.
+- Live recordings are transcribed while you record; progress is saved after every minute.
+- Slides (PDF ≤ 2 MB) are read once by `slidesText` and stored as text with the lecture.
+- `lectureNotes`, `lectureQuiz` and `flashcards` work from the transcript (+ slides); results are saved in
+  the `lectures` table, so reopening a lecture costs no AI budget. The tutor's *Ask* tab is grounded in the lecture.
+- YouTube: paste the video's transcript ("Show transcript" under the video).
+
+## How Video lessons work
+
+- `videoScript` writes 5–12 scenes. Each scene is one visual — title, bullets, equation, steps, graph,
+  flow or summary — plus spoken narration. Graph functions are checked by `shared/math/plot.ts`
+  (plain math in `x` only) and any scene that can't be drawn falls back to a simpler visual.
+- The browser draws scenes with React, KaTeX and SVG, and narrates with the device's built-in voices
+  (Web Speech API — free). Without a voice for the language, the lesson plays with timed captions.
+- Videos are saved in the `media` table (podcasts will share it). "Ask about this moment" sends the
+  paused scene and the script to the tutor.
+
+## How Podcasts work
+
+- `podcastScript` writes a two-host conversation (curious host + expert) in chapters, for speech:
+  no Markdown or LaTeX (anything left over is stripped by `sanitizePodcast`).
+- The player uses two of the device's voices when available, otherwise one voice at two pitches,
+  highlights and follows the current line, and supports chapters, skipping, speed and headphone /
+  lock-screen controls (Media Session API). Any line can be played from or asked about.
+- Episodes are saved in the `media` table. The script can be downloaded as text, and as MP3 when
+  natural voices are set up.
+
+## Natural voices (optional)
+
+With `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` set, videos and podcasts are narrated by Azure neural
+voices (Ava/Andrew in English, Hila/Avri in Hebrew) through `POST /api/tts`: signed-in only, a fixed
+list of voices, at most 1,500 characters per request, and a per-student daily character allowance
+(`consume_tts`, migration 0005). The browser prefetches the next sentences and keeps audio in Cache
+Storage, so replays are free. If the service is missing or fails, playback falls back to device voices.
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev:all` | Frontend + API with hot reload |
+| `npm run build` | Production build into `dist/` |
+| `npm start` | Serve the API and the built app on :3000 |
+| `npm run typecheck` | TypeScript check |
+| `npm test` | Unit tests |
+| `npm run test:e2e` | End-to-end tests (run `npx playwright install chromium` once first) |
+
+## Project layout
+
+```
+src/
+  app/          router, shell, providers
+  features/     one folder per feature (auth, home, settings, …)
+  i18n/         en.ts (source of truth) + he.ts — Hebrew must match English key-for-key
+  ui/           shared components
+  lib/          supabase client, API helper, utilities
+shared/         types and schemas used by both browser and server
+server/         Express app, auth, quotas, AI gateway (named operations)
+api/index.ts    Vercel entry
+supabase/       SQL migrations
+tests/          unit/ and e2e/
+```
