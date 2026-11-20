@@ -31,6 +31,7 @@ export const router = createBrowserRouter([
         { path: 'learn/topic/:topicId', lazy: page(() => import('@/features/learn/TopicPage')) },
         { path: 'learn/topic/:topicId/quiz', lazy: page(() => import('@/features/learn/QuizPage')) },
         { path: 'tutor', lazy: page(() => import('@/features/tutor/TutorPage')) },
+        { path: 'grader', lazy: page(() => import('@/features/grader/GraderPage')) },
         { path: 'lectures', lazy: page(() => import('@/features/lectures/LecturesPage')) },
         { path: 'lectures/new', lazy: page(() => import('@/features/lectures/NewLecturePage')) },
         { path: 'lectures/study', lazy: page(() => import('@/features/lectures/StudyFolderPage')) },
