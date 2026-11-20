@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { GraduationCap } from 'lucide-react';
-import { useI18n } from '@/i18n';
+import { useI18n, useT } from '@/i18n';
 import { findTopic } from '@shared/curriculum';
 import { Alert } from '@/ui/Alert';
 import { Card } from '@/ui/Card';
@@ -35,6 +36,21 @@ export const NotesView = ({ notes }: { notes: Notes }) => {
           </dl>
         </Card>
       )}
+      {!!notes.practice?.length && (
+        <Card className="p-6 print:border-0 print:p-0 print:shadow-none">
+          <h2 className="mb-1 text-lg font-semibold">{t.lectures.practice}</h2>
+          <p className="mb-3 text-sm text-muted print:hidden">{t.lectures.practiceHint}</p>
+          <ol className="list-decimal space-y-3 ps-6">
+            {notes.practice.map((p, i) => <PracticeItem key={i} question={p.question} answer={p.answer} />)}
+          </ol>
+        </Card>
+      )}
+      {!!notes.mistakes?.length && (
+        <Card className="p-6 print:border-0 print:p-0 print:shadow-none">
+          <h2 className="mb-3 text-lg font-semibold">{t.lectures.mistakes}</h2>
+          <ul className="list-disc space-y-1.5 ps-6">{notes.mistakes.map((m, i) => <li key={i} dir="auto"><RichInline text={m} /></li>)}</ul>
+        </Card>
+      )}
       {notes.reminders.length > 0 && (
         <Alert className="break-inside-avoid">
           <p className="mb-1 font-semibold">{t.lectures.reminders}</p>
@@ -57,5 +73,25 @@ export const NotesView = ({ notes }: { notes: Notes }) => {
         </nav>
       )}
     </>
+  );
+};
+
+/** One practice question; the answer stays hidden until asked for (always shown in print). */
+const PracticeItem = ({ question, answer }: { question: string; answer: string }) => {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  return (
+    <li className="break-inside-avoid" dir="auto">
+      <RichInline text={question} />
+      <div className="mt-1 print:hidden">
+        <button type="button" aria-expanded={open} onClick={() => setOpen(!open)}
+          className="text-sm font-medium text-brand-600 hover:underline">
+          {open ? t.lectures.hideAnswer : t.lectures.showAnswer}
+        </button>
+      </div>
+      <div className={open ? 'mt-1 rounded-lg bg-surface-2 px-3 py-2 text-sm' : 'hidden print:mt-1 print:block print:text-sm'}>
+        <Rich text={answer} />
+      </div>
+    </li>
   );
 };

@@ -123,23 +123,27 @@ const topicChoices = (transcript: string, slides?: string, title?: string) => {
 };
 
 const NOTES_STYLE: Record<SummaryMode, string> = {
-  short: `Write SHORT notes for a quick review:
+  short: `Write SHORT notes for a quick review — the whole thing should be readable in about a minute:
 - "title": a short, specific title for this lecture.
 - "summary": 2–3 sentences with the main takeaway.
-- "sections": 2–5 sections in lecture order, each with 2–4 short "points" — only the ideas a student must remember.
+- "sections": 2–5 sections in lecture order, each with 2–4 short "points" (one line each) — only the ideas a student must remember.
 - "keyTerms": at most 8 of the most important terms, one short sentence each.
-- "reminders": homework, deadlines, readings or exam hints the lecturer mentioned. Empty if none.`,
-  detailed: `Write study notes:
+- "reminders": homework, deadlines, readings or exam hints the lecturer mentioned. Empty if none.
+- "practice" and "mistakes": empty arrays.`,
+  detailed: `Write FULL study notes that could replace attending the lecture:
 - "title": a short, specific title for this lecture.
 - "summary": 3–5 sentences — what the lecture covered and the main takeaway.
-- "sections": follow the order of the lecture. Each has a "heading" and 2–8 "points": complete, self-contained statements a student can revise from (definitions, formulas in LaTeX, examples, reasoning steps). Don't pad.
+- "sections": follow the order of the lecture and cover EVERY topic it discussed. Each has a "heading" and 3–10 "points": complete, self-contained statements that explain the idea and the reasoning behind it — definitions, formulas in LaTeX with what each symbol means, the lecturer's examples worked through, and how each idea connects to the previous one.
 - "keyTerms": important terms with one-sentence definitions.
-- "reminders": homework, deadlines, readings or "this will be on the exam" hints the lecturer mentioned. Empty if none.`,
-  exam: `Write EXAM-PREP notes — what a student needs to answer exam questions on this lecture:
+- "reminders": homework, deadlines, readings or "this will be on the exam" hints the lecturer mentioned. Empty if none.
+- "practice" and "mistakes": empty arrays (those are only for exam prep).`,
+  exam: `Write EXAM-PREP notes — not a summary of the lecture, but a revision sheet for answering exam questions on it:
 - "title": a short, specific title for this lecture.
 - "summary": 2–4 sentences on what is most likely to be examined and why.
-- "sections": organise by what is examinable, not lecture order. Use headings such as the key definitions, formulas and when to use them (LaTeX), methods step by step, common mistakes to avoid, and a final section of 3–6 likely exam questions (each point is one question; no answers). Points are precise and exam-ready.
-- "keyTerms": every term a student could be asked to define, with a precise definition.
+- "sections": organise by what is examinable, NOT by lecture order, under headings like "Must-know definitions", "Formulas and when to use them" (LaTeX), "Methods step by step". Points are short, precise facts to memorise or numbered steps to follow — no narrative and no background.
+- "keyTerms": every term a student could be asked to define, with a precise, exam-ready definition.
+- "practice": 4–8 questions like the ones likely to be asked on an exam about this lecture, from easier to harder, each with a short model "answer" (show the working for calculations, LaTeX allowed).
+- "mistakes": 3–6 common mistakes or traps students make with this material, each saying what to do instead.
 - "reminders": exam hints, homework, deadlines and readings the lecturer mentioned. Empty if none.`,
 };
 
@@ -163,7 +167,13 @@ ${NOTES_STYLE[mode]}
 Use only what is in the lecture (and slides). Fix obvious transcription errors silently. Do not include a "mode" field.${topicChoices(transcript, slides, title)}`,
     },
   ],
-  post: (notes, input) => ({ ...notes, mode: input.mode, topics: cleanTopicIds(notes.topics) }),
+  post: ({ practice, mistakes, ...notes }, input) => ({
+    ...notes,
+    // Practice questions and common mistakes belong to exam prep only.
+    ...(input.mode === 'exam' ? { practice: practice ?? [], mistakes: mistakes ?? [] } : {}),
+    mode: input.mode,
+    topics: cleanTopicIds(notes.topics),
+  }),
 });
 
 export const lectureQuizOp = defineOp({
