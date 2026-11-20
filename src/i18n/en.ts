@@ -55,6 +55,18 @@ export const en = {
     videosTitle: 'Video lessons', videosBody: 'Turn any topic or lecture into a short animated, narrated lesson.',
     podcastsTitle: 'Podcasts', podcastsBody: 'Listen to two hosts talk through any topic — great for revision on the go.',
   },
+  game: {
+    name: 'Summit', tagline: 'Climb as high as you can by answering questions from your own lectures.',
+    how: ['Pick the right answer before the bar runs out.', 'Answer fast, and in a row, for more points.', 'Three misses and the climb is over.'],
+    start: 'Start climbing', play: 'Play Summit',
+    notEnough: 'Summit needs some flashcards or quiz questions. Make flashcards on a lecture first.',
+    score: 'Score', height: (n: number) => `Height ${n}`, lives: (n: number) => (n === 1 ? '1 life left' : `${n} lives left`),
+    combo: (n: number) => `×${n}`, question: (i: number, n: number) => `Question ${i} of ${n}`, keys: 'Tip: press 1–4 to answer.',
+    right: 'Right!', wrong: 'Not quite', timeUp: 'Time’s up!', answerWas: 'The answer:',
+    over: 'The climb is over', summit: 'You reached the summit!', climbed: (n: number) => `You climbed ${n} ${n === 1 ? 'ledge' : 'ledges'}.`,
+    best: (n: number) => `Best: ${n}`, newBest: 'New best!', missed: 'Go over these again', again: 'Climb again', reviewCards: 'Review flashcards',
+    from: (title: string) => `From: ${title}`,
+  },
   week: {
     title: 'Your week', streak: (n: number) => (n === 1 ? '1-day streak' : `${n}-day streak`), noStreak: 'Start a streak today',
     best: (n: number) => `Best: ${n} ${n === 1 ? 'day' : 'days'}`,
