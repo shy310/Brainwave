@@ -338,6 +338,7 @@ export const en = {
       open: 'Ask', title: 'Ask about this lecture', close: 'Close',
       aboutSelection: 'Ask about this', quote: (q: string) => `About “${q}”: `,
     },
+    relatedTopics: 'Related Learn topics', relatedTopicsHint: 'Practise these with lessons, quizzes and the tutor.',
     notesStyle: 'Notes style', notesStyleHint: 'How new lecture notes are written. You can switch on any lecture.',
     practice: 'Practice questions', practiceHint: 'Try each one before you look at the answer.',
     showAnswer: 'Show answer', hideAnswer: 'Hide answer', mistakes: 'Common mistakes',

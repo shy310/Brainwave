@@ -249,6 +249,19 @@ describe('lecture operations', () => {
     expect((await post('/api/ai/gradeAnswer', { input: { question: 'Q?', answer: '' } })).status).toBe(400);
   });
 
+  it('offers matching Learn topics to the notes model and keeps only real ones', async () => {
+    const { lectureNotesOp } = await import('../../server/ai/ops/lectures');
+    const { candidateTopics } = await import('../../shared/topicMatch');
+    const text = 'Photosynthesis: plants use light, water and carbon dioxide to make glucose. Photosynthesis releases oxygen.';
+    const [real] = candidateTopics(text);
+    const prompt = String(lectureNotesOp.build({ transcript: text, mode: 'detailed' }, { userId: 'u', demo: true, locale: 'en', grade: '9' })[1].content);
+    expect(prompt).toContain(`${real} — `);
+    const NOTE = { title: 'T', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [], reminders: [], topics: ['made-up-topic', real] };
+    mockModel([JSON.stringify(NOTE)]);
+    const res = await post('/api/ai/lectureNotes', { input: { transcript: text } });
+    expect((await res.json()).data.topics).toEqual([real]);
+  });
+
   it('trims an over-long answer to the limits instead of failing with 422', async () => {
     const NOTE = {
       title: 'T', summary: 'S'.repeat(3200), reminders: [],

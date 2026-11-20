@@ -7,6 +7,8 @@ import { AiError } from '../openrouter.js';
 import { LOCALE_NAME } from '../../../shared/locales.js';
 import { QuizSchema } from '../../../shared/learn.js';
 import { sanitizeQuestions } from '../../../shared/math/validate.js';
+import { candidateTopics, cleanTopicIds } from '../../../shared/topicMatch.js';
+import { findTopic } from '../../../shared/curriculum.js';
 import { z } from 'zod';
 import {
   FlashcardsInputSchema, FlashcardsSchema, ImageTextInputSchema, LectureQuizInputSchema, NotesInputSchema, NotesSchema,
@@ -107,6 +109,14 @@ const lectureBlock = (transcript: string, slides?: string, title?: string) => [
 const notesLanguage = (ctx: OpContext) =>
   `Write in ${LOCALE_NAME[ctx.locale]}${ctx.locale === 'he' ? ' (keep technical terms in their original language where students would expect them)' : ''}.`;
 
+/** Learn topics the lecture may cover, for the model to choose from (empty when nothing matches). */
+const topicChoices = (transcript: string, slides?: string, title?: string) => {
+  const ids = candidateTopics([title, transcript, slides].filter(Boolean).join('\n'), 30);
+  if (!ids.length) return '\n- "topics": [].';
+  const list = ids.map((id) => `${id} — ${findTopic(id)!.topic.title.en}`).join('\n');
+  return `\n- "topics": the ids (up to 4) of the course topics below that this lecture actually teaches, best first. [] if none really fit.\n${list}`;
+};
+
 const NOTES_STYLE: Record<SummaryMode, string> = {
   short: `Write SHORT notes for a quick review — the whole thing should be readable in about a minute:
 - "title": a short, specific title for this lecture.
@@ -149,7 +159,7 @@ export const lectureNotesOp = defineOp({
       content: `${lectureBlock(transcript, slides, title)}
 
 ${NOTES_STYLE[mode]}
-Use only what is in the lecture (and slides). Fix obvious transcription errors silently. Do not include a "mode" field.`,
+Use only what is in the lecture (and slides). Fix obvious transcription errors silently. Do not include a "mode" field.${topicChoices(transcript, slides, title)}`,
     },
   ],
   post: ({ practice, mistakes, ...notes }, input) => ({
@@ -157,6 +167,7 @@ Use only what is in the lecture (and slides). Fix obvious transcription errors s
     // Practice questions and common mistakes belong to exam prep only.
     ...(input.mode === 'exam' ? { practice: practice ?? [], mistakes: mistakes ?? [] } : {}),
     mode: input.mode,
+    topics: cleanTopicIds(notes.topics),
   }),
 });
 

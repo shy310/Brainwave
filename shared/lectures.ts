@@ -58,6 +58,8 @@ export const NotesSchema = z.object({
   mistakes: z.array(z.string().max(600)).max(10).optional(),
   /** Which style these notes were written in (set by the server, not the model). */
   mode: z.enum(SUMMARY_MODES).optional(),
+  /** Learn topics this lecture covers (ids from the curriculum, checked by the server). */
+  topics: z.array(z.string().max(80)).max(6).optional(),
 });
 export type Notes = z.infer<typeof NotesSchema>;
 
