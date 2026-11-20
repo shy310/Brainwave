@@ -1,4 +1,9 @@
+import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+import { writeLectureAudio } from './tests/e2e/audio-fixture';
+
+// The fake microphone plays a speech-like recording (words and pauses) instead of beeps.
+const lectureWav = writeLectureAudio(path.resolve('test-results/.fixtures/lecture.wav'));
 
 // E2E runs against the built app served by the local Express server in demo
 // mode (no Supabase), with every AI call mocked inside the tests.
@@ -12,10 +17,10 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'retain-on-failure',
-    // A fake microphone (a steady tone) lets the lecture recorder run in tests.
+    // A fake microphone playing a speech-like test file lets the lecture recorder run in tests.
     launchOptions: {
       ...(executablePath ? { executablePath } : {}),
-      args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+      args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${lectureWav}`],
     },
     permissions: ['microphone'],
   },
