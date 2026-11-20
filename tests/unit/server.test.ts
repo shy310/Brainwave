@@ -195,6 +195,20 @@ describe('lecture operations', () => {
     expect((await post('/api/ai/imageText', { input: { image: 'data:image/png;base64,<script>' } })).status).toBe(400);
   });
 
+  it('trims an over-long answer to the limits instead of failing with 422', async () => {
+    const NOTE = {
+      title: 'T', summary: 'S'.repeat(3200), reminders: [],
+      sections: [{ heading: 'H', points: Array.from({ length: 20 }, (_, i) => `point ${i}`) }],
+      keyTerms: Array.from({ length: 45 }, (_, i) => ({ term: `term ${i}`, definition: 'd' })),
+    };
+    const spy = mockModel([JSON.stringify(NOTE)]);
+    const res = await post('/api/ai/lectureNotes', { input: { transcript: 'Limits and derivatives in detail.', mode: 'exam' } });
+    expect(res.status).toBe(200);
+    const { data } = await res.json();
+    expect([data.summary.length, data.sections[0].points.length, data.keyTerms.length]).toEqual([3000, 15, 30]);
+    expect(spy.mock.calls.filter((c) => !String(c[0]).startsWith(base))).toHaveLength(1); // no second, wasted call
+  });
+
   it('rejects audio that is not base64', async () => {
     const res = await post('/api/ai/transcribe', { input: { audio: '<script>'.repeat(30) } });
     expect(res.status).toBe(400);
