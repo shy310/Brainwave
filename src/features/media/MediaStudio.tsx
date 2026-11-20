@@ -12,12 +12,13 @@ import { Textarea } from '@/ui/Field';
 import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
 import { LENGTHS, type MediaKind, type MediaLength } from '@shared/media';
+import { LOCALES, type Locale } from '@shared/locales';
 import { mediaRepo, type Media } from './repo';
 import { useMediaSource } from './useMediaSource';
 
 export interface StudioStrings {
   title: string; subtitle: string; createTitle: string; promptLabel: string; promptPlaceholder: string;
-  from: string; length: string; lengths: Record<MediaLength, string>; create: string; writing: string;
+  from: string; language: string; length: string; lengths: Record<MediaLength, string>; create: string; writing: string;
   saved: string; none: string; suggestions: string[]; loadingSource: string;
 }
 
@@ -30,6 +31,10 @@ interface Props {
   tint: string;
 }
 
+const LANGUAGE_KEY = 'bw.mediaLanguage';
+/** Each language in its own name, so it is recognisable whatever the app language. */
+const LANGUAGE_NAMES: Record<Locale, string> = { en: 'English', he: 'עברית' };
+
 /** Shared "make a video / podcast" page: pick a source, make it, list saved ones. */
 export const MediaStudio = ({ kind, op, strings: s, icon: Icon, tint }: Props) => {
   const { t, locale } = useI18n();
@@ -38,6 +43,15 @@ export const MediaStudio = ({ kind, op, strings: s, icon: Icon, tint }: Props) =
   const { resolved, loading: sourceLoading, clear } = useMediaSource();
   const [prompt, setPrompt] = useState('');
   const [length, setLength] = useState<MediaLength>('short');
+  // The language of the video or podcast: the app's language unless the student picked another last time.
+  const [language, setLanguage] = useState<Locale>(() => {
+    try { const v = localStorage.getItem(LANGUAGE_KEY); if (LOCALES.includes(v as Locale)) return v as Locale; } catch { /* storage blocked */ }
+    return locale;
+  });
+  const pickLanguage = (l: Locale) => {
+    setLanguage(l);
+    try { localStorage.setItem(LANGUAGE_KEY, l); } catch { /* storage blocked */ }
+  };
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState<Omit<Media, 'script'>[] | null>(null);
@@ -51,9 +65,9 @@ export const MediaStudio = ({ kind, op, strings: s, icon: Icon, tint }: Props) =
     setWorking(true);
     setError('');
     try {
-      const script = await callAi<{ title: string }>(op, { source, length });
+      const script = await callAi<{ title: string }>(op, { source, length }, undefined, { locale: language });
       const origin = resolved?.origin ?? { type: 'prompt' as const, label: text.trim() };
-      const media = await mediaRepo.create({ kind, title: script.title.slice(0, 200), origin, locale, script });
+      const media = await mediaRepo.create({ kind, title: script.title.slice(0, 200), origin, locale: language, script });
       navigate(`${base}/${media.id}`);
     } catch (err) {
       setError(toMessage(err) || t.auth.errors.generic);
@@ -92,6 +106,11 @@ export const MediaStudio = ({ kind, op, strings: s, icon: Icon, tint }: Props) =
               </div>
             </div>
           )}
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium">{s.language}</p>
+          <Segmented<Locale> label={s.language} value={language} onChange={pickLanguage}
+            options={LOCALES.map((l) => ({ value: l, label: LANGUAGE_NAMES[l] }))} />
+        </div>
         <div className="space-y-1.5">
           <p className="text-sm font-medium">{s.length}</p>
           <Segmented label={s.length} value={length} onChange={setLength} options={LENGTHS.map((l) => ({ value: l, label: s.lengths[l] }))} />

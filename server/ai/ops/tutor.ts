@@ -53,10 +53,16 @@ export const tutorOp = defineOp({
       const last = i === history.length - 1;
       if (last && turn.role === 'user' && input.attachment) {
         const a = input.attachment;
-        const part: ContentPart = a.kind === 'image'
-          ? { type: 'image_url', image_url: { url: a.dataUrl } }
-          : { type: 'file', file: { filename: a.name || 'document.pdf', file_data: a.dataUrl } };
-        messages.push({ role: 'user', content: [{ type: 'text', text: turn.content || 'Please help me with this.' }, part] });
+        const parts: ContentPart[] = a.kind === 'image'
+          ? [{ type: 'image_url', image_url: { url: a.dataUrl } }]
+          : a.kind === 'pdf'
+            ? [{ type: 'file', file: { filename: a.name || 'document.pdf', file_data: a.dataUrl } }]
+            : [
+              // A big PDF: its text, read on the student's device, plus pictures of the first pages if it is a scan.
+              { type: 'text', text: `Attached PDF "${a.name}"${a.text ? ` — its text:\n\"\"\"\n${a.text}\n\"\"\"` : ' (a scan; pictures of its first pages follow)'}` },
+              ...a.pages.map((url): ContentPart => ({ type: 'image_url', image_url: { url } })),
+            ];
+        messages.push({ role: 'user', content: [{ type: 'text', text: turn.content || 'Please help me with this.' }, ...parts] });
       } else {
         messages.push({ role: turn.role, content: turn.content });
       }
