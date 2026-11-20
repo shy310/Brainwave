@@ -14,7 +14,8 @@ import { Spinner } from '@/ui/Spinner';
 import { BackLink } from '@/features/learn/CoursePage';
 import { QuizRunner } from '@/features/learn/QuizRunner';
 import { ChatPanel } from '@/features/tutor/ChatPanel';
-import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, type Flashcards, type Notes, type Segment } from '@shared/lectures';
+import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, SUMMARY_MODES, type Flashcards, type Notes, type Segment, type SummaryMode } from '@shared/lectures';
+import { useAuth } from '@/features/auth/AuthProvider';
 import type { Quiz } from '@shared/learn';
 import { FlashcardDeck } from './Flashcards';
 import { TranscriptPanel } from './TranscriptPanel';
@@ -42,6 +43,7 @@ export default function LecturePage() {
   const { t, locale } = useI18n();
   const navigate = useNavigate();
   const toMessage = useAiError();
+  const { profile } = useAuth();
   const [lecture, setLecture] = useState<Lecture | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>('notes');
   const [busy, setBusy] = useState<'' | 'notes' | 'quiz' | 'cards'>('');
@@ -71,13 +73,14 @@ export default function LecturePage() {
     title: lecture.title || undefined,
   }), [lecture, transcript]);
 
-  const generate = useCallback(async (kind: 'notes' | 'quiz' | 'cards') => {
+  const generate = useCallback(async (kind: 'notes' | 'quiz' | 'cards', mode?: SummaryMode) => {
     if (!input || transcript.length < 20) return;
     setBusy(kind);
     setError('');
     try {
       if (kind === 'notes') {
-        const notes = await callAi<Notes>('lectureNotes', input);
+        // Keep the style these notes were in, else the student's default.
+        const notes = await callAi<Notes>('lectureNotes', { ...input, mode: mode ?? lecture?.notes?.mode ?? profile?.summary_mode ?? 'detailed' });
         await patch({ notes, ...(lecture?.title ? {} : { title: notes.title.slice(0, 200) }) });
       } else if (kind === 'quiz') {
         const quiz = await callAi<Quiz>('lectureQuiz', { ...input, count: 6 });
@@ -92,7 +95,7 @@ export default function LecturePage() {
     } finally {
       setBusy('');
     }
-  }, [input, transcript, patch, lecture?.title, toMessage]);
+  }, [input, transcript, patch, lecture?.title, lecture?.notes?.mode, profile?.summary_mode, toMessage]);
 
   /** Make again whatever was made from the old transcript. */
   const updateFromEdits = async () => {
@@ -195,6 +198,11 @@ export default function LecturePage() {
             busy === 'notes' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.writingNotes}</Card>
             : lecture.notes ? (
               <article className="space-y-4">
+                <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+                  <Segmented<SummaryMode> label={t.lectures.notesStyle} value={lecture.notes.mode ?? 'detailed'}
+                    onChange={(m) => { if (m !== (lecture.notes?.mode ?? 'detailed')) void generate('notes', m); }}
+                    options={SUMMARY_MODES.map((m) => ({ value: m, label: t.lectures.summaryModes[m] }))} />
+                </div>
                 <Card className="space-y-5 p-6">
                   <section>
                     <h2 className="mb-2 text-lg font-semibold">{t.lectures.summary}</h2>

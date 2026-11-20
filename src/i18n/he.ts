@@ -61,6 +61,7 @@ export const he: Dict = {
     profile: 'פרופיל', appearance: 'מראה', theme: 'ערכת נושא',
     themeLight: 'בהירה', themeDark: 'כהה', themeSystem: 'לפי המכשיר',
     account: 'חשבון', signedInAs: (email: string) => `מחובר/ת בתור ${email}`,
+    study: 'לימוד',
     demoNote: 'מצב הדגמה: ההתקדמות נשמרת רק בדפדפן הזה.',
   },
   subjects: { math: 'מתמטיקה', science: 'מדעים', geography: 'גאוגרפיה', history: 'היסטוריה', coding: 'תכנות', economics: 'כלכלה' },
@@ -194,6 +195,8 @@ export const he: Dict = {
       stale: 'ערכת את התמלול. הסיכום, הבוחן והכרטיסיות נוצרו מהגרסה הקודמת.',
       updateAll: 'לעדכן אותם לפי הגרסה שלי', updating: 'מעדכנים…',
     },
+    notesStyle: 'סגנון הסיכום', notesStyleHint: 'איך ייכתבו סיכומי הרצאות חדשים. אפשר להחליף בכל הרצאה.',
+    summaryModes: { short: 'קצר', detailed: 'מפורט', exam: 'הכנה למבחן' },
     emptyTranscript: 'לא נמצא דיבור בהקלטה.',
   },
   videos: {

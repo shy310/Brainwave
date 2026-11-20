@@ -9,8 +9,8 @@ import { QuizSchema } from '../../../shared/learn.js';
 import { sanitizeQuestions } from '../../../shared/math/validate.js';
 import { z } from 'zod';
 import {
-  FlashcardsInputSchema, FlashcardsSchema, LectureQuizInputSchema, LectureTextInputSchema, NotesSchema,
-  SlidesInputSchema, SlidesTextSchema, TranscribeInputSchema, TranscriptPieceSchema, type LectureLanguage,
+  FlashcardsInputSchema, FlashcardsSchema, LectureQuizInputSchema, NotesInputSchema, NotesSchema,
+  SlidesInputSchema, SlidesTextSchema, TranscribeInputSchema, TranscriptPieceSchema, type LectureLanguage, type SummaryMode,
 } from '../../../shared/lectures.js';
 
 const LANGUAGE_HINT: Record<LectureLanguage, string> = {
@@ -107,14 +107,35 @@ const lectureBlock = (transcript: string, slides?: string, title?: string) => [
 const notesLanguage = (ctx: OpContext) =>
   `Write in ${LOCALE_NAME[ctx.locale]}${ctx.locale === 'he' ? ' (keep technical terms in their original language where students would expect them)' : ''}.`;
 
+const NOTES_STYLE: Record<SummaryMode, string> = {
+  short: `Write SHORT notes for a quick review:
+- "title": a short, specific title for this lecture.
+- "summary": 2–3 sentences with the main takeaway.
+- "sections": 2–5 sections in lecture order, each with 2–4 short "points" — only the ideas a student must remember.
+- "keyTerms": at most 8 of the most important terms, one short sentence each.
+- "reminders": homework, deadlines, readings or exam hints the lecturer mentioned. Empty if none.`,
+  detailed: `Write study notes:
+- "title": a short, specific title for this lecture.
+- "summary": 3–5 sentences — what the lecture covered and the main takeaway.
+- "sections": follow the order of the lecture. Each has a "heading" and 2–8 "points": complete, self-contained statements a student can revise from (definitions, formulas in LaTeX, examples, reasoning steps). Don't pad.
+- "keyTerms": important terms with one-sentence definitions.
+- "reminders": homework, deadlines, readings or "this will be on the exam" hints the lecturer mentioned. Empty if none.`,
+  exam: `Write EXAM-PREP notes — what a student needs to answer exam questions on this lecture:
+- "title": a short, specific title for this lecture.
+- "summary": 2–4 sentences on what is most likely to be examined and why.
+- "sections": organise by what is examinable, not lecture order. Use headings such as the key definitions, formulas and when to use them (LaTeX), methods step by step, common mistakes to avoid, and a final section of 3–6 likely exam questions (each point is one question; no answers). Points are precise and exam-ready.
+- "keyTerms": every term a student could be asked to define, with a precise definition.
+- "reminders": exam hints, homework, deadlines and readings the lecturer mentioned. Empty if none.`,
+};
+
 export const lectureNotesOp = defineOp({
   name: 'lectureNotes',
-  input: LectureTextInputSchema,
+  input: NotesInputSchema,
   output: NotesSchema,
   cost: 2,
   maxTokens: 10000,
   temperature: 0.3,
-  build: ({ transcript, slides, title }, ctx) => [
+  build: ({ transcript, slides, title, mode }, ctx) => [
     {
       role: 'system',
       content: `You turn lecture transcripts into excellent study notes, like the best student in the class would write.\n\n${audience(ctx)}\n${notesLanguage(ctx)}`,
@@ -123,15 +144,11 @@ export const lectureNotesOp = defineOp({
       role: 'user',
       content: `${lectureBlock(transcript, slides, title)}
 
-Write study notes:
-- "title": a short, specific title for this lecture.
-- "summary": 3–5 sentences — what the lecture covered and the main takeaway.
-- "sections": follow the order of the lecture. Each has a "heading" and 2–8 "points": complete, self-contained statements a student can revise from (definitions, formulas in LaTeX, examples, reasoning steps). Don't pad.
-- "keyTerms": important terms with one-sentence definitions.
-- "reminders": homework, deadlines, readings or "this will be on the exam" hints the lecturer mentioned. Empty if none.
-Use only what is in the lecture (and slides). Fix obvious transcription errors silently.`,
+${NOTES_STYLE[mode]}
+Use only what is in the lecture (and slides). Fix obvious transcription errors silently. Do not include a "mode" field.`,
     },
   ],
+  post: (notes, input) => ({ ...notes, mode: input.mode }),
 });
 
 export const lectureQuizOp = defineOp({

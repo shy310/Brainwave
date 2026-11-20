@@ -9,6 +9,7 @@ import { Segmented } from '@/ui/Segmented';
 import { Alert } from '@/ui/Alert';
 import { GRADES, type Grade } from '@shared/grades';
 import type { Locale } from '@shared/locales';
+import { SUMMARY_MODES, type SummaryMode } from '@shared/lectures';
 
 export default function SettingsPage() {
   const { t, locale } = useI18n();
@@ -49,6 +50,17 @@ export default function SettingsPage() {
           {status === 'error' && <Alert tone="error">{t.auth.errors.generic}</Alert>}
           <Button type="submit" loading={status === 'saving'}>{status === 'saved' ? t.common.saved : t.common.save}</Button>
         </form>
+      </Card>
+
+      <Card className="space-y-3 p-6">
+        <h2 className="text-lg font-semibold">{t.settings.study}</h2>
+        <div className="space-y-1.5">
+          <span className="block text-sm font-medium">{t.lectures.notesStyle}</span>
+          <Segmented<SummaryMode> label={t.lectures.notesStyle} value={profile?.summary_mode ?? 'detailed'}
+            onChange={m => updateProfile({ summary_mode: m }).catch(() => {})}
+            options={SUMMARY_MODES.map(m => ({ value: m, label: t.lectures.summaryModes[m] }))} />
+          <p className="text-sm text-muted">{t.lectures.notesStyleHint}</p>
+        </div>
       </Card>
 
       <Card className="space-y-5 p-6">

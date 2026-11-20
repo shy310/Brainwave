@@ -61,6 +61,7 @@ export const en = {
     themeLight: 'Light', themeDark: 'Dark', themeSystem: 'Match my device',
     account: 'Account', signedInAs: (email: string) => `Signed in as ${email}`,
     demoNote: 'Demo mode: progress is saved in this browser only.',
+    study: 'Study',
   },
   subjects: { math: 'Math', science: 'Science', geography: 'Geography', history: 'History', coding: 'Coding', economics: 'Economics' },
   bands: {
@@ -188,6 +189,8 @@ export const en = {
     rename: 'Rename', save: 'Save',
     turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
+    notesStyle: 'Notes style', notesStyleHint: 'How new lecture notes are written. You can switch on any lecture.',
+    summaryModes: { short: 'Short', detailed: 'Detailed', exam: 'Exam prep' },
     transcriptTools: {
       search: 'Search the transcript', clear: 'Clear search',
       matches: (n: number) => (n === 1 ? '1 match' : `${n} matches`), noMatches: 'No matches',
