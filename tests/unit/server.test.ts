@@ -328,9 +328,52 @@ describe('narration voices', () => {
     expect(ssml('hi', 'he-IL-HilaNeural')).toContain('xml:lang="he-IL"');
   });
 
-  it('says so when natural voices are not set up', async () => {
-    const res = await post('/api/tts', { text: 'Hello', voice: 'en-US-AvaNeural' });
+  it('says so when natural voices are turned off', async () => {
+    vi.resetModules();
+    process.env.TTS_PROVIDER = 'off';
+    const { app } = await import('../../server/app');
+    const s = app.listen(0);
+    const url = `http://127.0.0.1:${(s.address() as AddressInfo).port}`;
+    const res = await realFetch(`${url}/api/tts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'Hello', voice: 'en-US-AvaNeural' }) });
     expect(res.status).toBe(503);
+    expect(await (await realFetch(`${url}/api/health`)).json()).toMatchObject({ tts: false });
+    s.close();
+    delete process.env.TTS_PROVIDER;
+  });
+
+  it('uses OpenRouter speech with the same key when Azure is not set up', async () => {
+    vi.resetModules();
+    process.env.OPENROUTER_API_KEY = 'or-test-key';
+    const { app } = await import('../../server/app');
+    const s = app.listen(0);
+    const url = `http://127.0.0.1:${(s.address() as AddressInfo).port}`;
+    const sent: { url: string; body: Record<string, unknown>; auth: string }[] = [];
+    let answer = () => new Response(new Uint8Array([0xff, 0xfb, 0x90, 0x00]), { status: 200, headers: { 'Content-Type': 'audio/mpeg' } });
+    globalThis.fetch = vi.fn(async (u: string | URL | Request, init?: RequestInit) => {
+      if (String(u).startsWith(url)) return realFetch(u, init);
+      sent.push({ url: String(u), body: JSON.parse(String(init?.body)), auth: (init?.headers as Record<string, string>).Authorization });
+      return answer();
+    }) as typeof fetch;
+    const call = (body: unknown) => realFetch(`${url}/api/tts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+    const ok = await call({ text: 'שלום לכולם', voice: 'he-IL-HilaNeural' });
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get('content-type')).toBe('audio/mpeg');
+    expect(sent[0].url).toBe('https://openrouter.ai/api/v1/audio/speech');
+    expect(sent[0].auth).toBe('Bearer or-test-key');
+    expect(sent[0].body).toEqual({ model: 'elevenlabs/eleven-v4-turbo', input: 'שלום לכולם', voice: 'sarah', response_format: 'mp3' });
+    await call({ text: 'Hi there', voice: 'en-US-AndrewNeural' });
+    expect(sent[1].body.voice).toBe('brian'); // the second podcast host
+    expect(await (await realFetch(`${url}/api/health`)).json()).toMatchObject({ tts: true });
+
+    // No credit: the browser is told to use device voices instead.
+    answer = () => new Response('{"error":{"message":"Insufficient credits"}}', { status: 402, headers: { 'Content-Type': 'application/json' } });
+    expect((await call({ text: 'Hello', voice: 'en-US-AvaNeural' })).status).toBe(402);
+    // An "OK" without audio is an error, not silence.
+    answer = () => new Response('{"error":"oops"}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    expect((await call({ text: 'Hello', voice: 'en-US-AvaNeural' })).status).toBe(502);
+    s.close();
+    process.env.OPENROUTER_API_KEY = 'sk-test';
   });
 
   it('sends allowed voices to Azure and returns MP3', async () => {

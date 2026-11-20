@@ -63,3 +63,27 @@ test('without natural voices the device voice is used and nothing is requested',
   expect(ttsCalls).toBe(0);
   await expect(page.getByRole('button', { name: 'Download MP3' })).toHaveCount(0);
 });
+
+test('if a natural voice fails, the device voice says the line instead of going silent', async ({ page }) => {
+  await page.addInitScript(() => {
+    const spoken: string[] = [];
+    (window as unknown as { spoken: string[] }).spoken = spoken;
+    const voice = { name: 'Test voice', lang: 'en-US', localService: true, default: true, voiceURI: 'test' };
+    window.SpeechSynthesisUtterance = class { onend: (() => void) | null = null; onerror = null; voice = null; lang = ''; rate = 1; pitch = 1; constructor(public text: string) {} } as unknown as typeof SpeechSynthesisUtterance;
+    speechSynthesis.getVoices = () => [voice as unknown as SpeechSynthesisVoice];
+    speechSynthesis.speak = (u) => { spoken.push(u.text); setTimeout(() => u.onend?.call(u, new Event('end') as SpeechSynthesisEvent), 50); };
+    speechSynthesis.cancel = () => {};
+  });
+  let ttsCalls = 0;
+  await page.route('**/api/health', (r) => r.fulfill({ json: { ok: true, ai: true, tts: true, auth: false, demo: true } }));
+  await page.route('**/api/tts', (r) => { ttsCalls++; return r.fulfill({ status: 502, json: { error: 'The voice service had a problem.' } }); });
+  await page.route('**/api/ai/podcastScript', (r) => r.fulfill({ json: { data: PODCAST } }));
+  await onboard(page);
+  await page.goto('/podcasts');
+  await page.locator('#media-prompt').fill('black holes');
+  await page.getByRole('button', { name: 'Make the episode' }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { spoken: string[] }).spoken), { timeout: 10_000 })
+    .toEqual(expect.arrayContaining(['What is a black hole?', 'Gravity so strong light cannot escape.']));
+  expect(ttsCalls).toBeGreaterThan(0);
+});
