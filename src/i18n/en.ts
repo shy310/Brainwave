@@ -67,6 +67,18 @@ export const en = {
     best: (n: number) => `Best: ${n}`, newBest: 'New best!', missed: 'Go over these again', again: 'Climb again', reviewCards: 'Review flashcards',
     from: (title: string) => `From: ${title}`,
   },
+  schedule: {
+    title: 'Class schedule', subtitle: 'Add your weekly classes. BrainWave reminds you to record them and names each lecture for you.',
+    open: 'Class schedule', add: 'Add a class', edit: 'Edit', remove: 'Delete', confirmRemove: (n: string) => `Delete “${n}” from your schedule?`,
+    name: 'Class name', namePlaceholder: 'e.g. Calculus 1', day: 'Day', starts: 'Starts', ends: 'Ends',
+    folder: 'Save lectures in', noFolder: 'No folder', remind: 'Remind me',
+    remindOption: (m: number) => (m === 0 ? 'No reminder' : `${m} min before`),
+    save: 'Save', empty: 'No classes yet. Add your timetable to get reminders.', endBeforeStart: 'The class must end after it starts.',
+    enable: 'Turn on reminders', enabled: 'Reminders are on.', blocked: 'Notifications are blocked. Allow them in your browser or phone settings.',
+    webNote: 'On the web, reminders appear while BrainWave is open in a tab. In the Android app they arrive even when it’s closed.',
+    reminderTitle: (n: string) => `${n} starts soon`, reminderBody: (m: number) => `In ${m} minutes. Tap to start recording.`,
+    soon: (n: string, time: string) => `${n} starts at ${time}`, on: (n: string) => `${n} is on now`, record: 'Record it',
+  },
   week: {
     title: 'Your week', streak: (n: number) => (n === 1 ? '1-day streak' : `${n}-day streak`), noStreak: 'Start a streak today',
     best: (n: number) => `Best: ${n} ${n === 1 ? 'day' : 'days'}`,

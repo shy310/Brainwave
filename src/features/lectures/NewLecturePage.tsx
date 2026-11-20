@@ -26,6 +26,8 @@ import { SlidesPicker, type Slides } from './SlidesPicker';
 import { useKeepAwake } from './useKeepAwake';
 import { PdfSource } from './PdfSource';
 import { PhotoSource } from './PhotoSource';
+import { scheduleRepo } from '@/features/schedule/scheduleRepo';
+import { classLectureTitle } from '@shared/schedule';
 import { NativeRecorder, nativeRecorderAvailable, recoverNative } from './nativeRecorder';
 import { inBrowserMaxMinutes, planUpload, probeDuration, type UploadPlan } from './preflight';
 
@@ -54,12 +56,15 @@ const minutes = (sec: number) => Math.max(1, Math.round(sec / 60));
 const coarsePointer = () => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
 export default function NewLecturePage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
   const toMessage = useAiError();
   const [params] = useSearchParams();
   const resumeId = params.get('resume');
+  const classId = params.get('class');
+  /** Folder for the lecture, when started from a class in the schedule. */
+  const [folderId, setFolderId] = useState<string | null>(null);
   const [tab, setTab] = useState<LectureSource>('record');
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState<LectureLanguage>('auto');
@@ -160,6 +165,18 @@ export default function NewLecturePage() {
     navigate(id ? `/lectures/${id}` : '/lectures', { replace: true });
   };
 
+  // Started from a class reminder or the "up next" banner: name the lecture and pick its folder.
+  useEffect(() => {
+    if (!classId) return;
+    scheduleRepo.list().then((slots) => {
+      const slot = slots.find((s) => s.id === classId);
+      if (!slot) return;
+      setTitle((cur) => cur || classLectureTitle(slot.name, new Date(), locale));
+      setFolderId(slot.folderId);
+      setTab('record');
+    }).catch(() => {});
+  }, [classId, locale]);
+
   // ── Recover a draft left on this device ──
   useEffect(() => {
     if (!resumeId) return;
@@ -192,7 +209,7 @@ export default function NewLecturePage() {
 
     let s: LectureSession;
     try {
-      s = await LectureSession.start({ owner: user.id, source: 'record', title: title.trim(), language, slidesText: slides?.text ?? null }, events);
+      s = await LectureSession.start({ owner: user.id, source: 'record', title: title.trim(), language, slidesText: slides?.text ?? null, folderId }, events);
     } catch (err) {
       console.error(err);
       setError(t.lectures.noDeviceStorage);

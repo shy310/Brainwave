@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
-import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, Camera, FileText, Layers, Mountain, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, CalendarDays, Camera, FileText, Layers, Mountain, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
@@ -14,6 +14,7 @@ import { lectureRepo, type LectureSummary } from './repo';
 import { arrangeLectures, folderRepo, type Folder, type SortKey } from './folders';
 import { reviewCards, reviewRepo } from './reviews';
 import { dueCount } from '@shared/srs';
+import { UpNextBanner } from '@/features/schedule/UpNext';
 
 const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera } as const;
 const VIEW_KEY = 'bw.lectures.view';
@@ -111,10 +112,17 @@ export default function LecturesPage() {
           <h1 className="text-3xl font-semibold tracking-tight">{t.lectures.title}</h1>
           <p className="text-muted">{t.lectures.subtitle}</p>
         </div>
-        <Link to="/lectures/new" className={cn(linkButton, 'bg-brand-600 text-white hover:bg-brand-700')}>
-          <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/lectures/schedule" className={cn(linkButton, 'border border-line bg-surface hover:bg-surface-2')}>
+            <CalendarDays className="size-4" aria-hidden="true" />{t.schedule.open}
+          </Link>
+          <Link to="/lectures/new" className={cn(linkButton, 'bg-brand-600 text-white hover:bg-brand-700')}>
+            <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
+          </Link>
+        </div>
       </header>
+
+      <UpNextBanner />
 
       {error && <Alert tone="error">{t.auth.errors.generic}</Alert>}
       {!items && !error && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>}
