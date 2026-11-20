@@ -47,7 +47,13 @@ export default function TopicPage() {
     if (cached) lesson.setData(cached);
   }, [key]);
 
-  if (!ref) return <Alert tone="error">{t.learn.topicNotFound}</Alert>;
+  if (!ref) return (
+    <div className="space-y-4">
+      <BackLink to="/learn" label={t.learn.backToLearn} />
+      <h1 className="sr-only">{t.learn.topicNotFound}</h1>
+      <Alert tone="error">{t.learn.topicNotFound}</Alert>
+    </div>
+  );
   const { topic, unit, course } = ref;
   const meta = SUBJECT_META[course.subject];
   const p = progress[topicId];

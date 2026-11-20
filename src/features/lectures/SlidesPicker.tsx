@@ -62,7 +62,7 @@ export const SlidesPicker = ({ value, onChange }: { value: Slides | null; onChan
       <input ref={input} type="file" accept="application/pdf" className="hidden" onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ''; }} />
       {value ? (
         <p className="flex items-center gap-2 text-sm">
-          <FileText className="size-4 text-brand-600" aria-hidden="true" />
+          <FileText className="size-4 text-brand-600 dark:text-brand-300" aria-hidden="true" />
           <span className="truncate">{t.lectures.slidesReady(value.name)}</span>
           <button type="button" aria-label={t.tutor.remove} onClick={() => onChange(null)} className="rounded p-0.5 hover:bg-surface-2"><X className="size-4" aria-hidden="true" /></button>
         </p>

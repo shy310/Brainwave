@@ -112,7 +112,9 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
                     answered && !isAnswer && !isWrongPick && 'border-line opacity-60',
                   )}>
                   <span className={cn('flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-semibold',
-                    choice === i ? 'border-brand-500 text-brand-600' : 'border-line text-muted')}>
+                    // Once checked, the marker takes the result's colour (green right, red wrong), not the selection colour.
+                    isAnswer ? 'border-emerald-500 bg-white dark:bg-emerald-950' : isWrongPick ? 'border-rose-400 bg-white dark:bg-rose-950'
+                      : choice === i ? 'border-brand-500 text-brand-600 dark:text-brand-300' : 'border-line text-muted')}>
                     {isAnswer ? <Check className="size-4 text-emerald-600" aria-hidden="true" />
                       : isWrongPick ? <X className="size-4 text-rose-600" aria-hidden="true" /> : String.fromCharCode(65 + i)}
                   </span>

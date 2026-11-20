@@ -21,7 +21,13 @@ export default function CoursePage() {
   const { t, locale } = useI18n();
   const { progress } = useProgress();
   const course = findCourse(courseId);
-  if (!course) return <Alert tone="error">{t.learn.courseNotFound}</Alert>;
+  if (!course) return (
+    <div className="space-y-4">
+      <BackLink to="/learn" label={t.learn.backToLearn} />
+      <h1 className="sr-only">{t.learn.courseNotFound}</h1>
+      <Alert tone="error">{t.learn.courseNotFound}</Alert>
+    </div>
+  );
   const meta = SUBJECT_META[course.subject];
 
   return (

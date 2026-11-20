@@ -171,7 +171,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
 
       {error && <Alert tone="error">{error}</Alert>}
 
-      <form onSubmit={onSubmit} className={cn('sticky z-10 space-y-2 rounded-2xl border border-line bg-surface p-2 shadow-[var(--shadow-lift)]', inPanel ? 'bottom-0' : 'bottom-20 md:bottom-4')}>
+      <form onSubmit={onSubmit} className={cn('sticky z-10 space-y-2 rounded-2xl border border-line bg-surface p-2 shadow-[var(--shadow-lift)] transition-shadow focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/15', inPanel ? 'bottom-0' : 'bottom-20 md:bottom-4')}>
         {readingFile && <p className="flex items-center gap-2 px-2 pt-1 text-sm text-muted" aria-live="polite"><Spinner className="size-4" />{t.tutor.readingFile}</p>}
         {attachment && (
           <p className="flex items-center gap-2 px-2 pt-1 text-sm">

@@ -79,7 +79,7 @@ export default function SchedulePage() {
 
       {notificationsSupported() && (
         <Card className="flex flex-wrap items-center gap-3 p-4">
-          <Bell className="size-5 text-brand-600" aria-hidden="true" />
+          <Bell className="size-5 text-brand-600 dark:text-brand-300" aria-hidden="true" />
           <p className="min-w-0 flex-1 text-sm">{allowed ? ts.enabled : !isNativeApp() ? ts.webNote : ''}</p>
           {!allowed && <Button size="sm" onClick={() => void turnOn()}>{ts.enable}</Button>}
           {blocked && <p className="w-full text-sm text-rose-600" role="alert">{ts.blocked}</p>}

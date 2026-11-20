@@ -118,7 +118,7 @@ export default function GamePage() {
           {playable === 0 ? <Alert>{tg.notEnough}</Alert> : (
             <>
               <ol className="mx-auto max-w-sm space-y-1 text-start text-sm">
-                {tg.how.map((h, i) => <li key={i} className="flex gap-2"><span className="font-semibold text-brand-600">{i + 1}.</span>{h}</li>)}
+                {tg.how.map((h, i) => <li key={i} className="flex gap-2"><span className="font-semibold text-brand-600 dark:text-brand-300">{i + 1}.</span>{h}</li>)}
               </ol>
               {best > 0 && <p className="text-sm text-muted">{tg.best(best)}</p>}
               <Button size="lg" onClick={begin}>{tg.start}</Button>
