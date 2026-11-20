@@ -15,6 +15,8 @@ export const router = createBrowserRouter([
     element: <RequireUser />,
     children: [{ path: '/onboarding', lazy: page(() => import('@/features/auth/OnboardingPage')) }],
   },
+  // How to delete an account: public, for the Google Play listing.
+  { path: '/delete-account', lazy: page(() => import('@/features/settings/DeleteAccountInfoPage')) },
   // Notes shared by link: open to anyone, no sign-in.
   { path: '/s/:token', lazy: page(() => import('@/features/lectures/SharedLecturePage')) },
   {

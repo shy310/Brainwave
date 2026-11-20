@@ -40,7 +40,14 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  // After deleting an account, say it worked.
+  const [notice, setNotice] = useState<string | null>(() => {
+    try {
+      if (!sessionStorage.getItem('bw.accountDeleted')) return null;
+      sessionStorage.removeItem('bw.accountDeleted');
+      return t.account.deleted;
+    } catch { return null; }
+  });
 
   const friendly = (err: unknown) => {
     const msg = (err as { message?: string })?.message?.toLowerCase() ?? '';
@@ -91,6 +98,7 @@ export default function SignInPage() {
           <Card className="mx-auto w-full max-w-md p-6 sm:p-8 animate-fade-up">
             {auth.demo ? (
               <div className="space-y-4">
+                {notice && <Alert tone="success">{notice}</Alert>}
                 <h2 className="text-xl font-semibold">{t.auth.demoTitle}</h2>
                 <p className="text-muted">{t.auth.demoBody}</p>
                 <Button block size="lg" onClick={auth.startDemo}>{t.auth.demoStart}</Button>

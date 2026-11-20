@@ -27,6 +27,11 @@ export const verifyToken = async (token: string): Promise<string | null> => {
   return user.id;
 };
 
+/** Forget cached sign-ins for a user (after their account is deleted). */
+export const forgetUser = (userId: string) => {
+  for (const [k, v] of cache) if (v.userId === userId) cache.delete(k);
+};
+
 /** Every AI route goes through this: no valid sign-in, no AI. */
 export const requireUser = async (req: AuthedRequest, res: Response, next: NextFunction) => {
   try {

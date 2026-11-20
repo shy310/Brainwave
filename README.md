@@ -58,6 +58,7 @@ Copy `.env.example` to `.env.local` for local development. On Vercel, add the sa
 | `OPENROUTER_API_KEY` | server | Your OpenRouter key |
 | `OPENROUTER_MODEL` | server | Optional, defaults to `google/gemini-2.5-flash` |
 | `VITE_PUBLIC_URL` | browser | Optional public web address (e.g. `https://brainwave.app`), used for share links made in the Android app. The web app uses its own address. |
+| `VITE_SUPPORT_EMAIL` | browser | Optional support address shown in Settings and on the public `/delete-account` page. |
 | `TRANSCRIBE_MODE` | server | Optional. `llm` (default) transcribes lectures with the chat model. `stt` uses a dedicated speech-to-text model and falls back to `llm` if it fails. |
 | `TRANSCRIBE_MODEL` | server | Optional speech-to-text model for `stt` mode (default `openai/gpt-4o-mini-transcribe`). Choose it with `scripts/eval-transcription.ts` (see `eval/transcription/README.md`). |
 | `TRANSCRIBE_CLEANUP` | server | Optional. `true` runs the LLM cleanup (fillers, math as LaTeX) on the speech-to-text **text** afterwards. |
@@ -66,6 +67,9 @@ Copy `.env.example` to `.env.local` for local development. On Vercel, add the sa
 | `TTS_MODEL`, `TTS_VOICES` | server | Optional OpenRouter voice model (default `elevenlabs/eleven-v4-turbo`; it must speak Hebrew) and its two voices, narrator first (default `sarah,brian`). |
 | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | server | Optional: natural voices from Azure AI Speech instead (free F0 tier works). |
 | `TTS_DAILY_CHARS` | server | Optional per-student daily narration limit in characters (default 60000) |
+
+Deleting an account (Settings → Account, required by Google Play) needs `SUPABASE_SERVICE_ROLE_KEY` on the server.
+The public page `/delete-account` explains the steps; use its URL in the Play Console's data-deletion field.
 
 Without the Supabase variables the app runs in **demo mode** locally (progress saved in the
 browser). Demo mode is disabled in production, so the AI can never be used anonymously on the live site.

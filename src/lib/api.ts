@@ -32,6 +32,13 @@ const failure = async (res: Response) => {
   return new ApiError(body.error ?? `Request failed (${res.status})`, res.status, body.code ?? res.status);
 };
 
+/** POST to a non-AI API route (signed in), returning its JSON. */
+export const postApi = async <T,>(path: string, body: unknown): Promise<T> => {
+  const res = await post(path, body);
+  if (!res.ok) throw await failure(res);
+  return (await res.json()) as T;
+};
+
 /** Run a named AI operation that returns structured data. */
 export const callAi = async <T,>(op: string, input: unknown, signal?: AbortSignal, opts: { locale?: Locale } = {}): Promise<T> => {
   // `locale` overrides the language the AI writes in (e.g. an English podcast while the app is in Hebrew).
