@@ -23,7 +23,7 @@ for (const lang of ['en', 'he'] as const) {
     await onboard(page, { hebrew: lang === 'he' });
     await seed(page);
     await page.goto('/lectures');
-    const cards = page.locator('main a[href^="/lectures/"]:not([href="/lectures/new"]):not([href^="/lectures/study"])');
+    const cards = page.locator('main a[href^="/lectures/"]:not([href="/lectures/new"]):not([href^="/lectures/study"]):not([href="/lectures/review"])');
     await expect(cards).toHaveCount(3);
     await expect(cards.first()).toContainText('Calculus week 10'); // newest first
 

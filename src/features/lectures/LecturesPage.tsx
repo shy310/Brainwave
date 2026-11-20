@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
-import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, Camera, FileText, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, Camera, FileText, Layers, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
@@ -12,6 +12,8 @@ import { linkButton } from '@/features/learn/TopicPage';
 import { storage } from '@/lib/storage';
 import { lectureRepo, type LectureSummary } from './repo';
 import { arrangeLectures, folderRepo, type Folder, type SortKey } from './folders';
+import { reviewCards, reviewRepo } from './reviews';
+import { dueCount } from '@shared/srs';
 
 const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera } as const;
 const VIEW_KEY = 'bw.lectures.view';
@@ -42,6 +44,13 @@ export default function LecturesPage() {
     Promise.all([lectureRepo.list(), folderRepo.list()])
       .then(([l, f]) => { setItems(l); setFolders(f); })
       .catch((err) => { console.error(err); setError(true); });
+  }, []);
+
+  const [due, setDue] = useState(0);
+  useEffect(() => {
+    Promise.all([lectureRepo.studyMaterial('all'), reviewRepo.list()])
+      .then(([lectures, states]) => setDue(dueCount(reviewCards(lectures, (l) => l.title), states, Date.now())))
+      .catch(() => setDue(0));
   }, []);
 
   useEffect(() => { storage.set(VIEW_KEY, JSON.stringify({ sort, folder })); }, [sort, folder]);
@@ -123,6 +132,14 @@ export default function LecturesPage() {
             <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
           </Link>
         </Card>
+      )}
+
+      {due > 0 && (
+        <Link to="/lectures/review" className="flex items-center gap-3 rounded-[var(--radius-card)] border border-brand-200 bg-brand-50 p-4 hover:bg-brand-100 dark:border-brand-800 dark:bg-brand-900/30">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white"><Layers className="size-5" aria-hidden="true" /></span>
+          <span className="min-w-0 flex-1 font-medium">{t.lectures.review.due(due)}</span>
+          <span className="text-sm font-medium text-brand-700 dark:text-brand-200">{t.lectures.review.start}</span>
+        </Link>
       )}
 
       {hasAny && (
