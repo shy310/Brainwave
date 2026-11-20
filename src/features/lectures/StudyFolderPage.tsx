@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { Sparkles } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -15,6 +15,8 @@ import { QuizRunner } from '@/features/learn/QuizRunner';
 import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, type Flashcards } from '@shared/lectures';
 import type { Quiz } from '@shared/learn';
 import { FlashcardDeck } from './Flashcards';
+import { rate, reviewRepo } from './reviews';
+import { cardKey, type CardState } from '@shared/srs';
 import { folderRepo, type Folder } from './folders';
 import { lectureTitle } from './LecturesPage';
 import { lectureRepo, transcriptOf, type StudyLecture } from './repo';
@@ -61,8 +63,8 @@ export default function StudyFolderPage() {
   const titleOf = (l: StudyLecture) => lectureTitle(l, t.lectures.untitled, locale);
 
   const deck = useMemo(() => {
-    const items = (lectures ?? []).flatMap((l) => (l.flashcards?.cards ?? []).map((card) => ({ card, from: titleOf(l) })));
-    return { deck: { cards: items.map((i) => i.card) } as Flashcards, labels: items.map((i) => i.from), lectures: (lectures ?? []).filter((l) => l.flashcards?.cards.length).length };
+    const items = (lectures ?? []).flatMap((l) => (l.flashcards?.cards ?? []).map((card) => ({ card, from: titleOf(l), lectureId: l.id })));
+    return { deck: { cards: items.map((i) => i.card) } as Flashcards, labels: items.map((i) => i.from), owners: items.map((i) => i.lectureId), lectures: (lectures ?? []).filter((l) => l.flashcards?.cards.length).length };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lectures, locale]);
 
@@ -72,6 +74,14 @@ export default function StudyFolderPage() {
     // `round` draws a new set of questions.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lectures, round]);
+
+  const reviewStates = useRef<Promise<Map<string, CardState>> | null>(null);
+  const onCardAnswer = (i: number, knew: boolean) => {
+    const card = deck.deck.cards[i], lectureId = deck.owners[i];
+    if (!card) return;
+    reviewStates.current ??= reviewRepo.list();
+    void reviewStates.current.then((st) => rate(st, { key: cardKey(lectureId, card.front), lectureId }, knew ? 'good' : 'again'));
+  };
 
   const missing = (lectures ?? []).filter((l) => (tab === 'cards' ? !l.flashcards?.cards.length : !l.quiz?.questions.length));
 
@@ -138,7 +148,7 @@ export default function StudyFolderPage() {
           {tab === 'cards' && deck.deck.cards.length > 0 && (
             <Card className="space-y-3 p-6">
               <p className="text-sm text-muted">{ts.cardsFrom(deck.deck.cards.length, deck.lectures)}</p>
-              <FlashcardDeck deck={deck.deck} labels={deck.labels} onFinish={(knew, total) => remember({ cards: { knew, total } })} />
+              <FlashcardDeck deck={deck.deck} labels={deck.labels} onAnswer={onCardAnswer} onFinish={(knew, total) => remember({ cards: { knew, total } })} />
             </Card>
           )}
 

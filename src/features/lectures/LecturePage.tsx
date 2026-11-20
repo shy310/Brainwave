@@ -20,6 +20,8 @@ import type { Quiz } from '@shared/learn';
 import { FlashcardDeck } from './Flashcards';
 import { TranscriptPanel } from './TranscriptPanel';
 import { NotesView } from './NotesView';
+import { rate, reviewRepo } from './reviews';
+import { cardKey, type CardState } from '@shared/srs';
 import { folderRepo, type Folder } from './folders';
 import { lectureTitle } from './LecturesPage';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
@@ -62,6 +64,14 @@ export default function LecturePage() {
   const [updating, setUpdating] = useState(false);
 
   const [folders, setFolders] = useState<Folder[]>([]);
+  const reviewStates = useRef<Promise<Map<string, CardState>> | null>(null);
+  /** Practising here also updates the spaced-repetition schedule. */
+  const onCardAnswer = (i: number, knew: boolean) => {
+    const card = lecture?.flashcards?.cards[i];
+    if (!card) return;
+    reviewStates.current ??= reviewRepo.list();
+    void reviewStates.current.then((st) => rate(st, { key: cardKey(id, card.front), lectureId: id }, knew ? 'good' : 'again'));
+  };
 
   useEffect(() => {
     lectureRepo.get(id).then(setLecture).catch(() => setLecture(null));
@@ -277,7 +287,7 @@ export default function LecturePage() {
             busy === 'cards' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.makingCards}</Card>
             : lecture.flashcards ? (
               <Card className="space-y-4 p-6">
-                <FlashcardDeck deck={lecture.flashcards} />
+                <FlashcardDeck deck={lecture.flashcards} onAnswer={onCardAnswer} />
                 <div className="border-t border-line pt-3">
                   <Button variant="ghost" size="sm" icon={<RefreshCw className="size-4" />} onClick={() => generate('cards')}>{t.lectures.newCards}</Button>
                 </div>

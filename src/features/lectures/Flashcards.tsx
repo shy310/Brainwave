@@ -18,10 +18,12 @@ interface DeckProps {
   labels?: string[];
   /** A round ended: how many cards were known the first time, out of how many. */
   onFinish?: (knewFirstTry: number, total: number) => void;
+  /** Each answer, for spaced repetition (card index in `deck`). */
+  onAnswer?: (card: number, knew: boolean) => void;
 }
 
 /** Flip-card revision: cards you miss come back at the end, and the end shows how it went. */
-export const FlashcardDeck = ({ deck, labels, onFinish }: DeckProps) => {
+export const FlashcardDeck = ({ deck, labels, onFinish, onAnswer }: DeckProps) => {
   const t = useT();
   const all = () => deck.cards.map((_, i) => i);
   const [round, setRound] = useState<number[]>(all);
@@ -36,6 +38,7 @@ export const FlashcardDeck = ({ deck, labels, onFinish }: DeckProps) => {
 
   const current = queue[0];
   const answer = (knew: boolean) => {
+    onAnswer?.(queue[0], knew);
     if (!knew) setMissed((m) => new Set(m).add(queue[0]));
     const next = knew ? queue.slice(1) : [...queue.slice(1), queue[0]];
     setQueue(next);
