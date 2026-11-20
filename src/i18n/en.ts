@@ -264,6 +264,10 @@ export const en = {
       done: 'Done for now!', doneBody: (n: number) => `You reviewed ${n} ${n === 1 ? 'card' : 'cards'}.`,
       next: (when: string) => `Next review: ${when}`,
     },
+    askPanel: {
+      open: 'Ask', title: 'Ask about this lecture', close: 'Close',
+      aboutSelection: 'Ask about this', quote: (q: string) => `About “${q}”: `,
+    },
     notesStyle: 'Notes style', notesStyleHint: 'How new lecture notes are written. You can switch on any lecture.',
     summaryModes: { short: 'Short', detailed: 'Detailed', exam: 'Exam prep' },
     transcriptTools: {

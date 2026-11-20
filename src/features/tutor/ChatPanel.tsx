@@ -19,7 +19,12 @@ const load = (key: string): Message[] => {
   try { return (JSON.parse(sessionStorage.getItem(key) ?? '[]') as Message[]) ?? []; } catch { return []; }
 };
 
-export interface ChatPanelHandle { reset: () => void; hasMessages: () => boolean }
+export interface ChatPanelHandle {
+  reset: () => void;
+  hasMessages: () => boolean;
+  /** Put text in the message box (e.g. a quote to ask about) and focus it. */
+  prefill: (text: string) => void;
+}
 
 interface Props {
   /** Where this conversation is kept for the browser session. */
@@ -29,10 +34,12 @@ interface Props {
   emptyTitle: string;
   starters: string[];
   onMessagesChange?: (count: number) => void;
+  /** Inside a panel (not a full page): the message box sits at the bottom of the panel. */
+  inPanel?: boolean;
 }
 
 /** Streaming tutor chat: message list, attachments and composer. */
-export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, context, emptyTitle, starters, onMessagesChange }, ref) => {
+export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, context, emptyTitle, starters, onMessagesChange, inPanel }, ref) => {
   const t = useT();
   const { progress } = useProgress();
   const toMessage = useAiError();
@@ -44,10 +51,20 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
   const abort = useRef<AbortController | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
 
   useImperativeHandle(ref, () => ({
     reset: () => { abort.current?.abort(); setMessages([]); setError(''); setAttachment(null); },
     hasMessages: () => messages.length > 0,
+    prefill: (text: string) => {
+      setDraft(text);
+      requestAnimationFrame(() => {
+        const el = box.current;
+        if (!el || document.activeElement === el) return; // already typing: don't move the cursor
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      });
+    },
   }), [messages.length]);
 
   useEffect(() => () => abort.current?.abort(), []);
@@ -149,7 +166,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
 
       {error && <Alert tone="error">{error}</Alert>}
 
-      <form onSubmit={onSubmit} className="sticky bottom-20 z-10 space-y-2 rounded-2xl border border-line bg-surface p-2 shadow-[var(--shadow-lift)] md:bottom-4">
+      <form onSubmit={onSubmit} className={cn('sticky z-10 space-y-2 rounded-2xl border border-line bg-surface p-2 shadow-[var(--shadow-lift)]', inPanel ? 'bottom-0' : 'bottom-20 md:bottom-4')}>
         {attachment && (
           <p className="flex items-center gap-2 px-2 pt-1 text-sm">
             {attachment.kind === 'pdf' ? <FileText className="size-4" aria-hidden="true" /> : <ImageIcon className="size-4" aria-hidden="true" />}
@@ -164,7 +181,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
             onClick={() => fileInput.current?.click()} disabled={streaming}>
             <Paperclip className="size-5" aria-hidden="true" />
           </Button>
-          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKeyDown} rows={1} dir="auto"
+          <textarea ref={box} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKeyDown} rows={1} dir="auto"
             aria-label={t.tutor.placeholder} placeholder={t.tutor.placeholder} maxLength={8000}
             className="max-h-40 min-h-10 flex-1 resize-none bg-transparent px-1 py-2 text-fg placeholder:text-muted/70 focus:outline-none [field-sizing:content]" />
           {streaming ? (
