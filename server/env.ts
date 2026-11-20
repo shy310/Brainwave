@@ -31,9 +31,28 @@ export const env = {
   azureSpeechKey: process.env.AZURE_SPEECH_KEY ?? '',
   azureSpeechRegion: (process.env.AZURE_SPEECH_REGION ?? '').trim().toLowerCase(),
   ttsDailyChars: num(process.env.TTS_DAILY_CHARS, 60_000),
+  /**
+   * Natural voices through OpenRouter's text-to-speech, using the same
+   * OPENROUTER_API_KEY — used when Azure isn't set up. TTS_PROVIDER=off turns
+   * natural voices off; TTS_MODEL picks the model (it must speak Hebrew);
+   * TTS_VOICES is "first voice,second voice" (narrator / podcast hosts).
+   */
+  ttsProvider: (process.env.TTS_PROVIDER ?? 'auto').trim().toLowerCase(),
+  ttsModel: process.env.TTS_MODEL ?? 'elevenlabs/eleven-v4-turbo',
+  ttsVoices: (process.env.TTS_VOICES ?? 'sarah,brian').split(',').map((v) => v.trim()).filter(Boolean),
 };
 
-export const ttsConfigured = () => Boolean(env.azureSpeechKey && /^[a-z0-9]+$/.test(env.azureSpeechRegion));
+const azureReady = () => Boolean(env.azureSpeechKey && /^[a-z0-9]+$/.test(env.azureSpeechRegion));
+
+/** Which service reads narration aloud, if any. */
+export const ttsService = (): 'azure' | 'openrouter' | null => {
+  if (env.ttsProvider === 'off') return null;
+  if (env.ttsProvider !== 'openrouter' && azureReady()) return 'azure';
+  if (env.ttsProvider !== 'azure' && env.openrouterKey && env.ttsVoices.length) return 'openrouter';
+  return null;
+};
+
+export const ttsConfigured = () => ttsService() !== null;
 
 export const supabaseConfigured = () => Boolean(env.supabaseUrl && env.supabaseAnonKey);
 

@@ -68,7 +68,12 @@ export default function SignInPage() {
         const { needsConfirmation } = await auth.signUp(email.trim(), password);
         if (needsConfirmation) { setNotice(t.auth.checkEmail); setMode('signin'); }
       }
-    } catch (err) { setError(friendly(err)); } finally { setBusy(false); }
+    } catch (err) {
+      const message = friendly(err);
+      setError(message);
+      // The email already has an account: switch to signing in, keeping what was typed.
+      if (message === t.auth.errors.emailTaken) setMode('signin');
+    } finally { setBusy(false); }
   };
 
   const forgot = async () => {

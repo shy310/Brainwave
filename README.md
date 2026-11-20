@@ -63,7 +63,9 @@ Copy `.env.example` to `.env.local` for local development. On Vercel, add the sa
 | `TRANSCRIBE_MODEL` | server | Optional speech-to-text model for `stt` mode (default `openai/gpt-4o-mini-transcribe`). Choose it with `scripts/eval-transcription.ts` (see `eval/transcription/README.md`). |
 | `TRANSCRIBE_CLEANUP` | server | Optional. `true` runs the LLM cleanup (fillers, math as LaTeX) on the speech-to-text **text** afterwards. |
 | `AI_DAILY_LIMIT`, `AI_PER_MINUTE_LIMIT` | server | Optional per-student limits (defaults 200 / 20) |
-| `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | server | Optional natural voices for videos and podcasts (Azure AI Speech, free F0 tier works). Without them the device's built-in voice is used. |
+| `TTS_PROVIDER` | server | Optional. Natural voices for videos and podcasts come from OpenRouter (same `OPENROUTER_API_KEY`) unless Azure is set up. `off` uses the device's built-in voice; `openrouter` or `azure` forces one. |
+| `TTS_MODEL`, `TTS_VOICES` | server | Optional OpenRouter voice model (default `elevenlabs/eleven-v4-turbo`; it must speak Hebrew) and its two voices, narrator first (default `sarah,brian`). |
+| `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | server | Optional: natural voices from Azure AI Speech instead (free F0 tier works). |
 | `TTS_DAILY_CHARS` | server | Optional per-student daily narration limit in characters (default 60000) |
 
 Deleting an account (Settings → Account, required by Google Play) needs `SUPABASE_SERVICE_ROLE_KEY` on the server.
@@ -142,11 +144,14 @@ The server allows the app's WebView origin (`https://localhost`) by default. Cha
 
 ## Natural voices (optional)
 
-With `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` set, videos and podcasts are narrated by Azure neural
-voices (Ava/Andrew in English, Hila/Avri in Hebrew) through `POST /api/tts`: signed-in only, a fixed
+Videos and podcasts are narrated by natural voices through `POST /api/tts`. By default these come
+from OpenRouter's text-to-speech with the same `OPENROUTER_API_KEY` (ElevenLabs voices that speak
+English and Hebrew; see `TTS_MODEL` / `TTS_VOICES`). With `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION`
+set, Azure neural voices are used instead (Ava/Andrew in English, Hila/Avri in Hebrew). Either way: signed-in only, a fixed
 list of voices, at most 1,500 characters per request, and a per-student daily character allowance
 (`consume_tts`, migration 0005). The browser prefetches the next sentences and keeps audio in Cache
-Storage, so replays are free. If the service is missing or fails, playback falls back to device voices.
+Storage, so replays are free. If the service is missing or a sentence fails, that sentence is read by
+the device's voice instead; with no credit or the daily allowance used, device voices are used for the visit.
 
 ## Scripts
 
