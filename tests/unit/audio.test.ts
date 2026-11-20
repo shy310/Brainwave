@@ -104,3 +104,17 @@ describe('cutting at quiet moments', () => {
     expect(Math.max(...back.map((v, i) => Math.abs(v - s[i])))).toBeLessThan(1e-4);
   });
 });
+
+describe('transcript tools', async () => {
+  const { findMatches, transcriptText } = await import('../../src/features/lectures/TranscriptPanel');
+  it('finds every match, ignoring case, in English and Hebrew', () => {
+    expect(findMatches('The derivative. A derivative!', 'DERIVATIVE')).toEqual([[4, 14], [18, 28]]);
+    expect(findMatches('הנגזרת של פונקציה היא נגזרת', 'נגזרת')).toEqual([[1, 6], [22, 27]]);
+    expect(findMatches('anything', '   ')).toEqual([]);
+  });
+  it('exports with times for recordings and without for pasted text', () => {
+    const segs = [{ start: 0, text: 'Hello.' }, { start: 61, text: ' ' }, { start: 75, text: 'Second part.' }];
+    expect(transcriptText(segs, true)).toBe('[0:00] Hello.\n\n[1:15] Second part.');
+    expect(transcriptText(segs, false)).toBe('Hello.\n\nSecond part.');
+  });
+});
