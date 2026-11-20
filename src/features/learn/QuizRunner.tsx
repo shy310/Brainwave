@@ -15,10 +15,12 @@ interface Props {
   onPractice?: () => void;
   /** Buttons shown on the results card. */
   resultActions?: ReactNode;
+  /** Course text written answers are graded against. */
+  context?: string;
 }
 
 /** Plays a list of questions one at a time and shows the score at the end. */
-export const QuizRunner = ({ questions, topicId, onFinish, onPractice, resultActions }: Props) => {
+export const QuizRunner = ({ questions, topicId, onFinish, onPractice, resultActions, context }: Props) => {
   const t = useT();
   const [index, setIndex] = useState(0);
   const [results, setResults] = useState<boolean[]>([]);
@@ -75,6 +77,7 @@ export const QuizRunner = ({ questions, topicId, onFinish, onPractice, resultAct
         key={index}
         question={question}
         topicId={topicId}
+        context={context}
         onAnswered={(ok) => setResults((r) => (r.length > index ? r : [...r, ok]))}
         onPractice={onPractice}
         footer={answeredCurrent && (

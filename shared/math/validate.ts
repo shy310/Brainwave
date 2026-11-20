@@ -18,6 +18,7 @@ export const sanitizeQuestion = (raw: Question): Question | null => {
     prompt: raw.prompt.trim(),
     explanation: raw.explanation.trim(),
     hint: raw.hint.trim(),
+    moreHints: (raw.moreHints ?? []).map((h) => h.trim()).filter((h) => h && !BROKEN.test(h)).slice(0, 2),
     check: raw.check.trim(),
     answer: raw.answer.trim(),
     options: raw.options.map((o) => o.trim()),
@@ -43,6 +44,12 @@ export const sanitizeQuestion = (raw: Question): Question | null => {
     }
     if (q.correctIndex < 0 || q.correctIndex >= q.options.length) return null;
     return { ...q, answer: q.options[q.correctIndex], accepted: [] };
+  }
+
+  if (q.kind === 'open') {
+    // Graded by the AI against the model answer, so a model answer is required.
+    if (q.answer.length < 3 || BROKEN.test(q.answer)) return null;
+    return { ...q, options: [], correctIndex: -1, accepted: [], check: '' };
   }
 
   // kind === 'input'

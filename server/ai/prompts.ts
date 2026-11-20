@@ -27,6 +27,10 @@ export const QUESTION_RULES = `Question rules:
 - kind "input": the student types a short answer (a number, expression, word or short phrase). Put the canonical answer in "answer" and other acceptable forms in "accepted" (e.g. ["1/2", "0.5"]). Set "options" to [] and "correctIndex" to -1.
 - "check": if the correct answer is a number, a plain arithmetic expression that computes it (e.g. "(3/4)*12" or "sqrt(2)/2"), using only numbers, + - * / ^ ( ), sqrt, abs, pi, e. Otherwise "".
 - "hint": one short nudge that does not give the answer away.
+- "moreHints": up to 2 further hints, each giving a little more away than the one before, still without stating the answer. [] if one hint is enough.
 - "explanation": why the answer is right, in 1–4 sentences, showing the key step.
 - Never write "all of the above" or "none of the above". Never make two options equivalent.
 - Vary the style: recall, understanding, applying to a new situation, spotting a mistake.`;
+
+/** Extra rules for written-answer questions (used where the AI grades the answer). */
+export const OPEN_QUESTION_RULES = `- kind "open": the student writes 1–4 sentences (explain why, compare, give an example). Put a short model answer with the key points in "answer". Set "options" to [], "correctIndex" to -1, "accepted" to [] and "check" to "".`;
