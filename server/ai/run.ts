@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { AiOp, OpContext } from './ops.js';
 import { AiError, completeText, type ChatMessage } from './openrouter.js';
 import { parseJson } from './jsonRepair.js';
+import { fitToSchema } from './fit.js';
 
 const hasPdf = (messages: ChatMessage[]) =>
   messages.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'file'));
@@ -35,6 +36,8 @@ const schemaRejected = (err: unknown) =>
 export const runStructured = async <I, O>(op: AiOp<I, O>, input: I, ctx: OpContext): Promise<O> => {
   if (!op.output) throw new Error(`${op.name} has no output schema`);
   const modelSchema = toModelSchema(op.output);
+  // The full schema, with size limits, used to trim over-long answers before validating.
+  const fullSchema = z.toJSONSchema(op.output, { target: 'draft-7', unrepresentable: 'any' });
   // The schema also goes in the prompt, so the reply has the right shape even
   // when a provider ignores or rejects response_format.
   const shape = `Reply with ONLY one JSON object (no Markdown fences, no commentary) matching this JSON Schema:\n${JSON.stringify(modelSchema)}`;
@@ -68,7 +71,7 @@ export const runStructured = async <I, O>(op: AiOp<I, O>, input: I, ctx: OpConte
     let parsed: unknown;
     try { parsed = parseJson(text); } catch (e) { lastError = (e as Error).message; parsed = undefined; }
     if (parsed !== undefined) {
-      const result = op.output.safeParse(parsed);
+      const result = op.output.safeParse(fitToSchema(parsed, fullSchema));
       if (result.success) return op.post ? op.post(result.data, input) : result.data;
       lastError = result.error.issues.slice(0, 5).map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
     }
