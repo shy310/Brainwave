@@ -7,7 +7,7 @@ import { useAiError } from '@/lib/useAiError';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
-import { Input } from '@/ui/Field';
+import { Input, Select } from '@/ui/Field';
 import { Rich, RichInline } from '@/ui/Rich';
 import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
@@ -19,6 +19,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import type { Quiz } from '@shared/learn';
 import { FlashcardDeck } from './Flashcards';
 import { TranscriptPanel } from './TranscriptPanel';
+import { folderRepo, type Folder } from './folders';
 import { lectureTitle } from './LecturesPage';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
 
@@ -57,8 +58,11 @@ export default function LecturePage() {
   const [stale, setStale] = useState(false);
   const [updating, setUpdating] = useState(false);
 
+  const [folders, setFolders] = useState<Folder[]>([]);
+
   useEffect(() => {
     lectureRepo.get(id).then(setLecture).catch(() => setLecture(null));
+    folderRepo.list().then(setFolders).catch(() => setFolders([]));
   }, [id]);
 
   const patch = useCallback(async (p: LecturePatch) => {
@@ -167,6 +171,16 @@ export default function LecturePage() {
           {lecture.duration_sec > 0 && ` · ${t.lectures.minutes(Math.max(1, Math.round(lecture.duration_sec / 60)))}`}
           {' · '}{new Date(lecture.created_at).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB')}
         </p>
+        {folders.length > 0 && (
+          <label className="flex items-center gap-2 text-sm">
+            <span className="text-muted">{t.lectures.library.folder}</span>
+            <Select className="h-9 w-auto min-w-40 py-0" value={lecture.folder_id ?? ''}
+              onChange={(e) => void patch({ folder_id: e.target.value || null })}>
+              <option value="">{t.lectures.library.noFolder}</option>
+              {folders.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+            </Select>
+          </label>
+        )}
       </header>
 
       {lecture.status === 'transcribing' && (

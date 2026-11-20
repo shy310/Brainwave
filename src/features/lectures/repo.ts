@@ -15,11 +15,13 @@ export interface Lecture {
   notes: Notes | null;
   quiz: Quiz | null;
   flashcards: Flashcards | null;
+  /** The folder it's in, if any (needs migration 0007). */
+  folder_id?: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export type LectureSummary = Pick<Lecture, 'id' | 'title' | 'source' | 'status' | 'duration_sec' | 'created_at'>;
+export type LectureSummary = Pick<Lecture, 'id' | 'title' | 'source' | 'status' | 'duration_sec' | 'created_at' | 'folder_id'>;
 export type NewLecture = Pick<Lecture, 'title' | 'source' | 'language'> & Partial<Pick<Lecture, 'segments' | 'slides_text' | 'status' | 'duration_sec'>>;
 export type LecturePatch = Partial<Omit<Lecture, 'id' | 'created_at' | 'updated_at'>>;
 
@@ -32,12 +34,17 @@ const readDemo = (): Lecture[] => {
 const writeDemo = (all: Lecture[]) => storage.set(DEMO_KEY, JSON.stringify(all));
 
 const LIST_COLUMNS = 'id, title, source, status, duration_sec, created_at';
+/** True when a query failed because a column (from a migration not run yet) doesn't exist. */
+const missingColumn = (error: { code?: string } | null) => error?.code === '42703' || error?.code === 'PGRST204';
 
 /** Lectures live in Supabase; in demo mode they live in this browser. */
 export const lectureRepo = {
   async list(): Promise<LectureSummary[]> {
     if (!supabase) return readDemo().sort((a, b) => b.created_at.localeCompare(a.created_at));
-    const { data, error } = await supabase.from('lectures').select(LIST_COLUMNS).order('created_at', { ascending: false });
+    const first = await supabase.from('lectures').select(`${LIST_COLUMNS}, folder_id`).order('created_at', { ascending: false });
+    const { data, error } = missingColumn(first.error)
+      ? await supabase.from('lectures').select(LIST_COLUMNS).order('created_at', { ascending: false })
+      : first;
     if (error) throw error;
     return data as LectureSummary[];
   },
