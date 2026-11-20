@@ -107,7 +107,8 @@ for (const lang of ['en', 'he'] as const) {
 
       await goOnline(context, page, state);
       await expect(page.getByText(t.lectures.blocked.offline)).toBeHidden({ timeout: 15_000 });
-      expect(state.transcribed).toBeGreaterThan(waiting);
+      // The banner goes as soon as the retry starts; the waiting pieces arrive just after.
+      await expect.poll(() => state.transcribed, { timeout: 10_000 }).toBeGreaterThan(waiting);
       const recorded = await elapsedSeconds(page);
       await page.getByRole('button', { name: t.lectures.stop }).click();
       await expect(page).toHaveURL(/\/lectures\/(?!new)[\w-]+$/, { timeout: 20_000 });
