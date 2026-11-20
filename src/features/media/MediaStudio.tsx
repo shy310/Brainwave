@@ -127,7 +127,7 @@ export const MediaStudio = ({ kind, op, strings: s, icon: Icon, tint }: Props) =
           : (
             <div className="grid gap-3 sm:grid-cols-2">
               {saved.map((m) => (
-                <Link key={m.id} to={`${base}/${m.id}`} className="rounded-[var(--radius-card)]">
+                <Link key={m.id} to={`${base}/${m.id}`} className="min-w-0 rounded-[var(--radius-card)]">
                   <Card className="flex items-center gap-3 p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
                     <IconTile icon={Icon} tint={tint} size="sm" />
                     <div className="min-w-0">

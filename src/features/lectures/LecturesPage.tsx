@@ -169,7 +169,7 @@ export default function LecturesPage() {
               <button key={f.id} type="button" {...drag.itemProps(f.id)}
                 className={cn(chip(activeFolder === f.id), 'touch-pan-x select-none', drag.dragging === f.id && 'cursor-grabbing opacity-80 shadow-[var(--shadow-lift)] ring-2 ring-brand-400')}
                 aria-pressed={activeFolder === f.id} onClick={() => { setFolder(f.id); setRenaming(false); }}>
-                <FolderIcon className="size-4" aria-hidden="true" /><span dir="auto">{f.name}</span> <span className="opacity-70">{count(f.id)}</span>
+                <FolderIcon className="size-4 shrink-0" aria-hidden="true" /><span className="max-w-[12rem] truncate" dir="auto" title={f.name}>{f.name}</span> <span className="opacity-70">{count(f.id)}</span>
               </button>
             ))}
             {folders.length > 0 && count('none') > 0 && (
@@ -235,7 +235,7 @@ export default function LecturesPage() {
               const Icon = SOURCE_ICON[l.source];
               const inFolder = folders.find((f) => f.id === l.folder_id);
               return (
-                <Link key={l.id} to={`/lectures/${l.id}`} className="rounded-[var(--radius-card)]">
+                <Link key={l.id} to={`/lectures/${l.id}`} className="min-w-0 rounded-[var(--radius-card)]">
                   <Card className="flex items-start gap-3 p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-muted">
                       <Icon className="size-5" aria-hidden="true" />

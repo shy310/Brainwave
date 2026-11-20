@@ -89,9 +89,9 @@ export const FlashcardDeck = ({ deck, labels, onFinish, onAnswer }: DeckProps) =
       <button type="button" onClick={() => setFlipped((f) => !f)} aria-pressed={flipped}
         className={cn('flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-[var(--radius-card)] border p-6 text-center transition-colors',
           flipped ? 'border-brand-300 bg-brand-50 dark:border-brand-700 dark:bg-brand-900/30' : 'border-line bg-surface hover:bg-surface-2')}>
-        <Rich text={flipped ? card.back : card.front} className={cn(flipped ? 'text-base' : 'text-xl font-medium')} />
+        <Rich text={flipped ? card.back : card.front} className={cn('max-w-full [overflow-wrap:anywhere]', flipped ? 'text-base' : 'text-xl font-medium')} />
         {!flipped && <span className="text-xs text-muted">{t.lectures.flip}</span>}
-        {labels?.[current] && <span className="text-xs text-muted" dir="auto">{t.lectures.study.from(labels[current])}</span>}
+        {labels?.[current] && <span className="max-w-full truncate text-xs text-muted" dir="auto">{t.lectures.study.from(labels[current])}</span>}
       </button>
       {flipped && (
         <div className="grid grid-cols-2 gap-2">

@@ -62,7 +62,7 @@ export const AppShell = () => {
                       <item.icon className="size-5" fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.2 : 0}
                         strokeWidth={isActive ? 2.25 : 1.75} aria-hidden="true" />
                     </span>
-                    <span className="truncate px-1">{item.label(t)}</span>
+                    <span className="line-clamp-2 px-1 text-center leading-tight">{item.label(t)}</span>
                   </>
                 )}
               </NavLink>
