@@ -10,6 +10,7 @@ import { Alert } from '@/ui/Alert';
 import { GRADES, type Grade } from '@shared/grades';
 import type { Locale } from '@shared/locales';
 import { SUMMARY_MODES, type SummaryMode } from '@shared/lectures';
+import { AccountSection } from './AccountSection';
 
 export default function SettingsPage() {
   const { t, locale } = useI18n();
@@ -82,6 +83,8 @@ export default function SettingsPage() {
         <p className="text-muted">{demo ? t.settings.demoNote : t.settings.signedInAs(user?.email ?? '')}</p>
         <Button variant="secondary" onClick={signOut}>{t.nav.signOut}</Button>
       </Card>
+
+      <AccountSection />
     </div>
   );
 }

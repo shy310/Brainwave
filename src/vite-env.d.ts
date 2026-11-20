@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
   /** The public web address, for share links made in the Android app. */
   readonly VITE_PUBLIC_URL?: string;
+  /** Where students write for help (Settings, the account-deletion page). */
+  readonly VITE_SUPPORT_EMAIL?: string;
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv;

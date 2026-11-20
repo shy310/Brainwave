@@ -1,6 +1,7 @@
 import express, { type Response } from 'express';
 import { env, supabaseConfigured, demoModeActive, ttsConfigured } from './env.js';
 import { ttsHandler } from './tts.js';
+import { deleteAccountHandler } from './account.js';
 import { requireUser, type AuthedRequest } from './auth.js';
 import { quota } from './usage.js';
 import { getOp, type OpContext } from './ai/ops.js';
@@ -56,6 +57,9 @@ const sendError = (res: Response, err: unknown) => {
   console.error(err);
   return res.status(500).json({ error: 'Something went wrong. Please try again.' });
 };
+
+/** Delete the signed-in student's account and all their data. */
+app.post('/api/account/delete', requireUser, (req: AuthedRequest, res) => { void deleteAccountHandler(req, res).catch((err) => sendError(res, err)); });
 
 /** Natural-voice narration (Azure). */
 app.post('/api/tts', requireUser, ttsHandler);
