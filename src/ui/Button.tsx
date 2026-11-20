@@ -33,8 +33,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex items-center justify-center rounded-xl font-medium transition-colors',
-        'disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]',
+        // The press scales down smoothly (it used to snap: only colours were transitioned).
+        'inline-flex items-center justify-center rounded-xl font-medium select-none',
+        'transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-out',
+        'disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97]',
         VARIANTS[variant], SIZES[size], block && 'w-full', className,
       )}
       {...rest}

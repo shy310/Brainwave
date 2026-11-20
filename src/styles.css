@@ -77,6 +77,14 @@
     min-height: 100dvh;
   }
   :focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; }
+  /* Controls draw their own pressed state: no grey tap flash on phones, no double-tap delay. */
+  a, button, [role="button"], [role="radio"], summary, label {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  /* Even heading lines; no single word left alone on a paragraph's last line. */
+  h1, h2, h3 { text-wrap: balance; }
+  p, li, dd { text-wrap: pretty; }
   ::selection { @apply bg-brand-200 text-brand-900; }
 }
 

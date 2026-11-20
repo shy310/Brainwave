@@ -92,7 +92,7 @@ export const AskPanel = ({ sessionKey, context, within, hidden }: Props) => {
                 <X className="size-5" aria-hidden="true" />
               </Button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4">
               <ChatPanel ref={chat} inPanel sessionKey={sessionKey} context={context} emptyTitle={t.lectures.askEmpty} starters={t.lectures.askStarters} />
             </div>
           </div>
