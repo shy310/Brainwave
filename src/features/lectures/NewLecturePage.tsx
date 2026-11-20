@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useBlocker, useNavigate } from 'react-router';
-import { Mic, Pause, Play, Square, Upload } from 'lucide-react';
+import { useBlocker, useNavigate, useSearchParams } from 'react-router';
+import { Mic, Pause, Play, RefreshCw, Square, Upload } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAiError } from '@/lib/useAiError';
 import { cn } from '@/lib/cn';
+import { storage } from '@/lib/storage';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -11,44 +12,70 @@ import { Field, Input, Textarea } from '@/ui/Field';
 import { Rich } from '@/ui/Rich';
 import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
+import { useAuth } from '@/features/auth/AuthProvider';
 import { BackLink } from '@/features/learn/CoursePage';
-import { LECTURE_LANGUAGES, MAX_TRANSCRIPT_CHARS, type LectureLanguage, type LectureSource, type Segment } from '@shared/lectures';
-import { LiveRecorder, SAMPLE_RATE, decodeFile, formatTime, splitIntoChunks } from './audio';
-import { Transcriber, type Piece } from './transcriber';
+import {
+  BYTES_PER_MINUTE, LECTURE_LANGUAGES, MAX_TRANSCRIPT_CHARS, type LectureLanguage, type LectureSource, type Segment,
+} from '@shared/lectures';
+import { DEFAULT_LIMITS, LiveRecorder, SAMPLE_RATE, decodeFile, formatTime, splitAtQuietPoints, type PieceLimits } from './audio';
+import { audioStore, checkStorage } from './audioStore';
+import { LectureSession } from './session';
+import type { QueueStatus } from './transcriber';
 import { lectureRepo } from './repo';
 import { SlidesPicker, type Slides } from './SlidesPicker';
+import { useKeepAwake } from './useKeepAwake';
 
-type Phase = 'setup' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'review' | 'finishing';
+type Phase = 'setup' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'finishing' | 'recovering';
 const MAX_FILE_BYTES = 500 * 1024 * 1024;
+/** Warn before recording when the device can't hold this many minutes of audio. */
+const LOW_STORAGE_MINUTES = 120;
+const IDLE: QueueStatus = { pending: 0, pendingSeconds: 0, blocked: null, retryAt: null };
+
+/** End-to-end tests use short pieces so they don't have to record for minutes. */
+const pieceSettings = (): { limits: PieceLimits; checkpointEvery: number } => {
+  try {
+    const raw = storage.get('bw.test.pieces');
+    if (raw) {
+      const v = JSON.parse(raw) as PieceLimits & { checkpoint?: number };
+      if (v.min > 0 && v.max >= v.min) return { limits: { min: v.min, target: v.target ?? v.min, max: v.max }, checkpointEvery: v.checkpoint ?? 1 };
+    }
+  } catch { /* ignore */ }
+  return { limits: DEFAULT_LIMITS, checkpointEvery: 5 };
+};
+
+const minutes = (sec: number) => Math.max(1, Math.round(sec / 60));
+const coarsePointer = () => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
 export default function NewLecturePage() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const toMessage = useAiError();
+  const [params] = useSearchParams();
+  const resumeId = params.get('resume');
   const [tab, setTab] = useState<LectureSource>('record');
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState<LectureLanguage>('auto');
   const [slides, setSlides] = useState<Slides | null>(null);
   const [text, setText] = useState('');
-  const [phase, setPhase] = useState<Phase>('setup');
+  const [phase, setPhase] = useState<Phase>(resumeId ? 'recovering' : 'setup');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [elapsed, setElapsed] = useState(0);
   const [level, setLevel] = useState(0);
-  const [total, setTotal] = useState(0);
-  const [done, setDone] = useState(0);
-  const [failedCount, setFailedCount] = useState(0);
+  const [status, setStatus] = useState<QueueStatus>(IDLE);
+  const [duration, setDuration] = useState(0);
   const [live, setLive] = useState<Segment[]>([]);
+  const [finalizeFailed, setFinalizeFailed] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
-  const lectureId = useRef<string | null>(null);
-  const segments = useRef(new Map<number, Segment>());
-  const failed = useRef<Piece[]>([]);
-  const transcriber = useRef<Transcriber | null>(null);
+  const session = useRef<LectureSession | null>(null);
   const recorder = useRef<LiveRecorder | null>(null);
-  const duration = useRef(0);
-  const wakeLock = useRef<WakeLockSentinel | null>(null);
-  const pieceIndex = useRef(0);
+  /** Writes to local storage happen one after another, in order. */
+  const writes = useRef<Promise<void>>(Promise.resolve());
 
   const busy = phase !== 'setup';
+  const recordingActive = phase === 'recording' || phase === 'paused';
   const leaving = useRef(false);
   const blocker = useBlocker(({ currentLocation, nextLocation }) =>
     busy && !leaving.current && currentLocation.pathname !== nextLocation.pathname && !window.confirm(t.lectures.leaveWarning));
@@ -61,111 +88,146 @@ export default function NewLecturePage() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [busy, phase]);
 
+  // Leaving the page keeps the draft on this device; it can be recovered later.
   useEffect(() => () => {
-    transcriber.current?.stop();
     void recorder.current?.stop();
-    void wakeLock.current?.release().catch(() => {});
+    session.current?.close();
   }, []);
 
-  // Slides can finish reading after the lecture was created.
   useEffect(() => {
-    if (lectureId.current && slides) void lectureRepo.update(lectureId.current, { slides_text: slides.text });
+    if (session.current && slides) session.current.setSlides(slides.text);
   }, [slides]);
 
-  const ordered = () => [...segments.current.values()].sort((a, b) => a.start - b.start);
-
-  const save = useCallback(() => {
-    if (!lectureId.current) return;
-    void lectureRepo.update(lectureId.current, { segments: ordered(), duration_sec: Math.round(duration.current) })
-      .catch((err) => console.error('Could not save progress', err));
-  }, []);
-
-  const makeTranscriber = () => new Transcriber({
-    language,
-    topic: title.trim() || undefined,
-    onPiece: (piece, pieceText, didFail) => {
-      if (didFail) { failed.current.push(piece); setFailedCount(failed.current.length); }
-      else if (pieceText) segments.current.set(piece.index, { start: piece.start, text: pieceText });
-      setDone((d) => d + 1);
-      setLive(ordered());
-      save();
-    },
-  });
-
-  const create = async (source: LectureSource, extra: Partial<Parameters<typeof lectureRepo.create>[0]> = {}) => {
-    const lecture = await lectureRepo.create({ title: title.trim(), source, language, slides_text: slides?.text ?? null, ...extra });
-    lectureId.current = lecture.id;
-    return lecture;
+  const events = {
+    onTranscript: setLive,
+    onStatus: setStatus,
   };
 
-  const finalize = async () => {
+  const write = (fn: () => Promise<void>) => {
+    writes.current = writes.current.then(fn).catch((err: unknown) => {
+      console.error('Could not save audio on this device', err);
+      setError((err as DOMException)?.name === 'QuotaExceededError' ? t.lectures.storageFull : t.lectures.noDeviceStorage);
+    });
+    return writes.current;
+  };
+
+  const finalize = useCallback(async () => {
+    const s = session.current;
+    if (!s) return;
     setPhase('finishing');
+    setFinalizeFailed(false);
     try {
-      await lectureRepo.update(lectureId.current!, { segments: ordered(), status: 'ready', duration_sec: Math.round(duration.current) });
+      const id = await s.finalize();
       leaving.current = true;
-      navigate(`/lectures/${lectureId.current}`, { replace: true });
+      navigate(`/lectures/${id}`, { replace: true });
     } catch (err) {
       setError(toMessage(err) || t.auth.errors.generic);
-      setPhase('review');
+      setFinalizeFailed(true);
+      setPhase('transcribing');
     }
-  };
+  }, [navigate, t, toMessage]);
 
-  const finish = async () => {
+  /** Wait for every saved piece to be transcribed, then save the lecture. */
+  const finish = useCallback(async () => {
+    const s = session.current;
+    if (!s) return;
     setPhase('transcribing');
-    await transcriber.current?.idle();
-    const fatal = transcriber.current?.fatal;
-    if (fatal) setError(toMessage(fatal));
-    if (failed.current.length) setPhase('review');
-    else await finalize();
+    setDuration(s.draft.duration);
+    await s.queue.idle();
+    if (session.current === s) await finalize();
+  }, [finalize]);
+
+  const finishLater = () => {
+    const id = session.current?.lectureId;
+    session.current?.close();
+    session.current = null;
+    leaving.current = true;
+    navigate(id ? `/lectures/${id}` : '/lectures', { replace: true });
   };
 
-  const retryFailed = async () => {
-    const pieces = failed.current.splice(0);
-    setFailedCount(0);
-    setError('');
-    setDone((d) => d - pieces.length);
-    transcriber.current = makeTranscriber();
-    pieces.forEach((p) => transcriber.current!.add(p));
-    await finish();
-  };
+  // ── Recover a draft left on this device ──
+  useEffect(() => {
+    if (!resumeId) return;
+    let cancelled = false;
+    void (async () => {
+      const s = await LectureSession.resume(resumeId, events).catch(() => null);
+      if (cancelled) { s?.close(); return; }
+      if (!s) { setError(t.lectures.recoverMissing); setPhase('setup'); return; }
+      session.current = s;
+      setTitle(s.draft.title);
+      setLanguage(s.draft.language);
+      setTab(s.draft.source);
+      setStatus(s.status);
+      await finish();
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeId]);
 
   // ── Record ──
   const startRecording = async () => {
     setError('');
+    setNotice('');
+    if (!user) return;
+    if (!audioStore.available()) { setError(t.lectures.noDeviceStorage); return; }
+    const space = await checkStorage(BYTES_PER_MINUTE).catch(() => null);
+    if (space?.minutesFree != null && space.minutesFree < LOW_STORAGE_MINUTES) setNotice(t.lectures.lowStorage(space.minutesFree));
+
+    let s: LectureSession;
+    try {
+      s = await LectureSession.start({ owner: user.id, source: 'record', title: title.trim(), language, slidesText: slides?.text ?? null }, events);
+    } catch (err) {
+      console.error(err);
+      setError(t.lectures.noDeviceStorage);
+      return;
+    }
+    const { limits, checkpointEvery } = pieceSettings();
     const rec = new LiveRecorder({
+      limits,
+      checkpointEvery,
       onChunk: (samples, start) => {
-        const index = pieceIndex.current++;
-        duration.current = start + samples.length / SAMPLE_RATE;
-        setTotal((n) => n + 1);
-        transcriber.current?.add({ index, start, samples });
+        void write(async () => { await s.addPiece(samples, start); setDuration(s.draft.duration); });
       },
+      onCheckpoint: (samples, start) => { void write(() => s.checkpoint(samples, start)); },
       onLevel: setLevel,
+      onEnded: () => { setError(t.lectures.micStopped); void stopRecording(); },
     });
     try {
       await rec.start();
     } catch (err) {
+      await s.discard();
       const name = (err as DOMException)?.name;
       setError(name === 'NotAllowedError' ? t.lectures.micDenied : name === 'NotFoundError' ? t.lectures.micMissing : t.auth.errors.generic);
       return;
     }
-    try {
-      await create('record');
-    } catch (err) {
-      await rec.stop();
-      setError(toMessage(err) || t.auth.errors.generic);
-      return;
-    }
+    session.current = s;
     recorder.current = rec;
-    transcriber.current = makeTranscriber();
     setPhase('recording');
-    wakeLock.current = await navigator.wakeLock?.request('screen').catch(() => null) ?? null;
   };
 
   useEffect(() => {
-    if (phase !== 'recording') return;
+    if (!recordingActive) return;
     const id = setInterval(() => setElapsed(recorder.current?.elapsed ?? 0), 500);
     return () => clearInterval(id);
-  }, [phase]);
+  }, [recordingActive]);
+
+  // Show the recording time in the tab title, so it's visible from other tabs.
+  useEffect(() => {
+    if (!recordingActive) return;
+    const original = document.title;
+    document.title = `${phase === 'recording' ? '● ' : '❚❚ '}${formatTime(elapsed)} · ${phase === 'recording' ? t.lectures.recording : t.lectures.paused}`;
+    return () => { document.title = original; };
+  }, [recordingActive, phase, elapsed, t]);
+
+  // Keep the screen on, and notice when a phone stopped the microphone in the background.
+  const { wakeLockHeld } = useKeepAwake(recordingActive, (hiddenFor, hiddenAt) => {
+    const rec = recorder.current;
+    if (!rec || phase !== 'recording') return;
+    const stoppedAt = Math.max(rec.lastFrameAt, hiddenAt);
+    const missed = performance.now() - stoppedAt;
+    if (hiddenFor > 2000 && missed > 2000) setNotice(t.lectures.missedAudio(Math.round(missed / 1000)));
+    if (rec.state !== 'running' && rec.state !== 'closed') void rec.resume();
+  });
 
   const togglePause = async () => {
     if (phase === 'recording') { await recorder.current?.pause(); setPhase('paused'); setLevel(0); }
@@ -173,19 +235,22 @@ export default function NewLecturePage() {
   };
 
   const stopRecording = async () => {
-    await recorder.current?.stop();
-    duration.current = Math.max(duration.current, recorder.current?.elapsed ?? 0);
+    const rec = recorder.current;
+    const s = session.current;
+    if (!rec || !s) return;
     recorder.current = null;
-    void wakeLock.current?.release().catch(() => {});
+    await rec.stop(); // emits the last piece
+    await write(() => s.stopRecording());
     setLevel(0);
     await finish();
   };
 
   // ── Upload ──
   const onFile = async (file?: File) => {
-    if (!file) return;
+    if (!file || !user) return;
     setError('');
     if (file.size > MAX_FILE_BYTES) { setError(t.lectures.fileTooBig); return; }
+    if (!audioStore.available()) { setError(t.lectures.noDeviceStorage); return; }
     setPhase('decoding');
     let samples: Float32Array;
     try {
@@ -195,18 +260,21 @@ export default function NewLecturePage() {
       setPhase('setup');
       return;
     }
+    let s: LectureSession;
     try {
-      await create('upload', { title: title.trim() || file.name.replace(/\.[^.]+$/, '').slice(0, 200) });
+      s = await LectureSession.start({
+        owner: user.id, source: 'upload', title: title.trim() || file.name.replace(/\.[^.]+$/, '').slice(0, 200),
+        language, slidesText: slides?.text ?? null,
+      }, events);
+      session.current = s;
+      for (const piece of splitAtQuietPoints(samples, SAMPLE_RATE, pieceSettings().limits)) await s.addPiece(piece.samples, piece.start);
+      await s.stopRecording();
     } catch (err) {
-      setError(toMessage(err) || t.auth.errors.generic);
-      setPhase('setup');
+      console.error(err);
+      setError((err as DOMException)?.name === 'QuotaExceededError' ? t.lectures.storageFull : t.lectures.noDeviceStorage);
+      if (!session.current) setPhase('setup');
       return;
     }
-    duration.current = samples.length / SAMPLE_RATE;
-    const pieces = splitIntoChunks(samples);
-    setTotal(pieces.length);
-    transcriber.current = makeTranscriber();
-    pieces.forEach((p, i) => transcriber.current!.add({ index: i, start: i * 60, samples: p }));
     await finish();
   };
 
@@ -217,7 +285,10 @@ export default function NewLecturePage() {
     setError('');
     setPhase('finishing');
     try {
-      const lecture = await create('text', { segments: [{ start: 0, text: body.slice(0, MAX_TRANSCRIPT_CHARS) }], status: 'ready' });
+      const lecture = await lectureRepo.create({
+        title: title.trim(), source: 'text', language, slides_text: slides?.text ?? null,
+        segments: [{ start: 0, text: body.slice(0, MAX_TRANSCRIPT_CHARS) }], status: 'ready',
+      });
       leaving.current = true;
       navigate(`/lectures/${lecture.id}`, { replace: true });
     } catch (err) {
@@ -226,8 +297,17 @@ export default function NewLecturePage() {
     }
   };
 
+  // A countdown for the next automatic retry.
+  useEffect(() => {
+    if (!status.retryAt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [status.retryAt]);
+
   const fileInput = useRef<HTMLInputElement>(null);
-  const recordingActive = phase === 'recording' || phase === 'paused';
+  const showQueue = status.pending > 0 && (status.blocked != null || phase === 'transcribing');
+  const doneShare = duration > 0 ? Math.max(0, Math.min(1, 1 - status.pendingSeconds / duration)) : 0;
+  const retryInSec = status.retryAt ? Math.max(0, Math.ceil((status.retryAt - now) / 1000)) : null;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -250,13 +330,16 @@ export default function NewLecturePage() {
           </div>
         )}
 
-        <SlidesPicker value={slides} onChange={setSlides} />
+        {phase !== 'recovering' && <SlidesPicker value={slides} onChange={setSlides} />}
 
         {error && <Alert tone="error">{error}</Alert>}
+        {notice && <Alert tone="info">{notice}</Alert>}
+
+        {phase === 'recovering' && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.lectures.recovering}</p>}
 
         {tab === 'record' && (
           <div className="space-y-4 border-t border-line pt-5">
-            {!recordingActive && phase === 'setup' && (
+            {phase === 'setup' && (
               <>
                 <p className="text-sm text-muted">{t.lectures.recordHint}</p>
                 <Button size="lg" block icon={<Mic className="size-5" />} onClick={startRecording}>{t.lectures.start}</Button>
@@ -272,13 +355,16 @@ export default function NewLecturePage() {
                 <div className="mx-auto h-2 max-w-xs overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
                   <div className="h-full rounded-full bg-brand-500 transition-[width] duration-100" style={{ width: `${Math.round(level * 100)}%` }} />
                 </div>
-                <div className="flex justify-center gap-2">
-                  <Button variant="secondary" icon={phase === 'recording' ? <Pause className="size-4" /> : <Play className="size-4" />} onClick={togglePause}>
+                <div className="grid grid-cols-2 gap-2 sm:mx-auto sm:max-w-sm">
+                  <Button size="lg" variant="secondary" icon={phase === 'recording' ? <Pause className="size-5" /> : <Play className="size-5" />} onClick={togglePause}>
                     {phase === 'recording' ? t.lectures.pause : t.lectures.resume}
                   </Button>
-                  <Button variant="danger" icon={<Square className="size-4" />} onClick={stopRecording}>{t.lectures.stop}</Button>
+                  <Button size="lg" variant="danger" icon={<Square className="size-5" />} onClick={stopRecording}>{t.lectures.stop}</Button>
                 </div>
-                <p className="text-xs text-muted">{t.lectures.keepOpen}</p>
+                <div className="space-y-1 text-xs text-muted">
+                  <p>{t.lectures.keepOpen}{wakeLockHeld ? ` ${t.lectures.screenOn}` : ''}</p>
+                  {coarsePointer() && <p>{t.lectures.backgroundWarning}</p>}
+                </div>
               </div>
             )}
           </div>
@@ -303,29 +389,42 @@ export default function NewLecturePage() {
 
         {phase === 'decoding' && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.lectures.decoding}</p>}
 
-        {(phase === 'transcribing' || (tab !== 'text' && phase === 'finishing')) && (
+        {phase === 'transcribing' && !status.blocked && !finalizeFailed && (
           <div className="space-y-2" aria-live="polite">
             <p className="flex items-center gap-2 text-muted">
-              <Spinner className="size-5" />{phase === 'finishing' ? t.lectures.finishing : t.lectures.progress(Math.min(done, total), total)}
+              <Spinner className="size-5" />{t.lectures.progress(minutes(status.pendingSeconds))}
             </p>
             <div className="h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
-              <div className="h-full rounded-full bg-brand-500 transition-[width]" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+              <div className="h-full rounded-full bg-brand-500 transition-[width]" style={{ width: `${doneShare * 100}%` }} />
             </div>
           </div>
         )}
+        {phase === 'finishing' && tab !== 'text' && (
+          <p className="flex items-center gap-2 text-muted" aria-live="polite"><Spinner className="size-5" />{t.lectures.finishing}</p>
+        )}
 
-        {phase === 'review' && (
-          <Alert tone="error">
-            <p>{t.lectures.failedPieces(failedCount)}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="sm" onClick={retryFailed}>{t.lectures.retryFailed}</Button>
-              <Button size="sm" variant="secondary" onClick={finalize}>{t.lectures.continueAnyway}</Button>
+        {showQueue && status.blocked && (
+          <Alert tone={status.blocked === 'offline' ? 'info' : 'error'}>
+            <p className="font-semibold">{t.lectures.pending(minutes(status.pendingSeconds))}</p>
+            <p className="mt-1">{t.lectures.blocked[status.blocked]}</p>
+            <p className="mt-1 opacity-80">{t.lectures.savedOnDevice}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Button size="sm" icon={<RefreshCw className="size-4" />} onClick={() => session.current?.queue.retryNow()}>{t.lectures.retry}</Button>
+              {phase === 'transcribing' && <Button size="sm" variant="secondary" onClick={finishLater}>{t.lectures.finishLater}</Button>}
+              {retryInSec != null && <span className="text-xs opacity-80">{t.lectures.retryIn(retryInSec)}</span>}
             </div>
           </Alert>
         )}
+
+        {finalizeFailed && phase === 'transcribing' && (
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" icon={<RefreshCw className="size-4" />} onClick={() => void finalize()}>{t.lectures.retry}</Button>
+            <Button size="sm" variant="secondary" onClick={finishLater}>{t.lectures.finishLater}</Button>
+          </div>
+        )}
       </Card>
 
-      {tab === 'record' && (recordingActive || phase === 'transcribing') && (
+      {tab !== 'text' && (recordingActive || phase === 'transcribing' || live.length > 0) && (
         <Card className="space-y-3 p-6">
           <h2 className="font-semibold">{t.lectures.liveTranscript}</h2>
           {live.length === 0

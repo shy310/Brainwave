@@ -7,8 +7,16 @@ export type LectureLanguage = (typeof LECTURE_LANGUAGES)[number];
 export const LECTURE_SOURCES = ['record', 'upload', 'text'] as const;
 export type LectureSource = (typeof LECTURE_SOURCES)[number];
 
-/** Audio is sent in one-minute pieces: 16 kHz mono 16-bit WAV ≈ 1.9 MB, ≈ 2.6 MB as base64. */
+/**
+ * Audio is sent in pieces of about a minute. Each piece ends at the quietest
+ * moment between 50 and 70 seconds so words are not cut in half.
+ * 16 kHz mono 16-bit WAV ≈ 1.9 MB per minute; 70 s ≈ 3.0 MB as base64.
+ */
 export const CHUNK_SECONDS = 60;
+export const MIN_CHUNK_SECONDS = 50;
+export const MAX_CHUNK_SECONDS = 70;
+/** Bytes of 16 kHz mono 16-bit audio per minute, used for storage checks. */
+export const BYTES_PER_MINUTE = 16_000 * 2 * 60;
 export const MAX_AUDIO_BASE64 = 3_400_000;
 export const MAX_TRANSCRIPT_CHARS = 300_000;
 export const MAX_SLIDES_CHARS = 60_000;

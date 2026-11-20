@@ -103,7 +103,7 @@ test('paste a lecture, get notes, transcript, quiz, flashcards and answers', asy
   await expect(page.getByText('No lectures yet')).toBeVisible();
 });
 
-test('upload a recording: it is cut into one-minute pieces and transcribed', async ({ page }) => {
+test('upload a recording: it is cut into pieces of about a minute and transcribed', async ({ page }) => {
   const calls = await mockAi(page);
   await onboard(page);
   await page.goto('/lectures/new');
@@ -114,10 +114,11 @@ test('upload a recording: it is cut into one-minute pieces and transcribed', asy
   await (await chooser).setFiles(wavFile(130));
 
   await expect(page).toHaveURL(/\/lectures\/(?!new)[\w-]+$/, { timeout: 20_000 });
-  expect(calls.transcribe).toHaveLength(3);
+  // 130 s: a 60 s piece, then the last 70 s fit in one piece (pieces are 50–70 s).
+  expect(calls.transcribe).toHaveLength(2);
   expect(calls.transcribe.every((c) => c.input.language === 'he')).toBe(true);
   await page.getByRole('radio', { name: 'Transcript' }).click();
-  await expect(page.getByText('2:00')).toBeVisible();
+  await expect(page.getByText('1:00', { exact: true })).toBeVisible();
   await expect(page.getByText(/Part \d: the derivative/).first()).toBeVisible();
 });
 
