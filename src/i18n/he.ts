@@ -56,6 +56,13 @@ export const he: Dict = {
     videosTitle: 'שיעורי וידאו', videosBody: 'הפכו כל נושא או הרצאה לשיעור קצר, מונפש ומדובב.',
     podcastsTitle: 'פודקאסטים', podcastsBody: 'האזינו לשני מנחים שמסבירים כל נושא — מושלם לחזרה בדרכים.',
   },
+  week: {
+    title: 'השבוע שלך', streak: (n: number) => (n === 1 ? 'יום אחד ברצף' : `${n} ימים ברצף`), noStreak: 'מתחילים רצף היום',
+    best: (n: number) => `השיא: ${n === 1 ? 'יום אחד' : `${n} ימים`}`,
+    keepGoing: 'לומדים קצת היום כדי לשמור על הרצף.', doneToday: 'למדת היום — כל הכבוד!',
+    chart: 'דקות לימוד בכל יום', day: 'יום', minutes: 'דקות', min: (n: number) => `${n} דק׳`,
+    totals: { minutes: 'דקות', cards: 'כרטיסיות', quizzes: 'בחנים', lectures: 'הרצאות חדשות' },
+  },
   grader: {
     title: 'בדיקת תשובה', subtitle: 'ציון, משוב וגרסה משופרת לכל תשובה או חיבור.',
     question: 'שאלה או מטלה', questionPlaceholder: 'הדביקו את השאלה או את הוראות המטלה…',

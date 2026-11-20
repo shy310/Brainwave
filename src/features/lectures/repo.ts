@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { storage } from '@/lib/storage';
+import { track } from '@/features/stats/activity';
 import type { Quiz } from '@shared/learn';
 import type { Flashcards, LectureLanguage, LectureSource, Notes, Segment } from '@shared/lectures';
 
@@ -89,6 +90,7 @@ export const lectureRepo = {
     if (!supabase) {
       const lecture: Lecture = { id: crypto.randomUUID(), notes: null, quiz: null, flashcards: null, created_at: now, updated_at: now, ...base };
       writeDemo([lecture, ...readDemo()]);
+      track({ lectures: 1 });
       return lecture;
     }
     let { data, error } = await supabase.from('lectures').insert(base).select('*').single();
@@ -97,6 +99,7 @@ export const lectureRepo = {
       ({ data, error } = await supabase.from('lectures').insert({ ...base, source: 'text' }).select('*').single());
     }
     if (error) throw error;
+    track({ lectures: 1 });
     return data as Lecture;
   },
 
