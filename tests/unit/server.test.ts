@@ -173,13 +173,33 @@ describe('lecture operations', () => {
     const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
     const prompt = (mode: 'short' | 'detailed' | 'exam') => String(lectureNotesOp.build({ transcript: 'Limits and derivatives.', mode }, ctx)[1].content);
     expect(prompt('short')).toContain('SHORT notes');
-    expect(prompt('exam')).toContain('likely exam questions');
+    expect(prompt('exam')).toContain('EXAM-PREP notes');
     expect(prompt('detailed')).toContain('follow the order of the lecture');
     expect(lectureNotesOp.input.parse({ transcript: 'Limits and derivatives today.' }).mode).toBe('detailed');
     const NOTE = { title: 'T', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [], reminders: [] };
     mockModel([JSON.stringify(NOTE)]);
     const res = await post('/api/ai/lectureNotes', { input: { transcript: 'Limits and derivatives today.', mode: 'exam' } });
     expect((await res.json()).data.mode).toBe('exam');
+  });
+
+  it('gives exam prep practice questions and common mistakes, and keeps them out of other styles', async () => {
+    const { lectureNotesOp } = await import('../../server/ai/ops/lectures');
+    const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
+    const prompt = (mode: 'short' | 'detailed' | 'exam') => String(lectureNotesOp.build({ transcript: 'Limits and derivatives.', mode }, ctx)[1].content);
+    expect(prompt('exam')).toContain('"practice": 4–8 questions');
+    expect(prompt('exam')).toContain('"mistakes": 3–6');
+    expect(prompt('detailed')).toContain('cover EVERY topic');
+    const NOTE = {
+      title: 'T', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [], reminders: [],
+      practice: [{ question: 'Differentiate $x^2$.', answer: '$2x$' }], mistakes: ['Forgetting the chain rule.'],
+    };
+    mockModel([JSON.stringify(NOTE), JSON.stringify(NOTE)]);
+    const exam = (await (await post('/api/ai/lectureNotes', { input: { transcript: 'Limits and derivatives today.', mode: 'exam' } })).json()).data;
+    expect([exam.practice, exam.mistakes]).toEqual([NOTE.practice, NOTE.mistakes]);
+    const detailed = (await (await post('/api/ai/lectureNotes', { input: { transcript: 'Limits and derivatives today.', mode: 'detailed' } })).json()).data;
+    expect(detailed).not.toHaveProperty('practice');
+    expect(detailed).not.toHaveProperty('mistakes');
+    expect(detailed.mode).toBe('detailed');
   });
 
   it('reads photos and scanned pages with the vision model', async () => {
