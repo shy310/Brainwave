@@ -23,6 +23,7 @@ export interface Lecture {
 
 export type LectureSummary = Pick<Lecture, 'id' | 'title' | 'source' | 'status' | 'duration_sec' | 'created_at' | 'folder_id'>;
 export type NewLecture = Pick<Lecture, 'title' | 'source' | 'language'> & Partial<Pick<Lecture, 'segments' | 'slides_text' | 'status' | 'duration_sec'>>;
+export type StudyLecture = Pick<Lecture, 'id' | 'title' | 'created_at' | 'status' | 'folder_id' | 'flashcards' | 'quiz'>;
 export type LecturePatch = Partial<Omit<Lecture, 'id' | 'created_at' | 'updated_at'>>;
 
 export const transcriptOf = (l: Pick<Lecture, 'segments'>) => l.segments.map((s) => s.text.trim()).filter(Boolean).join('\n\n');
@@ -47,6 +48,21 @@ export const lectureRepo = {
       : first;
     if (error) throw error;
     return data as LectureSummary[];
+  },
+
+  /** Lectures in a folder ('all', 'none' or a folder id) with what's needed to study them. */
+  async studyMaterial(folder: string): Promise<StudyLecture[]> {
+    if (!supabase) {
+      return readDemo()
+        .filter((l) => folder === 'all' || (folder === 'none' ? !l.folder_id : l.folder_id === folder))
+        .filter((l) => l.status === 'ready');
+    }
+    let q = supabase.from('lectures').select('id, title, created_at, status, folder_id, flashcards, quiz').eq('status', 'ready');
+    if (folder === 'none') q = q.is('folder_id', null);
+    else if (folder !== 'all') q = q.eq('folder_id', folder);
+    const { data, error } = await q.order('created_at');
+    if (error) throw error;
+    return data as StudyLecture[];
   },
 
   async get(id: string): Promise<Lecture | null> {
