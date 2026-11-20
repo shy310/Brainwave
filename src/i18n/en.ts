@@ -237,6 +237,8 @@ export const en = {
       madeWith: 'Notes made with BrainWave', tryIt: 'Make your own notes',
     },
     notesStyle: 'Notes style', notesStyleHint: 'How new lecture notes are written. You can switch on any lecture.',
+    practice: 'Practice questions', practiceHint: 'Try each one before you look at the answer.',
+    showAnswer: 'Show answer', hideAnswer: 'Hide answer', mistakes: 'Common mistakes',
     summaryModes: { short: 'Short', detailed: 'Detailed', exam: 'Exam prep' },
     transcriptTools: {
       search: 'Search the transcript', clear: 'Clear search',

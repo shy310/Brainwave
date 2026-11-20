@@ -243,6 +243,8 @@ export const he: Dict = {
       madeWith: 'סיכום שנוצר ב-BrainWave', tryIt: 'ליצור סיכומים משלך',
     },
     notesStyle: 'סגנון הסיכום', notesStyleHint: 'איך ייכתבו סיכומי הרצאות חדשים. אפשר להחליף בכל הרצאה.',
+    practice: 'שאלות לתרגול', practiceHint: 'נסו לענות לבד לפני שאתם מסתכלים בתשובה.',
+    showAnswer: 'הצגת התשובה', hideAnswer: 'הסתרת התשובה', mistakes: 'טעויות נפוצות',
     summaryModes: { short: 'קצר', detailed: 'מפורט', exam: 'הכנה למבחן' },
     emptyTranscript: 'לא נמצא דיבור בהקלטה.',
   },
