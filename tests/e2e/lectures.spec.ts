@@ -41,7 +41,7 @@ const mockAi = async (page: Page) => {
 };
 
 /** A short WAV file with a tone, built in the test. */
-const wavFile = (seconds: number) => {
+export const wavFile = (seconds: number) => {
   const rate = 16000, n = rate * seconds;
   const buf = Buffer.alloc(44 + n * 2);
   buf.write('RIFF', 0); buf.writeUInt32LE(36 + n * 2, 4); buf.write('WAVEfmt ', 8); buf.writeUInt32LE(16, 16);
@@ -112,6 +112,9 @@ test('upload a recording: it is cut into pieces of about a minute and transcribe
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Choose a file' }).click();
   await (await chooser).setFiles(wavFile(130));
+  await expect(page.getByText('2 min of audio · 4 MB')).toBeVisible();
+  await expect(page.getByText('Uses about 2 AI units')).toBeVisible();
+  await page.getByRole('button', { name: 'Transcribe', exact: true }).click();
 
   await expect(page).toHaveURL(/\/lectures\/(?!new)[\w-]+$/, { timeout: 20_000 });
   // 130 s: a 60 s piece, then the last 70 s fit in one piece (pieces are 50–70 s).

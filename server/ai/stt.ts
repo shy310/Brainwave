@@ -18,7 +18,9 @@ export interface SttResult {
 export interface SttRequest {
   model: string;
   /** Raw base64 audio. */
-  audio: string;
+  audio?: string;
+  /** Or a URL the provider downloads itself (only some providers support it). */
+  url?: string;
   format?: 'wav' | 'mp3' | 'm4a' | 'ogg' | 'webm';
   /** ISO-639-1 code; omit to let the model detect it. */
   language?: string;
@@ -45,14 +47,16 @@ export const parseStt = (raw: RawResponse): SttResult => ({
     .map((s) => ({ start: s.start!, end: s.end ?? s.start!, text: s.text!.trim() })),
 });
 
-export const transcribeSpeech = async (r: SttRequest, key = env.openrouterKey): Promise<SttResult> => {
+export const transcribeSpeech = async (r: SttRequest, key = env.openrouterKey, signal?: AbortSignal): Promise<SttResult> => {
   if (!key) throw new AiError('The AI service is not configured on the server.', 503);
+  if (!r.audio === !r.url) throw new AiError('Send either audio or a URL.', 400);
   const body = {
     model: r.model,
-    input_audio: { data: r.audio, format: r.format ?? 'wav' },
+    input_audio: r.url ? { url: r.url, format: r.format ?? 'wav' } : { data: r.audio, format: r.format ?? 'wav' },
     ...(r.language ? { language: r.language } : {}),
     ...(r.prompt ? { prompt: r.prompt.slice(0, 800) } : {}),
     response_format: 'verbose_json',
+    timestamp_granularities: ['segment'],
     temperature: 0,
   };
   const res = await fetch(sttUrl(), {
@@ -64,6 +68,7 @@ export const transcribeSpeech = async (r: SttRequest, key = env.openrouterKey): 
       'X-Title': 'BrainWave',
     },
     body: JSON.stringify(body),
+    signal,
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
