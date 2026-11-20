@@ -15,9 +15,14 @@ export const router = createBrowserRouter([
     element: <RequireUser />,
     children: [{ path: '/onboarding', lazy: page(() => import('@/features/auth/OnboardingPage')) }],
   },
+  // Notes shared by link: open to anyone, no sign-in.
+  { path: '/s/:token', lazy: page(() => import('@/features/lectures/SharedLecturePage')) },
   {
     element: <RequireAuth />,
     children: [{
+      // A clean page for printing or saving notes as PDF (no app header or menus).
+      path: '/lectures/:id/print', lazy: page(() => import('@/features/lectures/PrintLecturePage')),
+    }, {
       element: <ProgressProvider><AppShell /></ProgressProvider>,
       children: [
         { index: true, lazy: page(() => import('@/features/home/HomePage')) },

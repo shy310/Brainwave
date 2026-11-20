@@ -226,6 +226,16 @@ export const en = {
       emptyFolder: 'No lectures in this folder yet. Open a lecture and choose this folder for it.',
       noResults: (q: string) => `No lectures match “${q}”.`,
     },
+    share: {
+      savePdf: 'Save as PDF', print: 'Print or save as PDF', printHint: 'In the print window, choose “Save as PDF” to keep a copy.',
+      share: 'Share', title: 'Share these notes',
+      body: 'Anyone with the link can read the notes and flashcards — not the transcript or the recording.',
+      makeLink: 'Create a link', link: 'Share link', copyLink: 'Copy link', copied: 'Link copied', send: 'Send…', stop: 'Stop sharing',
+      stopped: 'Sharing is off. The old link no longer works.', failed: 'Couldn’t change sharing. Please try again.',
+      needsAccount: 'Sharing needs a BrainWave account. It isn’t available in demo mode.',
+      notFound: 'This link doesn’t work anymore. The person who shared it may have stopped sharing.',
+      madeWith: 'Notes made with BrainWave', tryIt: 'Make your own notes',
+    },
     notesStyle: 'Notes style', notesStyleHint: 'How new lecture notes are written. You can switch on any lecture.',
     summaryModes: { short: 'Short', detailed: 'Detailed', exam: 'Exam prep' },
     transcriptTools: {

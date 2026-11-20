@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { AlertTriangle, Clapperboard, Copy, Download, Headphones, Pencil, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
-import { useI18n } from '@/i18n';
+import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Link2, Pencil, RefreshCw, Share2, Sparkles, Trash2 } from 'lucide-react';
+import { publicUrl } from '@/lib/platform';
+import { useI18n, useT } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { useAiError } from '@/lib/useAiError';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Input, Select } from '@/ui/Field';
-import { Rich, RichInline } from '@/ui/Rich';
 import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
 import { BackLink } from '@/features/learn/CoursePage';
@@ -19,6 +19,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import type { Quiz } from '@shared/learn';
 import { FlashcardDeck } from './Flashcards';
 import { TranscriptPanel } from './TranscriptPanel';
+import { NotesView } from './NotesView';
 import { folderRepo, type Folder } from './folders';
 import { lectureTitle } from './LecturesPage';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
@@ -44,7 +45,9 @@ export default function LecturePage() {
   const { t, locale } = useI18n();
   const navigate = useNavigate();
   const toMessage = useAiError();
-  const { profile } = useAuth();
+  const { profile, demo } = useAuth();
+  const [sharing, setSharing] = useState(false);
+  const [shareNote, setShareNote] = useState('');
   const [lecture, setLecture] = useState<Lecture | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>('notes');
   const [busy, setBusy] = useState<'' | 'notes' | 'quiz' | 'cards'>('');
@@ -217,40 +220,19 @@ export default function LecturePage() {
                     onChange={(m) => { if (m !== (lecture.notes?.mode ?? 'detailed')) void generate('notes', m); }}
                     options={SUMMARY_MODES.map((m) => ({ value: m, label: t.lectures.summaryModes[m] }))} />
                 </div>
-                <Card className="space-y-5 p-6">
-                  <section>
-                    <h2 className="mb-2 text-lg font-semibold">{t.lectures.summary}</h2>
-                    <Rich text={lecture.notes.summary} />
-                  </section>
-                  {lecture.notes.sections.map((s, i) => (
-                    <section key={i}>
-                      <h2 className="mb-2 text-lg font-semibold" dir="auto">{s.heading}</h2>
-                      <ul className="list-disc space-y-1.5 ps-6">{s.points.map((p, j) => <li key={j} dir="auto"><RichInline text={p} /></li>)}</ul>
-                    </section>
-                  ))}
-                </Card>
-                {lecture.notes.keyTerms.length > 0 && (
-                  <Card className="p-6">
-                    <h2 className="mb-3 text-lg font-semibold">{t.lectures.keyTerms}</h2>
-                    <dl className="space-y-2">
-                      {lecture.notes.keyTerms.map((k, i) => (
-                        <div key={i}><dt className="font-medium" dir="auto"><RichInline text={k.term} /></dt><dd className="text-sm text-muted" dir="auto"><RichInline text={k.definition} /></dd></div>
-                      ))}
-                    </dl>
-                  </Card>
-                )}
-                {lecture.notes.reminders.length > 0 && (
-                  <Alert>
-                    <p className="mb-1 font-semibold">{t.lectures.reminders}</p>
-                    <ul className="list-disc space-y-1 ps-5">{lecture.notes.reminders.map((r, i) => <li key={i} dir="auto">{r}</li>)}</ul>
-                  </Alert>
-                )}
+                <NotesView notes={lecture.notes} />
                 <div className="flex flex-wrap gap-2">
                   <Button variant="secondary" size="sm" icon={<Copy className="size-4" />} onClick={copyNotes}>{copied ? t.lectures.copied : t.lectures.copy}</Button>
                   <Button variant="secondary" size="sm" icon={<Download className="size-4" />}
                     onClick={() => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, labels))}>{t.lectures.download}</Button>
+                  <Link to={`/lectures/${id}/print`} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-sm font-medium hover:bg-surface-2">
+                    <FileDown className="size-4" aria-hidden="true" />{t.lectures.share.savePdf}
+                  </Link>
+                  <Button variant="secondary" size="sm" icon={<Share2 className="size-4" />} aria-expanded={sharing} onClick={() => { setSharing((v) => !v); setShareNote(''); }}>{t.lectures.share.share}</Button>
                   <Button variant="ghost" size="sm" icon={<RefreshCw className="size-4" />} onClick={() => generate('notes')}>{t.lectures.regenerate}</Button>
                 </div>
+                {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
+                  onChange={(token, note) => { setLecture((l) => (l ? { ...l, share_token: token } : l)); setShareNote(note); }} />}
                 <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4 text-sm text-muted">
                   <span>{t.lectures.turnInto}:</span>
                   <Link to={`/videos?lecture=${id}`} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 font-medium text-fg hover:bg-surface-2">
@@ -316,3 +298,44 @@ export default function LecturePage() {
   );
 }
 
+
+/** Turn a share link on or off, and copy or send it. */
+const SharePanel = ({ lectureId, token, demo, note, onChange }: {
+  lectureId: string; token: string | null; demo: boolean; note: string; onChange: (token: string | null, note: string) => void;
+}) => {
+  const t = useT();
+  const ts = t.lectures.share;
+  const [busy, setBusy] = useState(false);
+  const url = token ? publicUrl(`/s/${token}`) : '';
+
+  const run = async (fn: () => Promise<void>) => {
+    setBusy(true);
+    try { await fn(); } catch { onChange(token, ts.failed); } finally { setBusy(false); }
+  };
+
+  return (
+    <Card className="space-y-3 p-5">
+      <h3 className="font-semibold">{ts.title}</h3>
+      {demo ? <p className="text-sm text-muted">{ts.needsAccount}</p> : (
+        <>
+          <p className="text-sm text-muted">{ts.body}</p>
+          {token ? (
+            <>
+              <Input readOnly aria-label={ts.link} value={url} dir="ltr" onFocus={(e) => e.target.select()} />
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" icon={<Link2 className="size-4" />} onClick={() => void navigator.clipboard.writeText(url).then(() => onChange(token, ts.copied), () => {})}>{ts.copyLink}</Button>
+                {typeof navigator.share === 'function' && (
+                  <Button size="sm" variant="secondary" icon={<Share2 className="size-4" />} onClick={() => void navigator.share({ url }).catch(() => {})}>{ts.send}</Button>
+                )}
+                <Button size="sm" variant="ghost" loading={busy} onClick={() => void run(async () => { await lectureRepo.unshare(lectureId); onChange(null, ts.stopped); })}>{ts.stop}</Button>
+              </div>
+            </>
+          ) : (
+            <Button size="sm" loading={busy} icon={<Link2 className="size-4" />} onClick={() => void run(async () => onChange(await lectureRepo.share(lectureId), ''))}>{ts.makeLink}</Button>
+          )}
+        </>
+      )}
+      {note && <p className="text-sm" role="status">{note}</p>}
+    </Card>
+  );
+};

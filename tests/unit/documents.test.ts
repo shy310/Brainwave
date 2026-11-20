@@ -39,3 +39,12 @@ describe('mapLimit', () => {
     expect(peak).toBe(2);
   });
 });
+
+describe('share links', async () => {
+  const { newShareToken } = await import('../../src/features/lectures/repo');
+  it('makes long, URL-safe, random tokens that the database accepts', () => {
+    const tokens = new Set(Array.from({ length: 200 }, () => newShareToken()));
+    expect(tokens.size).toBe(200);
+    for (const tk of tokens) expect(tk).toMatch(/^[A-Za-z0-9_-]{22}$/);
+  });
+});
