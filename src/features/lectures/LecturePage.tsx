@@ -4,6 +4,7 @@ import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Link
 import { publicUrl } from '@/lib/platform';
 import { useI18n, useT } from '@/i18n';
 import { callAi } from '@/lib/api';
+import { cn } from '@/lib/cn';
 import { useAiError } from '@/lib/useAiError';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
@@ -174,7 +175,8 @@ export default function LecturePage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    // Room at the bottom so the floating Ask button never covers the last buttons.
+    <div className={cn('mx-auto max-w-3xl space-y-6', tab !== 'ask' && 'pb-20')}>
       <BackLink to="/lectures" label={t.lectures.title} />
 
       <header className="space-y-2">
