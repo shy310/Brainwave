@@ -10,6 +10,7 @@ import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { LogoMark } from '@/ui/Logo';
 import { Rich } from '@/ui/Rich';
+import { Spinner } from '@/ui/Spinner';
 import type { Attachment, ChatTurn, TutorInput } from '@shared/learn';
 import { toAttachment } from './files';
 
@@ -40,6 +41,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
   const [draft, setDraft] = useState('');
   const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [streaming, setStreaming] = useState(false);
+  const [readingFile, setReadingFile] = useState(false);
   const [error, setError] = useState('');
   const abort = useRef<AbortController | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -104,8 +106,11 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
 
   const pickFile = async (file: File | undefined) => {
     if (!file) return;
-    const result = await toAttachment(file);
-    if (result === 'size') setError(t.tutor.fileTooBig);
+    setReadingFile(true);
+    const result = await toAttachment(file).catch((err) => { console.error(err); return 'unreadable' as const; })
+      .finally(() => setReadingFile(false));
+    if (result === 'unreadable') setError(t.tutor.fileUnreadable);
+    else if (result === 'size') setError(t.tutor.fileTooBig);
     else if (result === 'type') setError(t.tutor.fileType);
     else { setError(''); setAttachment(result); }
   };
@@ -150,9 +155,10 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
       {error && <Alert tone="error">{error}</Alert>}
 
       <form onSubmit={onSubmit} className="sticky bottom-20 z-10 space-y-2 rounded-2xl border border-line bg-surface p-2 shadow-[var(--shadow-lift)] md:bottom-4">
+        {readingFile && <p className="flex items-center gap-2 px-2 pt-1 text-sm text-muted" aria-live="polite"><Spinner className="size-4" />{t.tutor.readingFile}</p>}
         {attachment && (
           <p className="flex items-center gap-2 px-2 pt-1 text-sm">
-            {attachment.kind === 'pdf' ? <FileText className="size-4" aria-hidden="true" /> : <ImageIcon className="size-4" aria-hidden="true" />}
+            {attachment.kind !== 'image' ? <FileText className="size-4" aria-hidden="true" /> : <ImageIcon className="size-4" aria-hidden="true" />}
             <span className="truncate">{attachment.name}</span>
             <button type="button" onClick={() => setAttachment(null)} aria-label={t.tutor.remove} className="rounded p-0.5 hover:bg-surface-2"><X className="size-4" aria-hidden="true" /></button>
           </p>
@@ -161,7 +167,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
           <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf" className="hidden"
             onChange={(e) => { void pickFile(e.target.files?.[0]); e.target.value = ''; }} />
           <Button variant="ghost" size="sm" className="size-10 shrink-0 px-0" aria-label={t.tutor.attach} title={t.tutor.attach}
-            onClick={() => fileInput.current?.click()} disabled={streaming}>
+            onClick={() => fileInput.current?.click()} disabled={streaming || readingFile}>
             <Paperclip className="size-5" aria-hidden="true" />
           </Button>
           <textarea value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKeyDown} rows={1} dir="auto"

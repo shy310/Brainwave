@@ -23,6 +23,15 @@ interface AuthState {
 }
 
 const Ctx = createContext<AuthState | null>(null);
+
+/**
+ * Supabase doesn't reveal that an email is taken: "sign up" with an existing
+ * email looks successful but returns a user with no identities and sends no
+ * email. Detect that, so the student is told to sign in instead of waiting
+ * for an email that never comes.
+ */
+export const alreadyRegistered = (user: { identities?: unknown[] | null } | null | undefined) =>
+  !!user && Array.isArray(user.identities) && user.identities.length === 0;
 const DEMO_USER_KEY = 'bw.demoUser';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -85,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email, password, options: { emailRedirectTo: `${window.location.origin}/` },
       });
       if (error) throw error;
+      if (alreadyRegistered(data.user)) throw new Error('User already registered');
       return { needsConfirmation: !data.session };
     },
     async signInWithGoogle() {

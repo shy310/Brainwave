@@ -33,8 +33,9 @@ const failure = async (res: Response) => {
 };
 
 /** Run a named AI operation that returns structured data. */
-export const callAi = async <T,>(op: string, input: unknown, signal?: AbortSignal): Promise<T> => {
-  const res = await post(`/api/ai/${op}`, { input, ...aiContext }, signal);
+export const callAi = async <T,>(op: string, input: unknown, signal?: AbortSignal, opts: { locale?: Locale } = {}): Promise<T> => {
+  // `locale` overrides the language the AI writes in (e.g. an English podcast while the app is in Hebrew).
+  const res = await post(`/api/ai/${op}`, { input, ...aiContext, ...(opts.locale ? { locale: opts.locale } : {}) }, signal);
   if (!res.ok) throw await failure(res);
   return ((await res.json()) as { data: T }).data;
 };

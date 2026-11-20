@@ -1,7 +1,7 @@
 import type { Response } from 'express';
 import type { AuthedRequest } from './auth.js';
-import { env, ttsConfigured } from './env.js';
-import { TtsInputSchema } from '../shared/tts.js';
+import { env, ttsService } from './env.js';
+import { TtsInputSchema, type CloudVoice } from '../shared/tts.js';
 
 const escapeXml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
@@ -27,9 +27,46 @@ const consumeTts = async (userId: string, chars: number): Promise<boolean> => {
   return (await res.json()) === true;
 };
 
+/** The OpenRouter voice for one of our voice slots: the first or second voice of its language. */
+export const openRouterVoice = (voice: CloudVoice) => {
+  const second = voice === 'en-US-AndrewNeural' || voice === 'he-IL-AvriNeural';
+  return env.ttsVoices[second ? 1 : 0] ?? env.ttsVoices[0];
+};
+
+const fail = (res: Response, upstreamStatus: number) => {
+  // 402 (no credit) and 429 tell the browser to switch to device voices for this visit.
+  const status = upstreamStatus === 429 ? 429 : upstreamStatus === 402 ? 402 : upstreamStatus === 401 || upstreamStatus === 403 ? 503 : 502;
+  return res.status(status).json({ error: 'The voice service had a problem.', code: upstreamStatus });
+};
+
+const azureSpeech = (text: string, voice: CloudVoice) =>
+  fetch(`https://${env.azureSpeechRegion}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+    method: 'POST',
+    headers: {
+      'Ocp-Apim-Subscription-Key': env.azureSpeechKey,
+      'Content-Type': 'application/ssml+xml',
+      'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3',
+      'User-Agent': 'BrainWave',
+    },
+    body: ssml(text, voice),
+  });
+
+/** OpenRouter's OpenAI-compatible speech endpoint; it answers with the MP3 bytes. */
+const openRouterSpeech = (text: string, voice: CloudVoice) =>
+  fetch(process.env.OPENROUTER_TTS_URL ?? env.openrouterUrl.replace(/\/chat\/completions\/?$/, '/audio/speech'), {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.openrouterKey}`,
+      'Content-Type': 'application/json',
+      'X-Title': 'BrainWave',
+    },
+    body: JSON.stringify({ model: env.ttsModel, input: text, voice: openRouterVoice(voice), response_format: 'mp3' }),
+  });
+
 /** POST /api/tts — turn one sentence or line into MP3 with a natural voice. */
 export const ttsHandler = async (req: AuthedRequest, res: Response) => {
-  if (!ttsConfigured()) return res.status(503).json({ error: 'Natural voices are not set up on this server.' });
+  const service = ttsService();
+  if (!service) return res.status(503).json({ error: 'Natural voices are not set up on this server.' });
   const parsed = TtsInputSchema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ error: 'Invalid request.' });
   const { text, voice } = parsed.data;
@@ -39,27 +76,23 @@ export const ttsHandler = async (req: AuthedRequest, res: Response) => {
   }
 
   try {
-    const upstream = await fetch(`https://${env.azureSpeechRegion}.tts.speech.microsoft.com/cognitiveservices/v1`, {
-      method: 'POST',
-      headers: {
-        'Ocp-Apim-Subscription-Key': env.azureSpeechKey,
-        'Content-Type': 'application/ssml+xml',
-        'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3',
-        'User-Agent': 'BrainWave',
-      },
-      body: ssml(text, voice),
-    });
+    const upstream = await (service === 'azure' ? azureSpeech(text, voice) : openRouterSpeech(text, voice));
     if (!upstream.ok) {
-      console.error('Azure TTS error', upstream.status, (await upstream.text().catch(() => '')).slice(0, 300));
-      const status = upstream.status === 429 ? 429 : upstream.status === 401 || upstream.status === 403 ? 503 : 502;
-      return res.status(status).json({ error: 'The voice service had a problem.', code: upstream.status });
+      console.error(`TTS error (${service})`, upstream.status, (await upstream.text().catch(() => '')).slice(0, 300));
+      return fail(res, upstream.status);
     }
     const audio = Buffer.from(await upstream.arrayBuffer());
+    const type = upstream.headers.get('content-type') ?? '';
+    if (!audio.length || /json|text/.test(type)) {
+      console.error(`TTS answered without audio (${service})`, type, audio.toString('utf8', 0, 300));
+      return fail(res, 502);
+    }
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Cache-Control', 'private, max-age=86400');
     return res.send(audio);
   } catch (err) {
-    console.error('Azure TTS failed', err);
+    console.error(`TTS failed (${service})`, err);
     return res.status(502).json({ error: 'The voice service had a problem.' });
   }
 };
+
