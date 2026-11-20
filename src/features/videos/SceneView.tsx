@@ -69,7 +69,7 @@ export const SceneView = ({ scene, progress }: { scene: Scene; progress: number 
       return (
         <div className="flex h-full flex-col items-center justify-center gap-[2cqw] px-[8cqw] text-center">
           {heading}
-          {scene.items[0] && <p className="text-[2.6cqw] text-white/75 animate-fade-up [animation-delay:300ms]" dir="auto"><RichInline text={scene.items[0]} /></p>}
+          {scene.items[0] && <p className="text-[max(11px,2.6cqw)] text-white/75 animate-fade-up [animation-delay:300ms]" dir="auto"><RichInline text={scene.items[0]} /></p>}
         </div>
       );
     case 'equation':
@@ -77,14 +77,14 @@ export const SceneView = ({ scene, progress }: { scene: Scene; progress: number 
         <div className="flex h-full flex-col items-center justify-center gap-[3cqw] px-[6cqw] text-center">
           {heading}
           <Equation latex={scene.latex} />
-          {scene.items[0] && <p className="text-[2.4cqw] text-white/75" dir="auto"><RichInline text={scene.items[0]} /></p>}
+          {scene.items[0] && <p className="text-[max(11px,2.4cqw)] text-white/75" dir="auto"><RichInline text={scene.items[0]} /></p>}
         </div>
       );
     case 'graph':
       return (
         <div className="flex h-full flex-col gap-[1.5cqw] px-[6cqw] py-[5cqw]">
           {heading}
-          <p className="text-[2.4cqw] text-white/70" dir="ltr">y = {scene.fn}</p>
+          <p className="text-[max(11px,2.4cqw)] text-white/70" dir="ltr">y = {scene.fn}</p>
           <div className="min-h-0 flex-1" dir="ltr"><Graph fn={scene.fn} xMin={scene.xMin} xMax={scene.xMax} /></div>
         </div>
       );
@@ -96,7 +96,7 @@ export const SceneView = ({ scene, progress }: { scene: Scene; progress: number 
             {scene.items.map((it, i) => (
               <div key={i} className="flex items-center gap-[1.5cqw]">
                 {i > 0 && <Item shown={i < shown}><ArrowRight className="size-[3.5cqw] text-accent-400 rtl:rotate-180" aria-hidden="true" /></Item>}
-                <Item shown={i < shown} className="rounded-[1.5cqw] border border-white/20 bg-white/10 px-[2cqw] py-[1.5cqw] text-center text-[2.4cqw] font-medium">
+                <Item shown={i < shown} className="rounded-[1.5cqw] border border-white/20 bg-white/10 px-[2cqw] py-[1.5cqw] text-center text-[max(11px,2.4cqw)] font-medium">
                   <span dir="auto"><RichInline text={it} /></span>
                 </Item>
               </div>
@@ -113,8 +113,8 @@ export const SceneView = ({ scene, progress }: { scene: Scene; progress: number 
           <ul className="space-y-[1.8cqw]">
             {scene.items.map((it, i) => (
               <li key={i} aria-hidden={i >= shown} dir="auto"
-                className={cn('flex items-start gap-[1.5cqw] text-[3cqw] leading-snug transition-all duration-500', i < shown ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0')}>
-                  {numbered ? <span className="flex size-[4cqw] shrink-0 items-center justify-center rounded-full bg-accent-500 text-[2.2cqw] font-bold">{i + 1}</span>
+                className={cn('flex items-start gap-[1.5cqw] text-[max(11px,3cqw)] leading-snug transition-all duration-500', i < shown ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0')}>
+                  {numbered ? <span className="flex size-[4cqw] shrink-0 items-center justify-center rounded-full bg-accent-500 text-[max(11px,2.2cqw)] font-bold">{i + 1}</span>
                     : check ? <CheckCircle2 className="mt-[0.3cqw] size-[3.4cqw] shrink-0 text-emerald-400" aria-hidden="true" />
                     : <span className="mt-[1.2cqw] size-[1.2cqw] shrink-0 rounded-full bg-accent-400" aria-hidden="true" />}
                   <span className="min-w-0"><RichInline text={it} /></span>

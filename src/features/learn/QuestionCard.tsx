@@ -124,14 +124,14 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
         ) : question.kind === 'open' ? (
           <div className="space-y-1.5">
             <label htmlFor={inputId} className="text-sm text-muted">{t.quiz.writeAnswer}</label>
-            <Textarea id={inputId} value={typed} onChange={(e) => setTyped(e.target.value)} disabled={answered || checking}
+            <Textarea id={inputId} value={typed} onChange={(e) => setTyped(e.target.value)} readOnly={answered} disabled={checking}
               rows={4} maxLength={4000} dir="auto"
               className={cn(answered && (verdict.correct ? 'border-emerald-500' : 'border-amber-400'))} />
           </div>
         ) : (
           <div className="space-y-1.5">
             <label htmlFor={inputId} className="sr-only">{t.quiz.yourAnswer}</label>
-            <Input id={inputId} value={typed} onChange={(e) => setTyped(e.target.value)} disabled={answered || checking}
+            <Input id={inputId} value={typed} onChange={(e) => setTyped(e.target.value)} readOnly={answered} disabled={checking}
               placeholder={t.quiz.answerPlaceholder} autoComplete="off" dir="auto"
               className={cn(answered && (verdict.correct ? 'border-emerald-500' : 'border-rose-400'))} />
           </div>

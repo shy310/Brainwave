@@ -62,6 +62,15 @@ export const VideoPlayer = ({ script, locale, onAsk }: Props) => {
     return () => window.removeEventListener('keydown', onKey);
   });
 
+  // In fullscreen the frame is big enough for captions on the picture, even on a phone.
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(document.fullscreenElement === frame.current);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+  const showCaption = captions && started && current && !ended;
+
   const fullscreen = () => {
     const el = frame.current;
     if (!el) return;
@@ -79,8 +88,9 @@ export const VideoPlayer = ({ script, locale, onAsk }: Props) => {
           {scene && <SceneView scene={scene} progress={progress} />}
         </div>
 
-        {captions && started && current && !ended && (
-          <p className="absolute inset-x-[6cqw] bottom-[3cqw] mx-auto w-fit max-w-full rounded-lg bg-black/70 px-[1.5cqw] py-[0.8cqw] text-center text-[2.2cqw] leading-snug" dir="auto">
+        {/* Scenes are full of text, so captions go under the picture; only fullscreen puts them on it. */}
+        {showCaption && isFullscreen && (
+          <p className="absolute inset-x-[6cqw] bottom-[3cqw] mx-auto w-fit max-w-full rounded-lg bg-black/70 px-[1.5cqw] py-[0.8cqw] text-center text-[max(12px,2.2cqw)] leading-snug" dir="auto">
             {current.text}
           </p>
         )}
@@ -100,6 +110,12 @@ export const VideoPlayer = ({ script, locale, onAsk }: Props) => {
           </div>
         )}
       </div>
+
+      {captions && started && !ended && !isFullscreen && (
+        <p className="flex min-h-[4.5rem] items-center justify-center rounded-xl bg-surface-2 px-3 py-2 text-center text-sm leading-snug sm:min-h-[3.5rem] sm:text-base" dir="auto">
+          {current?.text}
+        </p>
+      )}
 
       <div className="space-y-2">
         <div className="flex gap-1" role="group" aria-label={t.videos.scene(sceneIndex + 1, script.scenes.length)}>

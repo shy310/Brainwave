@@ -14,7 +14,7 @@ import { lectureTitle } from '@/features/lectures/LecturesPage';
 import { lectureRepo } from '@/features/lectures/repo';
 import { rate, reviewRepo } from '@/features/lectures/reviews';
 import { track } from '@/features/stats/activity';
-import { LIVES, SECONDS, answer, buildGame, start, type GameQuestion, type GameState } from './game';
+import { LIVES, SECONDS, answer, buildGame, start, type GameQuestion, type GameState, reachedSummit } from './game';
 
 const BEST_KEY = 'bw.summit.best';
 const FEEDBACK_MS = 1100;
@@ -184,7 +184,7 @@ export default function GamePage() {
         <Card className="space-y-5 p-8 text-center" aria-live="polite">
           <Trophy className="mx-auto size-12 text-accent-500" aria-hidden="true" />
           <div>
-            <h1 className="text-2xl font-semibold">{state.lives > 0 ? tg.summit : tg.over}</h1>
+            <h1 className="text-2xl font-semibold">{reachedSummit(state) ? tg.summit : tg.over}</h1>
             <p className="mt-1 text-4xl font-bold tabular-nums">{state.score}</p>
             <p className="text-muted">{tg.climbed(state.height)} {newBest ? <strong className="text-accent-600">{tg.newBest}</strong> : tg.best(best)}</p>
           </div>

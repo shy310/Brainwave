@@ -55,6 +55,11 @@ for (const lang of ['en', 'he'] as const) {
     await expect(page.getByText(t.quiz.partial)).toBeVisible();
     await expect(page.getByText('Correctness 7/10')).toBeVisible();
     await expect(page.getByText(t.quiz.modelAnswer)).toBeVisible();
+    // The checked answer stays readable (read-only), not faded like a disabled box.
+    const box = page.getByLabel(t.quiz.writeAnswer);
+    await expect(box).toHaveValue('Because the tangent touches the curve at that point.');
+    await expect(box).toHaveAttribute('readonly', '');
+    await expect(box).toBeEnabled();
     expect(graded[1]).toMatchObject({ kind: 'quiz', reference: QUIZ.questions[1].answer, answer: 'Because the tangent touches the curve at that point.' });
     expect(String(graded[1].context)).toContain('limit of secant slopes');
     await page.getByRole('button', { name: t.quiz.finish }).click();
