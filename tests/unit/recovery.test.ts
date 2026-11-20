@@ -224,3 +224,25 @@ describe('retry rules', () => {
     q.stop();
   });
 });
+
+describe('lecture library', async () => {
+  const { arrangeLectures } = await import('../../src/features/lectures/folders');
+  const L = (title: string, day: number, folder_id: string | null = null) => ({ title, created_at: `2026-11-${String(day).padStart(2, '0')}T10:00:00Z`, folder_id });
+  const items = [L('Calculus week 2', 3, 'math'), L('', 5), L('calculus week 10', 9, 'math'), L('אלגברה לינארית', 7, 'math'), L('History', 1, 'hist')];
+  const arrange = (o: Partial<Parameters<typeof arrangeLectures>[1]>) =>
+    arrangeLectures(items, { query: '', folder: 'all', sort: 'newest', untitled: () => 'Untitled', locale: 'en', ...o }).map((l) => l.title || 'Untitled');
+
+  it('sorts newest, oldest and by title (numbers in order, any case)', () => {
+    expect(arrange({})).toEqual(['calculus week 10', 'אלגברה לינארית', 'Untitled', 'Calculus week 2', 'History']);
+    expect(arrange({ sort: 'oldest' })[0]).toBe('History');
+    expect(arrange({ sort: 'title' }).slice(0, 2)).toEqual(['Calculus week 2', 'calculus week 10']);
+  });
+
+  it('filters by folder and by search, in English and Hebrew', () => {
+    expect(arrange({ folder: 'math' })).toHaveLength(3);
+    expect(arrange({ folder: 'none' })).toEqual(['Untitled']);
+    expect(arrange({ query: 'CALCULUS' })).toEqual(['calculus week 10', 'Calculus week 2']);
+    expect(arrange({ query: 'לינארית' })).toEqual(['אלגברה לינארית']);
+    expect(arrange({ query: 'untitled' })).toEqual(['Untitled']);
+  });
+});

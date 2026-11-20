@@ -189,6 +189,15 @@ export const en = {
     rename: 'Rename', save: 'Save',
     turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
+    library: {
+      search: 'Search lectures', sort: 'Sort', sorts: { newest: 'Newest first', oldest: 'Oldest first', title: 'A–Z' },
+      folders: 'Folders', all: 'All', unfiled: 'Not in a folder', newFolder: 'New folder', folderName: 'Folder name', create: 'Create',
+      rename: 'Rename folder', remove: 'Delete folder', moveEarlier: 'Move folder earlier', moveLater: 'Move folder later',
+      confirmRemove: (name: string) => `Delete the folder “${name}”? Its lectures stay, outside any folder.`,
+      folder: 'Folder', noFolder: 'No folder',
+      emptyFolder: 'No lectures in this folder yet. Open a lecture and choose this folder for it.',
+      noResults: (q: string) => `No lectures match “${q}”.`,
+    },
     notesStyle: 'Notes style', notesStyleHint: 'How new lecture notes are written. You can switch on any lecture.',
     summaryModes: { short: 'Short', detailed: 'Detailed', exam: 'Exam prep' },
     transcriptTools: {
