@@ -24,6 +24,7 @@ import type { QueueStatus } from './transcriber';
 import { lectureRepo } from './repo';
 import { SlidesPicker, type Slides } from './SlidesPicker';
 import { useKeepAwake } from './useKeepAwake';
+import { NativeRecorder, nativeRecorderAvailable, recoverNative } from './nativeRecorder';
 import { inBrowserMaxMinutes, planUpload, probeDuration, type UploadPlan } from './preflight';
 
 type Phase = 'setup' | 'checking' | 'preflight' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'finishing' | 'recovering';
@@ -43,6 +44,9 @@ const pieceSettings = (): { limits: PieceLimits; checkpointEvery: number } => {
   } catch { /* ignore */ }
   return { limits: DEFAULT_LIMITS, checkpointEvery: 5 };
 };
+
+/** What the page needs from a recorder: the web one (LiveRecorder) or the Android one (NativeRecorder). */
+type Recorder = Pick<LiveRecorder, 'start' | 'stop' | 'pause' | 'resume' | 'elapsed' | 'lastFrameAt' | 'state'>;
 
 const minutes = (sec: number) => Math.max(1, Math.round(sec / 60));
 const coarsePointer = () => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
@@ -72,7 +76,8 @@ export default function NewLecturePage() {
   const [upload, setUpload] = useState<{ file: File; plan: UploadPlan } | null>(null);
 
   const session = useRef<LectureSession | null>(null);
-  const recorder = useRef<LiveRecorder | null>(null);
+  const recorder = useRef<Recorder | null>(null);
+  const native = nativeRecorderAvailable();
   /** Writes to local storage happen one after another, in order. */
   const writes = useRef<Promise<void>>(Promise.resolve());
 
@@ -107,12 +112,14 @@ export default function NewLecturePage() {
     onStatus: setStatus,
   };
 
+  /** Run a local-storage write after the ones before it. Rejects if this one failed. */
   const write = (fn: () => Promise<void>) => {
-    writes.current = writes.current.then(fn).catch((err: unknown) => {
+    const run = writes.current.then(fn);
+    writes.current = run.catch((err: unknown) => {
       console.error('Could not save audio on this device', err);
       setError((err as DOMException)?.name === 'QuotaExceededError' ? t.lectures.storageFull : t.lectures.noDeviceStorage);
     });
-    return writes.current;
+    return run;
   };
 
   const finalize = useCallback(async () => {
@@ -158,6 +165,8 @@ export default function NewLecturePage() {
       if (cancelled) { s?.close(); return; }
       if (!s) { setError(t.lectures.recoverMissing); setPhase('setup'); return; }
       session.current = s;
+      // In the Android app, pieces the native recorder saved are moved into the queue too.
+      await recoverNative(s.draft.id, (samples, start) => s.addPiece(samples, start)).catch((err) => console.error(err));
       setTitle(s.draft.title);
       setLanguage(s.draft.language);
       setTab(s.draft.source);
@@ -186,16 +195,20 @@ export default function NewLecturePage() {
       return;
     }
     const { limits, checkpointEvery } = pieceSettings();
-    const rec = new LiveRecorder({
-      limits,
-      checkpointEvery,
-      onChunk: (samples, start) => {
-        void write(async () => { await s.addPiece(samples, start); setDuration(s.draft.duration); });
-      },
-      onCheckpoint: (samples, start) => { void write(() => s.checkpoint(samples, start)); },
-      onLevel: setLevel,
-      onEnded: () => { setError(t.lectures.micStopped); void stopRecording(); },
-    });
+    const savePiece = (samples: Float32Array, start: number) =>
+      write(async () => { await s.addPiece(samples, start); setDuration(s.draft.duration); });
+    const onEnded = () => { setError(t.lectures.micStopped); void stopRecording(); };
+    const rec: Recorder = native
+      // The Android app records in a foreground service; its files are deleted only after savePiece succeeded.
+      ? new NativeRecorder(s.draft.id, title.trim(), { limits, onChunk: savePiece, onLevel: setLevel, onEnded })
+      : new LiveRecorder({
+        limits,
+        checkpointEvery,
+        onChunk: (samples, start) => { savePiece(samples, start).catch(() => {}); },
+        onCheckpoint: (samples, start) => { write(() => s.checkpoint(samples, start)).catch(() => {}); },
+        onLevel: setLevel,
+        onEnded,
+      });
     try {
       await rec.start();
     } catch (err) {
@@ -224,7 +237,7 @@ export default function NewLecturePage() {
   }, [recordingActive, phase, elapsed, t]);
 
   // Keep the screen on, and notice when a phone stopped the microphone in the background.
-  const { wakeLockHeld } = useKeepAwake(recordingActive, (hiddenFor, hiddenAt) => {
+  const { wakeLockHeld } = useKeepAwake(recordingActive && !native, (hiddenFor, hiddenAt) => {
     const rec = recorder.current;
     if (!rec || phase !== 'recording') return;
     const stoppedAt = Math.max(rec.lastFrameAt, hiddenAt);
@@ -244,7 +257,7 @@ export default function NewLecturePage() {
     if (!rec || !s) return;
     recorder.current = null;
     await rec.stop(); // emits the last piece
-    await write(() => s.stopRecording());
+    await write(() => s.stopRecording()).catch(() => {});
     setLevel(0);
     await finish();
   };
@@ -390,7 +403,7 @@ export default function NewLecturePage() {
                 </div>
                 <div className="space-y-1 text-xs text-muted">
                   <p>{t.lectures.keepOpen}{wakeLockHeld ? ` ${t.lectures.screenOn}` : ''}</p>
-                  {coarsePointer() && <p>{t.lectures.backgroundWarning}</p>}
+                  {native ? <p>{t.lectures.screenOffOk}</p> : coarsePointer() && <p>{t.lectures.backgroundWarning}</p>}
                 </div>
               </div>
             )}

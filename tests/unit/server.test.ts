@@ -383,3 +383,18 @@ describe('speech-to-text transcription (TRANSCRIBE_MODE=stt)', () => {
     expect(calls[0].url).toMatch(/chat\/completions$/);
   });
 });
+
+describe('the Android app calling the API', () => {
+  it('allows the app origin with a bearer token, and nothing else', async () => {
+    const ok = await realFetch(`${base}/api/ai/transcribe`, { method: 'OPTIONS', headers: { Origin: 'https://localhost', 'Access-Control-Request-Method': 'POST' } });
+    expect(ok.status).toBe(204);
+    expect(ok.headers.get('access-control-allow-origin')).toBe('https://localhost');
+    expect(ok.headers.get('access-control-allow-headers')).toContain('Authorization');
+    const health = await realFetch(`${base}/api/health`, { headers: { Origin: 'https://localhost' } });
+    expect(health.headers.get('access-control-allow-origin')).toBe('https://localhost');
+
+    const evil = await realFetch(`${base}/api/ai/transcribe`, { method: 'OPTIONS', headers: { Origin: 'https://evil.example', 'Access-Control-Request-Method': 'POST' } });
+    expect(evil.status).toBe(403);
+    expect(evil.headers.get('access-control-allow-origin')).toBeNull();
+  });
+});

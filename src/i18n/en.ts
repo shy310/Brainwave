@@ -132,6 +132,7 @@ export const en = {
     recording: 'Recording', paused: 'Paused', micDenied: 'Microphone access was blocked. Allow it in your browser settings and try again.',
     micMissing: 'No microphone was found.', keepOpen: 'Keep this page open and on screen while recording.',
     screenOn: 'The screen stays on while recording.',
+    screenOffOk: 'You can lock the phone: recording continues, and a notification shows it’s on.',
     backgroundWarning: 'Phones can stop the microphone when you switch apps or lock the screen. Keep this page open.',
     missedAudio: (sec: number) => `The microphone was stopped for about ${sec} seconds while the page was in the background. Recording continues.`,
     micStopped: 'The microphone stopped. Everything recorded until now is saved.',

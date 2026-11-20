@@ -18,6 +18,8 @@ export const env = {
   transcribeModel: process.env.TRANSCRIBE_MODEL ?? 'openai/gpt-4o-mini-transcribe',
   /** In 'stt' mode, also run the LLM cleanup prompt on the text (fillers, math as LaTeX). */
   transcribeCleanup: process.env.TRANSCRIBE_CLEANUP === 'true',
+  /** Origins allowed to call the API from another origin: the Android app's WebView. */
+  corsOrigins: (process.env.CORS_ORIGINS ?? 'https://localhost,capacitor://localhost').split(',').map((o) => o.trim()).filter(Boolean),
   supabaseUrl: (process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? '').replace(/\/$/, ''),
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY ?? '',
   supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',

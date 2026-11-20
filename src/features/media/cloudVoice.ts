@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { ApiError, fetchSpeech } from '@/lib/api';
+import { apiUrl } from '@/lib/platform';
 import { encodeWav } from '@/features/lectures/audio';
 import type { CloudVoice } from '@shared/tts';
 
@@ -13,7 +14,7 @@ const listeners = new Set<() => void>();
 
 /** Does the server offer natural voices? Asked once per page load. */
 export const cloudVoicesAvailable = (): Promise<boolean> => {
-  available ??= fetch('/api/health').then((r) => r.json()).then((h: { tts?: boolean }) => Boolean(h.tts)).catch(() => false);
+  available ??= fetch(apiUrl('/api/health')).then((r) => r.json()).then((h: { tts?: boolean }) => Boolean(h.tts)).catch(() => false);
   return available;
 };
 
