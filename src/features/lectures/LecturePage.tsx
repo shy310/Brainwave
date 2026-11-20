@@ -25,14 +25,19 @@ import { rate, reviewRepo } from './reviews';
 import { cardKey, type CardState } from '@shared/srs';
 import { folderRepo, type Folder } from './folders';
 import { lectureTitle } from './LecturesPage';
+import { notesMode, switchNotes, withNewNotes } from './notesVersions';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
 
 type Tab = 'notes' | 'transcript' | 'quiz' | 'cards' | 'ask';
 
-export const notesToMarkdown = (title: string, n: Notes, labels: { summary: string; keyTerms: string; reminders: string }) => [
+export interface NotesLabels { summary: string; keyTerms: string; reminders: string; practice: string; mistakes: string }
+
+export const notesToMarkdown = (title: string, n: Notes, labels: NotesLabels) => [
   `# ${title}`, '', `## ${labels.summary}`, n.summary, '',
   ...n.sections.flatMap((s) => [`## ${s.heading}`, ...s.points.map((p) => `- ${p}`), '']),
   ...(n.keyTerms.length ? [`## ${labels.keyTerms}`, ...n.keyTerms.map((k) => `- **${k.term}** — ${k.definition}`), ''] : []),
+  ...(n.practice?.length ? [`## ${labels.practice}`, ...n.practice.map((p, i) => `${i + 1}. ${p.question}\n   ${p.answer}`), ''] : []),
+  ...(n.mistakes?.length ? [`## ${labels.mistakes}`, ...n.mistakes.map((m) => `- ${m}`), ''] : []),
   ...(n.reminders.length ? [`## ${labels.reminders}`, ...n.reminders.map((r) => `- ${r}`), ''] : []),
 ].join('\n');
 
@@ -93,15 +98,20 @@ export default function LecturePage() {
     title: lecture.title || undefined,
   }), [lecture, transcript]);
 
-  const generate = useCallback(async (kind: 'notes' | 'quiz' | 'cards', mode?: SummaryMode) => {
+  /**
+   * Make notes, a quiz or flashcards. For notes, `mode` picks the style (else
+   * the one shown, else the student's default); `fresh` means the transcript
+   * changed, so notes saved in other styles are dropped.
+   */
+  const generate = useCallback(async (kind: 'notes' | 'quiz' | 'cards', mode?: SummaryMode, fresh = false) => {
     if (!input || transcript.length < 20) return;
     setBusy(kind);
     setError('');
     try {
       if (kind === 'notes') {
-        // Keep the style these notes were in, else the student's default.
-        const notes = await callAi<Notes>('lectureNotes', { ...input, mode: mode ?? lecture?.notes?.mode ?? profile?.summary_mode ?? 'detailed' });
-        await patch({ notes, ...(lecture?.title ? {} : { title: notes.title.slice(0, 200) }) });
+        const current = lecture?.notes ?? null;
+        const notes = await callAi<Notes>('lectureNotes', { ...input, mode: mode ?? current?.mode ?? profile?.summary_mode ?? 'detailed' });
+        await patch({ notes: withNewNotes(current, notes, !fresh), ...(lecture?.title ? {} : { title: notes.title.slice(0, 200) }) });
       } else if (kind === 'quiz') {
         const quiz = await callAi<Quiz>('lectureQuiz', { ...input, count: 6 });
         await patch({ quiz });
@@ -115,14 +125,14 @@ export default function LecturePage() {
     } finally {
       setBusy('');
     }
-  }, [input, transcript, patch, lecture?.title, lecture?.notes?.mode, profile?.summary_mode, toMessage]);
+  }, [input, transcript, patch, lecture?.title, lecture?.notes, profile?.summary_mode, toMessage]);
 
   /** Make again whatever was made from the old transcript. */
   const updateFromEdits = async () => {
     if (!lecture) return;
     const had = { notes: Boolean(lecture.notes), quiz: Boolean(lecture.quiz), cards: Boolean(lecture.flashcards) };
     setUpdating(true);
-    if (had.notes) await generate('notes');
+    if (had.notes) await generate('notes', undefined, true);
     if (had.quiz) await generate('quiz');
     if (had.cards) await generate('cards');
     setUpdating(false);
@@ -146,7 +156,7 @@ export default function LecturePage() {
   if (lecture === null) return <Alert tone="error">{t.lectures.notFound}</Alert>;
 
   const title = lectureTitle(lecture, t.lectures.untitled, locale);
-  const labels = { summary: t.lectures.summary, keyTerms: t.lectures.keyTerms, reminders: t.lectures.reminders };
+  const labels: NotesLabels = { summary: t.lectures.summary, keyTerms: t.lectures.keyTerms, reminders: t.lectures.reminders, practice: t.lectures.practice, mistakes: t.lectures.mistakes };
 
   const remove = async () => {
     if (!window.confirm(t.lectures.confirmDelete)) return;
@@ -232,7 +242,12 @@ export default function LecturePage() {
               <article className="space-y-4">
                 <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
                   <Segmented<SummaryMode> label={t.lectures.notesStyle} value={lecture.notes.mode ?? 'detailed'}
-                    onChange={(m) => { if (m !== (lecture.notes?.mode ?? 'detailed')) void generate('notes', m); }}
+                    onChange={(m) => {
+                      if (!lecture.notes || m === notesMode(lecture.notes)) return;
+                      // A style written before is shown again as it was; only a new style asks the AI.
+                      const saved = switchNotes(lecture.notes, m);
+                      if (saved) void patch({ notes: saved }); else void generate('notes', m);
+                    }}
                     options={SUMMARY_MODES.map((m) => ({ value: m, label: t.lectures.summaryModes[m] }))} />
                 </div>
                 <NotesView notes={lecture.notes} />
