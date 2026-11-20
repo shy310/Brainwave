@@ -28,6 +28,7 @@ import { PdfSource } from './PdfSource';
 import { PhotoSource } from './PhotoSource';
 import { scheduleRepo } from '@/features/schedule/scheduleRepo';
 import { classLectureTitle } from '@shared/schedule';
+import { notifyIfAway } from '@/features/schedule/notify';
 import { NativeRecorder, nativeRecorderAvailable, recoverNative } from './nativeRecorder';
 import { inBrowserMaxMinutes, planUpload, probeDuration, type UploadPlan } from './preflight';
 
@@ -139,6 +140,8 @@ export default function NewLecturePage() {
     setFinalizeFailed(false);
     try {
       const id = await s.finalize();
+      // Finished while the student was in another tab or app: let them know.
+      void notifyIfAway(t.notify.lectureReady, s.draft.title || t.lectures.untitled, `/lectures/${id}`, (p) => navigate(p));
       leaving.current = true;
       navigate(`/lectures/${id}`, { replace: true });
     } catch (err) {

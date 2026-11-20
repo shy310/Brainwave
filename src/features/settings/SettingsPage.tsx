@@ -11,6 +11,7 @@ import { GRADES, type Grade } from '@shared/grades';
 import type { Locale } from '@shared/locales';
 import { LECTURE_LANGUAGES, SUMMARY_MODES, type LectureLanguage, type SummaryMode } from '@shared/lectures';
 import { AccountSection } from './AccountSection';
+import { StudyReminderControl } from './StudyReminderControl';
 
 export default function SettingsPage() {
   const { t, locale } = useI18n();
@@ -69,6 +70,7 @@ export default function SettingsPage() {
             </Select>
           )}
         </Field>
+        <StudyReminderControl />
       </Card>
 
       <Card className="space-y-5 p-6">

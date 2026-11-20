@@ -103,6 +103,13 @@ export const he: Dict = {
     reminderTitle: (n: string) => `${n} מתחיל בקרוב`, reminderBody: (m: number) => `בעוד ${m} דקות. הקישו כדי להתחיל להקליט.`,
     soon: (n: string, time: string) => `${n} מתחיל ב-${time}`, on: (n: string) => `${n} מתקיים עכשיו`, record: 'להקליט',
   },
+  notify: {
+    studyTitle: 'הגיע הזמן ללמוד', studyBody: 'כמה דקות של חזרה שומרות על הרצף.',
+    lectureReady: 'ההרצאה מוכנה', notesReady: 'הסיכום מוכן',
+    daily: 'תזכורת לימוד יומית', dailyHint: 'תזכורת בשעה הזו בכל יום — באתר היא מדולגת אם כבר למדת היום.',
+    turnOn: 'הפעלה', turnOff: 'כיבוי', time: 'שעה', on: (time: string) => `פעילה, כל יום ב-${time}.`,
+    blocked: 'ההתראות חסומות. אפשרו אותן בהגדרות הדפדפן או הטלפון.',
+  },
   week: {
     title: 'השבוע שלך', streak: (n: number) => (n === 1 ? 'יום אחד ברצף' : `${n} ימים ברצף`), noStreak: 'מתחילים רצף היום',
     best: (n: number) => `השיא: ${n === 1 ? 'יום אחד' : `${n} ימים`}`,

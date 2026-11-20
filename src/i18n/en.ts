@@ -102,6 +102,13 @@ export const en = {
     reminderTitle: (n: string) => `${n} starts soon`, reminderBody: (m: number) => `In ${m} minutes. Tap to start recording.`,
     soon: (n: string, time: string) => `${n} starts at ${time}`, on: (n: string) => `${n} is on now`, record: 'Record it',
   },
+  notify: {
+    studyTitle: 'Time to study', studyBody: 'A few minutes of review keeps your streak going.',
+    lectureReady: 'Your lecture is ready', notesReady: 'Your notes are ready',
+    daily: 'Daily study reminder', dailyHint: 'A reminder at this time every day — skipped on the web if you already studied.',
+    turnOn: 'Turn on', turnOff: 'Turn off', time: 'Time', on: (time: string) => `On, every day at ${time}.`,
+    blocked: 'Notifications are blocked. Allow them in your browser or phone settings.',
+  },
   week: {
     title: 'Your week', streak: (n: number) => (n === 1 ? '1-day streak' : `${n}-day streak`), noStreak: 'Start a streak today',
     best: (n: number) => `Best: ${n} ${n === 1 ? 'day' : 'days'}`,
