@@ -71,7 +71,7 @@ export const AccountSection = () => {
 
       {support && (
         <Card className="flex flex-wrap items-center gap-3 p-6">
-          <LifeBuoy className="size-5 text-brand-600" aria-hidden="true" />
+          <LifeBuoy className="size-5 text-brand-600 dark:text-brand-300" aria-hidden="true" />
           <div className="min-w-0 flex-1">
             <h2 className="font-semibold">{ta.support}</h2>
             <p className="text-sm text-muted">{ta.supportHint}</p>
