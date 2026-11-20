@@ -65,11 +65,30 @@ export type TutorMode = (typeof TUTOR_MODES)[number];
 /** ~3 MB of base64 — keeps requests under the server's 4 MB body limit. */
 export const MAX_ATTACHMENT_CHARS = 3_000_000;
 
-export const AttachmentSchema = z.object({
-  kind: z.enum(['image', 'pdf']),
-  name: z.string().max(200),
-  dataUrl: z.string().max(MAX_ATTACHMENT_CHARS).regex(/^data:(image\/(png|jpeg|webp|gif)|application\/pdf);base64,/),
-});
+/** Text read from a big PDF in the browser, sent instead of the file. */
+export const MAX_ATTACHMENT_TEXT = 150_000;
+/** Pictures of the first pages of a big scanned PDF. */
+export const MAX_ATTACHMENT_PAGES = 3;
+export const MAX_ATTACHMENT_PAGE_CHARS = 900_000;
+
+export const AttachmentSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('image'),
+    name: z.string().max(200),
+    dataUrl: z.string().max(MAX_ATTACHMENT_CHARS).regex(/^data:image\/(png|jpeg|webp|gif);base64,/),
+  }),
+  z.object({
+    kind: z.literal('pdf'),
+    name: z.string().max(200),
+    dataUrl: z.string().max(MAX_ATTACHMENT_CHARS).regex(/^data:application\/pdf;base64,/),
+  }),
+  z.object({
+    kind: z.literal('pdfText'),
+    name: z.string().max(200),
+    text: z.string().max(MAX_ATTACHMENT_TEXT),
+    pages: z.array(z.string().max(MAX_ATTACHMENT_PAGE_CHARS).regex(/^data:image\/jpeg;base64,/)).max(MAX_ATTACHMENT_PAGES).default([]),
+  }),
+]);
 export type Attachment = z.infer<typeof AttachmentSchema>;
 
 export const ChatTurnSchema = z.object({

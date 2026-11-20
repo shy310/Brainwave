@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { storage } from '@/lib/storage';
+import type { SavedNotes } from './notesVersions';
 import type { Quiz } from '@shared/learn';
 import type { Flashcards, LectureLanguage, LectureSource, Notes, Segment } from '@shared/lectures';
 
@@ -12,7 +13,7 @@ export interface Lecture {
   duration_sec: number;
   segments: Segment[];
   slides_text: string | null;
-  notes: Notes | null;
+  notes: SavedNotes | null;
   quiz: Quiz | null;
   flashcards: Flashcards | null;
   /** Set while the notes are shared by link (needs migration 0009). */
