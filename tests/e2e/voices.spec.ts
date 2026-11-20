@@ -87,3 +87,42 @@ test('if a natural voice fails, the device voice says the line instead of going 
     .toEqual(expect.arrayContaining(['What is a black hole?', 'Gravity so strong light cannot escape.']));
   expect(ttsCalls).toBeGreaterThan(0);
 });
+
+test('the podcast and video language can differ from the app language, and the choice is kept', async ({ page }) => {
+  const voices = await mockNaturalVoices(page);
+  const locales: string[] = [];
+  await page.route('**/api/ai/videoScript', (r) => {
+    locales.push((r.request().postDataJSON() as { locale: string }).locale);
+    return r.fulfill({ json: { data: { title: 'נגזרות', scenes: Array.from({ length: 3 }, (_, i) => ({
+      kind: 'title', heading: `סצנה ${i + 1}`, items: [], latex: '', fn: '', xMin: 0, xMax: 1, narration: 'נגזרת היא קצב שינוי.',
+    })) } } });
+  });
+  page.on('request', (r) => { if (r.url().endsWith('/api/ai/podcastScript')) locales.push((r.postDataJSON() as { locale: string }).locale); });
+  await onboard(page); // the app is in English
+
+  await page.goto('/podcasts');
+  await expect(page.getByRole('radio', { name: 'English' })).toBeChecked();
+  await page.getByRole('radio', { name: 'עברית' }).click();
+  await page.locator('#media-prompt').fill('black holes');
+  await page.getByRole('button', { name: 'Make the episode' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Black holes' })).toBeVisible();
+  expect(locales).toEqual(['he']);
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect.poll(() => voices).toContain('he-IL-HilaNeural');
+  expect(voices.every((v) => v.startsWith('he-IL'))).toBe(true);
+  await page.getByRole('button', { name: 'Pause' }).click();
+
+  // The choice is remembered, for videos too, and the app itself stays in English.
+  await page.goto('/videos');
+  await expect(page.getByRole('radio', { name: 'עברית' })).toBeChecked();
+  await page.locator('#media-prompt').fill('derivatives');
+  await page.getByRole('button', { name: 'Make the video' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'נגזרות' })).toBeVisible();
+  expect(locales).toEqual(['he', 'he']);
+  await expect(page.getByRole('link', { name: 'Podcasts' }).first()).toBeVisible();
+
+  await page.goto('/videos');
+  await page.getByRole('radio', { name: 'English' }).click();
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'English' })).toBeChecked();
+});
