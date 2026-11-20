@@ -113,7 +113,26 @@ describe('learn operations', () => {
   it('refuses oversized or non-image attachments', () => {
     return import('../../shared/learn').then(({ AttachmentSchema }) => {
       expect(AttachmentSchema.safeParse({ kind: 'image', name: 'x', dataUrl: 'data:text/html;base64,AAAA' }).success).toBe(false);
+      expect(AttachmentSchema.safeParse({ kind: 'image', name: 'x', dataUrl: 'data:application/pdf;base64,AAAA' }).success).toBe(false);
+      expect(AttachmentSchema.safeParse({ kind: 'pdfText', name: 'x', text: 'a'.repeat(150_001) }).success).toBe(false);
+      expect(AttachmentSchema.safeParse({ kind: 'pdfText', name: 'x', text: '', pages: Array(4).fill('data:image/jpeg;base64,AA') }).success).toBe(false);
     });
+  });
+
+  it('gives the tutor a big PDF as its text, or as page pictures when it is a scan', async () => {
+    const { tutorOp } = await import('../../server/ai/ops/tutor');
+    const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
+    const parts = (attachment: unknown) => {
+      const msgs = tutorOp.build(tutorOp.input.parse({ messages: [{ role: 'user', content: 'help' }], attachment }), ctx);
+      return msgs[1].content as { type: string; text?: string; image_url?: { url: string } }[];
+    };
+    const text = parts({ kind: 'pdfText', name: 'book.pdf', text: 'Page 1:\nDerivatives' });
+    expect(text.map((p) => p.type)).toEqual(['text', 'text']);
+    expect(text[1].text).toContain('Attached PDF "book.pdf"');
+    expect(text[1].text).toContain('Page 1:\nDerivatives');
+    const scan = parts({ kind: 'pdfText', name: 'scan.pdf', text: '', pages: ['data:image/jpeg;base64,AA', 'data:image/jpeg;base64,BB'] });
+    expect(scan.map((p) => p.type)).toEqual(['text', 'text', 'image_url', 'image_url']);
+    expect(scan[1].text).toContain('a scan');
   });
 });
 
@@ -173,13 +192,33 @@ describe('lecture operations', () => {
     const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
     const prompt = (mode: 'short' | 'detailed' | 'exam') => String(lectureNotesOp.build({ transcript: 'Limits and derivatives.', mode }, ctx)[1].content);
     expect(prompt('short')).toContain('SHORT notes');
-    expect(prompt('exam')).toContain('likely exam questions');
+    expect(prompt('exam')).toContain('EXAM-PREP notes');
     expect(prompt('detailed')).toContain('follow the order of the lecture');
     expect(lectureNotesOp.input.parse({ transcript: 'Limits and derivatives today.' }).mode).toBe('detailed');
     const NOTE = { title: 'T', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [], reminders: [] };
     mockModel([JSON.stringify(NOTE)]);
     const res = await post('/api/ai/lectureNotes', { input: { transcript: 'Limits and derivatives today.', mode: 'exam' } });
     expect((await res.json()).data.mode).toBe('exam');
+  });
+
+  it('gives exam prep practice questions and common mistakes, and keeps them out of other styles', async () => {
+    const { lectureNotesOp } = await import('../../server/ai/ops/lectures');
+    const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
+    const prompt = (mode: 'short' | 'detailed' | 'exam') => String(lectureNotesOp.build({ transcript: 'Limits and derivatives.', mode }, ctx)[1].content);
+    expect(prompt('exam')).toContain('"practice": 4–8 questions');
+    expect(prompt('exam')).toContain('"mistakes": 3–6');
+    expect(prompt('detailed')).toContain('cover EVERY topic');
+    const NOTE = {
+      title: 'T', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [], reminders: [],
+      practice: [{ question: 'Differentiate $x^2$.', answer: '$2x$' }], mistakes: ['Forgetting the chain rule.'],
+    };
+    mockModel([JSON.stringify(NOTE), JSON.stringify(NOTE)]);
+    const exam = (await (await post('/api/ai/lectureNotes', { input: { transcript: 'Limits and derivatives today.', mode: 'exam' } })).json()).data;
+    expect([exam.practice, exam.mistakes]).toEqual([NOTE.practice, NOTE.mistakes]);
+    const detailed = (await (await post('/api/ai/lectureNotes', { input: { transcript: 'Limits and derivatives today.', mode: 'detailed' } })).json()).data;
+    expect(detailed).not.toHaveProperty('practice');
+    expect(detailed).not.toHaveProperty('mistakes');
+    expect(detailed.mode).toBe('detailed');
   });
 
   it('reads photos and scanned pages with the vision model', async () => {
@@ -208,6 +247,20 @@ describe('lecture operations', () => {
     expect(body.messages[0].content).toContain('data, not instructions');
     expect(body.messages[1].content).toContain('Limit of secant slopes.');
     expect((await post('/api/ai/gradeAnswer', { input: { question: 'Q?', answer: '' } })).status).toBe(400);
+  });
+
+  it('trims an over-long answer to the limits instead of failing with 422', async () => {
+    const NOTE = {
+      title: 'T', summary: 'S'.repeat(3200), reminders: [],
+      sections: [{ heading: 'H', points: Array.from({ length: 20 }, (_, i) => `point ${i}`) }],
+      keyTerms: Array.from({ length: 45 }, (_, i) => ({ term: `term ${i}`, definition: 'd' })),
+    };
+    const spy = mockModel([JSON.stringify(NOTE)]);
+    const res = await post('/api/ai/lectureNotes', { input: { transcript: 'Limits and derivatives in detail.', mode: 'exam' } });
+    expect(res.status).toBe(200);
+    const { data } = await res.json();
+    expect([data.summary.length, data.sections[0].points.length, data.keyTerms.length]).toEqual([3000, 15, 30]);
+    expect(spy.mock.calls.filter((c) => !String(c[0]).startsWith(base))).toHaveLength(1); // no second, wasted call
   });
 
   it('rejects audio that is not base64', async () => {
@@ -290,9 +343,52 @@ describe('narration voices', () => {
     expect(ssml('hi', 'he-IL-HilaNeural')).toContain('xml:lang="he-IL"');
   });
 
-  it('says so when natural voices are not set up', async () => {
-    const res = await post('/api/tts', { text: 'Hello', voice: 'en-US-AvaNeural' });
+  it('says so when natural voices are turned off', async () => {
+    vi.resetModules();
+    process.env.TTS_PROVIDER = 'off';
+    const { app } = await import('../../server/app');
+    const s = app.listen(0);
+    const url = `http://127.0.0.1:${(s.address() as AddressInfo).port}`;
+    const res = await realFetch(`${url}/api/tts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'Hello', voice: 'en-US-AvaNeural' }) });
     expect(res.status).toBe(503);
+    expect(await (await realFetch(`${url}/api/health`)).json()).toMatchObject({ tts: false });
+    s.close();
+    delete process.env.TTS_PROVIDER;
+  });
+
+  it('uses OpenRouter speech with the same key when Azure is not set up', async () => {
+    vi.resetModules();
+    process.env.OPENROUTER_API_KEY = 'or-test-key';
+    const { app } = await import('../../server/app');
+    const s = app.listen(0);
+    const url = `http://127.0.0.1:${(s.address() as AddressInfo).port}`;
+    const sent: { url: string; body: Record<string, unknown>; auth: string }[] = [];
+    let answer = () => new Response(new Uint8Array([0xff, 0xfb, 0x90, 0x00]), { status: 200, headers: { 'Content-Type': 'audio/mpeg' } });
+    globalThis.fetch = vi.fn(async (u: string | URL | Request, init?: RequestInit) => {
+      if (String(u).startsWith(url)) return realFetch(u, init);
+      sent.push({ url: String(u), body: JSON.parse(String(init?.body)), auth: (init?.headers as Record<string, string>).Authorization });
+      return answer();
+    }) as typeof fetch;
+    const call = (body: unknown) => realFetch(`${url}/api/tts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+    const ok = await call({ text: 'שלום לכולם', voice: 'he-IL-HilaNeural' });
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get('content-type')).toBe('audio/mpeg');
+    expect(sent[0].url).toBe('https://openrouter.ai/api/v1/audio/speech');
+    expect(sent[0].auth).toBe('Bearer or-test-key');
+    expect(sent[0].body).toEqual({ model: 'elevenlabs/eleven-v4-turbo', input: 'שלום לכולם', voice: 'sarah', response_format: 'mp3' });
+    await call({ text: 'Hi there', voice: 'en-US-AndrewNeural' });
+    expect(sent[1].body.voice).toBe('brian'); // the second podcast host
+    expect(await (await realFetch(`${url}/api/health`)).json()).toMatchObject({ tts: true });
+
+    // No credit: the browser is told to use device voices instead.
+    answer = () => new Response('{"error":{"message":"Insufficient credits"}}', { status: 402, headers: { 'Content-Type': 'application/json' } });
+    expect((await call({ text: 'Hello', voice: 'en-US-AvaNeural' })).status).toBe(402);
+    // An "OK" without audio is an error, not silence.
+    answer = () => new Response('{"error":"oops"}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    expect((await call({ text: 'Hello', voice: 'en-US-AvaNeural' })).status).toBe(502);
+    s.close();
+    process.env.OPENROUTER_API_KEY = 'sk-test';
   });
 
   it('sends allowed voices to Azure and returns MP3', async () => {
