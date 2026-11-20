@@ -6,6 +6,10 @@ import { isNativeApp } from '@/lib/platform';
 import { upNext, type ClassSlot } from '@shared/schedule';
 import { scheduleRepo } from './scheduleRepo';
 import { onReminderTap, syncNativeReminders, useWebReminders } from './reminders';
+import { onNotificationOpen, useWebStudyReminder } from './notify';
+import { activityRepo } from '@/features/stats/activity';
+import { localDay, streaks } from '@shared/activity';
+import { useMemo } from 'react';
 
 /** "Calculus starts at 10:00 — Record it", shown shortly before and during a class. */
 export const UpNextBanner = () => {
@@ -37,11 +41,16 @@ export const ClassReminders = () => {
   const text = useCallback((s: ClassSlot) => ({ title: t.schedule.reminderTitle(s.name), body: t.schedule.reminderBody(s.remindMinutes) }), [t]);
   const open = useCallback((id: string) => navigate(`/lectures/new?class=${id}`), [navigate]);
   useWebReminders(text, open);
+  const go = useCallback((path: string) => navigate(path), [navigate]);
+  const studyText = useMemo(() => ({ title: t.notify.studyTitle, body: t.notify.studyBody }), [t]);
+  const studiedToday = useCallback(async () => streaks(await activityRepo.list(7), localDay()).studiedToday, []);
+  useWebStudyReminder(studyText, studiedToday, go);
   useEffect(() => {
     if (!isNativeApp()) return;
     onReminderTap(open);
+    onNotificationOpen(go);
     // Keep the phone's weekly reminders in step with the schedule (another device may have changed it).
     scheduleRepo.list().then((s) => syncNativeReminders(s, text)).catch(() => {});
-  }, [open, text]);
+  }, [open, text, go]);
   return null;
 };

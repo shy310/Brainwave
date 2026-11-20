@@ -20,6 +20,7 @@ import type { Quiz } from '@shared/learn';
 import { FlashcardDeck } from './Flashcards';
 import { TranscriptPanel } from './TranscriptPanel';
 import { NotesView } from './NotesView';
+import { notifyIfAway } from '@/features/schedule/notify';
 import { AskPanel } from './AskPanel';
 import { rate, reviewRepo } from './reviews';
 import { cardKey, type CardState } from '@shared/srs';
@@ -112,6 +113,7 @@ export default function LecturePage() {
         const current = lecture?.notes ?? null;
         const notes = await callAi<Notes>('lectureNotes', { ...input, mode: mode ?? current?.mode ?? profile?.summary_mode ?? 'detailed' });
         await patch({ notes: withNewNotes(current, notes, !fresh), ...(lecture?.title ? {} : { title: notes.title.slice(0, 200) }) });
+        void notifyIfAway(t.notify.notesReady, lecture?.title || notes.title, `/lectures/${id}`, (p) => navigate(p));
       } else if (kind === 'quiz') {
         const quiz = await callAi<Quiz>('lectureQuiz', { ...input, count: 6 });
         await patch({ quiz });
@@ -125,7 +127,7 @@ export default function LecturePage() {
     } finally {
       setBusy('');
     }
-  }, [input, transcript, patch, lecture?.title, lecture?.notes, profile?.summary_mode, toMessage]);
+  }, [input, transcript, patch, lecture?.title, lecture?.notes, profile?.summary_mode, toMessage, t, id, navigate]);
 
   /** Make again whatever was made from the old transcript. */
   const updateFromEdits = async () => {
