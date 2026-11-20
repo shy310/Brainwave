@@ -270,6 +270,10 @@ export const he: Dict = {
       done: 'סיימת להפעם!', doneBody: (n: number) => (n === 1 ? 'חזרת על כרטיסייה אחת.' : `חזרת על ${n} כרטיסיות.`),
       next: (when: string) => `החזרה הבאה: ${when}`,
     },
+    askPanel: {
+      open: 'שאלה', title: 'שאלות על ההרצאה', close: 'סגירה',
+      aboutSelection: 'לשאול על זה', quote: (q: string) => `לגבי „${q}”: `,
+    },
     notesStyle: 'סגנון הסיכום', notesStyleHint: 'איך ייכתבו סיכומי הרצאות חדשים. אפשר להחליף בכל הרצאה.',
     practice: 'שאלות לתרגול', practiceHint: 'נסו לענות לבד לפני שאתם מסתכלים בתשובה.',
     showAnswer: 'הצגת התשובה', hideAnswer: 'הסתרת התשובה', mistakes: 'טעויות נפוצות',

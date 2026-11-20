@@ -20,6 +20,7 @@ import type { Quiz } from '@shared/learn';
 import { FlashcardDeck } from './Flashcards';
 import { TranscriptPanel } from './TranscriptPanel';
 import { NotesView } from './NotesView';
+import { AskPanel } from './AskPanel';
 import { rate, reviewRepo } from './reviews';
 import { cardKey, type CardState } from '@shared/srs';
 import { folderRepo, type Folder } from './folders';
@@ -64,6 +65,8 @@ export default function LecturePage() {
   const [name, setName] = useState('');
   const [quizRound, setQuizRound] = useState(0);
   const autoNotes = useRef(false);
+  /** Notes and transcript: text here can be selected and asked about. */
+  const content = useRef<HTMLDivElement>(null);
   /** The transcript was edited after notes, a quiz or flashcards were made. */
   const [stale, setStale] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -221,6 +224,7 @@ export default function LecturePage() {
           </div>
 
           {error && <Alert tone="error">{error}</Alert>}
+          <AskPanel sessionKey={`bw.lectureChat.${id}`} context={chatContext} within={content} hidden={tab === 'ask'} />
 
           {stale && (
             <Alert>
@@ -231,6 +235,7 @@ export default function LecturePage() {
             </Alert>
           )}
 
+          <div ref={content} className="space-y-6">
           {tab === 'notes' && (
             busy === 'notes' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.writingNotes}</Card>
             : lecture.notes ? (
@@ -282,6 +287,8 @@ export default function LecturePage() {
                 if (lecture.notes || lecture.quiz || lecture.flashcards) setStale(true);
               }} />
           )}
+
+          </div>
 
           {tab === 'quiz' && (
             busy === 'quiz' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.makingQuiz}</Card>
