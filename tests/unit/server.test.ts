@@ -168,6 +168,20 @@ describe('lecture operations', () => {
     expect(new Set(models).size).toBe(1);
   });
 
+  it('writes notes in the chosen style and records it', async () => {
+    const { lectureNotesOp } = await import('../../server/ai/ops/lectures');
+    const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
+    const prompt = (mode: 'short' | 'detailed' | 'exam') => String(lectureNotesOp.build({ transcript: 'Limits and derivatives.', mode }, ctx)[1].content);
+    expect(prompt('short')).toContain('SHORT notes');
+    expect(prompt('exam')).toContain('likely exam questions');
+    expect(prompt('detailed')).toContain('follow the order of the lecture');
+    expect(lectureNotesOp.input.parse({ transcript: 'Limits and derivatives today.' }).mode).toBe('detailed');
+    const NOTE = { title: 'T', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [], reminders: [] };
+    mockModel([JSON.stringify(NOTE)]);
+    const res = await post('/api/ai/lectureNotes', { input: { transcript: 'Limits and derivatives today.', mode: 'exam' } });
+    expect((await res.json()).data.mode).toBe('exam');
+  });
+
   it('rejects audio that is not base64', async () => {
     const res = await post('/api/ai/transcribe', { input: { audio: '<script>'.repeat(30) } });
     expect(res.status).toBe(400);
@@ -175,7 +189,7 @@ describe('lecture operations', () => {
 
   it('writes notes in the student language and grounds the tutor in a lecture', async () => {
     const { lectureNotesOp } = await import('../../server/ai/ops/lectures');
-    const msgs = lectureNotesOp.build({ transcript: 'Today we talk about derivatives and limits.' }, { userId: 'u', demo: true, locale: 'he', grade: 'college' });
+    const msgs = lectureNotesOp.build({ transcript: 'Today we talk about derivatives and limits.', mode: 'detailed' }, { userId: 'u', demo: true, locale: 'he', grade: 'college' });
     expect(String(msgs[0].content)).toContain('Hebrew');
     const { tutorOp } = await import('../../server/ai/ops/tutor');
     const tutorMsgs = tutorOp.build(tutorOp.input.parse({

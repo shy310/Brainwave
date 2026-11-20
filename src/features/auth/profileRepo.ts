@@ -15,7 +15,8 @@ export const profileRepo = {
     }
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, grade, locale, tutor_style, onboarded')
+      // '*' keeps working before and after a migration adds a column.
+      .select('*')
       .eq('id', userId)
       .maybeSingle();
     if (error) throw error;
@@ -33,7 +34,8 @@ export const profileRepo = {
     const { data, error } = await supabase
       .from('profiles')
       .upsert({ id: userId, ...patch, updated_at: new Date().toISOString() })
-      .select('id, display_name, grade, locale, tutor_style, onboarded')
+      // '*' keeps working before and after a migration adds a column.
+      .select('*')
       .single();
     if (error) throw error;
     return ProfileSchema.parse(data);

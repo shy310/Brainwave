@@ -34,6 +34,14 @@ export const LectureTextInputSchema = z.object({
   title: z.string().max(200).optional(),
 });
 
+/** How notes are written: a quick overview, full notes, or focused on the exam. */
+export const SUMMARY_MODES = ['short', 'detailed', 'exam'] as const;
+export type SummaryMode = (typeof SUMMARY_MODES)[number];
+
+export const NotesInputSchema = LectureTextInputSchema.extend({
+  mode: z.enum(SUMMARY_MODES).default('detailed'),
+});
+
 export const NotesSchema = z.object({
   title: z.string().min(1).max(200),
   summary: z.string().min(1).max(3000),
@@ -44,6 +52,8 @@ export const NotesSchema = z.object({
   keyTerms: z.array(z.object({ term: z.string().max(200), definition: z.string().max(1000) })).max(30),
   /** Homework, deadlines and exam hints the lecturer mentioned. */
   reminders: z.array(z.string().max(500)).max(15),
+  /** Which style these notes were written in (set by the server, not the model). */
+  mode: z.enum(SUMMARY_MODES).optional(),
 });
 export type Notes = z.infer<typeof NotesSchema>;
 
