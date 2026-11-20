@@ -50,12 +50,18 @@ export const en = {
   home: {
     greeting: (name: string) => (name ? `Hi, ${name}` : 'Hi there'),
     subtitle: 'What do you want to work on today?',
-    learnTitle: 'Learn', learnBody: 'Courses from kindergarten to college, with a tutor that guides you step by step.',
+    short: {
+      tutor: 'Ask anything, or send a photo of your work.', grader: 'A score and feedback on any answer or essay.',
+      groups: 'Share notes and quizzes with classmates.', learn: 'Courses from kindergarten to college.',
+      lectures: 'Notes, quizzes and flashcards from your classes.', videos: 'Short animated lessons on any topic.',
+      podcasts: 'Two hosts talk through any topic.',
+    },
+    learnTitle: 'Learn',
     goal: 'What do you want most?', goals: { understand: 'Understand my courses deeply', exams: 'Prepare for exams', quick: 'Quick reviews' },
     lectureLanguage: 'My lectures are usually in', lectureLanguageHint: 'Used for new recordings. You can change it for each lecture.',
-    lecturesTitle: 'Lectures', lecturesBody: 'Record or upload a class and get a transcript, notes, a quiz and flashcards.',
-    videosTitle: 'Video lessons', videosBody: 'Turn any topic or lecture into a short animated, narrated lesson.',
-    podcastsTitle: 'Podcasts', podcastsBody: 'Listen to two hosts talk through any topic — great for revision on the go.',
+    lecturesTitle: 'Lectures',
+    videosTitle: 'Video lessons',
+    podcastsTitle: 'Podcasts',
   },
   game: {
     name: 'Summit', tagline: 'Climb as high as you can by answering questions from your own lectures.',

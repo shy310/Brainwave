@@ -24,8 +24,25 @@ export const WeekCard = () => {
     return new Date(y, m - 1, d).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { weekday: 'short' });
   };
 
+  // Nothing studied this week yet: a short nudge instead of an empty chart and four zeros.
+  const empty = !current && !total.minutes && !total.cards && !total.quizzes && !total.lectures;
+
+  if (empty) {
+    return (
+      <Card className="flex items-center gap-4 p-4 sm:p-5">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent-400/15 text-accent-600">
+          <Flame className="size-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="font-semibold">{tw.noStreak}</h2>
+          <p className="text-sm text-muted">{tw.keepGoing}</p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="space-y-5 p-6">
+    <Card className="space-y-5 p-5 sm:p-6">
       <div className="flex flex-wrap items-center gap-4">
         <span className={cn('flex size-12 items-center justify-center rounded-2xl', current ? 'bg-accent-400/15 text-accent-600' : 'bg-surface-2 text-muted')}>
           <Flame className="size-6" aria-hidden="true" />

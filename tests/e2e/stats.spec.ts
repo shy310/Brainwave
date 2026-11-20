@@ -47,3 +47,11 @@ for (const lang of ['en', 'he'] as const) {
     await expect(minutes.locator('dd')).toHaveText('37');
   });
 }
+
+test('a new student sees a short nudge instead of an empty chart and four zeros', async ({ page }) => {
+  await onboard(page);
+  await expect(page.getByRole('heading', { name: en.week.noStreak })).toBeVisible();
+  await expect(page.getByText(en.week.keepGoing)).toBeVisible();
+  await expect(page.getByRole('table', { name: en.week.chart })).toHaveCount(0);
+  await expect(page.getByText(en.week.totals.minutes)).toHaveCount(0);
+});
