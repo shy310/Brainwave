@@ -12,6 +12,7 @@ import { linkButton } from '@/features/learn/TopicPage';
 import { storage } from '@/lib/storage';
 import { lectureRepo, type LectureSummary } from './repo';
 import { arrangeLectures, folderRepo, type Folder, type SortKey } from './folders';
+import { useDragReorder } from './useDragReorder';
 import { reviewCards, reviewRepo } from './reviews';
 import { dueCount } from '@shared/srs';
 import { UpNextBanner } from '@/features/schedule/UpNext';
@@ -103,6 +104,14 @@ export default function LecturesPage() {
     setFolder('all');
   };
 
+  // Drag folders to reorder them (mouse, or long-press on touch); the arrow buttons do the same from the keyboard.
+  const drag = useDragReorder(folders.map((f) => f.id), (ids) => {
+    const next = ids.map((id, position) => ({ ...folders.find((f) => f.id === id)!, position }));
+    setFolders(next);
+    void folderRepo.reorder(ids).catch(() => setError(true));
+  });
+  const shownFolders = drag.order.map((id) => folders.find((f) => f.id === id)).filter((f): f is Folder => !!f);
+
   const hasAny = Boolean(items?.length);
 
   return (
@@ -166,8 +175,10 @@ export default function LecturesPage() {
             <button type="button" className={chip(activeFolder === 'all')} aria-pressed={activeFolder === 'all'} onClick={() => setFolder('all')}>
               {tl.all} <span className="opacity-70">{items!.length}</span>
             </button>
-            {folders.map((f) => (
-              <button key={f.id} type="button" className={chip(activeFolder === f.id)} aria-pressed={activeFolder === f.id} onClick={() => { setFolder(f.id); setRenaming(false); }}>
+            {shownFolders.map((f) => (
+              <button key={f.id} type="button" {...drag.itemProps(f.id)}
+                className={cn(chip(activeFolder === f.id), 'touch-pan-x select-none', drag.dragging === f.id && 'cursor-grabbing opacity-80 shadow-[var(--shadow-lift)] ring-2 ring-brand-400')}
+                aria-pressed={activeFolder === f.id} onClick={() => { setFolder(f.id); setRenaming(false); }}>
                 <FolderIcon className="size-4" aria-hidden="true" /><span dir="auto">{f.name}</span> <span className="opacity-70">{count(f.id)}</span>
               </button>
             ))}
