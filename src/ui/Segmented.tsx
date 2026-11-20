@@ -3,10 +3,12 @@ import { cn } from '@/lib/cn';
 interface Option<T extends string> { value: T; label: string }
 
 /** Accessible single-choice toggle group (radio semantics). */
-export const Segmented = <T extends string>({ value, options, onChange, label }: {
+export const Segmented = <T extends string>({ value, options, onChange, label, scroll }: {
   value: T; options: Option<T>[]; onChange: (v: T) => void; label: string;
+  /** Stay on one line (inside a container that scrolls sideways) instead of wrapping. */
+  scroll?: boolean;
 }) => (
-  <div role="radiogroup" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-xl bg-surface-2 p-1">
+  <div role="radiogroup" aria-label={label} className={cn('inline-flex gap-1 rounded-xl bg-surface-2 p-1', scroll ? 'flex-nowrap whitespace-nowrap' : 'flex-wrap')}>
     {options.map(o => (
       <button
         key={o.value}

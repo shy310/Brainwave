@@ -182,6 +182,19 @@ describe('lecture operations', () => {
     expect((await res.json()).data.mode).toBe('exam');
   });
 
+  it('reads photos and scanned pages with the vision model', async () => {
+    const IMG = 'data:image/jpeg;base64,' + 'A'.repeat(400);
+    const spy = mockModel(['{"text":"$x^2 + 1$"}']);
+    const res = await post('/api/ai/imageText', { input: { image: IMG, kind: 'page', language: 'he' } });
+    expect(await res.json()).toEqual({ data: { text: '$x^2 + 1$' } });
+    const body = JSON.parse(String(spy.mock.calls.at(-1)![1]!.body));
+    expect(JSON.stringify(body.messages)).toContain('"image_url"');
+    expect(body.messages[0].content).toContain('scanned page');
+    expect(body.messages[0].content).toContain('Hebrew');
+    expect((await post('/api/ai/imageText', { input: { image: 'data:application/pdf;base64,AAAA' } })).status).toBe(400);
+    expect((await post('/api/ai/imageText', { input: { image: 'data:image/png;base64,<script>' } })).status).toBe(400);
+  });
+
   it('rejects audio that is not base64', async () => {
     const res = await post('/api/ai/transcribe', { input: { audio: '<script>'.repeat(30) } });
     expect(res.status).toBe(400);

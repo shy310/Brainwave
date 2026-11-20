@@ -9,7 +9,7 @@ import { QuizSchema } from '../../../shared/learn.js';
 import { sanitizeQuestions } from '../../../shared/math/validate.js';
 import { z } from 'zod';
 import {
-  FlashcardsInputSchema, FlashcardsSchema, LectureQuizInputSchema, NotesInputSchema, NotesSchema,
+  FlashcardsInputSchema, FlashcardsSchema, ImageTextInputSchema, LectureQuizInputSchema, NotesInputSchema, NotesSchema,
   SlidesInputSchema, SlidesTextSchema, TranscribeInputSchema, TranscriptPieceSchema, type LectureLanguage, type SummaryMode,
 } from '../../../shared/lectures.js';
 
@@ -218,4 +218,33 @@ export const slidesTextOp = defineOp({
   ],
 });
 
-export const lectureOps = { transcribeOp, lectureNotesOp, lectureQuizOp, flashcardsOp, slidesTextOp };
+export const imageTextOp = defineOp({
+  name: 'imageText',
+  input: ImageTextInputSchema,
+  output: TranscriptPieceSchema,
+  cost: 1,
+  maxTokens: 6000,
+  temperature: 0,
+  build: ({ image, kind, language }) => [
+    {
+      role: 'system',
+      content: `You read ${kind === 'page' ? 'a scanned page of a document' : 'a photo a student took of a whiteboard, handwritten notes, slides or a textbook page'} and write out its content as clean text for study notes.
+- Write everything that is written, in reading order (right-to-left for Hebrew). Do NOT translate and do NOT summarise.
+- Write math in LaTeX inside $...$ (display equations in $$...$$).
+- Keep headings, lists and line breaks where they help. For a table, write it as a simple Markdown table.
+- For a diagram or graph, add one short line in [brackets] saying what it shows.
+- Mark words you cannot read as [?]. Ignore things that are not content (fingers, desk, glare).
+- If there is no readable content, return an empty "text".
+${LANGUAGE_HINT[language]}`,
+    },
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Write out the content of this image.' },
+        { type: 'image_url', image_url: { url: image } },
+      ],
+    },
+  ],
+});
+
+export const lectureOps = { imageTextOp, transcribeOp, lectureNotesOp, lectureQuizOp, flashcardsOp, slidesTextOp };

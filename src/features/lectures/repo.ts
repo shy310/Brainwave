@@ -80,7 +80,11 @@ export const lectureRepo = {
       writeDemo([lecture, ...readDemo()]);
       return lecture;
     }
-    const { data, error } = await supabase.from('lectures').insert(base).select('*').single();
+    let { data, error } = await supabase.from('lectures').insert(base).select('*').single();
+    // Before migration 0008, the database only allows record/upload/text: save PDF and photo notes as text.
+    if (error?.code === '23514' && (base.source === 'pdf' || base.source === 'image')) {
+      ({ data, error } = await supabase.from('lectures').insert({ ...base, source: 'text' }).select('*').single());
+    }
     if (error) throw error;
     return data as Lecture;
   },
