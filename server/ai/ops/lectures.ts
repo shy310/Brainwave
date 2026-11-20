@@ -1,9 +1,13 @@
-import { defineOp, type OpContext } from '../ops.js';
+import { defineOp, type AiOp, type OpContext } from '../ops.js';
+import { runStructured } from '../run.js';
+import { transcribeSpeech } from '../stt.js';
+import { env } from '../../env.js';
 import { audience, QUESTION_RULES } from '../prompts.js';
 import { AiError } from '../openrouter.js';
 import { LOCALE_NAME } from '../../../shared/locales.js';
 import { QuizSchema } from '../../../shared/learn.js';
 import { sanitizeQuestions } from '../../../shared/math/validate.js';
+import { z } from 'zod';
 import {
   FlashcardsInputSchema, FlashcardsSchema, LectureQuizInputSchema, LectureTextInputSchema, NotesSchema,
   SlidesInputSchema, SlidesTextSchema, TranscribeInputSchema, TranscriptPieceSchema, type LectureLanguage,
@@ -15,7 +19,10 @@ const LANGUAGE_HINT: Record<LectureLanguage, string> = {
   he: 'The lecture is in Hebrew (it may include English technical terms — keep those in English). Write Hebrew in Hebrew script, without niqqud.',
 };
 
-export const transcribeOp = defineOp({
+const CLEANUP_RULES = `- Clean it up: remove filler words (um, uh, אה, אמ), false starts and repeated words; add punctuation; start a new paragraph when the topic shifts.
+- When the speaker reads out math, write it in LaTeX inside $...$ (e.g. "x squared plus one" → $x^2 + 1$).`;
+
+export const transcribeLlm: AiOp<z.infer<typeof TranscribeInputSchema>, z.infer<typeof TranscriptPieceSchema>> = {
   name: 'transcribe',
   input: TranscribeInputSchema,
   output: TranscriptPieceSchema,
@@ -27,8 +34,7 @@ export const transcribeOp = defineOp({
       role: 'system',
       content: `You transcribe one-minute pieces of recorded university and school lectures into clean text for students.
 - Write what was said. Do NOT translate and do NOT summarise.
-- Clean it up: remove filler words (um, uh, אה, אמ), false starts and repeated words; add punctuation; start a new paragraph when the topic shifts.
-- When the speaker reads out math, write it in LaTeX inside $...$ (e.g. "x squared plus one" → $x^2 + 1$).
+${CLEANUP_RULES}
 - Mark words you cannot make out as [inaudible]. If there is no speech at all, return an empty "text".
 - The piece may start or end mid-sentence; transcribe it as it is.
 ${LANGUAGE_HINT[language]}${topic ? `\nThe lecture is about: ${topic}` : ''}`,
@@ -41,6 +47,55 @@ ${LANGUAGE_HINT[language]}${topic ? `\nThe lecture is about: ${topic}` : ''}`,
       ],
     },
   ],
+};
+
+const CleanupInputSchema = z.object({ text: z.string().max(40_000), language: TranscribeInputSchema.shape.language, topic: z.string().optional() });
+
+/** Optional second pass for speech-to-text output: tidy the TEXT, never the audio. Not a public operation. */
+const cleanupOp: AiOp<z.infer<typeof CleanupInputSchema>, z.infer<typeof TranscriptPieceSchema>> = {
+  name: 'transcriptCleanup',
+  input: CleanupInputSchema,
+  output: TranscriptPieceSchema,
+  cost: 0,
+  maxTokens: 6000,
+  temperature: 0,
+  build: ({ text, language, topic }) => [
+    {
+      role: 'system',
+      content: `You tidy a raw speech-to-text transcript of one piece of a lecture for students.
+- Keep every sentence and the speaker's wording. Do NOT summarise, translate, reorder or add anything.
+${CLEANUP_RULES}
+- Fix obvious mis-hearings of technical terms only when the context makes the right word certain.
+${LANGUAGE_HINT[language]}${topic ? `\nThe lecture is about: ${topic}` : ''}`,
+    },
+    { role: 'user', content: `Raw transcript:\n"""\n${text}\n"""` },
+  ],
+};
+
+/** Upstream answers that mean the whole account is blocked; another model won't help. */
+const accountProblem = (err: unknown) => err instanceof AiError && [401, 402, 403].includes(err.upstreamStatus ?? 0);
+
+export const transcribeOp = defineOp({
+  ...transcribeLlm,
+  // TRANSCRIBE_MODE=stt uses a dedicated speech-to-text model; the LLM path is the fallback.
+  run: async (input, ctx: OpContext) => {
+    if (env.transcribeMode === 'stt') {
+      try {
+        const result = await transcribeSpeech({
+          model: env.transcribeModel,
+          audio: input.audio,
+          language: input.language === 'auto' ? undefined : input.language,
+          prompt: input.topic ? `Lecture: ${input.topic}` : undefined,
+        });
+        if (!env.transcribeCleanup || !result.text) return { text: result.text };
+        return await runStructured(cleanupOp, { text: result.text, language: input.language, topic: input.topic }, ctx);
+      } catch (err) {
+        if (accountProblem(err)) throw err;
+        console.warn('Speech-to-text failed; falling back to the LLM transcriber', err instanceof Error ? err.message : err);
+      }
+    }
+    return runStructured(transcribeLlm, input, ctx);
+  },
 });
 
 const lectureBlock = (transcript: string, slides?: string, title?: string) => [

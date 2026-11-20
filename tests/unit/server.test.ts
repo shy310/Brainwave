@@ -12,10 +12,12 @@ process.env.OPENROUTER_API_KEY = 'sk-test';
 
 let server: Server;
 let base = '';
+let serverEnv: Record<string, unknown>;
 const realFetch = globalThis.fetch;
 
 beforeAll(async () => {
   const { app } = await import('../../server/app');
+  serverEnv = (await import('../../server/env')).env as unknown as Record<string, unknown>;
   const { defineOp } = await import('../../server/ai/ops');
   defineOp({
     name: 'testEcho',
@@ -302,5 +304,82 @@ describe('security', () => {
     s.close();
     delete process.env.SUPABASE_URL;
     delete process.env.SUPABASE_ANON_KEY;
+  });
+});
+
+describe('speech-to-text transcription (TRANSCRIBE_MODE=stt)', () => {
+  const AUDIO = 'UklGR'.padEnd(200, 'A');
+  /** Fake OpenRouter: speech-to-text answers with `stt`, chat completions with `chat`. */
+  const mockBoth = (stt: () => Response, chat = '{"text":"from the LLM"}') => {
+    const calls: { url: string; body: Record<string, unknown> }[] = [];
+    globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      if (String(url).startsWith(base)) return realFetch(url, init);
+      calls.push({ url: String(url), body: JSON.parse(String(init?.body ?? '{}')) });
+      if (String(url).endsWith('/audio/transcriptions')) return stt();
+      return new Response(JSON.stringify({ choices: [{ message: { content: chat } }] }), { status: 200 });
+    }) as typeof fetch;
+    return calls;
+  };
+  const withMode = async (patch: Record<string, unknown>, fn: () => Promise<void>) => {
+    const saved = { ...serverEnv };
+    Object.assign(serverEnv, patch);
+    try { await fn(); } finally { Object.assign(serverEnv, saved); }
+  };
+
+  it('sends raw base64 WAV, language and topic to the speech-to-text model', async () => {
+    await withMode({ transcribeMode: 'stt', transcribeModel: 'openai/whisper-large-v3-turbo' }, async () => {
+      const calls = mockBoth(() => Response.json({ text: ' Hello class. ', usage: { cost: 0.001 } }));
+      const res = await post('/api/ai/transcribe', { input: { audio: AUDIO, language: 'he', topic: 'Calculus' } });
+      expect(await res.json()).toEqual({ data: { text: 'Hello class.' } });
+      expect(calls).toHaveLength(1);
+      expect(calls[0].body).toMatchObject({
+        model: 'openai/whisper-large-v3-turbo', input_audio: { data: AUDIO, format: 'wav' },
+        language: 'he', prompt: 'Lecture: Calculus', response_format: 'verbose_json',
+      });
+    });
+  });
+
+  it('lets the model detect the language when set to auto', async () => {
+    await withMode({ transcribeMode: 'stt' }, async () => {
+      const calls = mockBoth(() => Response.json({ text: 'hi' }));
+      await post('/api/ai/transcribe', { input: { audio: AUDIO, language: 'auto' } });
+      expect(calls[0].body).not.toHaveProperty('language');
+    });
+  });
+
+  it('can tidy the text with the LLM afterwards, without sending the audio again', async () => {
+    await withMode({ transcribeMode: 'stt', transcribeCleanup: true }, async () => {
+      const calls = mockBoth(() => Response.json({ text: 'um so x squared' }), '{"text":"So $x^2$."}');
+      const res = await post('/api/ai/transcribe', { input: { audio: AUDIO, language: 'en' } });
+      expect(await res.json()).toEqual({ data: { text: 'So $x^2$.' } });
+      expect(calls).toHaveLength(2);
+      expect(JSON.stringify(calls[1].body)).toContain('um so x squared');
+      expect(JSON.stringify(calls[1].body)).not.toContain('input_audio');
+    });
+  });
+
+  it('falls back to the LLM transcriber when speech-to-text fails', async () => {
+    await withMode({ transcribeMode: 'stt' }, async () => {
+      const calls = mockBoth(() => new Response('unsupported', { status: 400 }));
+      const res = await post('/api/ai/transcribe', { input: { audio: AUDIO, language: 'en' } });
+      expect(await res.json()).toEqual({ data: { text: 'from the LLM' } });
+      expect(calls.map((c) => c.url.split('/').pop())).toEqual(['transcriptions', 'completions']);
+    });
+  });
+
+  it('does not fall back when the account is out of credit', async () => {
+    await withMode({ transcribeMode: 'stt' }, async () => {
+      const calls = mockBoth(() => new Response('no credit', { status: 402 }));
+      const res = await post('/api/ai/transcribe', { input: { audio: AUDIO, language: 'en' } });
+      expect(res.status).toBe(402);
+      expect(calls).toHaveLength(1);
+    });
+  });
+
+  it('uses the LLM path by default', async () => {
+    const calls = mockBoth(() => Response.json({ text: 'never' }));
+    const res = await post('/api/ai/transcribe', { input: { audio: AUDIO, language: 'en' } });
+    expect(await res.json()).toEqual({ data: { text: 'from the LLM' } });
+    expect(calls[0].url).toMatch(/chat\/completions$/);
   });
 });

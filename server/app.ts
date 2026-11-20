@@ -93,7 +93,7 @@ app.post('/api/ai/:op', requireUser, (req: AuthedRequest, res, next) => {
       res.write('data: [DONE]\n\n');
       return res.end();
     }
-    const data = await runStructured(op, parsed.data, ctx);
+    const data = op.run ? await op.run(parsed.data, ctx) : await runStructured(op, parsed.data, ctx);
     return res.json({ data });
   } catch (err) {
     if (op.stream && res.headersSent) {

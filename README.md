@@ -57,6 +57,9 @@ Copy `.env.example` to `.env.local` for local development. On Vercel, add the sa
 | `SUPABASE_SERVICE_ROLE_KEY` | server | Secret key (`sb_secret_…`) or legacy service_role key (quota tracking) — **never** prefix with `VITE_` |
 | `OPENROUTER_API_KEY` | server | Your OpenRouter key |
 | `OPENROUTER_MODEL` | server | Optional, defaults to `google/gemini-2.5-flash` |
+| `TRANSCRIBE_MODE` | server | Optional. `llm` (default) transcribes lectures with the chat model. `stt` uses a dedicated speech-to-text model and falls back to `llm` if it fails. |
+| `TRANSCRIBE_MODEL` | server | Optional speech-to-text model for `stt` mode (default `openai/gpt-4o-mini-transcribe`). Choose it with `scripts/eval-transcription.ts` (see `eval/transcription/README.md`). |
+| `TRANSCRIBE_CLEANUP` | server | Optional. `true` runs the LLM cleanup (fillers, math as LaTeX) on the speech-to-text **text** afterwards. |
 | `AI_DAILY_LIMIT`, `AI_PER_MINUTE_LIMIT` | server | Optional per-student limits (defaults 200 / 20) |
 | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | server | Optional natural voices for videos and podcasts (Azure AI Speech, free F0 tier works). Without them the device's built-in voice is used. |
 | `TTS_DAILY_CHARS` | server | Optional per-student daily narration limit in characters (default 60000) |
