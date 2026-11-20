@@ -21,7 +21,7 @@ export const en = {
     google: 'Continue with Google',
     haveAccount: 'Already have an account?', noAccount: 'New to BrainWave?',
     switchToSignIn: 'Sign in', switchToSignUp: 'Create an account',
-    checkEmail: 'Check your inbox to confirm your email, then sign in.',
+    checkEmail: 'Check your inbox (and spam folder) for a link to confirm your email, then sign in.',
     forgot: 'Forgot password?',
     resetSent: 'If that email has an account, a reset link is on its way.',
     demoTitle: 'Demo mode',
@@ -31,7 +31,7 @@ export const en = {
       generic: 'Something went wrong. Please try again.',
       invalid: 'Email or password is incorrect.',
       weakPassword: 'Use at least 8 characters.',
-      emailTaken: 'An account with this email already exists.',
+      emailTaken: 'There’s already an account with this email. Sign in instead — or use “Forgot password?”.',
     },
   },
   onboarding: {

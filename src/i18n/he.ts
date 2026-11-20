@@ -22,7 +22,7 @@ export const he: Dict = {
     google: 'המשך עם Google',
     haveAccount: 'כבר יש לך חשבון?', noAccount: 'חדש/ה ב-BrainWave?',
     switchToSignIn: 'התחברות', switchToSignUp: 'יצירת חשבון',
-    checkEmail: 'בדקו את תיבת הדואר כדי לאשר את האימייל, ואז התחברו.',
+    checkEmail: 'בדקו את תיבת הדואר (וגם את תיקיית הספאם) לקישור לאישור האימייל, ואז התחברו.',
     forgot: 'שכחת סיסמה?',
     resetSent: 'אם קיים חשבון עם האימייל הזה, קישור לאיפוס בדרך.',
     demoTitle: 'מצב הדגמה',
@@ -32,7 +32,7 @@ export const he: Dict = {
       generic: 'משהו השתבש. נסו שוב.',
       invalid: 'האימייל או הסיסמה שגויים.',
       weakPassword: 'יש להשתמש בלפחות 8 תווים.',
-      emailTaken: 'כבר קיים חשבון עם האימייל הזה.',
+      emailTaken: 'כבר קיים חשבון עם האימייל הזה. התחברו במקום זאת — או השתמשו ב„שכחת סיסמה?”.',
     },
   },
   onboarding: {
