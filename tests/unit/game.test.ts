@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LIVES, MAX_COMBO, answer, buildGame, points, start } from '../../src/features/game/game';
+import { LIVES, MAX_COMBO, answer, buildGame, points, reachedSummit, start } from '../../src/features/game/game';
 
 /** Repeatable "random" numbers. */
 const seeded = (seed = 1) => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
@@ -44,5 +44,14 @@ describe('Summit game', () => {
   it('ends when the questions run out', () => {
     const q = { prompt: 'p', options: ['a', 'b'], correct: 0, from: '' };
     expect(answer(start(), q, 0, 5, 1).over).toBe(true);
+  });
+  it('only says "summit" when the climb ended with lives left and at least one right answer', () => {
+    const q = { prompt: 'Q', options: ['a', 'b'], correct: 0 } as unknown as Parameters<typeof answer>[1];
+    expect(reachedSummit(answer(start(), q, 1, 5, 1))).toBe(false); // a one-question round, missed
+    expect(reachedSummit(answer(start(), q, 0, 5, 1))).toBe(true);
+    let s = start();
+    for (let i = 0; i < LIVES; i++) s = answer(s, q, 1, 5, 20);
+    expect(s.over && !reachedSummit(s)).toBe(true); // out of lives
+    expect(reachedSummit(answer(start(), q, 0, 5, 20))).toBe(false); // not over yet
   });
 });

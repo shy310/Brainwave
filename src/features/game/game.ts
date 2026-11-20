@@ -70,3 +70,6 @@ export const answer = (s: GameState, q: GameQuestion, choice: number | null, sec
   next.over = next.lives <= 0 || next.index >= total;
   return next;
 };
+
+/** The climb ended at the top: lives left and at least one right answer (a short round can end with neither). */
+export const reachedSummit = (s: GameState) => s.over && s.lives > 0 && s.height > 0;

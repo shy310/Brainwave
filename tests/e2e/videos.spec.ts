@@ -79,3 +79,19 @@ test('the video player fits a phone in Hebrew', async ({ page }) => {
   await expect(page.getByText('סצנה 2 מתוך 4').first()).toBeVisible();
   expect(await hasHorizontalOverflow(page)).toBe(false);
 });
+
+test('on a phone, captions sit under the video so they are readable and never cover the slide', async ({ page }) => {
+  await mockAi(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await onboard(page);
+  await page.goto('/videos');
+  await page.getByLabel('What do you want to learn?').fill('parabolas');
+  await page.getByRole('button', { name: 'Make the video' }).click();
+  await page.getByRole('button', { name: 'Play' }).first().click();
+  const caption = page.getByText('Throw a ball and watch its path.');
+  await expect(caption).toBeVisible();
+  const frame = await page.locator('.aspect-video').first().boundingBox();
+  const box = await caption.boundingBox();
+  expect(box!.y).toBeGreaterThanOrEqual(frame!.y + frame!.height); // below the picture, not on it
+  expect(parseFloat(await caption.evaluate((el) => getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
+});
