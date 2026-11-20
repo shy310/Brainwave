@@ -12,20 +12,37 @@ const shuffled = (n: number) => {
   return a;
 };
 
-/** Flip-card revision: cards you miss come back at the end. */
-export const FlashcardDeck = ({ deck }: { deck: Flashcards }) => {
+interface DeckProps {
+  deck: Flashcards;
+  /** Where each card came from (e.g. its lecture), shown under the card. */
+  labels?: string[];
+  /** A round ended: how many cards were known the first time, out of how many. */
+  onFinish?: (knewFirstTry: number, total: number) => void;
+}
+
+/** Flip-card revision: cards you miss come back at the end, and the end shows how it went. */
+export const FlashcardDeck = ({ deck, labels, onFinish }: DeckProps) => {
   const t = useT();
-  const [queue, setQueue] = useState(() => deck.cards.map((_, i) => i));
+  const all = () => deck.cards.map((_, i) => i);
+  const [round, setRound] = useState<number[]>(all);
+  const [queue, setQueue] = useState(all);
   const [flipped, setFlipped] = useState(false);
   const [seen, setSeen] = useState(0);
+  const [missed, setMissed] = useState<Set<number>>(() => new Set());
 
-  useEffect(() => { setQueue(deck.cards.map((_, i) => i)); setFlipped(false); setSeen(0); }, [deck]);
+  const start = (cards: number[]) => { setRound(cards); setQueue(cards); setSeen(0); setFlipped(false); setMissed(new Set()); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => start(all()), [deck]);
 
   const current = queue[0];
   const answer = (knew: boolean) => {
-    setQueue((q) => (knew ? q.slice(1) : [...q.slice(1), q[0]]));
+    if (!knew) setMissed((m) => new Set(m).add(queue[0]));
+    const next = knew ? queue.slice(1) : [...queue.slice(1), queue[0]];
+    setQueue(next);
     setFlipped(false);
     if (knew) setSeen((s) => s + 1);
+    // A round can only end on a card you knew, so `missed` is final here.
+    if (!next.length) onFinish?.(round.length - missed.size, round.length);
   };
 
   useEffect(() => {
@@ -38,10 +55,21 @@ export const FlashcardDeck = ({ deck }: { deck: Flashcards }) => {
   }, []);
 
   if (current === undefined) {
+    const toReview = round.filter((i) => missed.has(i));
     return (
-      <div className="space-y-4 py-8 text-center">
+      <div className="space-y-4 py-6 text-center" aria-live="polite">
         <p className="text-lg font-semibold">{t.lectures.cardsDone}</p>
-        <Button icon={<RotateCcw className="size-4" />} onClick={() => { setQueue(deck.cards.map((_, i) => i)); setSeen(0); }}>{t.lectures.restart}</Button>
+        <p className="text-muted">{t.lectures.cardsResult(round.length - toReview.length, round.length)}</p>
+        {toReview.length > 0 && (
+          <div className="mx-auto max-w-md text-start">
+            <p className="mb-1 text-sm font-medium">{t.lectures.cardsToReview}</p>
+            <ul className="list-disc space-y-1 ps-5 text-sm">{toReview.map((i) => <li key={i}><Rich text={deck.cards[i].front} /></li>)}</ul>
+          </div>
+        )}
+        <div className="flex flex-wrap justify-center gap-2">
+          {toReview.length > 0 && <Button onClick={() => start(toReview)}>{t.lectures.reviewMissed}</Button>}
+          <Button variant={toReview.length ? 'secondary' : 'primary'} icon={<RotateCcw className="size-4" />} onClick={() => start(all())}>{t.lectures.restart}</Button>
+        </div>
       </div>
     );
   }
@@ -50,8 +78,8 @@ export const FlashcardDeck = ({ deck }: { deck: Flashcards }) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between text-sm text-muted">
-        <span>{t.lectures.cardOf(seen + 1, deck.cards.length)}</span>
-        <Button variant="ghost" size="sm" icon={<Shuffle className="size-4" />} onClick={() => { setQueue(shuffled(deck.cards.length)); setSeen(0); setFlipped(false); }}>
+        <span>{t.lectures.cardOf(seen + 1, round.length)}</span>
+        <Button variant="ghost" size="sm" icon={<Shuffle className="size-4" />} onClick={() => start(shuffled(deck.cards.length))}>
           {t.lectures.shuffle}
         </Button>
       </div>
@@ -60,6 +88,7 @@ export const FlashcardDeck = ({ deck }: { deck: Flashcards }) => {
           flipped ? 'border-brand-300 bg-brand-50 dark:border-brand-700 dark:bg-brand-900/30' : 'border-line bg-surface hover:bg-surface-2')}>
         <Rich text={flipped ? card.back : card.front} className={cn(flipped ? 'text-base' : 'text-xl font-medium')} />
         {!flipped && <span className="text-xs text-muted">{t.lectures.flip}</span>}
+        {labels?.[current] && <span className="text-xs text-muted" dir="auto">{t.lectures.study.from(labels[current])}</span>}
       </button>
       {flipped && (
         <div className="grid grid-cols-2 gap-2">

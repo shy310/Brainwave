@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
-import { ArrowLeft, ArrowRight, FileText, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpenCheck, FileText, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
@@ -185,6 +185,12 @@ export default function LecturesPage() {
                 <Button variant="ghost" size="sm" icon={<Trash2 className="size-4" />} onClick={() => void removeFolder()}>{tl.remove}</Button>
               </div>
             )
+          )}
+
+          {activeFolder !== 'none' && (activeFolder === 'all' ? items!.length : count(activeFolder)) > 0 && (
+            <Link to={`/lectures/study?folder=${activeFolder}`} className={cn(linkButton, 'w-full border border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100 sm:w-auto dark:border-brand-800 dark:bg-brand-900/30 dark:text-brand-100')}>
+              <BookOpenCheck className="size-4" aria-hidden="true" />{activeFolder === 'all' ? t.lectures.study.studyAll : t.lectures.study.studyFolder}
+            </Link>
           )}
 
           {shown.length === 0 && (
