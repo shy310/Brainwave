@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { ArrowRight, BookOpen, ClipboardCheck, Mic, Clapperboard, Headphones, MessageCircle } from 'lucide-react';
+import { ArrowRight, BookOpen, ClipboardCheck, Mic, Clapperboard, Headphones, MessageCircle, Users } from 'lucide-react';
 import { useT } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Card } from '@/ui/Card';
@@ -23,10 +23,11 @@ export default function HomePage() {
       </header>
       <UpNextBanner />
       <WeekCard />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[
           { to: '/tutor', icon: MessageCircle, title: t.tutor.title, body: t.tutor.subtitle },
           { to: '/grader', icon: ClipboardCheck, title: t.grader.title, body: t.grader.subtitle },
+          { to: '/groups', icon: Users, title: t.groups.title, body: t.groups.subtitle },
         ].map((q) => (
           <Link key={q.to} to={q.to} className="group block min-w-0 rounded-[var(--radius-card)]">
             <Card className="flex h-full items-center gap-4 p-4 transition-shadow group-hover:shadow-[var(--shadow-lift)]">

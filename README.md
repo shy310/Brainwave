@@ -69,6 +69,11 @@ Copy `.env.example` to `.env.local` for local development. On Vercel, add the sa
 Deleting an account (Settings → Account, required by Google Play) needs `SUPABASE_SERVICE_ROLE_KEY` on the server.
 The public page `/delete-account` explains the steps; use its URL in the Play Console's data-deletion field.
 
+**Database tests.** `npm run test:db` runs every migration on a fresh local PostgreSQL (with a small stand-in for
+Supabase's `auth` schema) and checks the access rules: students can't see each other's data, share links return only
+notes, study-group members and outsiders see only what they should, and deleting an account removes everything.
+Run the migrations in Supabase in file order (`supabase/migrations/0001…`).
+
 Without the Supabase variables the app runs in **demo mode** locally (progress saved in the
 browser). Demo mode is disabled in production, so the AI can never be used anonymously on the live site.
 
