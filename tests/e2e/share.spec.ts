@@ -35,7 +35,7 @@ for (const lang of ['en', 'he'] as const) {
     await onboard(page, { hebrew: lang === 'he' });
     await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), lecture);
     await page.goto('/lectures/lec1');
-    await page.getByRole('button', { name: t.lectures.share.share }).click();
+    await page.getByRole('button', { name: t.lectures.share.share, exact: true }).click();
     await expect(page.getByText(t.lectures.share.needsAccount)).toBeVisible();
 
     // A share link opens without signing in (sign out, keep the language).

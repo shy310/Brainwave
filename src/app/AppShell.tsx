@@ -54,8 +54,17 @@ export const AppShell = () => {
                   'flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium',
                   isActive ? 'text-brand-600 dark:text-brand-300' : 'text-muted',
                 )}>
-                <item.icon className="size-5" aria-hidden="true" />
-                <span className="truncate px-1">{item.label(t)}</span>
+                {/* The active tab: a pill behind a filled icon, so it doesn't rely on colour alone. */}
+                {({ isActive }) => (
+                  <>
+                    <span className={cn('flex h-8 w-14 items-center justify-center rounded-full transition-colors',
+                      isActive && 'bg-brand-100 dark:bg-brand-900/60')}>
+                      <item.icon className="size-5" fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.2 : 0}
+                        strokeWidth={isActive ? 2.25 : 1.75} aria-hidden="true" />
+                    </span>
+                    <span className="truncate px-1">{item.label(t)}</span>
+                  </>
+                )}
               </NavLink>
             </li>
           ))}

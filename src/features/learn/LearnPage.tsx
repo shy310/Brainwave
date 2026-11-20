@@ -11,6 +11,7 @@ import { SUBJECT_META } from './subjects';
 import { useProgress } from './ProgressProvider';
 import { topicStatus } from './progress';
 import { StatusIcon } from './StatusBadge';
+import { IconTile } from '@/ui/IconTile';
 
 const BAND_KEY = 'bw.learnBand';
 
@@ -81,9 +82,7 @@ export default function LearnPage() {
               <Link key={course.id} to={`/learn/course/${course.id}`} className="group rounded-[var(--radius-card)]">
                 <Card className="flex h-full flex-col gap-4 p-5 transition-shadow group-hover:shadow-[var(--shadow-lift)]">
                   <div className="flex items-center gap-3">
-                    <span className={cn('flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br text-white', meta.tint)}>
-                      <meta.icon className="size-5" aria-hidden="true" />
-                    </span>
+                    <IconTile icon={meta.icon} tint={meta.tint} size="sm" />
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold">{t.subjects[course.subject]}</h3>
                       <p className="text-sm text-muted">{t.learn.topics(topics.length)}</p>

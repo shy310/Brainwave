@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn';
 import { Card } from '@/ui/Card';
 import { WeekCard } from '@/features/stats/WeekCard';
 import { UpNextBanner } from '@/features/schedule/UpNext';
+import { IconTile } from '@/ui/IconTile';
 
 export default function HomePage() {
   const t = useT();
@@ -49,9 +50,7 @@ export default function HomePage() {
         {pillars.map((p) => (
           <Link key={p.to} to={p.to} className="group rounded-[var(--radius-card)] focus-visible:outline-offset-4">
             <Card className="flex h-full items-center gap-4 p-4 transition-shadow group-hover:shadow-[var(--shadow-lift)] sm:p-5">
-              <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white ${p.tint}`}>
-                <p.icon className="size-6" aria-hidden="true" />
-              </span>
+              <IconTile icon={p.icon} tint={p.tint} />
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg font-semibold">{p.title}</h2>
                 <p className="mt-0.5 line-clamp-2 text-sm text-muted">{p.body}</p>
