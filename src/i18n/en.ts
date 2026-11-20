@@ -51,6 +51,8 @@ export const en = {
     greeting: (name: string) => (name ? `Hi, ${name}` : 'Hi there'),
     subtitle: 'What do you want to work on today?',
     learnTitle: 'Learn', learnBody: 'Courses from kindergarten to college, with a tutor that guides you step by step.',
+    goal: 'What do you want most?', goals: { understand: 'Understand my courses deeply', exams: 'Prepare for exams', quick: 'Quick reviews' },
+    lectureLanguage: 'My lectures are usually in', lectureLanguageHint: 'Used for new recordings. You can change it for each lecture.',
     lecturesTitle: 'Lectures', lecturesBody: 'Record or upload a class and get a transcript, notes, a quiz and flashcards.',
     videosTitle: 'Video lessons', videosBody: 'Turn any topic or lecture into a short animated, narrated lesson.',
     podcastsTitle: 'Podcasts', podcastsBody: 'Listen to two hosts talk through any topic — great for revision on the go.',

@@ -10,6 +10,8 @@ import { Alert } from '@/ui/Alert';
 import { Logo } from '@/ui/Logo';
 import { GRADES, type Grade } from '@shared/grades';
 import type { Locale } from '@shared/locales';
+import { STUDY_GOALS, summaryModeForGoal, type StudyGoal } from '@shared/profile';
+import { LECTURE_LANGUAGES, type LectureLanguage } from '@shared/lectures';
 
 export default function OnboardingPage() {
   const { t, locale, setLocale } = useI18n();
@@ -17,6 +19,8 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const [name, setName] = useState(profile?.display_name ?? '');
   const [grade, setGrade] = useState<Grade>(profile?.grade ?? '9');
+  const [goal, setGoal] = useState<StudyGoal>(profile?.study_goal ?? 'understand');
+  const [lectureLanguage, setLectureLanguage] = useState<LectureLanguage>(profile?.lecture_language ?? 'auto');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
 
@@ -27,7 +31,11 @@ export default function OnboardingPage() {
     if (!name.trim()) return;
     setBusy(true); setError(false);
     try {
-      await updateProfile({ display_name: name.trim(), grade, locale, onboarded: true });
+      await updateProfile({
+        display_name: name.trim(), grade, locale, onboarded: true,
+        // The goal sets how notes are written; both can be changed later in Settings.
+        study_goal: goal, summary_mode: summaryModeForGoal(goal), lecture_language: lectureLanguage,
+      });
       navigate('/', { replace: true });
     } catch { setError(true); } finally { setBusy(false); }
   };
@@ -49,6 +57,20 @@ export default function OnboardingPage() {
             {id => (
               <Select id={id} value={grade} onChange={e => setGrade(e.target.value as Grade)}>
                 {GRADES.map(g => <option key={g} value={g}>{t.grades[g]}</option>)}
+              </Select>
+            )}
+          </Field>
+          <Field label={t.home.goal}>
+            {id => (
+              <Select id={id} value={goal} onChange={e => setGoal(e.target.value as StudyGoal)}>
+                {STUDY_GOALS.map(g => <option key={g} value={g}>{t.home.goals[g]}</option>)}
+              </Select>
+            )}
+          </Field>
+          <Field label={t.home.lectureLanguage}>
+            {id => (
+              <Select id={id} value={lectureLanguage} onChange={e => setLectureLanguage(e.target.value as LectureLanguage)}>
+                {LECTURE_LANGUAGES.map(l => <option key={l} value={l}>{t.lectures.languages[l]}</option>)}
               </Select>
             )}
           </Field>

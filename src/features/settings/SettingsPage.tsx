@@ -9,7 +9,7 @@ import { Segmented } from '@/ui/Segmented';
 import { Alert } from '@/ui/Alert';
 import { GRADES, type Grade } from '@shared/grades';
 import type { Locale } from '@shared/locales';
-import { SUMMARY_MODES, type SummaryMode } from '@shared/lectures';
+import { LECTURE_LANGUAGES, SUMMARY_MODES, type LectureLanguage, type SummaryMode } from '@shared/lectures';
 import { AccountSection } from './AccountSection';
 
 export default function SettingsPage() {
@@ -62,6 +62,13 @@ export default function SettingsPage() {
             options={SUMMARY_MODES.map(m => ({ value: m, label: t.lectures.summaryModes[m] }))} />
           <p className="text-sm text-muted">{t.lectures.notesStyleHint}</p>
         </div>
+        <Field label={t.home.lectureLanguage} hint={t.home.lectureLanguageHint}>
+          {id => (
+            <Select id={id} value={profile?.lecture_language ?? 'auto'} onChange={e => updateProfile({ lecture_language: e.target.value as LectureLanguage }).catch(() => {})}>
+              {LECTURE_LANGUAGES.map(l => <option key={l} value={l}>{t.lectures.languages[l]}</option>)}
+            </Select>
+          )}
+        </Field>
       </Card>
 
       <Card className="space-y-5 p-6">

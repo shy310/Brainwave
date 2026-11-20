@@ -57,7 +57,7 @@ const coarsePointer = () => typeof window !== 'undefined' && window.matchMedia?.
 
 export default function NewLecturePage() {
   const { t, locale } = useI18n();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const toMessage = useAiError();
   const [params] = useSearchParams();
@@ -67,7 +67,8 @@ export default function NewLecturePage() {
   const [folderId, setFolderId] = useState<string | null>(null);
   const [tab, setTab] = useState<LectureSource>('record');
   const [title, setTitle] = useState('');
-  const [language, setLanguage] = useState<LectureLanguage>('auto');
+  // The student's usual lecture language (from onboarding or Settings).
+  const [language, setLanguage] = useState<LectureLanguage>(profile?.lecture_language ?? 'auto');
   const [slides, setSlides] = useState<Slides | null>(null);
   const [text, setText] = useState('');
   const [phase, setPhase] = useState<Phase>(resumeId ? 'recovering' : 'setup');
