@@ -26,7 +26,32 @@ export const TranscribeInputSchema = z.object({
   language: z.enum(LECTURE_LANGUAGES).default('auto'),
   topic: z.string().max(200).optional(),
 });
-export const TranscriptPieceSchema = z.object({ text: z.string().max(40_000) });
+export const TranscriptPieceSchema = z.object({
+  text: z.string().max(40_000),
+  /** Paragraphs with their start (seconds into this piece), when the transcriber gives times. */
+  segments: z.array(z.object({ start: z.number().min(0).max(600), text: z.string().max(20_000) })).max(60).optional(),
+});
+
+/**
+ * Join speech-to-text sentences into paragraphs of at least `minSec` seconds,
+ * ending at a sentence end where possible, so the transcript reads well with
+ * a time on each paragraph.
+ */
+export const groupSegments = (parts: { start: number; end?: number; text: string }[], minSec = 15, maxSec = 40): { start: number; text: string }[] => {
+  const out: { start: number; text: string }[] = [];
+  let cur: { start: number; text: string } | null = null;
+  for (const p of parts) {
+    const text = p.text.trim();
+    if (!text) continue;
+    if (!cur) { cur = { start: p.start, text }; continue; }
+    const len = p.start - cur.start;
+    const sentenceEnded = /[.!?…:]["”’)]?$/.test(cur.text);
+    if ((len >= minSec && sentenceEnded) || len >= maxSec) { out.push(cur); cur = { start: p.start, text }; }
+    else cur.text += ` ${text}`;
+  }
+  if (cur) out.push(cur);
+  return out.map((s) => ({ start: Math.round(s.start * 10) / 10, text: s.text }));
+};
 
 export const LectureTextInputSchema = z.object({
   transcript: z.string().min(20).max(MAX_TRANSCRIPT_CHARS),

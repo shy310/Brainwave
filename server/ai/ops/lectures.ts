@@ -10,6 +10,7 @@ import { sanitizeQuestions } from '../../../shared/math/validate.js';
 import { candidateTopics, cleanTopicIds } from '../../../shared/topicMatch.js';
 import { findTopic } from '../../../shared/curriculum.js';
 import { z } from 'zod';
+import { groupSegments } from '../../../shared/lectures.js';
 import {
   FlashcardsInputSchema, FlashcardsSchema, ImageTextInputSchema, LectureQuizInputSchema, NotesInputSchema, NotesSchema,
   SlidesInputSchema, SlidesTextSchema, TranscribeInputSchema, TranscriptPieceSchema, type LectureLanguage, type SummaryMode,
@@ -89,7 +90,11 @@ export const transcribeOp = defineOp({
           language: input.language === 'auto' ? undefined : input.language,
           prompt: input.topic ? `Lecture: ${input.topic}` : undefined,
         });
-        if (!env.transcribeCleanup || !result.text) return { text: result.text };
+        // Paragraph times only when the text is the model's own (cleanup rewrites it).
+        if (!env.transcribeCleanup || !result.text) {
+          const segments = groupSegments(result.segments);
+          return segments.length > 1 ? { text: result.text, segments } : { text: result.text };
+        }
         return await runStructured(cleanupOp, { text: result.text, language: input.language, topic: input.topic }, ctx);
       } catch (err) {
         if (accountProblem(err)) throw err;

@@ -38,7 +38,8 @@ const LOCK = (id: string) => `bw-lecture-draft:${id}`;
  */
 export class LectureSession {
   readonly queue: TranscriptionQueue;
-  private segments = new Map<number, Segment>();
+  /** Transcribed pieces by index; `parts` are paragraphs with their own times. */
+  private segments = new Map<number, Segment & { parts?: Segment[] }>();
   private syncing: Promise<void> = Promise.resolve();
   private syncAgain = false;
   private releaseLock: (() => void) | null = null;
@@ -56,8 +57,8 @@ export class LectureSession {
       transcribe: deps.transcribe,
       isOnline: deps.isOnline,
       retryDelays: deps.retryDelays,
-      onSegment: (index, segment) => {
-        if (segment.text) this.segments.set(index, segment);
+      onSegment: (index, segment, parts) => {
+        if (segment.text) this.segments.set(index, parts?.length ? { ...segment, parts } : segment);
         this.events.onTranscript?.(this.transcript());
         this.sync();
       },
@@ -91,7 +92,7 @@ export class LectureSession {
     draft = await store.updateDraft(draftId, { state: 'stopped' }) ?? draft;
     const session = new LectureSession(draft, events, deps);
     await session.lock();
-    for (const s of await store.listSegments(draftId)) session.segments.set(s.index, { start: s.start, text: s.text });
+    for (const s of await store.listSegments(draftId)) session.segments.set(s.index, { start: s.start, text: s.text, ...(s.parts ? { parts: s.parts } : {}) });
     session.events.onTranscript?.(session.transcript());
     await session.queue.loadSaved();
     session.sync();
@@ -110,8 +111,10 @@ export class LectureSession {
     });
   }
 
+  /** The transcript so far: a paragraph per time when available, else one per piece. */
   transcript(): Segment[] {
-    return [...this.segments.values()].sort((a, b) => a.start - b.start);
+    return [...this.segments.values()].sort((a, b) => a.start - b.start)
+      .flatMap((s) => s.parts?.length ? s.parts : [{ start: s.start, text: s.text }]);
   }
 
   get status() { return this.queue.status; }

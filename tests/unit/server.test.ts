@@ -482,6 +482,10 @@ describe('speech-to-text transcription (TRANSCRIBE_MODE=stt)', () => {
       const calls = mockBoth(() => Response.json({ text: ' Hello class. ', usage: { cost: 0.001 } }));
       const res = await post('/api/ai/transcribe', { input: { audio: AUDIO, language: 'he', topic: 'Calculus' } });
       expect(await res.json()).toEqual({ data: { text: 'Hello class.' } });
+      // With sentence times, paragraphs come back with their own times.
+      mockBoth(() => Response.json({ text: 'A. B.', segments: [{ start: 0, end: 2, text: 'A.' }, { start: 20, end: 22, text: 'B.' }] }));
+      const timed = await post('/api/ai/transcribe', { input: { audio: AUDIO, language: 'en' } });
+      expect((await timed.json()).data).toEqual({ text: 'A. B.', segments: [{ start: 0, text: 'A.' }, { start: 20, text: 'B.' }] });
       expect(calls).toHaveLength(1);
       expect(calls[0].body).toMatchObject({
         model: 'openai/whisper-large-v3-turbo', input_audio: { data: AUDIO, format: 'wav' },

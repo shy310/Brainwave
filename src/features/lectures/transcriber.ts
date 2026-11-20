@@ -25,18 +25,20 @@ export interface QueueStatus {
   retryAt: number | null;
 }
 
-export type TranscribeFn = (wavBase64: string, o: { language: LectureLanguage; topic?: string }) => Promise<string>;
+/** A transcribed piece: text, and paragraph times (seconds into the piece) when available. */
+export interface PieceText { text: string; segments?: Segment[] }
+export type TranscribeFn = (wavBase64: string, o: { language: LectureLanguage; topic?: string }) => Promise<string | PieceText>;
 
 export const transcribeWithAi: TranscribeFn = async (audio, { language, topic }) =>
-  (await callAi<{ text: string }>('transcribe', { audio, language, topic })).text;
+  callAi<PieceText>('transcribe', { audio, language, topic });
 
 interface Options {
   draftId: string;
   store: AudioStore;
   language: LectureLanguage;
   topic?: string;
-  /** A piece got its text and the text is saved locally. */
-  onSegment: (index: number, segment: Segment) => void;
+  /** A piece got its text and the text is saved locally. `parts` are its paragraphs with lecture times, if any. */
+  onSegment: (index: number, segment: Segment, parts?: Segment[]) => void;
   onStatus?: (status: QueueStatus) => void;
   transcribe?: TranscribeFn;
   concurrency?: number;
@@ -167,13 +169,19 @@ export class TranscriptionQueue {
     if (!pcm) return true; // already committed (another tab finished it)
     const samples = fromPcm16(pcm);
     let text = '';
+    let parts: Segment[] | undefined;
     if (!isSilent(samples)) {
       const audio = bytesToBase64(encodeWav(pcm));
       const delays = this.o.retryDelays ?? [2000, 6000];
       for (let attempt = 0; ; attempt++) {
         if (this.stopped || this.blocked) return false;
         try {
-          text = (await (this.o.transcribe ?? transcribeWithAi)(audio, { language: this.o.language, topic: this.o.topic })).trim();
+          const got = await (this.o.transcribe ?? transcribeWithAi)(audio, { language: this.o.language, topic: this.o.topic });
+          const piece = typeof got === 'string' ? { text: got } : got;
+          text = piece.text.trim();
+          // Paragraph times are relative to the piece: make them lecture times.
+          parts = piece.segments?.filter((p) => p.text.trim()).map((p) => ({ start: Math.round((meta.start + p.start) * 10) / 10, text: p.text.trim() }));
+          if (parts && parts.length < 2) parts = undefined;
           break;
         } catch (err) {
           const online = this.o.isOnline?.() ?? (typeof navigator === 'undefined' || navigator.onLine);
@@ -186,13 +194,13 @@ export class TranscriptionQueue {
     }
     const segment = { start: meta.start, text };
     try {
-      await this.o.store.commitPiece(meta.draftId, meta.index, segment);
+      await this.o.store.commitPiece(meta.draftId, meta.index, segment, parts);
     } catch {
       this.pause('error'); // could not save the text locally: keep the audio and try later
       return false;
     }
     this.streak = 0;
-    this.o.onSegment(meta.index, segment);
+    this.o.onSegment(meta.index, segment, parts);
     return true;
   }
 

@@ -194,6 +194,30 @@ describe('recovery after the tab was closed', () => {
   });
 });
 
+describe('paragraph times', () => {
+  it('turns piece-relative paragraph times into lecture times, and keeps them through recovery', async () => {
+    const repo = fakeRepo();
+    const transcribe: TranscribeFn = async () => ({ text: 'One. Two.', segments: [{ start: 0, text: 'One.' }, { start: 30.04, text: 'Two.' }] });
+    const s = await LectureSession.start(NEW, {}, { repo, transcribe, isOnline: () => true });
+    await s.addPiece(tone(1), 60);
+    await s.queue.idle();
+    expect(s.transcript()).toEqual([{ start: 60, text: 'One.' }, { start: 90, text: 'Two.' }]);
+    s.close();
+    const again = (await LectureSession.resume(s.draft.id, {}, { repo, transcribe, isOnline: () => true }))!;
+    expect(again.transcript()).toEqual([{ start: 60, text: 'One.' }, { start: 90, text: 'Two.' }]);
+    const id = await again.finalize();
+    expect(repo.rows.get(id)!.segments.map((x) => x.start)).toEqual([60, 90]);
+  });
+
+  it('a piece without times stays one paragraph', async () => {
+    const s = await LectureSession.start(NEW, {}, { repo: fakeRepo(), transcribe: async () => ({ text: 'Only text.', segments: [{ start: 0, text: 'Only text.' }] }), isOnline: () => true });
+    await s.addPiece(tone(1), 0);
+    await s.queue.idle();
+    expect(s.transcript()).toEqual([{ start: 0, text: 'Only text.' }]);
+    s.close();
+  });
+});
+
 describe('retry rules', () => {
   it('classifies failures', () => {
     expect(classify(new TypeError('Failed to fetch'), true)).toBe('offline');
