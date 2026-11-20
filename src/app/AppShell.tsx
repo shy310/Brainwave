@@ -6,9 +6,11 @@ import { NAV } from './nav';
 import { AccountMenu } from './AccountMenu';
 import { LanguageToggle } from './LanguageToggle';
 import { RecoveryBanner } from '@/features/lectures/RecoveryBanner';
+import { useStudyTimer } from '@/features/stats/activity';
 
 export const AppShell = () => {
   const t = useT();
+  useStudyTimer();
   return (
     <div className="min-h-dvh pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2">

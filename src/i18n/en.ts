@@ -55,6 +55,13 @@ export const en = {
     videosTitle: 'Video lessons', videosBody: 'Turn any topic or lecture into a short animated, narrated lesson.',
     podcastsTitle: 'Podcasts', podcastsBody: 'Listen to two hosts talk through any topic — great for revision on the go.',
   },
+  week: {
+    title: 'Your week', streak: (n: number) => (n === 1 ? '1-day streak' : `${n}-day streak`), noStreak: 'Start a streak today',
+    best: (n: number) => `Best: ${n} ${n === 1 ? 'day' : 'days'}`,
+    keepGoing: 'Study a little today to keep your streak going.', doneToday: 'You studied today — nice!',
+    chart: 'Minutes studied each day', day: 'Day', minutes: 'Minutes', min: (n: number) => `${n} min`,
+    totals: { minutes: 'minutes', cards: 'cards reviewed', quizzes: 'quizzes', lectures: 'lectures added' },
+  },
   grader: {
     title: 'Grade my answer', subtitle: 'Get a score, feedback and an improved version of any answer or essay.',
     question: 'Question or assignment', questionPlaceholder: 'Paste the question or the assignment instructions…',

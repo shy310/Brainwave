@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { storage } from '@/lib/storage';
 import { cardKey, review, type CardState, type Rating } from '@shared/srs';
 import type { StudyLecture } from './repo';
+import { track } from '@/features/stats/activity';
 
 const DEMO_KEY = 'bw.cardReviews';
 const readDemo = (): Record<string, CardState> => {
@@ -59,6 +60,7 @@ export const reviewCards = (lectures: StudyLecture[], title: (l: StudyLecture) =
 export const rate = async (states: Map<string, CardState>, card: { key: string; lectureId: string }, rating: Rating) => {
   const next = review(states.get(card.key), rating, Date.now(), card.key, card.lectureId);
   states.set(card.key, next);
+  track({ cards: 1 });
   await reviewRepo.save(next);
   return next;
 };

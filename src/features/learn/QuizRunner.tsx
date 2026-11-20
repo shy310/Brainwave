@@ -7,6 +7,7 @@ import { Card } from '@/ui/Card';
 import type { Question } from '@shared/learn';
 import { QuestionCard } from './QuestionCard';
 import { MASTERY_SCORE } from './progress';
+import { track } from '@/features/stats/activity';
 
 interface Props {
   questions: Question[];
@@ -36,6 +37,7 @@ export const QuizRunner = ({ questions, topicId, onFinish, onPractice, resultAct
       requestAnimationFrame(() => heading.current?.focus());
     } else {
       onFinish?.(score);
+      track({ quizzes: 1 });
       setDone(true);
     }
   };
