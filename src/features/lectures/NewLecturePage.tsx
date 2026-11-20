@@ -24,8 +24,9 @@ import type { QueueStatus } from './transcriber';
 import { lectureRepo } from './repo';
 import { SlidesPicker, type Slides } from './SlidesPicker';
 import { useKeepAwake } from './useKeepAwake';
+import { inBrowserMaxMinutes, planUpload, probeDuration, type UploadPlan } from './preflight';
 
-type Phase = 'setup' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'finishing' | 'recovering';
+type Phase = 'setup' | 'checking' | 'preflight' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'finishing' | 'recovering';
 const MAX_FILE_BYTES = 500 * 1024 * 1024;
 /** Warn before recording when the device can't hold this many minutes of audio. */
 const LOW_STORAGE_MINUTES = 120;
@@ -68,6 +69,7 @@ export default function NewLecturePage() {
   const [live, setLive] = useState<Segment[]>([]);
   const [finalizeFailed, setFinalizeFailed] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [upload, setUpload] = useState<{ file: File; plan: UploadPlan } | null>(null);
 
   const session = useRef<LectureSession | null>(null);
   const recorder = useRef<LiveRecorder | null>(null);
@@ -75,18 +77,20 @@ export default function NewLecturePage() {
   const writes = useRef<Promise<void>>(Promise.resolve());
 
   const busy = phase !== 'setup';
+  /** Something would be lost or interrupted by leaving now. */
+  const guarded = busy && phase !== 'checking' && phase !== 'preflight';
   const recordingActive = phase === 'recording' || phase === 'paused';
   const leaving = useRef(false);
   const blocker = useBlocker(({ currentLocation, nextLocation }) =>
-    busy && !leaving.current && currentLocation.pathname !== nextLocation.pathname && !window.confirm(t.lectures.leaveWarning));
+    guarded && !leaving.current && currentLocation.pathname !== nextLocation.pathname && !window.confirm(t.lectures.leaveWarning));
   useEffect(() => { if (blocker.state === 'blocked') blocker.reset(); }, [blocker]);
 
   useEffect(() => {
-    if (!busy || phase === 'finishing') return;
+    if (!guarded || phase === 'finishing') return;
     const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [busy, phase]);
+  }, [guarded, phase]);
 
   // Leaving the page keeps the draft on this device; it can be recovered later.
   useEffect(() => () => {
@@ -246,17 +250,40 @@ export default function NewLecturePage() {
   };
 
   // ── Upload ──
+  /** Step 1: read the length from the metadata and show what it will take. */
   const onFile = async (file?: File) => {
     if (!file || !user) return;
     setError('');
+    setNotice('');
     if (file.size > MAX_FILE_BYTES) { setError(t.lectures.fileTooBig); return; }
     if (!audioStore.available()) { setError(t.lectures.noDeviceStorage); return; }
+    setPhase('checking');
+    const seconds = await probeDuration(file);
+    const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+    const plan = planUpload(seconds, file.size, inBrowserMaxMinutes(memory));
+    setUpload({ file, plan });
+    setPhase(plan.allowed ? 'preflight' : 'setup');
+    if (!plan.allowed) setError(t.lectures.tooLongHere(plan.minutes!, plan.maxMinutes));
+  };
+
+  /** Step 2: decode in the browser, cut into pieces, save them and transcribe. */
+  const transcribeFile = async () => {
+    const file = upload?.file;
+    if (!file || !user) return;
+    const maxMinutes = upload.plan.maxMinutes;
+    setUpload(null);
     setPhase('decoding');
     let samples: Float32Array;
     try {
       samples = await decodeFile(file);
     } catch {
       setError(t.lectures.decodeFailed);
+      setPhase('setup');
+      return;
+    }
+    // The metadata didn't say how long it was: check now that we know.
+    if (samples.length > (maxMinutes * 60 + 30) * SAMPLE_RATE) {
+      setError(t.lectures.tooLongHere(Math.round(samples.length / SAMPLE_RATE / 60), maxMinutes));
       setPhase('setup');
       return;
     }
@@ -370,10 +397,33 @@ export default function NewLecturePage() {
           </div>
         )}
 
+        {tab === 'upload' && phase === 'checking' && (
+          <p className="flex items-center gap-2 border-t border-line pt-5 text-muted"><Spinner className="size-5" />{t.lectures.checkingFile}</p>
+        )}
+
+        {tab === 'upload' && phase === 'preflight' && upload && (
+          <div className="space-y-3 border-t border-line pt-5" aria-live="polite">
+            <p className="truncate font-medium" dir="auto">{upload.file.name}</p>
+            {upload.plan.minutes != null ? (
+              <>
+                <p className="text-sm">{t.lectures.preflight(upload.plan.minutes, upload.plan.mb)}</p>
+                <p className="text-sm text-muted">{t.lectures.preflightCost(upload.plan.units!, upload.plan.etaMinutes!)}</p>
+                {upload.plan.long && <p className="text-sm text-muted">{t.lectures.longFileWarning}</p>}
+              </>
+            ) : <p className="text-sm text-muted">{t.lectures.unknownLength}</p>}
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Button size="lg" icon={<Upload className="size-5" />} onClick={() => void transcribeFile()}>{t.lectures.transcribeFile}</Button>
+              <Button size="lg" variant="secondary" onClick={() => { setUpload(null); setPhase('setup'); fileInput.current?.click(); }}>{t.lectures.chooseAnother}</Button>
+            </div>
+          </div>
+        )}
+
+        {tab === 'upload' && (
+          <input ref={fileInput} type="file" accept="audio/*,video/*" className="hidden" onChange={(e) => { void onFile(e.target.files?.[0]); e.target.value = ''; }} />
+        )}
         {tab === 'upload' && phase === 'setup' && (
           <div className="space-y-3 border-t border-line pt-5">
             <p className="text-sm text-muted">{t.lectures.uploadHint}</p>
-            <input ref={fileInput} type="file" accept="audio/*,video/*" className="hidden" onChange={(e) => { void onFile(e.target.files?.[0]); e.target.value = ''; }} />
             <Button size="lg" block icon={<Upload className="size-5" />} onClick={() => fileInput.current?.click()}>{t.lectures.chooseFile}</Button>
           </div>
         )}
