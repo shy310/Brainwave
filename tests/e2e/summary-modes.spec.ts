@@ -17,6 +17,10 @@ for (const lang of ['en', 'he'] as const) {
       return route.fulfill({ json: { data: {
         title: 'Derivatives', summary: `Notes in ${mode} style.`, sections: [{ heading: 'Main idea', points: ['Slope of the tangent.'] }],
         keyTerms: [], reminders: [], mode,
+        ...(mode === 'exam' ? {
+          practice: [{ question: 'What is the derivative of $x^2$?', answer: 'It is $2x$.' }],
+          mistakes: ['Mixing up the slope of the secant and of the tangent.'],
+        } : {}),
       } } });
     });
     await onboard(page, { hebrew: lang === 'he' });
@@ -33,12 +37,39 @@ for (const lang of ['en', 'he'] as const) {
     expect(modes).toEqual(['exam']);
     await expect(page.getByRole('radio', { name: t.lectures.summaryModes.exam })).toBeChecked();
 
+    // Exam prep has its own parts: practice questions (answer hidden until asked) and common mistakes.
+    await expect(page.getByRole('heading', { name: t.lectures.practice })).toBeVisible();
+    await expect(page.getByText('Mixing up the slope of the secant and of the tangent.')).toBeVisible();
+    await expect(page.getByText('It is')).toBeHidden();
+    await page.getByRole('button', { name: t.lectures.showAnswer }).click();
+    await expect(page.getByText('It is')).toBeVisible();
+    await expect(page.getByRole('button', { name: t.lectures.hideAnswer })).toHaveAttribute('aria-expanded', 'true');
+
     await page.getByRole('radio', { name: t.lectures.summaryModes.short }).click();
     await expect(page.getByText('Notes in short style.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: t.lectures.practice })).toHaveCount(0);
     expect(modes).toEqual(['exam', 'short']);
 
     // "Write again" keeps this lecture's style.
     await page.getByRole('button', { name: t.lectures.regenerate }).click();
     await expect.poll(() => modes).toEqual(['exam', 'short', 'short']);
+    await expect(page.getByText('Notes in short style.')).toBeVisible();
+
+    // Going back to a style already written shows it again, without asking the AI.
+    await page.getByRole('radio', { name: t.lectures.summaryModes.exam }).click();
+    await expect(page.getByText('Notes in exam style.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: t.lectures.practice })).toBeVisible();
+    await page.getByRole('radio', { name: t.lectures.summaryModes.short }).click();
+    await expect(page.getByText('Notes in short style.')).toBeVisible();
+    // ...and they are still there after a reload.
+    await page.reload();
+    await page.getByRole('radio', { name: t.lectures.summaryModes.exam }).click();
+    await expect(page.getByText('Notes in exam style.')).toBeVisible();
+    expect(modes).toEqual(['exam', 'short', 'short']);
+
+    // A style not written yet still asks the AI.
+    await page.getByRole('radio', { name: t.lectures.summaryModes.detailed }).click();
+    await expect(page.getByText('Notes in detailed style.')).toBeVisible();
+    expect(modes).toEqual(['exam', 'short', 'short', 'detailed']);
   });
 }
