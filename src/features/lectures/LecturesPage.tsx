@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
-import { ArrowLeft, ArrowRight, BookOpenCheck, FileText, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, Camera, FileText, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
@@ -13,7 +13,7 @@ import { storage } from '@/lib/storage';
 import { lectureRepo, type LectureSummary } from './repo';
 import { arrangeLectures, folderRepo, type Folder, type SortKey } from './folders';
 
-const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText } as const;
+const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera } as const;
 const VIEW_KEY = 'bw.lectures.view';
 
 export const lectureTitle = (l: Pick<LectureSummary, 'title' | 'created_at'>, untitled: string, locale: string) =>

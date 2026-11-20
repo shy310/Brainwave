@@ -24,6 +24,8 @@ import type { QueueStatus } from './transcriber';
 import { lectureRepo } from './repo';
 import { SlidesPicker, type Slides } from './SlidesPicker';
 import { useKeepAwake } from './useKeepAwake';
+import { PdfSource } from './PdfSource';
+import { PhotoSource } from './PhotoSource';
 import { NativeRecorder, nativeRecorderAvailable, recoverNative } from './nativeRecorder';
 import { inBrowserMaxMinutes, planUpload, probeDuration, type UploadPlan } from './preflight';
 
@@ -81,7 +83,9 @@ export default function NewLecturePage() {
   /** Writes to local storage happen one after another, in order. */
   const writes = useRef<Promise<void>>(Promise.resolve());
 
-  const busy = phase !== 'setup';
+  /** A PDF or photo note is being made. */
+  const [sourceBusy, setSourceBusy] = useState(false);
+  const busy = phase !== 'setup' || sourceBusy;
   /** Something would be lost or interrupted by leaving now. */
   const guarded = busy && phase !== 'checking' && phase !== 'preflight';
   const recordingActive = phase === 'recording' || phase === 'paused';
@@ -355,8 +359,10 @@ export default function NewLecturePage() {
       <h1 className="text-3xl font-semibold tracking-tight">{t.lectures.newTitle}</h1>
 
       <Card className="space-y-5 p-6">
-        <Segmented label={t.lectures.newTitle} value={tab} onChange={(v) => { if (!busy) { setTab(v); setError(''); } }}
-          options={(['record', 'upload', 'text'] as const).map((v) => ({ value: v, label: t.lectures.tabs[v] }))} />
+        <div className="-mx-6 overflow-x-auto px-6">
+          <Segmented scroll label={t.lectures.newTitle} value={tab} onChange={(v) => { if (!busy) { setTab(v); setError(''); } }}
+            options={(['record', 'upload', 'text', 'pdf', 'image'] as const).map((v) => ({ value: v, label: t.lectures.tabs[v] }))} />
+        </div>
 
         <Field label={t.lectures.titleLabel}>
           {(id) => <Input id={id} maxLength={200} value={title} placeholder={t.lectures.titlePlaceholder} onChange={(e) => setTitle(e.target.value)} disabled={busy} dir="auto" />}
@@ -370,7 +376,7 @@ export default function NewLecturePage() {
           </div>
         )}
 
-        {phase !== 'recovering' && <SlidesPicker value={slides} onChange={setSlides} />}
+        {phase !== 'recovering' && (tab === 'record' || tab === 'upload' || tab === 'text') && <SlidesPicker value={slides} onChange={setSlides} />}
 
         {error && <Alert tone="error">{error}</Alert>}
         {notice && <Alert tone="info">{notice}</Alert>}
@@ -440,6 +446,12 @@ export default function NewLecturePage() {
             <Button size="lg" block icon={<Upload className="size-5" />} onClick={() => fileInput.current?.click()}>{t.lectures.chooseFile}</Button>
           </div>
         )}
+
+        {(tab === 'pdf' || tab === 'image') && phase === 'setup' && (() => {
+          const Source = tab === 'pdf' ? PdfSource : PhotoSource;
+          return <Source key={tab} title={title} language={language} onBusy={setSourceBusy}
+            onDone={(id) => { leaving.current = true; navigate(`/lectures/${id}`, { replace: true }); }} />;
+        })()}
 
         {tab === 'text' && (
           <div className="space-y-3 border-t border-line pt-5">

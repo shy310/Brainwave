@@ -269,7 +269,7 @@ export default function LecturePage() {
           )}
 
           {tab === 'transcript' && (
-            <TranscriptPanel segments={lecture.segments} timed={lecture.source !== 'text'} fileName={title}
+            <TranscriptPanel segments={lecture.segments} timed={lecture.source === 'record' || lecture.source === 'upload'} fileName={title}
               onSave={async (segments: Segment[]) => {
                 await patch({ segments });
                 if (lecture.notes || lecture.quiz || lecture.flashcards) setStale(true);

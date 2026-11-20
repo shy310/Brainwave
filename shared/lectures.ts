@@ -4,7 +4,7 @@ import { QuizSchema } from './learn.js';
 export const LECTURE_LANGUAGES = ['auto', 'en', 'he'] as const;
 export type LectureLanguage = (typeof LECTURE_LANGUAGES)[number];
 
-export const LECTURE_SOURCES = ['record', 'upload', 'text'] as const;
+export const LECTURE_SOURCES = ['record', 'upload', 'text', 'pdf', 'image'] as const;
 export type LectureSource = (typeof LECTURE_SOURCES)[number];
 
 /**
@@ -74,6 +74,17 @@ export const SlidesInputSchema = z.object({
   dataUrl: z.string().max(3_000_000).regex(/^data:application\/pdf;base64,/),
 });
 export const SlidesTextSchema = z.object({ text: z.string().max(MAX_SLIDES_CHARS) });
+
+/** A photo (whiteboard, handwriting, textbook) or a scanned PDF page, read by a vision model. */
+export const MAX_IMAGE_DATA_URL = 2_800_000;
+export const ImageTextInputSchema = z.object({
+  image: z.string().max(MAX_IMAGE_DATA_URL).regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/, 'Expected a JPEG, PNG or WebP image'),
+  kind: z.enum(['photo', 'page']).default('photo'),
+  language: z.enum(LECTURE_LANGUAGES).default('auto'),
+});
+/** Most pages a PDF note can use, and most photos. */
+export const MAX_PDF_PAGES = 150;
+export const MAX_PHOTOS = 10;
 
 /** A transcript piece with its start time in seconds. */
 export const SegmentSchema = z.object({ start: z.number().min(0), text: z.string() });
