@@ -52,6 +52,8 @@ export const he: Dict = {
     greeting: (name: string) => (name ? `היי, ${name}` : 'היי'),
     subtitle: 'על מה נעבוד היום?',
     learnTitle: 'לימוד', learnBody: 'קורסים מהגן ועד האקדמיה, עם מורה פרטי שמדריך צעד אחר צעד.',
+    goal: 'מה הכי חשוב לך?', goals: { understand: 'להבין לעומק את הקורסים', exams: 'להתכונן למבחנים', quick: 'חזרות מהירות' },
+    lectureLanguage: 'ההרצאות שלי בדרך כלל ב', lectureLanguageHint: 'משמש להקלטות חדשות. אפשר לשנות בכל הרצאה.',
     lecturesTitle: 'הרצאות', lecturesBody: 'הקליטו או העלו שיעור וקבלו תמלול, סיכום, בוחן וכרטיסיות.',
     videosTitle: 'שיעורי וידאו', videosBody: 'הפכו כל נושא או הרצאה לשיעור קצר, מונפש ומדובב.',
     podcastsTitle: 'פודקאסטים', podcastsBody: 'האזינו לשני מנחים שמסבירים כל נושא — מושלם לחזרה בדרכים.',
