@@ -11,6 +11,9 @@ const setup = async (page: Page, hebrew: boolean) => {
   await onboard(page, { hebrew });
   await page.evaluate(([l, f]) => { localStorage.setItem('bw.lectures', JSON.stringify([l])); localStorage.setItem('bw.lectureFolders', JSON.stringify(f)); }, [lecture, folders] as const);
   await page.goto('/lectures');
+  // On a phone the folder chips can start below the fold.
+  // Centred, so the sticky header can't cover them.
+  await page.getByRole('navigation', { name: (hebrew ? he : en).lectures.library.folders }).evaluate((el) => el.scrollIntoView({ block: 'center' }));
 };
 const center = async (l: Locator) => { const b = (await l.boundingBox())!; return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
 const savedOrder = (page: Page) => page.evaluate(() => (JSON.parse(localStorage.getItem('bw.lectureFolders')!) as { name: string; position: number }[])
