@@ -71,7 +71,7 @@ export const en = {
       recordTitle: 'Record your next class', recordBody: 'Get notes, a quiz and flashcards when it ends.', recordCta: 'Start recording',
     },
     quick: {
-      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', search: 'Search', games: 'Games',
+      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', weak: 'Weak spots', search: 'Search', games: 'Games',
       tutor: 'Ask AI', grade: 'Grade', groups: 'Groups',
     },
     recent: 'Continue', seeAll: 'See all', explore: 'Explore',
@@ -104,6 +104,13 @@ export const en = {
     noQuestions: 'These lectures don’t have flashcards or quiz questions yet. Make some on a lecture first.',
     banner: (title: string, when: string) => `${title} · ${when}`,
   },
+  weak: {
+    title: 'Weak spots', subtitle: 'Questions you missed and flashcards you keep forgetting, in one short practice. Get one right twice in a row and it’s off the list.',
+    start: 'Practise now', count: (n: number) => (n === 1 ? '1 to practise' : `${n} to practise`),
+    missed: (n: number) => (n === 1 ? '1 question you missed' : `${n} questions you missed`), cards: (n: number) => (n === 1 ? '1 flashcard you keep forgetting' : `${n} flashcards you keep forgetting`),
+    empty: 'No weak spots right now 🎉 Anything you miss in a quiz or keep forgetting in your flashcards shows up here.',
+    again: 'Another round', done: 'Back to your lectures', home: 'Practise your weak spots',
+  },
   search: {
     title: 'Search your lectures', subtitle: 'Find anything a teacher said or wrote in your notes, and jump right to it.',
     placeholder: 'Search or ask a question…', open: 'Search all lectures',
@@ -133,6 +140,13 @@ export const en = {
     area: (name: string) => `${name} game`,
   },
   groups: {
+    challenge: {
+      daily: 'Question of the day', dailyHint: 'The same question for everyone in the group, from what you’ve shared.',
+      noQuestion: 'Share a quiz or flashcards with the group to get a question of the day.',
+      answered: (n: number, total: number) => `${n} of ${total} answered today`, gotIt: 'Got it', missed: 'Missed it', you: 'you',
+      board: 'This week’s games', boardHint: 'Everyone’s best Glide and Lane Rush score this week.',
+      noScores: 'No scores yet this week. Play a game to start the race!', play: 'Play a game',
+    },
     title: 'Study groups', subtitle: 'Study with classmates: share notes, flashcards and quizzes with your group.',
     empty: 'You’re not in a group yet. Make one and invite your classmates.',
     create: 'New group', name: 'Group name', namePlaceholder: 'e.g. Calculus study group', make: 'Create',
@@ -378,11 +392,23 @@ export const en = {
     rename: 'Rename', save: 'Save',
     turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
+    highlights: {
+      toolbar: 'Highlight', colors: { yellow: 'Yellow', green: 'Green', blue: 'Blue', pink: 'Pink' }, color: (c: string) => `Highlight in ${c}`,
+      comment: 'Comment', addComment: 'Add a comment', editComment: 'Edit comment', placeholder: 'Your note about this…', save: 'Save', remove: 'Remove highlight',
+      title: 'Your highlights', hint: 'Select text in your notes to highlight it or add a comment.', missing: 'Not in these notes any more',
+      count: (n: number) => (n === 1 ? '1 highlight' : `${n} highlights`), show: 'Show in the notes',
+    },
     marks: {
       mark: 'Important', markHint: 'Tap when something matters (or press M). It gets extra attention in your notes, quiz and flashcards.',
       marked: (time: string) => `Marked at ${time}`, count: (n: number) => (n === 1 ? '1 marked' : `${n} marked`),
       title: 'Important moments', body: 'You marked these while recording. They get extra attention in the notes, quiz and flashcards.',
       play: (time: string) => `Play from ${time}`, showInTranscript: 'Show in the transcript', badge: 'Marked as important',
+    },
+    map: {
+      title: 'Concept map', open: 'Concept map', make: 'Draw a concept map', making: 'Drawing the map…', redo: 'Draw again',
+      body: 'See how the ideas of this lecture fit together. Tap an idea to see what it links to.',
+      zoomIn: 'Zoom in', zoomOut: 'Zoom out', reset: 'Fit to screen', list: 'As a list', diagram: (title: string) => `Concept map of ${title}`,
+      links: 'Connected to', needsText: 'This lecture needs notes or a transcript first.',
     },
     export: {
       open: 'Export…', title: 'Export', flashcards: 'Flashcards', notes: 'Notes',
@@ -416,7 +442,7 @@ export const en = {
       styleHelp: { short: 'The key ideas on one screen.', detailed: 'Everything important, section by section.', exam: 'Adds practice questions and common mistakes.' } },
     mastery: { title: 'Progress', new: 'New', learning: 'Still learning', almost: 'Almost done', mastered: 'Mastered' },
     tools: {
-      title: 'Study tools', review: 'Review flashcards', exams: 'Exams', examsBody: 'A plan up to exam day', games: 'Games', gamesBody: 'Glide and Lane Rush, with your questions',
+      title: 'Study tools', review: 'Review flashcards', weak: 'Weak spots', weakBody: 'What you keep missing', exams: 'Exams', examsBody: 'A plan up to exam day', games: 'Games', gamesBody: 'Glide and Lane Rush, with your questions',
       groups: 'Study groups', groupsBody: 'Share notes with classmates', schedule: 'Class schedule', scheduleBody: 'Reminders to record',
       reviewBody: 'A few minutes a day',
     },
