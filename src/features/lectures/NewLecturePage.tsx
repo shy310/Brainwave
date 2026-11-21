@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useBlocker, useNavigate, useSearchParams } from 'react-router';
-import { Ear, Mic, Pause, Play, RefreshCw, Square, Trash2, Upload } from 'lucide-react';
+import { Ear, Mic, Pause, Play, RefreshCw, Square, Star, Trash2, Upload } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAiError } from '@/lib/useAiError';
 import { cn } from '@/lib/cn';
@@ -315,6 +315,26 @@ export default function NewLecturePage() {
     if (rec.state !== 'running' && rec.state !== 'closed') void rec.resume();
   });
 
+  // "Important": mark this moment of the lecture (button, or the M key).
+  const [marks, setMarks] = useState<number[]>([]);
+  const [markNote, setMarkNote] = useState('');
+  const markNow = useCallback(() => {
+    const s = session.current, rec = recorder.current;
+    if (!s || !rec || !recordingActive) return;
+    const at = rec.elapsed;
+    void s.addMark(at).then(() => setMarks(s.draft.marks ?? []));
+    setMarkNote(t.lectures.marks.marked(formatTime(at)));
+    try { navigator.vibrate?.(15); } catch { /* not allowed */ }
+  }, [recordingActive, t]);
+  useEffect(() => {
+    if (!recordingActive) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key === 'm' || e.key === 'M') && !(e.target instanceof HTMLElement && e.target.closest('input, textarea, select, [contenteditable]'))) { e.preventDefault(); markNow(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [recordingActive, markNow]);
+
   const togglePause = async () => {
     if (phase === 'recording') { keeper.current?.pause(); await recorder.current?.pause(); setPhase('paused'); setLevel(0); }
     else { await recorder.current?.resume(); keeper.current?.resume(); setPhase('recording'); }
@@ -515,6 +535,16 @@ export default function NewLecturePage() {
                     className="flex size-14 items-center justify-center rounded-full bg-surface-2 text-fg transition-transform duration-150 hover:bg-line active:scale-95">
                     {phase === 'recording' ? <Pause className="size-6 fill-current" aria-hidden="true" /> : <Play className="size-6 fill-current" aria-hidden="true" />}
                   </button>
+                </div>
+                {/* Mark what matters: it gets extra weight in the notes, quiz and flashcards. */}
+                <div className="space-y-1.5">
+                  <button type="button" onClick={markNow} aria-describedby="mark-hint"
+                    className="pressable mx-auto inline-flex h-11 items-center gap-2 rounded-full bg-accent-400 px-5 font-semibold text-slate-950 shadow-sm hover:bg-accent-300">
+                    <Star className="size-5 fill-current" aria-hidden="true" />{t.lectures.marks.mark}
+                    {marks.length > 0 && <span key={marks.length} className="animate-digit rounded-full bg-slate-950/10 px-2 text-sm tabular-nums">{marks.length}</span>}
+                  </button>
+                  <p id="mark-hint" className="mx-auto max-w-xs text-xs text-muted">{t.lectures.marks.markHint}</p>
+                  <p className="min-h-4 text-xs font-medium text-accent-600 dark:text-accent-300" role="status">{markNote}</p>
                 </div>
                 <div className="space-y-1 text-xs text-muted">
                   <p>{t.lectures.keepOpen}{wakeLockHeld ? ` ${t.lectures.screenOn}` : ''}</p>

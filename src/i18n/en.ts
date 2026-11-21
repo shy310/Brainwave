@@ -369,6 +369,12 @@ export const en = {
     rename: 'Rename', save: 'Save',
     turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
+    marks: {
+      mark: 'Important', markHint: 'Tap when something matters (or press M). It gets extra attention in your notes, quiz and flashcards.',
+      marked: (time: string) => `Marked at ${time}`, count: (n: number) => (n === 1 ? '1 marked' : `${n} marked`),
+      title: 'Important moments', body: 'You marked these while recording. They get extra attention in the notes, quiz and flashcards.',
+      play: (time: string) => `Play from ${time}`, showInTranscript: 'Show in the transcript', badge: 'Marked as important',
+    },
     library: {
       favorites: 'Favorites', favorite: 'Add to favorites', unfavorite: 'Remove from favorites', starred: 'Favorite', open: 'Open', renameLecture: 'Rename lecture', moveLecture: 'Move to folder', deleteLecture: 'Delete', options: (n: string) => `Options for “${n}”`,
       search: 'Search lectures', sort: 'Sort', sorts: { newest: 'Most recent', oldest: 'Oldest', title: 'Name A–Z' },

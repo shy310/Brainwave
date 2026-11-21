@@ -372,6 +372,12 @@ export const ar: Dict = {
     rename: 'إعادة تسمية', save: 'حفظ',
     turnInto: 'حوّلها إلى', video: 'درس فيديو', podcast: 'بودكاست',
     emptyTranscript: 'لم يُعثر على كلام في هذا التسجيل.',
+    marks: {
+      mark: 'مهم', markHint: 'انقر عندما يكون شيء مهمًا (أو اضغط M). سيحظى باهتمام خاص في ملاحظاتك واختبارك وبطاقاتك.',
+      marked: (time: string) => `عُلّم عند ${time}`, count: (n: number) => count(n, 'علامة واحدة', 'علامتان', 'علامات', 'علامة'),
+      title: 'لحظات مهمة', body: 'علّمت هذه أثناء التسجيل. تحظى باهتمام خاص في الملاحظات والاختبار والبطاقات.',
+      play: (time: string) => `شغّل من ${time}`, showInTranscript: 'اعرض في النص', badge: 'معلّم كمهم',
+    },
     library: {
       favorites: 'المفضلة', favorite: 'أضف إلى المفضلة', unfavorite: 'أزل من المفضلة', starred: 'مفضّلة', open: 'فتح', renameLecture: 'إعادة التسمية', moveLecture: 'نقل إلى مجلد', deleteLecture: 'حذف', options: (n: string) => `خيارات «${n}»`,
       search: 'ابحث في المحاضرات', sort: 'الترتيب', sorts: { newest: 'الأحدث', oldest: 'الأقدم', title: 'حسب الاسم' },
