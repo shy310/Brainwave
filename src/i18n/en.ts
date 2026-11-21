@@ -71,7 +71,7 @@ export const en = {
       recordTitle: 'Record your next class', recordBody: 'Get notes, a quiz and flashcards when it ends.', recordCta: 'Start recording',
     },
     quick: {
-      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', games: 'Games',
+      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', weak: 'Weak spots', search: 'Search', games: 'Games',
       tutor: 'Ask AI', grade: 'Grade', groups: 'Groups',
     },
     recent: 'Continue', seeAll: 'See all', explore: 'Explore',
@@ -103,6 +103,22 @@ export const en = {
     goodLuck: 'Good luck today! 🍀', over: 'This exam is over. How did it go?',
     noQuestions: 'These lectures don’t have flashcards or quiz questions yet. Make some on a lecture first.',
     banner: (title: string, when: string) => `${title} · ${when}`,
+  },
+  weak: {
+    title: 'Weak spots', subtitle: 'Questions you missed and flashcards you keep forgetting, in one short practice. Get one right twice in a row and it’s off the list.',
+    start: 'Practise now', count: (n: number) => (n === 1 ? '1 to practise' : `${n} to practise`),
+    missed: (n: number) => (n === 1 ? '1 question you missed' : `${n} questions you missed`), cards: (n: number) => (n === 1 ? '1 flashcard you keep forgetting' : `${n} flashcards you keep forgetting`),
+    empty: 'No weak spots right now 🎉 Anything you miss in a quiz or keep forgetting in your flashcards shows up here.',
+    again: 'Another round', done: 'Back to your lectures', home: 'Practise your weak spots',
+  },
+  search: {
+    title: 'Search your lectures', subtitle: 'Find anything a teacher said or wrote in your notes, and jump right to it.',
+    placeholder: 'Search or ask a question…', open: 'Search all lectures',
+    results: (n: number) => (n === 1 ? '1 match' : `${n} matches`), none: (q: string) => `Nothing in your lectures matches “${q}”.`,
+    inNotes: 'In the notes', at: (time: string) => `At ${time}`, jump: (time: string) => `Open at ${time}`,
+    ask: 'Ask about this', asking: 'Reading your lectures…', answer: 'Answer from your lectures', sources: 'Sources',
+    notFound: 'Your lectures don’t seem to cover this.', hint: 'Tip: ask a full question, like “What did we learn about derivatives?”',
+    empty: 'You have no lectures with a transcript yet.',
   },
   game: {
     source: 'What should the questions be about?', allLectures: 'All lectures', pickLectures: 'Choose lectures',
@@ -376,6 +392,12 @@ export const en = {
     rename: 'Rename', save: 'Save',
     turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
+    highlights: {
+      toolbar: 'Highlight', colors: { yellow: 'Yellow', green: 'Green', blue: 'Blue', pink: 'Pink' }, color: (c: string) => `Highlight in ${c}`,
+      comment: 'Comment', addComment: 'Add a comment', editComment: 'Edit comment', placeholder: 'Your note about this…', save: 'Save', remove: 'Remove highlight',
+      title: 'Your highlights', hint: 'Select text in your notes to highlight it or add a comment.', missing: 'Not in these notes any more',
+      count: (n: number) => (n === 1 ? '1 highlight' : `${n} highlights`), show: 'Show in the notes',
+    },
     marks: {
       mark: 'Important', markHint: 'Tap when something matters (or press M). It gets extra attention in your notes, quiz and flashcards.',
       marked: (time: string) => `Marked at ${time}`, count: (n: number) => (n === 1 ? '1 marked' : `${n} marked`),
@@ -407,7 +429,7 @@ export const en = {
       styleHelp: { short: 'The key ideas on one screen.', detailed: 'Everything important, section by section.', exam: 'Adds practice questions and common mistakes.' } },
     mastery: { title: 'Progress', new: 'New', learning: 'Still learning', almost: 'Almost done', mastered: 'Mastered' },
     tools: {
-      title: 'Study tools', review: 'Review flashcards', exams: 'Exams', examsBody: 'A plan up to exam day', games: 'Games', gamesBody: 'Glide and Lane Rush, with your questions',
+      title: 'Study tools', review: 'Review flashcards', weak: 'Weak spots', weakBody: 'What you keep missing', exams: 'Exams', examsBody: 'A plan up to exam day', games: 'Games', gamesBody: 'Glide and Lane Rush, with your questions',
       groups: 'Study groups', groupsBody: 'Share notes with classmates', schedule: 'Class schedule', scheduleBody: 'Reminders to record',
       reviewBody: 'A few minutes a day',
     },
@@ -499,6 +521,7 @@ export const en = {
   },
   notFound: { title: 'Page not found', body: "We couldn't find that page.", home: 'Go home' },
   errors: {
+    updated: 'BrainWave was just updated.', updatedHint: 'Reload to get the new version.', notFound: 'We couldn’t find that page.', home: 'Go home', 
     boundary: 'Something went wrong on this page.', reload: 'Reload',
     ai: 'The AI couldn’t answer just now. Please try again.',
     rateLimit: 'You’ve hit today’s AI limit, or are going a bit fast. Try again in a minute.',

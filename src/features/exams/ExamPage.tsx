@@ -19,6 +19,7 @@ import { ExamSheet } from './ExamSheet';
 import { ReadinessRing } from './ReadinessRing';
 import { practiceQuestions } from './practice';
 import { useExamStatus } from './useExamData';
+import { recordQuizAnswer } from '@/features/weak/mistakeRepo';
 
 const SHOWN_DAYS = 7;
 
@@ -96,6 +97,7 @@ export default function ExamPage() {
         <button type="button" onClick={() => setPractice(null)} className="text-sm font-medium text-muted hover:text-fg">‹ {te.back}</button>
         <h1 className="text-2xl font-semibold tracking-tight">{te.practiceTitle} · <span dir="auto">{exam.title}</span></h1>
         <QuizRunner key={round} questions={practice} onFinish={(s) => void finished(s)}
+          onQuestion={(q, ok) => void recordQuizAnswer(q, null, ok)}
           resultActions={<>
             <Button onClick={startPractice}>{te.again}</Button>
             <Button variant="secondary" onClick={() => setPractice(null)}>{te.back}</Button>

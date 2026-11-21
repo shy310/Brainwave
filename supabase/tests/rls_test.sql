@@ -41,6 +41,9 @@ select pg_temp.refused($$update public.lectures set folder_id = 'f0000000-0000-0
 select pg_temp.ok((select count(*) from public.lecture_folders) = 0, 'B cannot see A''s folders');
 update public.lectures set favorite = true where id = '20000000-0000-0000-0000-00000000000b';
 select pg_temp.ok((select favorite from public.lectures where id = '20000000-0000-0000-0000-00000000000b'), 'a student can star their own lecture');
+update public.lectures set highlights = '[{"id":"h1","block":"summary","quote":"x","offset":0,"color":"yellow","createdAt":0}]' where id = '20000000-0000-0000-0000-00000000000b';
+select pg_temp.ok((select jsonb_array_length(highlights) from public.lectures where id = '20000000-0000-0000-0000-00000000000b') = 1, 'highlights are saved with the lecture');
+select pg_temp.refused($$update public.lectures set highlights = '{}' where id = '20000000-0000-0000-0000-00000000000b'$$, 'highlights that are not a list');
 update public.lectures set marks = '{12.5, 340}' where id = '20000000-0000-0000-0000-00000000000b';
 select pg_temp.ok((select marks from public.lectures where id = '20000000-0000-0000-0000-00000000000b') = '{12.5, 340}'::real[], 'important moments are saved with the lecture');
 update public.lectures set favorite = true where id = '10000000-0000-0000-0000-00000000000a';
@@ -260,6 +263,17 @@ select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
 select pg_temp.ok((select title from public.exams) = 'Calculus final', 'B could not change A''s exam');
 reset role;
 
+-- ── Weak spots ────────────────────────────────────────────────────────────
+reset role;
+set role authenticated;
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+insert into public.mistakes (key, lecture_id, question) values ('q1', '10000000-0000-0000-0000-00000000000a', '{"prompt":"x"}');
+select pg_temp.ok((select count(*) from public.mistakes) = 1, 'a student can keep a missed question');
+select pg_temp.refused($$insert into public.mistakes (key, question, user_id) values ('q2', '{}', 'bbbbbbbb-0000-0000-0000-000000000002')$$, 'saving a mistake for someone else');
+select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
+select pg_temp.ok((select count(*) from public.mistakes) = 0, 'B cannot see A''s mistakes');
+reset role;
+
 -- ── Deleting an account removes everything ────────────────────────────────
 reset role;
 delete from auth.users where id = 'aaaaaaaa-0000-0000-0000-000000000001';
@@ -271,6 +285,7 @@ select pg_temp.ok((select count(*) from public.class_slots) = 0, 'deleted accoun
 select pg_temp.ok((select count(*) from public.grader_tasks) = 0, 'deleted account: graded answers gone');
 select pg_temp.ok((select count(*) from public.push_subscriptions where user_id = 'aaaaaaaa-0000-0000-0000-000000000001') = 0, 'deleted account: push devices gone');
 select pg_temp.ok((select count(*) from public.reminder_settings) = 0, 'deleted account: reminder settings gone');
+select pg_temp.ok((select count(*) from public.mistakes) = 0, 'deleted account: mistakes gone');
 select pg_temp.ok((select count(*) from public.exams) = 0, 'deleted account: exams gone');
 select pg_temp.ok((select count(*) from public.study_groups) = 0, 'deleted account: owned groups gone');
 select pg_temp.ok((select count(*) from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001') = 0, 'deleted account: profile gone');

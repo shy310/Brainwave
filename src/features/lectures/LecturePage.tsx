@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal } from 'lucide-react';
 import { Sheet } from '@/ui/Sheet';
 import { ListRow, ListSection } from '@/ui/List';
@@ -39,8 +39,11 @@ import { dateLocale } from '@shared/locales';
 import { copyNotes as copyNotesToClipboard, notesLabels, notesLocale, notesToMarkdown } from './notesExport';
 import { askConfirm } from '@/ui/Confirm';
 import { Shimmer } from '@/ui/Feedback';
+import { recordQuizAnswer } from '@/features/weak/mistakeRepo';
 import { markedSegments, transcriptWithMarks } from '@shared/marks';
 import { ImportantMoments } from './ImportantMoments';
+import { Highlighter } from './Highlighter';
+import { HighlightsList } from './HighlightsList';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
@@ -64,6 +67,10 @@ export default function LecturePage() {
   const [lecture, setLecture] = useState<Lecture | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>('notes');
   const audio = useRef<HTMLAudioElement>(null);
+  // Opened from search at a moment (?t=seconds): show it in the transcript, and cue the recording there.
+  const [params] = useSearchParams();
+  const jumpTo = params.get('t');
+  const [jumped, setJumped] = useState(false);
   const ask = useRef<AskPanelHandle>(null);
   // The lecture has its own bar at the bottom (actions and player) instead of the app's tabs.
   useHideTabBar();
@@ -190,6 +197,21 @@ export default function LecturePage() {
     mode: 'explain' as const,
     lecture: { title: lecture?.title || t.lectures.untitled, text: [transcript, lecture?.slides_text].filter(Boolean).join('\n\n').slice(0, 200_000) },
   }), [lecture, transcript, t]);
+
+  useEffect(() => {
+    if (!lecture || jumped || jumpTo === null) return;
+    const at = Number(jumpTo);
+    if (!Number.isFinite(at)) return;
+    setJumped(true);
+    setTab('transcript');
+    const seg = [...lecture.segments].reverse().find((s) => s.start <= at) ?? lecture.segments[0];
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const el = seg && document.getElementById(`seg-${seg.start}`);
+      el?.scrollIntoView({ block: 'center' });
+      el?.classList.add('animate-flash');
+      if (audio.current) audio.current.currentTime = seg?.start ?? at;
+    }));
+  }, [lecture, jumpTo, jumped]);
 
   if (lecture === undefined) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
   if (lecture === null) return <Alert tone="error">{t.lectures.notFound}</Alert>;
@@ -321,7 +343,10 @@ export default function LecturePage() {
                 </div>
                 <ImportantMoments marks={lecture.marks ?? []} segments={lecture.segments} onPlay={lecture.audio_path ? playFrom : undefined}
                   onShow={(start) => { setTab('transcript'); requestAnimationFrame(() => document.getElementById(`seg-${start}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })); }} />
-                <NotesView notes={lecture.notes} />
+                <Highlighter highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })}>
+                  <NotesView notes={lecture.notes} />
+                </Highlighter>
+                <HighlightsList highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })} />
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
                 {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
                   onChange={(token, note) => { setLecture((l) => (l ? { ...l, share_token: token } : l)); setShareNote(note); }} />}
@@ -358,6 +383,7 @@ export default function LecturePage() {
             busy === 'quiz' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" /><Shimmer text={t.lectures.makingQuiz} /></Card>
             : lecture.quiz ? (
               <QuizRunner key={quizRound} questions={lecture.quiz.questions} context={transcript}
+                onQuestion={(q, ok) => void recordQuizAnswer(q, id, ok)}
                 resultActions={<>
                   <Button variant="secondary" onClick={() => setQuizRound((r) => r + 1)}>{t.quiz.retry}</Button>
                   <Button icon={<Sparkles className="size-4" />} onClick={() => generate('quiz')}>{t.lectures.newQuiz}</Button>
