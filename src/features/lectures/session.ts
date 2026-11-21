@@ -4,6 +4,7 @@ import { audioStore as defaultStore, type AudioStore, type Draft, type DraftSour
 import { lectureRepo as defaultRepo } from './repo';
 import { TranscriptionQueue, type QueueStatus, type TranscribeFn } from './transcriber';
 import { RecordingError, recordingRepo } from './recording';
+import { addMark } from '@shared/marks';
 
 type Repo = Pick<typeof defaultRepo, 'create' | 'update'>;
 
@@ -165,6 +166,13 @@ export class LectureSession {
     if (!keep) await this.store.clearRecording(this.draft.id);
   }
 
+  /** Mark the moment at `seconds` as important (saved with the draft, so it survives a crash). */
+  async addMark(seconds: number) {
+    const marks = addMark(this.draft.marks ?? [], seconds);
+    if (marks === this.draft.marks) return;
+    await this.patchDraft({ marks });
+  }
+
   setSlides(text: string | null) {
     void this.patchDraft({ slidesText: text });
     if (this.draft.lectureId) void this.repo.update(this.draft.lectureId, { slides_text: text }).catch(() => {});
@@ -191,6 +199,7 @@ export class LectureSession {
     }
     await this.repo.update(this.draft.lectureId!, {
       segments: this.transcript(), duration_sec: Math.round(this.draft.duration), ...(status ? { status } : {}),
+      ...(this.draft.marks?.length ? { marks: this.draft.marks } : {}),
     });
   }
 

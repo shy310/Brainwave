@@ -34,6 +34,8 @@ export interface Draft {
    * recording stops. Unset until the student answers.
    */
   keepAudio?: boolean;
+  /** Moments marked as important while recording, in seconds. */
+  marks?: number[];
   createdAt: number;
   updatedAt: number;
 }
