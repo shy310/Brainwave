@@ -83,7 +83,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-[radial-gradient(60rem_40rem_at_10%_-10%,rgb(109_85_251/0.18),transparent),radial-gradient(50rem_30rem_at_110%_10%,rgb(255_107_61/0.14),transparent)]">
+    <div className="min-h-dvh bg-[radial-gradient(60rem_40rem_at_10%_-10%,rgb(35_86_232/0.16),transparent),radial-gradient(50rem_30rem_at_110%_10%,rgb(255_194_61/0.18),transparent)]">
       <div className="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 py-6 sm:px-6">
         <header className="flex items-center justify-between">
           <Logo />

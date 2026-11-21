@@ -64,6 +64,19 @@ export const ru: Dict = {
     breakOver: 'Перерыв закончился. Ещё один подход?', again: 'Ещё фокус',
   },
   home: {
+    dailyTitle: 'Цели на день', goalDone: 'Готово', goalTodo: 'Пока нет', record: 'Записать лекцию', more: 'Ещё',
+    noRecent: 'Лекций пока нет', noRecentBody: 'Запишите или загрузите лекцию, чтобы получить конспект, тест и карточки.',
+    today: 'Сегодня', doneOf: (n: number, m: number) => `Готово ${n}/${m}`, nextUp: 'Дальше', tools: 'Инструменты',
+    daily: {
+      review: 'Повторить карточки', reviewDue: (n: number) => `Ждут карточек: ${n}`, caughtUp: 'Всё повторено',
+      minutes: (m: number) => `Позаниматься ${m} минут`, minutesSoFar: (n: number, m: number) => `${n} из ${m} мин`,
+      lecture: 'Добавить лекцию', lectureHint: 'Записать, загрузить или вставить',
+    },
+    hero: {
+      review: (n: number) => `К повторению: ${n}`, reviewBody: (min: number) => `Около ${min} мин · сейчас лучшее время, чтобы вспомнить`,
+      reviewCta: 'Начать повторение', continueTitle: 'Продолжите с того места, где остановились', continueCta: 'Открыть конспект',
+      recordTitle: 'Запишите следующее занятие', recordBody: 'После него появятся конспект, тест и карточки.', recordCta: 'Начать запись',
+    },
     quick: {
       title: 'Быстрый старт', record: 'Запись', upload: 'Загрузить', pdf: 'PDF', review: 'Повторение', summit: 'Вершина',
       tutor: 'Спросить ИИ', grade: 'Оценка', groups: 'Группы',
@@ -179,6 +192,8 @@ export const ru: Dict = {
     themeLight: 'Светлая', themeDark: 'Тёмная', themeSystem: 'Как на устройстве',
     account: 'Аккаунт', signedInAs: (email: string) => `Вы вошли как ${email}`,
     demoNote: 'Демо-режим: прогресс сохраняется только в этом браузере.',
+    edit: 'Изменить', editProfile: 'Изменить профиль', lectureLanguage: 'Язык лекций', off: 'Выкл.', reminderValue: (time: string) => `Вкл., ${time}`,
+    support: 'Помощь и отзывы', signOutHint: 'Войти снова можно в любой момент.',
     study: 'Учёба',
   },
   subjects: { math: 'Математика', science: 'Естествознание', geography: 'География', history: 'История', coding: 'Программирование', economics: 'Экономика' },
@@ -356,6 +371,8 @@ export const ru: Dict = {
       madeWith: 'Конспект сделан в BrainWave', tryIt: 'Сделать свой конспект',
     },
     actions: { pdf: 'PDF', toolbar: 'Действия с лекцией', showActions: 'Показать действия', hideActions: 'Скрыть действия', link: 'Поделиться ссылкой', more: 'Ещё' },
+    options: { title: 'Действия с лекцией', customize: 'Настроить', move: 'Переместить в папку', apply: 'Применить', customizeTitle: 'Настройка конспекта',
+      styleHelp: { short: 'Главные мысли на одном экране.', detailed: 'Всё важное, раздел за разделом.', exam: 'С вопросами для практики и частыми ошибками.' } },
     mastery: { title: 'Прогресс', new: 'Новые', learning: 'Учу', almost: 'Почти', mastered: 'Выучено' },
     tools: {
       title: 'Инструменты', review: 'Повторить карточки', summit: 'Вершина', summitBody: 'Быстрая игра-тест по вашим лекциям',

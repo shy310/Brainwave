@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Bell, CalendarPlus, Pencil, Trash2 } from 'lucide-react';
+import { Bell, CalendarDays, CalendarPlus, Pencil, Trash2 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
@@ -13,6 +13,7 @@ import { scheduleRepo } from './scheduleRepo';
 import { PushNote } from './PushNote';
 import { enableReminders, notificationsSupported, remindersAllowed, syncNativeReminders } from './reminders';
 import { dateLocale } from '@shared/locales';
+import { EmptyState } from '@/ui/EmptyState';
 
 type Draft = Omit<ClassSlot, 'id'> & { id?: string };
 const blank = (): Draft => ({ name: '', weekday: new Date().getDay(), starts: '10:00', ends: '11:30', folderId: null, remindMinutes: 10 });
@@ -79,16 +80,19 @@ export default function SchedulePage() {
       </header>
 
       {notificationsSupported() && (
-        <Card className="flex flex-wrap items-center gap-3 p-4">
-          <Bell className="size-5 text-brand-600 dark:text-brand-300" aria-hidden="true" />
-          {allowed ? <p className="min-w-0 flex-1 text-sm">{ts.enabled}</p> : <PushNote className="min-w-0 flex-1 text-sm" />}
-          {!allowed && <Button size="sm" onClick={() => void turnOn()}>{ts.enable}</Button>}
-          {blocked && <p className="w-full text-sm text-rose-600" role="alert">{ts.blocked}</p>}
-          {allowed && <PushNote className="w-full text-xs text-muted" />}
+        <Card className="space-y-3 p-4">
+          <div className="flex items-center gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-700 dark:text-brand-300"><Bell className="size-5" aria-hidden="true" /></span>
+            <p className="min-w-0 flex-1 font-medium">{allowed ? ts.enabled : ts.enable}</p>
+            {!allowed && <Button size="sm" onClick={() => void turnOn()}>{ts.enable}</Button>}
+          </div>
+          {/* The note gets the full width, not a squeezed column beside the button. */}
+          <PushNote className="text-sm text-muted" />
+          {blocked && <p className="text-sm text-rose-600 dark:text-rose-400" role="alert">{ts.blocked}</p>}
         </Card>
       )}
 
-      {slots.length === 0 && !draft && <p className="rounded-xl border border-dashed border-line p-6 text-center text-muted">{ts.empty}</p>}
+      {slots.length === 0 && !draft && <EmptyState icon={CalendarDays} body={ts.empty} />}
 
       {slots.length > 0 && (
         <ul className="space-y-2">

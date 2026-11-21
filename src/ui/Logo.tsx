@@ -1,31 +1,33 @@
 import { useId } from 'react';
 import { cn } from '@/lib/cn';
 
-/** The app mark: a sound wave (recorded lectures) with a spark (understanding). */
+/** The app mark: a note page whose sound-wave bars turn into lines of text (a lecture becoming notes), with a sun dot. */
 export const LogoMark = ({ className }: { className?: string }) => {
   const id = useId();
   return (
     <svg viewBox="0 0 64 64" aria-hidden="true" className={cn('size-8', className)}>
       <defs>
         <linearGradient id={`${id}bg`} x1="0" y1="0" x2="0.9" y2="1">
-          <stop offset="0" stopColor="#21a18c" />
-          <stop offset="1" stopColor="#0c4a42" />
+          <stop offset="0" stopColor="#3a69ec" />
+          <stop offset="1" stopColor="#183a9c" />
         </linearGradient>
         <linearGradient id={`${id}hi`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fff" stopOpacity=".2" />
+          <stop offset="0" stopColor="#fff" stopOpacity=".22" />
           <stop offset=".55" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <rect width="64" height="64" rx="18" fill={`url(#${id}bg)`} />
-      <rect width="64" height="64" rx="18" fill={`url(#${id}hi)`} />
-      <g fill="#fdf8ef">
-      <rect x="10.5" y="29" width="6" height="12" rx="3" />
-      <rect x="19.5" y="22" width="6" height="26" rx="3" />
-      <rect x="28.5" y="17" width="6" height="36" rx="3" />
-      <rect x="37.5" y="23" width="6" height="24" rx="3" />
-      <rect x="46.5" y="29" width="6" height="12" rx="3" />
+      <rect width="64" height="64" rx="16" fill={`url(#${id}bg)`} />
+      <rect width="64" height="64" rx="16" fill={`url(#${id}hi)`} />
+      <g transform="rotate(-5 32 34)">
+        <rect x="12" y="13" width="40" height="40" rx="8" fill="#ffffff" />
+        <rect x="17.5" y="29" width="4.5" height="9" rx="2.25" fill="#2356e8" />
+        <rect x="24" y="23" width="4.5" height="21" rx="2.25" fill="#2356e8" />
+        <rect x="30.5" y="27" width="4.5" height="13" rx="2.25" fill="#2356e8" />
+        <rect x="37" y="24" width="10" height="4.5" rx="2.25" fill="#2356e8" />
+        <rect x="37" y="31.25" width="7.5" height="4.5" rx="2.25" fill="#2356e8" opacity=".7" />
+        <rect x="37" y="38.5" width="10" height="4.5" rx="2.25" fill="#2356e8" opacity=".45" />
       </g>
-      <path d="M51 8c.55 2.9 2.1 4.45 5 5-2.9.55-4.45 2.1-5 5-.55-2.9-2.1-4.45-5-5 2.9-.55 4.45-2.1 5-5z" fill="#ff9a74" />
+      <circle cx="50.5" cy="13.5" r="7" fill="#ffc23d" />
     </svg>
   );
 };

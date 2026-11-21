@@ -56,6 +56,19 @@ export const en = {
     breakOver: 'Break’s over. Ready for another round?', again: 'Focus again',
   },
   home: {
+    dailyTitle: 'Daily goals', goalDone: 'Done', goalTodo: 'Not yet', record: 'Record a lecture', more: 'More',
+    noRecent: 'No lectures yet', noRecentBody: 'Record or upload one to get notes, a quiz and flashcards.',
+    today: 'Today', doneOf: (n: number, m: number) => `Done ${n}/${m}`, nextUp: 'Next up', tools: 'Tools',
+    daily: {
+      review: 'Review your cards', reviewDue: (n: number) => (n === 1 ? '1 card is waiting' : `${n} cards are waiting`), caughtUp: 'All caught up',
+      minutes: (m: number) => `Study for ${m} minutes`, minutesSoFar: (n: number, m: number) => `${n} of ${m} min`,
+      lecture: 'Add a lecture', lectureHint: 'Record, upload or paste one',
+    },
+    hero: {
+      review: (n: number) => (n === 1 ? '1 card to review' : `${n} cards to review`), reviewBody: (min: number) => `About ${min} min · now is the best time to remember them`,
+      reviewCta: 'Start review', continueTitle: 'Pick up where you left off', continueCta: 'Open notes',
+      recordTitle: 'Record your next class', recordBody: 'Get notes, a quiz and flashcards when it ends.', recordCta: 'Start recording',
+    },
     quick: {
       title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', summit: 'Summit',
       tutor: 'Ask AI', grade: 'Grade', groups: 'Groups',
@@ -171,6 +184,8 @@ export const en = {
     themeLight: 'Light', themeDark: 'Dark', themeSystem: 'Match my device',
     account: 'Account', signedInAs: (email: string) => `Signed in as ${email}`,
     demoNote: 'Demo mode: progress is saved in this browser only.',
+    edit: 'Edit', editProfile: 'Edit profile', lectureLanguage: 'Lecture language', off: 'Off', reminderValue: (time: string) => `On, ${time}`,
+    support: 'Help & feedback', signOutHint: 'You can sign back in any time.',
     study: 'Study',
   },
   subjects: { math: 'Math', science: 'Science', geography: 'Geography', history: 'History', coding: 'Coding', economics: 'Economics' },
@@ -300,7 +315,7 @@ export const en = {
     liveTranscript: 'Live transcript', waitingFirst: 'The first minute will appear here soon…',
     leaveWarning: 'Your lecture is still being processed. Leave anyway?',
     // Lecture page
-    tabsView: { notes: 'Notes', transcript: 'Transcript', quiz: 'Quiz', cards: 'Flashcards', ask: 'Ask' },
+    tabsView: { notes: 'Notes', transcript: 'Transcript', quiz: 'Quiz', cards: 'Cards', ask: 'Ask' },
     writingNotes: 'Writing your notes…', notesFailed: 'Could not write notes.', summary: 'Summary', keyTerms: 'Key terms',
     reminders: 'Homework & reminders', regenerate: 'Write again', copy: 'Copy', copied: 'Copied', download: 'Download',
     interrupted: 'Transcription stopped before the end — what was saved is below.', useWhatWeHave: 'Use what was saved',
@@ -350,6 +365,8 @@ export const en = {
       madeWith: 'Notes made with BrainWave', tryIt: 'Make your own notes',
     },
     actions: { pdf: 'PDF', toolbar: 'Lecture actions', showActions: 'Show actions', hideActions: 'Hide actions', link: 'Share a link', more: 'More' },
+    options: { title: 'Lecture options', customize: 'Customize', move: 'Move to folder', apply: 'Apply', customizeTitle: 'Customize notes',
+      styleHelp: { short: 'The key ideas on one screen.', detailed: 'Everything important, section by section.', exam: 'Adds practice questions and common mistakes.' } },
     mastery: { title: 'Progress', new: 'New', learning: 'Still learning', almost: 'Almost done', mastered: 'Mastered' },
     tools: {
       title: 'Study tools', review: 'Review flashcards', summit: 'Summit', summitBody: 'A quick quiz game from your lectures',

@@ -11,7 +11,7 @@ export interface DockAction {
   /** A fuller name for screen readers and tooltips, when the label is short. */
   name?: string;
   icon: ReactNode;
-  /** Colour of the round icon, e.g. "bg-accent-500". */
+  /** Fill and icon colour of the round button, e.g. "bg-brand-600 text-white". */
   tone: string;
   onSelect?: (el: HTMLElement) => void;
   /** A short menu instead of a single action. */
@@ -24,7 +24,7 @@ const COLLAPSED = 'bw.dockCollapsed';
 const Round = ({ a, ...props }: { a: DockAction } & React.ButtonHTMLAttributes<HTMLButtonElement> & { ref?: React.Ref<HTMLButtonElement> }) => (
   <button type="button" disabled={a.disabled} aria-label={a.name ?? a.label} title={a.name} {...props}
     className="group flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl py-1 text-[11px] font-medium text-muted transition-colors hover:text-fg disabled:opacity-40">
-    <span className={cn('flex size-11 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-0.5 group-active:scale-90 [&>svg]:size-5', a.tone)} aria-hidden="true">
+    <span className={cn('flex size-11 items-center justify-center rounded-full shadow-sm transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-0.5 group-active:scale-90 [&>svg]:size-5', a.tone)} aria-hidden="true">
       {a.icon}
     </span>
     <span className="max-w-full truncate" aria-hidden="true">{a.label}</span>

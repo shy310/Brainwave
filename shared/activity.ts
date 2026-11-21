@@ -64,3 +64,24 @@ export const bumpDay = (days: DayActivity[], day: string, delta: ActivityDelta):
   };
   return [...days.filter((d) => d.day !== day), next].sort((a, b) => a.day.localeCompare(b.day));
 };
+
+/** Minutes of study that make today's time goal. */
+export const DAILY_MINUTES = 10;
+
+export type GoalId = 'review' | 'minutes' | 'lecture';
+export interface Goal { id: GoalId; done: boolean }
+
+/**
+ * Today's three small goals: review the cards that are due (done when you
+ * reviewed some today, or nothing is due), study for 10 minutes, and add a
+ * lecture. Pure, so it's easy to test.
+ */
+export const dailyGoals = (today: DayActivity | undefined, due: number): { goals: Goal[]; done: number } => {
+  const d = today ?? { minutes: 0, cards: 0, quizzes: 0, lectures: 0 };
+  const goals: Goal[] = [
+    { id: 'review', done: d.cards > 0 || due === 0 },
+    { id: 'minutes', done: d.minutes >= DAILY_MINUTES },
+    { id: 'lecture', done: d.lectures > 0 },
+  ];
+  return { goals, done: goals.filter((g) => g.done).length };
+};

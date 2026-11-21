@@ -61,6 +61,19 @@ export const ar: Dict = {
     breakOver: 'انتهت الاستراحة. مستعد لجولة أخرى؟', again: 'تركيز مرة أخرى',
   },
   home: {
+    dailyTitle: 'الأهداف اليومية', goalDone: 'أُنجز', goalTodo: 'ليس بعد', record: 'سجّل محاضرة', more: 'المزيد',
+    noRecent: 'لا توجد محاضرات بعد', noRecentBody: 'سجّل محاضرة أو ارفعها لتحصل على ملخص واختبار وبطاقات.',
+    today: 'اليوم', doneOf: (n: number, m: number) => `أُنجز ${n}/${m}`, nextUp: 'التالي', tools: 'الأدوات',
+    daily: {
+      review: 'راجع بطاقاتك', reviewDue: (n: number) => (n === 1 ? 'بطاقة واحدة بانتظارك' : `${n} بطاقات بانتظارك`), caughtUp: 'أنهيت كل شيء',
+      minutes: (m: number) => `ادرس ${m} دقائق`, minutesSoFar: (n: number, m: number) => `${n} من ${m} د`,
+      lecture: 'أضف محاضرة', lectureHint: 'سجّل أو ارفع أو الصق واحدة',
+    },
+    hero: {
+      review: (n: number) => (n === 1 ? 'بطاقة واحدة للمراجعة' : `${n} بطاقات للمراجعة`), reviewBody: (min: number) => `نحو ${min} د · الآن أفضل وقت لتتذكرها`,
+      reviewCta: 'ابدأ المراجعة', continueTitle: 'تابع من حيث توقفت', continueCta: 'افتح الملخص',
+      recordTitle: 'سجّل حصتك القادمة', recordBody: 'احصل على ملخص واختبار وبطاقات عند انتهائها.', recordCta: 'ابدأ التسجيل',
+    },
     quick: {
       title: 'بداية سريعة', record: 'تسجيل', upload: 'رفع', pdf: 'PDF', review: 'مراجعة', summit: 'القمة',
       tutor: 'اسأل الذكاء الاصطناعي', grade: 'تقييم', groups: 'المجموعات',
@@ -176,6 +189,8 @@ export const ar: Dict = {
     themeLight: 'فاتح', themeDark: 'داكن', themeSystem: 'حسب جهازي',
     account: 'الحساب', signedInAs: (email: string) => `مسجّل الدخول باسم ${email}`,
     demoNote: 'الوضع التجريبي: يُحفظ التقدّم في هذا المتصفح فقط.',
+    edit: 'تعديل', editProfile: 'تعديل الملف الشخصي', lectureLanguage: 'لغة المحاضرات', off: 'متوقف', reminderValue: (time: string) => `مفعّل، ${time}`,
+    support: 'المساعدة والملاحظات', signOutHint: 'يمكنك تسجيل الدخول مجددًا في أي وقت.',
     study: 'الدراسة',
   },
   subjects: { math: 'الرياضيات', science: 'العلوم', geography: 'الجغرافيا', history: 'التاريخ', coding: 'البرمجة', economics: 'الاقتصاد' },
@@ -353,6 +368,8 @@ export const ar: Dict = {
       madeWith: 'ملخصات أُنشئت باستخدام BrainWave', tryIt: 'أنشئ ملخصاتك بنفسك',
     },
     actions: { pdf: 'PDF', toolbar: 'إجراءات المحاضرة', showActions: 'إظهار الإجراءات', hideActions: 'إخفاء الإجراءات', link: 'مشاركة رابط', more: 'المزيد' },
+    options: { title: 'خيارات المحاضرة', customize: 'تخصيص', move: 'نقل إلى مجلد', apply: 'تطبيق', customizeTitle: 'تخصيص الملخص',
+      styleHelp: { short: 'الأفكار الرئيسية في شاشة واحدة.', detailed: 'كل ما هو مهم، قسمًا بعد قسم.', exam: 'مع أسئلة تدريبية وأخطاء شائعة.' } },
     mastery: { title: 'التقدّم', new: 'جديدة', learning: 'قيد التعلّم', almost: 'على وشك', mastered: 'متقَنة' },
     tools: {
       title: 'أدوات الدراسة', review: 'مراجعة البطاقات', summit: 'القمة', summitBody: 'لعبة اختبار سريعة من محاضراتك',

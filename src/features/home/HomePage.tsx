@@ -1,118 +1,136 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import {
-  ArrowRight, BookOpen, ChevronRight, ClipboardCheck, Clapperboard, FileText, Headphones, Layers, MessageCircle, Mic, Mountain, Upload, Users,
-  type LucideIcon,
+  ArrowRight, ClipboardCheck, FileText, Layers, MessageCircle, Mic, MoreHorizontal, Mountain, NotebookText, Upload, Users,
 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { cn } from '@/lib/cn';
-import { Card } from '@/ui/Card';
-import { IconTile } from '@/ui/IconTile';
-import { WeekCard } from '@/features/stats/WeekCard';
+import { Menu } from '@/ui/Menu';
+import { TodayCard } from './TodayCard';
 import { UpNextBanner } from '@/features/schedule/UpNext';
+import { activityRepo } from '@/features/stats/activity';
 import { lectureRepo, type LectureSummary } from '@/features/lectures/repo';
 import { useDueCount } from '@/features/lectures/reviews';
 import { lectureTitle } from '@/features/lectures/LecturesPage';
 import { dateLocale } from '@shared/locales';
+import type { DayActivity } from '@shared/activity';
 
-interface Action { to: string; icon: LucideIcon; label: string; tint: string; badge?: number }
+/** The single next best thing to do: review due cards, else continue the latest lecture, else record one. */
+const NextUp = ({ due, latest }: { due: number; latest: LectureSummary | undefined }) => {
+  const { t, locale } = useI18n();
+  const th = t.home.hero;
+  const card = due > 0
+    ? { icon: Layers, title: th.review(due), body: th.reviewBody(Math.max(1, Math.ceil(due / 4))), cta: th.reviewCta, to: '/lectures/review' }
+    : latest
+      ? { icon: NotebookText, title: lectureTitle(latest, t.lectures.untitled, locale), body: th.continueTitle, cta: th.continueCta, to: `/lectures/${latest.id}` }
+      : { icon: Mic, title: th.recordTitle, body: th.recordBody, cta: th.recordCta, to: '/lectures/new' };
+  return (
+    <section aria-labelledby="next-title" className="relative overflow-hidden rounded-[var(--radius-card)] bg-gradient-to-br from-brand-600 to-brand-800 p-5 text-white shadow-[var(--shadow-lift)]">
+      {/* A soft wave in the corner, from the logo's sound-wave bars. */}
+      <div className="pointer-events-none absolute -end-4 -top-2 flex items-center gap-1.5 opacity-15" aria-hidden="true">
+        {[28, 52, 76, 48, 24].map((h, i) => <span key={i} className="w-2.5 rounded-full bg-white" style={{ height: h }} />)}
+      </div>
+      <p className="text-sm font-medium text-white/85" id="next-title">{t.home.nextUp}</p>
+      <div className="mt-2 flex items-start gap-3">
+        <card.icon className="mt-1 size-6 shrink-0" aria-hidden="true" />
+        <div className="min-w-0">
+          <h3 className="text-xl font-semibold leading-snug" dir="auto">{card.title}</h3>
+          <p className="mt-1 text-sm text-white/85">{card.body}</p>
+        </div>
+      </div>
+      <Link to={card.to} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-brand-800 transition-transform active:scale-[0.97]">
+        {card.cta}<ArrowRight className="size-4 rtl:rotate-180" aria-hidden="true" />
+      </Link>
+    </section>
+  );
+};
 
 export default function HomePage() {
   const { t, locale } = useI18n();
   const tq = t.home.quick;
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const due = useDueCount();
   const [recent, setRecent] = useState<LectureSummary[] | null>(null);
-  useEffect(() => { lectureRepo.list().then((l) => setRecent(l.slice(0, 3))).catch(() => setRecent([])); }, []);
-
-  // The things students do most, one tap away (like an app launcher).
-  const actions: Action[] = [
-    { to: '/lectures/new', icon: Mic, label: tq.record, tint: 'bg-rose-500/12 text-rose-600 dark:text-rose-300' },
-    { to: '/lectures/new?tab=upload', icon: Upload, label: tq.upload, tint: 'bg-sky-500/12 text-sky-700 dark:text-sky-300' },
-    { to: '/lectures/new?tab=pdf', icon: FileText, label: tq.pdf, tint: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
-    { to: '/lectures/review', icon: Layers, label: tq.review, tint: 'bg-brand-500/12 text-brand-600 dark:text-brand-300', badge: due },
-    { to: '/play', icon: Mountain, label: tq.summit, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },
-    { to: '/tutor', icon: MessageCircle, label: tq.tutor, tint: 'bg-brand-500/12 text-brand-700 dark:text-brand-300' },
-    { to: '/grader', icon: ClipboardCheck, label: tq.grade, tint: 'bg-amber-500/14 text-amber-700 dark:text-amber-300' },
-    { to: '/groups', icon: Users, label: tq.groups, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
-  ];
-  const pillars = [
-    { to: '/learn', icon: BookOpen, title: t.home.learnTitle, body: t.home.short.learn, tint: 'from-brand-500 to-brand-700' },
-    { to: '/lectures', icon: Mic, title: t.home.lecturesTitle, body: t.home.short.lectures, tint: 'from-accent-400 to-accent-600' },
-    { to: '/videos', icon: Clapperboard, title: t.home.videosTitle, body: t.home.short.videos, tint: 'from-sky-500 to-blue-700' },
-    { to: '/podcasts', icon: Headphones, title: t.home.podcastsTitle, body: t.home.short.podcasts, tint: 'from-amber-400 to-amber-600' },
-  ];
+  const [days, setDays] = useState<DayActivity[] | null>(null);
+  useEffect(() => { lectureRepo.list().then((l) => setRecent(l.slice(0, 6))).catch(() => setRecent([])); }, []);
+  useEffect(() => { activityRepo.list().then(setDays).catch(() => setDays([])); }, []);
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <header className="animate-fade-up">
+    <div className="stagger space-y-6 sm:space-y-8">
+      <header>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t.home.greeting(profile?.display_name ?? '')}</h1>
-        <p className="mt-2 text-lg text-muted">{t.home.subtitle}</p>
+        <p className="mt-1 text-muted">{t.home.subtitle}</p>
       </header>
       <UpNextBanner />
 
-      <nav aria-label={tq.title}>
-        <Card className="grid grid-cols-4 gap-1 p-2 sm:grid-cols-8 sm:p-3">
-          {actions.map((a) => (
-            <Link key={a.to} to={a.to}
-              className="group flex min-w-0 flex-col items-center gap-1.5 rounded-2xl px-1 py-2.5 text-center transition-colors hover:bg-surface-2 focus-visible:-outline-offset-2">
-              <span className={cn('relative flex size-12 items-center justify-center rounded-2xl transition-transform group-active:scale-95', a.tint)}>
-                <a.icon className="size-6" fill="currentColor" fillOpacity={0.12} aria-hidden="true" />
-                {!!a.badge && (
-                  <span className="absolute -end-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-500 px-1 text-[11px] font-semibold text-white tabular-nums ring-2 ring-surface">
-                    {a.badge > 99 ? '99+' : a.badge}
-                  </span>
-                )}
-              </span>
-              <span className="w-full text-xs font-medium leading-tight">{a.label}</span>
-              {!!a.badge && <span className="sr-only">{t.lectures.review.due(a.badge)}</span>}
-            </Link>
-          ))}
-        </Card>
-      </nav>
+      {recent && <NextUp due={due} latest={recent[0]} />}
 
-      <WeekCard />
-
-      {!!recent?.length && (
-        <section aria-labelledby="recent-title" className="space-y-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 id="recent-title" className="text-lg font-semibold">{t.home.recent}</h2>
-            <Link to="/lectures" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-300">{t.home.seeAll}</Link>
-          </div>
-          <Card className="divide-y divide-line overflow-hidden p-0">
-            {recent.map((l) => (
-              <Link key={l.id} to={`/lectures/${l.id}`} className="flex min-w-0 items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2 focus-visible:-outline-offset-2">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-muted">
-                  {l.source === 'record' ? <Mic className="size-4" aria-hidden="true" /> : <FileText className="size-4" aria-hidden="true" />}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium" dir="auto">{lectureTitle(l, t.lectures.untitled, locale)}</span>
-                  <span className="block text-xs text-muted">{new Date(l.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short' })}</span>
-                </span>
-                <ChevronRight className="size-4 shrink-0 text-muted rtl:rotate-180" aria-hidden="true" />
-              </Link>
-            ))}
-          </Card>
-        </section>
-      )}
-
-      <section aria-labelledby="explore-title" className="space-y-3">
-        <h2 id="explore-title" className="text-lg font-semibold">{t.home.explore}</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {pillars.map((p) => (
-            <Link key={p.to} to={p.to} className="group rounded-[var(--radius-card)] focus-visible:outline-offset-4">
-              <Card className="flex h-full items-center gap-4 p-4 transition-shadow group-hover:shadow-[var(--shadow-lift)] sm:p-5">
-                <IconTile icon={p.icon} tint={p.tint} />
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-lg font-semibold">{p.title}</h3>
-                  <p className="mt-0.5 line-clamp-2 text-sm text-muted">{p.body}</p>
-                </div>
-                <ArrowRight className="size-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
-              </Card>
+      {/* Start something: one primary action, two common ones, the rest in a menu. */}
+      <nav aria-label={tq.title} className="space-y-2">
+        <Link to="/lectures/new" className="flex h-12 items-center justify-center gap-2 rounded-full bg-brand-600 px-5 font-semibold text-white shadow-sm transition-[background-color,transform] hover:bg-brand-700 active:scale-[0.98]">
+          <Mic className="size-5" aria-hidden="true" />{t.home.record}
+        </Link>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { to: '/lectures/new?tab=upload', icon: Upload, label: tq.upload },
+            { to: '/lectures/new?tab=pdf', icon: FileText, label: tq.pdf },
+            { to: '/tutor', icon: MessageCircle, label: tq.tutor },
+          ].map((a) => (
+            <Link key={a.to} to={a.to} className="flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border border-line bg-surface px-3 text-sm font-medium hover:bg-surface-2">
+              <a.icon className="size-4 shrink-0 text-brand-700 dark:text-brand-300" aria-hidden="true" /><span className="truncate">{a.label}</span>
             </Link>
           ))}
         </div>
+        <div className="flex justify-center">
+          <Menu label={t.home.more} items={[
+            { label: tq.review, icon: <Layers />, onSelect: () => navigate('/lectures/review') },
+            { label: tq.summit, icon: <Mountain />, onSelect: () => navigate('/play') },
+            { label: tq.grade, icon: <ClipboardCheck />, onSelect: () => navigate('/grader') },
+            { label: tq.groups, icon: <Users />, onSelect: () => navigate('/groups') },
+          ]} trigger={({ ref, props }) => (
+            <button ref={ref} type="button" {...props} className="inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-muted hover:bg-surface-2 hover:text-fg">
+              <MoreHorizontal className="size-4" aria-hidden="true" />{t.home.more}
+            </button>
+          )} />
+        </div>
+      </nav>
+
+      {days && <TodayCard days={days} due={due} />}
+
+      <section aria-labelledby="recent-title" className="space-y-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="recent-title" className="text-lg font-semibold">{t.home.recent}</h2>
+          {!!recent?.length && <Link to="/lectures" className="text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">{t.home.seeAll}</Link>}
+        </div>
+        {recent && !recent.length && (
+          <div className="flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-700 dark:text-brand-300"><Mic className="size-5" aria-hidden="true" /></span>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">{t.home.noRecent}</p>
+              <p className="text-sm text-muted">{t.home.noRecentBody}</p>
+            </div>
+          </div>
+        )}
+        {!!recent?.length && (
+          // Recent lectures as cards you can swipe through.
+          <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
+            {recent.slice(0, 6).map((l) => (
+              <li key={l.id} className="w-[70%] shrink-0 snap-start sm:w-auto">
+                <Link to={`/lectures/${l.id}`} className="pressable flex h-full flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-lift)]">
+                  <span className="flex size-9 items-center justify-center rounded-xl bg-brand-500/10 text-brand-700 dark:text-brand-300">
+                    {l.source === 'record' ? <Mic className="size-4" aria-hidden="true" /> : <FileText className="size-4" aria-hidden="true" />}
+                  </span>
+                  <span className="line-clamp-2 font-semibold" dir="auto">{lectureTitle(l, t.lectures.untitled, locale)}</span>
+                  <span className="mt-auto text-xs text-muted">
+                    {new Date(l.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short' })}
+                    {l.duration_sec > 0 && ` · ${t.lectures.minutes(Math.max(1, Math.round(l.duration_sec / 60)))}`}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

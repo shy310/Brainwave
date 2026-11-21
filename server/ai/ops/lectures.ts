@@ -126,21 +126,21 @@ const topicChoices = (transcript: string, slides?: string, title?: string) => {
 
 const NOTES_STYLE: Record<SummaryMode, string> = {
   short: `Write SHORT notes for a quick review — the whole thing should be readable in about a minute:
-- "title": a short, specific title for this lecture.
+- "title": a short, specific title for this lecture that starts with ONE emoji fitting its topic and a space, e.g. "🧬 Cell division", "📈 Supply and demand", "🏛️ The Roman Republic". Exactly one emoji, at the start.
 - "summary": 2–3 sentences with the main takeaway.
 - "sections": 2–5 sections in lecture order, each with 2–4 short "points" (one line each) — only the ideas a student must remember.
 - "keyTerms": at most 8 of the most important terms, one short sentence each.
 - "reminders": homework, deadlines, readings or exam hints the lecturer mentioned. Empty if none.
 - "practice" and "mistakes": empty arrays.`,
   detailed: `Write FULL study notes that could replace attending the lecture:
-- "title": a short, specific title for this lecture.
+- "title": a short, specific title for this lecture that starts with ONE emoji fitting its topic and a space, e.g. "🧬 Cell division", "📈 Supply and demand", "🏛️ The Roman Republic". Exactly one emoji, at the start.
 - "summary": 3–5 sentences — what the lecture covered and the main takeaway.
 - "sections": follow the order of the lecture and cover EVERY topic it discussed. Each has a "heading" and 3–10 "points": complete, self-contained statements that explain the idea and the reasoning behind it — definitions, formulas in LaTeX with what each symbol means, the lecturer's examples worked through, and how each idea connects to the previous one.
 - "keyTerms": important terms with one-sentence definitions.
 - "reminders": homework, deadlines, readings or "this will be on the exam" hints the lecturer mentioned. Empty if none.
 - "practice" and "mistakes": empty arrays (those are only for exam prep).`,
   exam: `Write EXAM-PREP notes — not a summary of the lecture, but a revision sheet for answering exam questions on it:
-- "title": a short, specific title for this lecture.
+- "title": a short, specific title for this lecture that starts with ONE emoji fitting its topic and a space, e.g. "🧬 Cell division", "📈 Supply and demand", "🏛️ The Roman Republic". Exactly one emoji, at the start.
 - "summary": 2–4 sentences on what is most likely to be examined and why.
 - "sections": organise by what is examinable, NOT by lecture order, under headings like "Must-know definitions", "Formulas and when to use them" (LaTeX), "Methods step by step". Points are short, precise facts to memorise or numbered steps to follow — no narrative and no background.
 - "keyTerms": every term a student could be asked to define, with a precise, exam-ready definition.

@@ -57,6 +57,19 @@ export const he: Dict = {
     breakOver: 'ההפסקה נגמרה. מוכנים לסבב נוסף?', again: 'עוד סבב ריכוז',
   },
   home: {
+    dailyTitle: 'יעדים יומיים', goalDone: 'הושלם', goalTodo: 'עוד לא', record: 'להקליט הרצאה', more: 'עוד',
+    noRecent: 'עדיין אין הרצאות', noRecentBody: 'הקליטו או העלו הרצאה כדי לקבל סיכום, בוחן וכרטיסיות.',
+    today: 'היום', doneOf: (n: number, m: number) => `הושלמו ${n}/${m}`, nextUp: 'הדבר הבא', tools: 'כלים',
+    daily: {
+      review: 'חזרה על הכרטיסיות', reviewDue: (n: number) => (n === 1 ? 'כרטיסייה אחת מחכה' : `${n} כרטיסיות מחכות`), caughtUp: 'הכול מעודכן',
+      minutes: (m: number) => `ללמוד ${m} דקות`, minutesSoFar: (n: number, m: number) => `${n} מתוך ${m} דק׳`,
+      lecture: 'להוסיף הרצאה', lectureHint: 'להקליט, להעלות או להדביק',
+    },
+    hero: {
+      review: (n: number) => (n === 1 ? 'כרטיסייה אחת לחזרה' : `${n} כרטיסיות לחזרה`), reviewBody: (min: number) => `בערך ${min} דק׳ · עכשיו הזמן הכי טוב לזכור אותן`,
+      reviewCta: 'להתחיל חזרה', continueTitle: 'להמשיך מאיפה שהפסקת', continueCta: 'לפתוח את הסיכום',
+      recordTitle: 'להקליט את השיעור הבא', recordBody: 'בסוף תקבלו סיכום, בוחן וכרטיסיות.', recordCta: 'להתחיל הקלטה',
+    },
     quick: {
       title: 'התחלה מהירה', record: 'הקלטה', upload: 'העלאה', pdf: 'PDF', review: 'חזרה', summit: 'פסגה',
       tutor: 'שאלו AI', grade: 'בדיקה', groups: 'קבוצות',
@@ -171,6 +184,8 @@ export const he: Dict = {
     profile: 'פרופיל', appearance: 'מראה', theme: 'ערכת נושא',
     themeLight: 'בהירה', themeDark: 'כהה', themeSystem: 'לפי המכשיר',
     account: 'חשבון', signedInAs: (email: string) => `מחובר/ת בתור ${email}`,
+    edit: 'עריכה', editProfile: 'עריכת פרופיל', lectureLanguage: 'שפת ההרצאות', off: 'כבוי', reminderValue: (time: string) => `פועל, ${time}`,
+    support: 'עזרה ומשוב', signOutHint: 'אפשר להתחבר שוב בכל רגע.',
     study: 'לימוד',
     demoNote: 'מצב הדגמה: ההתקדמות נשמרת רק בדפדפן הזה.',
   },
@@ -374,6 +389,8 @@ export const he: Dict = {
       madeWith: 'סיכום שנוצר ב-BrainWave', tryIt: 'ליצור סיכומים משלך',
     },
     actions: { pdf: 'PDF', toolbar: 'פעולות להרצאה', showActions: 'הצגת הפעולות', hideActions: 'הסתרת הפעולות', link: 'שיתוף בקישור', more: 'עוד' },
+    options: { title: 'אפשרויות להרצאה', customize: 'התאמה', move: 'העברה לתיקייה', apply: 'החלה', customizeTitle: 'התאמת הסיכום',
+      styleHelp: { short: 'הרעיונות המרכזיים במסך אחד.', detailed: 'כל מה שחשוב, חלק אחר חלק.', exam: 'עם שאלות תרגול וטעויות נפוצות.' } },
     mastery: { title: 'התקדמות', new: 'חדשות', learning: 'עדיין לומדים', almost: 'כמעט שם', mastered: 'שולטים' },
     tools: {
       title: 'כלי לימוד', review: 'חזרה על כרטיסיות', summit: 'פסגה', summitBody: 'משחק שאלות קצר מההרצאות שלכם',

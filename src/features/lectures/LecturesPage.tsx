@@ -17,6 +17,7 @@ import { useDueCount } from './reviews';
 import { UpNextBanner } from '@/features/schedule/UpNext';
 import { IconTile } from '@/ui/IconTile';
 import { dateLocale } from '@shared/locales';
+import { EmptyState } from '@/ui/EmptyState';
 
 const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera } as const;
 const VIEW_KEY = 'bw.lectures.view';
@@ -131,7 +132,7 @@ export default function LecturesPage() {
 
       {items?.length === 0 && (
         <Card className="flex flex-col items-center gap-4 p-10 text-center">
-          <IconTile icon={Mic} tint="from-accent-400 to-accent-600" size="lg" />
+          <IconTile icon={Mic} tint="from-rose-500 to-rose-700" size="lg" />
           <div>
             <h2 className="text-lg font-semibold">{t.lectures.empty}</h2>
             <p className="mt-1 max-w-md text-muted">{t.lectures.emptyBody}</p>
@@ -220,9 +221,7 @@ export default function LecturesPage() {
           )}
 
           {shown.length === 0 && (
-            <p className="rounded-xl border border-dashed border-line p-6 text-center text-muted">
-              {query.trim() ? tl.noResults(query.trim()) : tl.emptyFolder}
-            </p>
+            <EmptyState icon={query.trim() ? Search : FolderIcon} body={query.trim() ? tl.noResults(query.trim()) : tl.emptyFolder} className="border-0 bg-transparent" />
           )}
 
           <div className="grid gap-3 sm:grid-cols-2">
