@@ -385,6 +385,12 @@ export const en = {
     rename: 'Rename', save: 'Save',
     turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
+    highlights: {
+      toolbar: 'Highlight', colors: { yellow: 'Yellow', green: 'Green', blue: 'Blue', pink: 'Pink' }, color: (c: string) => `Highlight in ${c}`,
+      comment: 'Comment', addComment: 'Add a comment', editComment: 'Edit comment', placeholder: 'Your note about this…', save: 'Save', remove: 'Remove highlight',
+      title: 'Your highlights', hint: 'Select text in your notes to highlight it or add a comment.', missing: 'Not in these notes any more',
+      count: (n: number) => (n === 1 ? '1 highlight' : `${n} highlights`), show: 'Show in the notes',
+    },
     marks: {
       mark: 'Important', markHint: 'Tap when something matters (or press M). It gets extra attention in your notes, quiz and flashcards.',
       marked: (time: string) => `Marked at ${time}`, count: (n: number) => (n === 1 ? '1 marked' : `${n} marked`),
