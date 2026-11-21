@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
-import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal } from 'lucide-react';
+import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal, Network } from 'lucide-react';
 import { Sheet } from '@/ui/Sheet';
 import { ListRow, ListSection } from '@/ui/List';
 import { publicUrl } from '@/lib/platform';
@@ -405,6 +405,7 @@ export default function LecturePage() {
             ))}
           </div>
           <ListSection>
+            <ListRow icon={Network} label={t.lectures.map.open} onClick={then(() => navigate(`/lectures/${id}/map`))} />
             {lecture.notes && <ListRow icon={FileDown} label={t.lectures.share.savePdf} onClick={then(() => navigate(`/lectures/${id}/print`))} chevron={false} />}
             {lecture.notes && <ListRow icon={Download} label={t.lectures.download} onClick={then(() => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, notesLabels(notesLocale(lecture.notes!, locale)))))} chevron={false} />}
             {lecture.notes && <ListRow icon={RefreshCw} label={t.lectures.regenerate} onClick={then(() => void generate('notes'))} chevron={false} />}

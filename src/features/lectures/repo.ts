@@ -3,6 +3,7 @@ import { audioStore } from './audioStore';
 import { storage } from '@/lib/storage';
 import { track } from '@/features/stats/activity';
 import type { SavedNotes } from './notesVersions';
+import type { ConceptMap } from '@shared/conceptMap';
 import type { Quiz } from '@shared/learn';
 import type { Flashcards, LectureLanguage, LectureSource, Notes, Segment } from '@shared/lectures';
 
@@ -28,6 +29,8 @@ export interface Lecture {
   audio_bytes?: number | null;
   /** Moments marked as important while recording, in seconds (needs migration 0021). */
   marks?: number[] | null;
+  /** A map of the lecture's ideas (needs migration 0025). */
+  concept_map?: ConceptMap | null;
   /** Starred in the library (needs migration 0019). */
   favorite?: boolean;
   created_at: string;
