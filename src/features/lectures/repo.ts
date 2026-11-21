@@ -29,6 +29,8 @@ export interface Lecture {
   audio_bytes?: number | null;
   /** Highlights and comments in the notes (needs migration 0023). */
   highlights?: NoteHighlight[] | null;
+  /** Moments marked as important while recording, in seconds (needs migration 0021). */
+  marks?: number[] | null;
   /** Starred in the library (needs migration 0019). */
   favorite?: boolean;
   created_at: string;

@@ -399,6 +399,12 @@ export const he: Dict = {
       title: 'הסימונים שלך', hint: 'מסמנים טקסט בסיכום כדי להדגיש אותו או להוסיף הערה.', missing: 'כבר לא מופיע בסיכום הזה',
       count: (n: number) => (n === 1 ? 'סימון אחד' : `${n} סימונים`), show: 'להציג בסיכום',
     },
+    marks: {
+      mark: 'חשוב', markHint: 'מקישים כשמשהו חשוב (או לוחצים M). זה יקבל תשומת לב מיוחדת בסיכום, בבוחן ובכרטיסיות.',
+      marked: (time: string) => `סומן ב־${time}`, count: (n: number) => (n === 1 ? 'סימון אחד' : `${n} סימונים`),
+      title: 'רגעים חשובים', body: 'סימנת את אלה בזמן ההקלטה. הם מקבלים תשומת לב מיוחדת בסיכום, בבוחן ובכרטיסיות.',
+      play: (time: string) => `לנגן מ־${time}`, showInTranscript: 'להציג בתמלול', badge: 'סומן כחשוב',
+    },
     library: {
       favorites: 'מועדפים', favorite: 'הוספה למועדפים', unfavorite: 'הסרה מהמועדפים', starred: 'מועדף', open: 'פתיחה', renameLecture: 'שינוי שם', moveLecture: 'העברה לתיקייה', deleteLecture: 'מחיקה', options: (n: string) => `אפשרויות עבור „${n}”`,
       search: 'חיפוש הרצאות', sort: 'מיון', sorts: { newest: 'מהחדש לישן', oldest: 'מהישן לחדש', title: 'לפי שם' },

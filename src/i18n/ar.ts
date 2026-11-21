@@ -378,6 +378,12 @@ export const ar: Dict = {
       title: 'تظليلاتك', hint: 'حدّد نصًا في ملاحظاتك لتظليله أو إضافة تعليق.', missing: 'لم يعد في هذه الملاحظات',
       count: (n: number) => count(n, 'تظليل واحد', 'تظليلان', 'تظليلات', 'تظليلًا'), show: 'اعرض في الملاحظات',
     },
+    marks: {
+      mark: 'مهم', markHint: 'انقر عندما يكون شيء مهمًا (أو اضغط M). سيحظى باهتمام خاص في ملاحظاتك واختبارك وبطاقاتك.',
+      marked: (time: string) => `عُلّم عند ${time}`, count: (n: number) => count(n, 'علامة واحدة', 'علامتان', 'علامات', 'علامة'),
+      title: 'لحظات مهمة', body: 'علّمت هذه أثناء التسجيل. تحظى باهتمام خاص في الملاحظات والاختبار والبطاقات.',
+      play: (time: string) => `شغّل من ${time}`, showInTranscript: 'اعرض في النص', badge: 'معلّم كمهم',
+    },
     library: {
       favorites: 'المفضلة', favorite: 'أضف إلى المفضلة', unfavorite: 'أزل من المفضلة', starred: 'مفضّلة', open: 'فتح', renameLecture: 'إعادة التسمية', moveLecture: 'نقل إلى مجلد', deleteLecture: 'حذف', options: (n: string) => `خيارات «${n}»`,
       search: 'ابحث في المحاضرات', sort: 'الترتيب', sorts: { newest: 'الأحدث', oldest: 'الأقدم', title: 'حسب الاسم' },

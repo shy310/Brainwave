@@ -44,6 +44,8 @@ select pg_temp.ok((select favorite from public.lectures where id = '20000000-000
 update public.lectures set highlights = '[{"id":"h1","block":"summary","quote":"x","offset":0,"color":"yellow","createdAt":0}]' where id = '20000000-0000-0000-0000-00000000000b';
 select pg_temp.ok((select jsonb_array_length(highlights) from public.lectures where id = '20000000-0000-0000-0000-00000000000b') = 1, 'highlights are saved with the lecture');
 select pg_temp.refused($$update public.lectures set highlights = '{}' where id = '20000000-0000-0000-0000-00000000000b'$$, 'highlights that are not a list');
+update public.lectures set marks = '{12.5, 340}' where id = '20000000-0000-0000-0000-00000000000b';
+select pg_temp.ok((select marks from public.lectures where id = '20000000-0000-0000-0000-00000000000b') = '{12.5, 340}'::real[], 'important moments are saved with the lecture');
 update public.lectures set favorite = true where id = '10000000-0000-0000-0000-00000000000a';
 
 
