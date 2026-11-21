@@ -223,7 +223,7 @@ const Game = ({ id, folder, lectures, back }: { id: GameId; folder: string; lect
       <div className={cn('space-y-3', phase === 'over' && 'hidden')}>
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-semibold tracking-tight">{name}</h1>
-            <span className="ms-auto text-sm font-semibold tabular-nums" aria-live="off">{tg.score}: {total}</span>
+            <span className="ms-auto text-sm font-semibold tabular-nums" aria-live="off">{tg.score}: <span key={total} className={total ? 'animate-digit' : undefined}>{total}</span></span>
             {run.shield && <ShieldCheck className="size-5 text-accent-600 dark:text-accent-300" role="img" aria-label={tg.shield} />}
             <span className="flex items-center gap-0.5" role="img" aria-label={tg.lives(run.lives)}>
               {Array.from({ length: LIVES }, (_, i) => (

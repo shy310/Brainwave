@@ -3,6 +3,7 @@ import { ShieldCheck, Siren } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { RichInline } from '@/ui/Rich';
+import { DrawCheck } from '@/ui/Feedback';
 import { SECONDS, type Ask, type GameQuestion } from './game';
 
 const FEEDBACK_MS = 1000;
@@ -72,9 +73,11 @@ export const QuestionCard = ({ q, ask, onDone }: { q: GameQuestion; ask: Ask; on
               className={cn('pressable flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-start text-sm transition-colors',
                 !answered && 'border-line hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30',
                 isRight && 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40',
-                isWrongPick && 'border-rose-400 bg-rose-50 dark:bg-rose-950/40',
+                isWrongPick && 'animate-shake border-rose-400 bg-rose-50 dark:bg-rose-950/40',
                 answered && !isRight && !isWrongPick && 'border-line opacity-50')}>
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-sm font-semibold">{i + 1}</span>
+              <span className={cn('flex size-7 shrink-0 items-center justify-center rounded-lg text-sm font-semibold', isRight ? 'bg-emerald-500 text-white' : 'bg-surface-2')}>
+                {isRight ? <DrawCheck className="size-4" /> : i + 1}
+              </span>
               <span className="min-w-0 flex-1" dir="auto"><RichInline text={o} /></span>
             </button>
           );

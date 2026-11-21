@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
-import { Check, Lightbulb, ListOrdered, Repeat, TrendingDown, X } from 'lucide-react';
+import { Lightbulb, ListOrdered, Repeat, TrendingDown, X } from 'lucide-react';
 import { useT } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -11,6 +11,7 @@ import { Alert } from '@/ui/Alert';
 import type { GradeResult, Question, Steps } from '@shared/learn';
 import type { GradeAnswer } from '@shared/grading';
 import { useAiTask } from './useAiTask';
+import { DrawCheck } from '@/ui/Feedback';
 
 interface Verdict { correct: boolean; feedback?: string; grade?: GradeAnswer }
 
@@ -108,14 +109,14 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
                     'flex min-h-12 items-center gap-3 rounded-xl border px-4 py-2.5 text-start transition-colors',
                     !answered && (choice === i ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20 dark:bg-brand-900/30' : 'border-line hover:bg-surface-2'),
                     isAnswer && 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40',
-                    isWrongPick && 'border-rose-400 bg-rose-50 dark:bg-rose-950/40',
+                    isWrongPick && 'animate-shake border-rose-400 bg-rose-50 dark:bg-rose-950/40',
                     answered && !isAnswer && !isWrongPick && 'border-line opacity-60',
                   )}>
                   <span className={cn('flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-semibold',
                     // Once checked, the marker takes the result's colour (green right, red wrong), not the selection colour.
                     isAnswer ? 'border-emerald-500 bg-white dark:bg-emerald-950' : isWrongPick ? 'border-rose-400 bg-white dark:bg-rose-950'
                       : choice === i ? 'border-brand-500 text-brand-600 dark:text-brand-300' : 'border-line text-muted')}>
-                    {isAnswer ? <Check className="size-4 text-emerald-600" aria-hidden="true" />
+                    {isAnswer ? <DrawCheck className="size-4 text-emerald-600" />
                       : isWrongPick ? <X className="size-4 text-rose-600" aria-hidden="true" /> : String.fromCharCode(65 + i)}
                   </span>
                   <span className="min-w-0 flex-1"><RichInline text={opt} /></span>
@@ -135,7 +136,7 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
             <label htmlFor={inputId} className="sr-only">{t.quiz.yourAnswer}</label>
             <Input id={inputId} value={typed} onChange={(e) => setTyped(e.target.value)} readOnly={answered} disabled={checking}
               placeholder={t.quiz.answerPlaceholder} autoComplete="off" dir="auto"
-              className={cn(answered && (verdict.correct ? 'border-emerald-500' : 'border-rose-400'))} />
+              className={cn(answered && (verdict.correct ? 'border-emerald-500' : 'animate-shake border-rose-400'))} />
           </div>
         )}
 
@@ -169,7 +170,7 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
               : verdict.grade?.verdict === 'partial' ? 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40'
                 : 'border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40')}>
             <p className="flex items-center gap-2 font-semibold">
-              {verdict.correct ? <Check className="size-5 text-emerald-600" aria-hidden="true" /> : <X className="size-5 text-rose-600" aria-hidden="true" />}
+              {verdict.correct ? <DrawCheck className="size-5 text-emerald-600" /> : <X className="size-5 text-rose-600" aria-hidden="true" />}
               {verdict.correct ? t.quiz.correct : verdict.grade?.verdict === 'partial' ? t.quiz.partial : t.quiz.incorrect}
               {verdict.grade && <span className="ms-auto tabular-nums">{t.quiz.outOf100(verdict.grade.score)}</span>}
             </p>

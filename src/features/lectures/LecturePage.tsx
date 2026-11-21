@@ -38,6 +38,7 @@ import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './re
 import { dateLocale } from '@shared/locales';
 import { copyNotes as copyNotesToClipboard, notesLabels, notesLocale, notesToMarkdown } from './notesExport';
 import { askConfirm } from '@/ui/Confirm';
+import { Shimmer } from '@/ui/Feedback';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
@@ -298,7 +299,7 @@ export default function LecturePage() {
 
           <div ref={content} className="space-y-6">
           {tab === 'notes' && (
-            busy === 'notes' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.writingNotes}</Card>
+            busy === 'notes' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" /><Shimmer text={t.lectures.writingNotes} /></Card>
             : lecture.notes ? (
               <article className="space-y-4">
                 {/* The notes' style is a setting of the notes: a chip that opens Customize, not a second row of tabs. */}
@@ -347,7 +348,7 @@ export default function LecturePage() {
           </div>
 
           {tab === 'quiz' && (
-            busy === 'quiz' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.makingQuiz}</Card>
+            busy === 'quiz' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" /><Shimmer text={t.lectures.makingQuiz} /></Card>
             : lecture.quiz ? (
               <QuizRunner key={quizRound} questions={lecture.quiz.questions} context={transcript}
                 resultActions={<>
@@ -362,7 +363,7 @@ export default function LecturePage() {
           )}
 
           {tab === 'cards' && (
-            busy === 'cards' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.makingCards}</Card>
+            busy === 'cards' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" /><Shimmer text={t.lectures.makingCards} /></Card>
             : lecture.flashcards ? (
               <Card className="space-y-4 p-6">
                 {mastery && <MasteryBar counts={mastery} />}

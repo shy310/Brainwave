@@ -18,6 +18,7 @@ import { UpNextBanner } from '@/features/schedule/UpNext';
 import { IconTile } from '@/ui/IconTile';
 import { dateLocale } from '@shared/locales';
 import { EmptyState } from '@/ui/EmptyState';
+import { StarBurst } from '@/ui/Feedback';
 import { ContextMenu, useContextTriggers, type ContextMenuState } from '@/ui/ContextMenu';
 import { Sheet } from '@/ui/Sheet';
 import { ListSection } from '@/ui/List';
@@ -284,7 +285,7 @@ export default function LecturesPage() {
                     <div className="min-w-0 flex-1">
                       <p className="flex min-w-0 items-center gap-1.5 font-medium">
                         <span className="truncate" dir="auto">{untitled(l)}</span>
-                        {l.favorite && <Star className="size-4 shrink-0 fill-accent-400 text-accent-500" role="img" aria-label={tl.starred} />}
+                        {l.favorite && <StarBurst label={tl.starred} />}
                       </p>
                       <p className="mt-0.5 text-sm text-muted">
                         {t.lectures.sources[l.source]}
