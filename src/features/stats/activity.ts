@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { storage } from '@/lib/storage';
 import { bumpDay, localDay, type ActivityDelta, type DayActivity } from '@shared/activity';
+import { isFocusing } from '@/features/focus/focus';
 
 const DEMO_KEY = 'bw.studyDays';
 const readDemo = (): DayActivity[] => {
@@ -47,7 +48,8 @@ export const useStudyTimer = () => {
     events.forEach((e) => window.addEventListener(e, onInput, { passive: true }));
     const id = setInterval(() => {
       const now = Date.now();
-      if (document.visibilityState === 'visible' && now - lastInput < IDLE_AFTER_MS) activeMs += Math.min(now - tick, 15_000);
+      // Minutes in a running focus session are counted by focus mode itself (even without taps), not twice.
+      if (!isFocusing() && document.visibilityState === 'visible' && now - lastInput < IDLE_AFTER_MS) activeMs += Math.min(now - tick, 15_000);
       tick = now;
       if (activeMs >= 60_000) { activeMs -= 60_000; track({ minutes: 1 }); }
     }, 5_000);

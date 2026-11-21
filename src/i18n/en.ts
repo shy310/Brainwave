@@ -47,6 +47,14 @@ export const en = {
     '12': 'Grade 12', college: 'College / university',
   },
   languages: { en: 'English', he: 'עברית (Hebrew)' },
+  focus: {
+    button: 'Focus', title: 'Focus mode', minutes: (n: number) => `${n} min`,
+    body: 'Hide distractions and study for a set time, then take a short break. Focus time counts toward your streak.',
+    focusing: 'Focusing', onBreak: 'Break', paused: 'Paused', left: (time: string) => `${time} left`,
+    pause: 'Pause', resume: 'Resume', end: 'End',
+    doneTitle: 'Nice work! Time for a 5-minute break.', startBreak: 'Start break', finish: 'Done',
+    breakOver: 'Break’s over. Ready for another round?', again: 'Focus again',
+  },
   home: {
     greeting: (name: string) => (name ? `Hi, ${name}` : 'Hi there'),
     subtitle: 'What do you want to work on today?',

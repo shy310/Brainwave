@@ -48,6 +48,14 @@ export const he: Dict = {
     '12': 'כיתה י״ב', college: 'אקדמיה / אוניברסיטה',
   },
   languages: { en: 'English (אנגלית)', he: 'עברית' },
+  focus: {
+    button: 'ריכוז', title: 'מצב ריכוז', minutes: (n: number) => `${n} דק׳`,
+    body: 'מסתירים הסחות דעת ולומדים לזמן קבוע, ואז הפסקה קצרה. זמן הריכוז נספר לרצף שלכם.',
+    focusing: 'בריכוז', onBreak: 'הפסקה', paused: 'מושהה', left: (time: string) => `נשארו ${time}`,
+    pause: 'השהיה', resume: 'המשך', end: 'סיום',
+    doneTitle: 'כל הכבוד! זמן להפסקה של 5 דקות.', startBreak: 'להתחיל הפסקה', finish: 'סיימתי',
+    breakOver: 'ההפסקה נגמרה. מוכנים לסבב נוסף?', again: 'עוד סבב ריכוז',
+  },
   home: {
     greeting: (name: string) => (name ? `היי, ${name}` : 'היי'),
     subtitle: 'על מה נעבוד היום?',
