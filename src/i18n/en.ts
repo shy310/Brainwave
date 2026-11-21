@@ -492,6 +492,7 @@ export const en = {
   },
   notFound: { title: 'Page not found', body: "We couldn't find that page.", home: 'Go home' },
   errors: {
+    updated: 'BrainWave was just updated.', updatedHint: 'Reload to get the new version.', notFound: 'We couldn’t find that page.', home: 'Go home', 
     boundary: 'Something went wrong on this page.', reload: 'Reload',
     ai: 'The AI couldn’t answer just now. Please try again.',
     rateLimit: 'You’ve hit today’s AI limit, or are going a bit fast. Try again in a minute.',
