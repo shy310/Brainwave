@@ -49,14 +49,11 @@ for (const lang of ['en', 'he'] as const) {
     await expect.poll(() => asked.length).toBe(2);
     expect(asked[1].messages.at(-1)!.content).toBe(`${ta.quote('A derivative measures the instantaneous rate of change.')}why instantaneous?`);
 
-    // The same conversation is in the Ask tab.
+    // Closing and opening Ask again keeps the same conversation.
     await page.getByRole('button', { name: ta.close }).click();
-    await page.getByRole('radio', { name: t.lectures.tabsView.ask }).click();
-    await expect(page.getByText('why instantaneous?')).toBeVisible();
-    // There, Ask goes to the open conversation instead of a second panel.
-    await page.getByRole('button', { name: ta.open, exact: true }).click();
     await expect(dialog).toBeHidden();
-    await expect(page.getByRole('textbox').last()).toBeFocused();
+    await page.getByRole('button', { name: ta.open, exact: true }).click();
+    await expect(dialog.getByText('why instantaneous?')).toBeVisible();
   });
 }
 

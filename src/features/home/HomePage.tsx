@@ -7,6 +7,7 @@ import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Menu } from '@/ui/Menu';
 import { TodayCard } from './TodayCard';
+import { WeekCard } from '@/features/stats/WeekCard';
 import { UpNextBanner } from '@/features/schedule/UpNext';
 import { activityRepo } from '@/features/stats/activity';
 import { lectureRepo, type LectureSummary } from '@/features/lectures/repo';
@@ -132,6 +133,8 @@ export default function HomePage() {
           </ul>
         )}
       </section>
+
+      <WeekCard bare />
     </div>
   );
 }

@@ -46,7 +46,7 @@ for (const lang of ['en', 'he'] as const) {
     await expect.poll(() => page.evaluate(() => (window as unknown as { shown: string[] }).shown)).toEqual([ts.reminderTitle('Calculus 1')]);
 
     // "Record it" names the lecture and files it in the class folder.
-    await page.getByRole('link', { name: ts.record }).click();
+    await page.getByRole('link', { name: ts.record, exact: true }).click();
     await expect(page.getByLabel(t.lectures.titleLabel)).toHaveValue(/^Calculus 1 — /);
     await page.clock.resume();
     await page.route('**/api/ai/*', (r) => r.fulfill({ json: { data: { text: 'The derivative is a rate of change.' } } }));

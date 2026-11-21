@@ -26,6 +26,7 @@ for (const lang of ['en', 'he'] as const) {
     await page.clock.install({ time: new Date(2026, 10, 20, 18, 50) });
     await onboard(page, { hebrew: lang === 'he' });
     await page.goto('/settings');
+    await page.getByRole('button', { name: tn.daily }).click();
     await page.getByLabel(tn.time).fill('19:00');
     await page.getByRole('button', { name: tn.turnOn }).click();
     await expect(page.getByText(tn.on('19:00'))).toBeVisible();
@@ -65,8 +66,8 @@ for (const lang of ['en', 'he'] as const) {
 
     // In front of the page: no notification.
     await hide(page, false);
-    await page.getByRole('button', { name: t.lectures.actions.more }).click();
-    await page.getByRole('menuitem', { name: t.lectures.regenerate }).click();
+    await page.getByRole('toolbar').getByRole('button', { name: t.lectures.options.title }).click();
+    await page.getByRole('dialog').getByRole('button', { name: t.lectures.regenerate }).click();
     await page.waitForTimeout(500);
     expect(await shown(page)).toHaveLength(2);
   });

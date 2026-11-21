@@ -24,7 +24,7 @@ for (const lang of ['en', 'he'] as const) {
 
     // New recordings default to Hebrew.
     await page.goto('/lectures/new');
-    await expect(page.getByRole('radio', { name: t.lectures.languages.he })).toBeChecked();
+    await expect(page.getByLabel(t.lectures.language)).toHaveValue('he');
 
     // Notes are written for exam prep.
     await page.getByRole('radio', { name: t.lectures.tabs.text }).click();
@@ -34,7 +34,9 @@ for (const lang of ['en', 'he'] as const) {
 
     // Both can be changed in Settings.
     await page.goto('/settings');
+    await page.getByRole('button', { name: t.lectures.notesStyle }).click();
     await expect(page.getByRole('radio', { name: t.lectures.summaryModes.exam })).toBeChecked();
-    await expect(page.getByLabel(t.home.lectureLanguage)).toHaveValue('he');
+    await page.getByRole('button', { name: t.settings.lectureLanguage }).click();
+    await expect(page.getByRole('radiogroup', { name: t.settings.lectureLanguage }).getByRole('radio', { name: t.lectures.languages.he })).toBeChecked();
   });
 }

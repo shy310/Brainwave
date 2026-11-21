@@ -7,8 +7,8 @@ import { lastWeek, localDay, streaks, type DayActivity } from '@shared/activity'
 import { activityRepo } from './activity';
 import { dateLocale } from '@shared/locales';
 
-/** Streak, minutes studied each day this week, and the week's totals. */
-export const WeekCard = () => {
+/** Streak, minutes studied each day this week, and the week's totals. `bare` leaves out the streak (Home shows it in the Today card). */
+export const WeekCard = ({ bare }: { bare?: boolean } = {}) => {
   const { t, locale } = useI18n();
   const tw = t.week;
   const [days, setDays] = useState<DayActivity[] | null>(null);
@@ -28,6 +28,7 @@ export const WeekCard = () => {
   // Nothing studied this week yet: a short nudge instead of an empty chart and four zeros.
   const empty = !current && !total.minutes && !total.cards && !total.quizzes && !total.lectures;
 
+  if (empty && bare) return null;
   if (empty) {
     return (
       <Card className="flex items-center gap-4 p-4 sm:p-5">
@@ -44,7 +45,8 @@ export const WeekCard = () => {
 
   return (
     <Card className="space-y-5 p-5 sm:p-6">
-      <div className="flex flex-wrap items-center gap-4">
+      {bare && <h2 className="text-lg font-semibold">{tw.title}</h2>}
+      {!bare && <div className="flex flex-wrap items-center gap-4">
         <span className={cn('flex size-12 items-center justify-center rounded-2xl', current ? 'bg-accent-400/15 text-accent-600' : 'bg-surface-2 text-muted')}>
           <Flame className="size-6" aria-hidden="true" />
         </span>
@@ -52,7 +54,7 @@ export const WeekCard = () => {
           <h2 className="text-lg font-semibold">{current ? tw.streak(current) : tw.noStreak}</h2>
           <p className="text-sm text-muted">{studiedToday ? tw.doneToday : tw.keepGoing}{best > 1 ? ` · ${tw.best(best)}` : ''}</p>
         </div>
-      </div>
+      </div>}
 
       <figure className="space-y-2">
         <figcaption className="text-sm font-medium">{tw.chart}</figcaption>

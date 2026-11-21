@@ -20,7 +20,9 @@ for (const lang of ['en', 'he'] as const) {
       return route.fulfill({ json: { data: grade(scores[sent.length - 1]) } });
     });
     await onboard(page, { hebrew: lang === 'he' });
-    await page.getByRole('link', { name: t.home.quick.grade, exact: true }).click();
+    // Grade my answer is in Home's More menu.
+    await page.getByRole('navigation', { name: t.home.quick.title }).getByRole('button', { name: t.home.more }).click();
+    await page.getByRole('menuitem', { name: t.home.quick.grade }).click();
     await expect(page.getByRole('heading', { level: 1, name: tg.title })).toBeVisible();
 
     await page.getByLabel(tg.question).fill('Was the French Revolution inevitable? Argue your view.');

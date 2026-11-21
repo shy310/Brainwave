@@ -22,8 +22,10 @@ for (const lang of ['en', 'he'] as const) {
       ]));
     });
     await page.reload();
-    await expect(page.getByRole('heading', { name: tw.streak(2) })).toBeVisible();
-    await expect(page.getByText(tw.keepGoing)).toBeVisible();
+    // The streak sits in the Today card; the week's chart and totals in "Your week".
+    await expect(page.getByText(tw.streak(2))).toBeVisible();
+    await expect(page.getByText(t.home.doneOf(1, 3))).toBeVisible(); // nothing due counts as reviewed
+    await expect(page.getByRole('heading', { name: tw.title })).toBeVisible();
     await expect(page.getByRole('table', { name: tw.chart })).toHaveCount(1); // screen-reader table
 
     // Review a card today: the streak grows to 3 and the card is counted.
@@ -39,8 +41,7 @@ for (const lang of ['en', 'he'] as const) {
       await page.clock.runFor(5_000);
     }
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: tw.streak(3) })).toBeVisible();
-    await expect(page.getByText(tw.doneToday)).toBeVisible();
+    await expect(page.getByText(tw.streak(3))).toBeVisible();
     const cards = page.locator('dl > div').filter({ hasText: tw.totals.cards });
     await expect(cards.locator('dd')).toHaveText('5');
     const minutes = page.locator('dl > div').filter({ hasText: tw.totals.minutes }).first();
@@ -50,8 +51,8 @@ for (const lang of ['en', 'he'] as const) {
 
 test('a new student sees a short nudge instead of an empty chart and four zeros', async ({ page }) => {
   await onboard(page);
-  await expect(page.getByRole('heading', { name: en.week.noStreak })).toBeVisible();
-  await expect(page.getByText(en.week.keepGoing)).toBeVisible();
+  await expect(page.getByText(en.week.noStreak)).toBeVisible();
+  await expect(page.getByText(en.home.dailyTitle)).toBeVisible();
   await expect(page.getByRole('table', { name: en.week.chart })).toHaveCount(0);
-  await expect(page.getByText(en.week.totals.minutes)).toHaveCount(0);
+  await expect(page.locator('dl')).toHaveCount(0); // no totals yet
 });

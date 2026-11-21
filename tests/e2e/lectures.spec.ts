@@ -67,15 +67,16 @@ test('paste a lecture, get notes, transcript, quiz, flashcards and answers', asy
   await page.getByRole('button', { name: 'Check' }).click();
   await expect(page.getByText('Correct!')).toBeVisible();
 
-  await page.getByRole('radio', { name: 'Flashcards' }).click();
+  await page.getByRole('radio', { name: 'Cards' }).click();
   await page.getByRole('button', { name: 'Make flashcards' }).click();
   await page.getByRole('button', { name: /What is a derivative\?/ }).click();
   await expect(page.getByText('An instantaneous rate of change.')).toBeVisible();
   await page.getByRole('button', { name: 'I knew it' }).click();
   await expect(page.getByText('Card 2 of 2')).toBeVisible();
 
-  await page.getByRole('radio', { name: 'Ask' }).click();
-  await page.getByRole('button', { name: 'What were the main points?' }).click();
+  // Ask opens the tutor about this lecture.
+  await page.getByRole('toolbar').getByRole('button', { name: 'Ask', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'What were the main points?' }).click();
   await expect(page.getByText('In the lecture, the derivative was the slope.')).toBeVisible();
   const tutorInput = calls.tutor[0].input as { lecture: { text: string } };
   expect(tutorInput.lecture.text).toContain('slope of the tangent line');
@@ -97,7 +98,7 @@ test('upload a recording: it is cut into pieces of about a minute and transcribe
   await onboard(page);
   await page.goto('/lectures/new');
   await page.getByRole('radio', { name: 'Upload' }).click();
-  await page.getByRole('radio', { name: 'Hebrew' }).click();
+  await page.getByLabel('Language spoken').selectOption('he');
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Choose a file' }).click();
   await (await chooser).setFiles(wavFile(130));
