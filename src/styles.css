@@ -214,12 +214,16 @@
 ::highlight(bw-blue) { background-color: #bcd2ff; color: #141a2e; }
 ::highlight(bw-pink) { background-color: #ffc4d6; color: #141a2e; }
 ::highlight(bw-comment) { text-decoration: underline dotted 2px; text-underline-offset: 3px; }
+/* A found passage or highlight lights up briefly when the page jumps to it. */
 @keyframes flash-bg { 0%, 40% { background-color: color-mix(in oklab, var(--color-accent-300) 45%, transparent); } 100% { background-color: transparent; } }
 .animate-flash { animation: flash-bg 1.8s ease-out; border-radius: 0.5rem; }
 
 /* Switching light/dark eases over instead of flashing. */
-.theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
-  transition: background-color 280ms ease, border-color 280ms ease, color 280ms ease, fill 280ms ease !important;
+/* Only for people who haven't asked for less motion (this rule would otherwise beat the reduced-motion one). */
+@media (prefers-reduced-motion: no-preference) {
+  .theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
+    transition: background-color 280ms ease, border-color 280ms ease, color 280ms ease, fill 280ms ease !important;
+  }
 }
 
 /* Less transparency: frosted bars become solid. */

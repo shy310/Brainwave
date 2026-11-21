@@ -2,11 +2,25 @@ import { createBrowserRouter } from 'react-router';
 import { AppShell } from './AppShell';
 import { RequireAuth, RequireGuest, RequireUser } from '@/features/auth/guards';
 import { ProgressProvider } from '@/features/learn/ProgressProvider';
+import { RouteError } from './RouteError';
+import { isChunkError, reloadOnce } from './chunks';
 
-// Pages are code-split: each loads only when visited.
-const page = (load: () => Promise<{ default: React.ComponentType }>) => async () => ({ Component: (await load()).default });
+// Pages are code-split: each loads only when visited. If the code file is gone
+// because the app was updated since this tab opened, reload once to get the new version.
+const page = (load: () => Promise<{ default: React.ComponentType }>) => async () => {
+  try {
+    return { Component: (await load()).default };
+  } catch (err) {
+    const to = router.state.navigation.location;
+    if (isChunkError(err) && reloadOnce(to ? `${to.pathname}${to.search}${to.hash}` : undefined)) return new Promise<never>(() => {}); // loading the new version
+    throw err;
+  }
+};
 
-export const router = createBrowserRouter([
+export const router = createBrowserRouter([{
+  // Any page that fails shows a friendly screen (with Reload) instead of the router's developer message.
+  errorElement: <RouteError />,
+  children: [
   {
     element: <RequireGuest />,
     children: [{ path: '/signin', lazy: page(() => import('@/features/auth/SignInPage')) }],
@@ -34,6 +48,8 @@ export const router = createBrowserRouter([
         { path: 'learn/topic/:topicId/quiz', lazy: page(() => import('@/features/learn/QuizPage')) },
         { path: 'tutor', lazy: page(() => import('@/features/tutor/TutorPage')) },
         { path: 'grader', lazy: page(() => import('@/features/grader/GraderPage')) },
+        { path: 'practice', lazy: page(() => import('@/features/weak/WeakSpotsPage')) },
+        { path: 'search', lazy: page(() => import('@/features/search/SearchPage')) },
         { path: 'exams', lazy: page(() => import('@/features/exams/ExamsPage')) },
         { path: 'exams/:id', lazy: page(() => import('@/features/exams/ExamPage')) },
         { path: 'play', lazy: page(() => import('@/features/game/GamesPage')) },
@@ -57,4 +73,4 @@ export const router = createBrowserRouter([
       ],
     }],
   },
-]);
+]}]);

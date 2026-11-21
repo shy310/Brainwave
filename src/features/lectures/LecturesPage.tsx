@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, CalendarClock, CalendarDays, Camera, FileText, Gamepad2, Layers, Folder as FolderIcon, FolderInput, FolderPlus, Mic, MoreHorizontal, Pencil, Star, StarOff, Check, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, CalendarClock, Target, CalendarDays, Camera, FileText, Gamepad2, Layers, Folder as FolderIcon, FolderInput, FolderPlus, Mic, MoreHorizontal, Pencil, Star, StarOff, Check, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
@@ -160,6 +160,10 @@ export default function LecturesPage() {
           <p className="text-muted">{t.lectures.subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link to="/search" aria-label={t.search.open} title={t.search.open}
+            className={cn(linkButton, 'border border-line bg-surface px-3 hover:bg-surface-2')}>
+            <Search className="size-4" aria-hidden="true" /><span className="max-sm:sr-only">{t.home.quick.search}</span>
+          </Link>
           <Link to="/lectures/new" className={cn(linkButton, 'bg-brand-600 text-white hover:bg-brand-700')}>
             <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
           </Link>
@@ -267,7 +271,14 @@ export default function LecturesPage() {
           )}
 
           {shown.length === 0 && (
-            <EmptyState icon={query.trim() ? Search : FolderIcon} body={query.trim() ? tl.noResults(query.trim()) : tl.emptyFolder} className="border-0 bg-transparent" />
+            <div className="space-y-2 text-center">
+              <EmptyState icon={query.trim() ? Search : FolderIcon} body={query.trim() ? tl.noResults(query.trim()) : tl.emptyFolder} className="border-0 bg-transparent" />
+              {query.trim() && (
+                <Link to={`/search?q=${encodeURIComponent(query.trim())}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">
+                  <Search className="size-4" aria-hidden="true" />{t.search.open}
+                </Link>
+              )}
+            </div>
           )}
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -351,6 +362,7 @@ const StudyTools = ({ due }: { due: number }) => {
   const tt = t.lectures.tools;
   const tools = [
     { to: '/lectures/review', icon: Layers, title: tt.review, body: due > 0 ? t.lectures.review.due(due) : tt.reviewBody, tint: 'bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-200', highlight: due > 0 },
+    { to: '/practice', icon: Target, title: tt.weak, body: tt.weakBody, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
     { to: '/exams', icon: CalendarClock, title: tt.exams, body: tt.examsBody, tint: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' },
     { to: '/play', icon: Gamepad2, title: tt.games, body: tt.gamesBody, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },
     { to: '/groups', icon: Users, title: tt.groups, body: tt.groupsBody, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
@@ -359,7 +371,7 @@ const StudyTools = ({ due }: { due: number }) => {
   return (
     <section aria-label={tt.title}>
       {/* One surface split by hairlines (the gap shows the border colour), not four separate cards. */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line bg-line shadow-[var(--shadow-soft)] lg:grid-cols-5 [&>:last-child]:col-span-2 lg:[&>:last-child]:col-span-1">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line bg-line shadow-[var(--shadow-soft)] lg:grid-cols-3">
         {tools.map((x) => (
           <Link key={x.to} to={x.to}
             className={cn('group flex min-w-0 flex-col gap-2.5 p-4 transition-colors focus-visible:-outline-offset-2 sm:flex-row sm:items-center sm:gap-3',

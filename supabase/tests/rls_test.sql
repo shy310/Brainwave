@@ -245,6 +245,17 @@ select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
 select pg_temp.ok((select title from public.exams) = 'Calculus final', 'B could not change A''s exam');
 reset role;
 
+-- ── Weak spots ────────────────────────────────────────────────────────────
+reset role;
+set role authenticated;
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+insert into public.mistakes (key, lecture_id, question) values ('q1', '10000000-0000-0000-0000-00000000000a', '{"prompt":"x"}');
+select pg_temp.ok((select count(*) from public.mistakes) = 1, 'a student can keep a missed question');
+select pg_temp.refused($$insert into public.mistakes (key, question, user_id) values ('q2', '{}', 'bbbbbbbb-0000-0000-0000-000000000002')$$, 'saving a mistake for someone else');
+select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
+select pg_temp.ok((select count(*) from public.mistakes) = 0, 'B cannot see A''s mistakes');
+reset role;
+
 -- ── Deleting an account removes everything ────────────────────────────────
 reset role;
 delete from auth.users where id = 'aaaaaaaa-0000-0000-0000-000000000001';
@@ -256,6 +267,7 @@ select pg_temp.ok((select count(*) from public.class_slots) = 0, 'deleted accoun
 select pg_temp.ok((select count(*) from public.grader_tasks) = 0, 'deleted account: graded answers gone');
 select pg_temp.ok((select count(*) from public.push_subscriptions where user_id = 'aaaaaaaa-0000-0000-0000-000000000001') = 0, 'deleted account: push devices gone');
 select pg_temp.ok((select count(*) from public.reminder_settings) = 0, 'deleted account: reminder settings gone');
+select pg_temp.ok((select count(*) from public.mistakes) = 0, 'deleted account: mistakes gone');
 select pg_temp.ok((select count(*) from public.exams) = 0, 'deleted account: exams gone');
 select pg_temp.ok((select count(*) from public.study_groups) = 0, 'deleted account: owned groups gone');
 select pg_temp.ok((select count(*) from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001') = 0, 'deleted account: profile gone');

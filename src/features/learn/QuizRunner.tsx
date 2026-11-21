@@ -18,10 +18,12 @@ interface Props {
   resultActions?: ReactNode;
   /** Course text written answers are graded against. */
   context?: string;
+  /** Each answer as it's checked (e.g. to remember the misses). */
+  onQuestion?: (question: Question, correct: boolean) => void;
 }
 
 /** Plays a list of questions one at a time and shows the score at the end. */
-export const QuizRunner = ({ questions, topicId, onFinish, onPractice, resultActions, context }: Props) => {
+export const QuizRunner = ({ questions, topicId, onFinish, onPractice, resultActions, context, onQuestion }: Props) => {
   const t = useT();
   const [index, setIndex] = useState(0);
   const [results, setResults] = useState<boolean[]>([]);
@@ -80,7 +82,10 @@ export const QuizRunner = ({ questions, topicId, onFinish, onPractice, resultAct
         question={question}
         topicId={topicId}
         context={context}
-        onAnswered={(ok) => setResults((r) => (r.length > index ? r : [...r, ok]))}
+        onAnswered={(ok) => {
+          if (results.length <= index) onQuestion?.(question, ok);
+          setResults((r) => (r.length > index ? r : [...r, ok]));
+        }}
         onPractice={onPractice}
         footer={answeredCurrent && (
           <Button size="lg" block onClick={next}>{index + 1 < questions.length ? t.quiz.next : t.quiz.finish}</Button>
