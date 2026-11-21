@@ -434,6 +434,13 @@ export const he: Dict = {
       zoomIn: 'הגדלה', zoomOut: 'הקטנה', reset: 'התאמה למסך', list: 'כרשימה', diagram: (title: string) => `מפת מושגים של ${title}`,
       links: 'מקושר אל', needsText: 'קודם צריך סיכום או תמלול להרצאה.',
     },
+    export: {
+      open: 'ייצוא…', title: 'ייצוא', flashcards: 'כרטיסיות', notes: 'סיכום',
+      anki: 'Anki', ankiBody: 'קובץ ש־Anki מייבא (File → Import), כולל נוסחאות.', noCards: 'קודם צריך ליצור כרטיסיות להרצאה.',
+      docs: 'Google Docs', docsBody: 'קובץ Word: מעלים ל־Google Drive ופותחים עם Google Docs.',
+      notion: 'Notion', notionBody: 'קובץ Markdown לייבוא ב־Notion.', copyNotion: 'העתקה ל־Notion', copied: 'הועתק — מדביקים בדף ב־Notion',
+      noNotes: 'כדי לייצא, קודם כותבים סיכום להרצאה.',
+    },
     library: {
       favorites: 'מועדפים', favorite: 'הוספה למועדפים', unfavorite: 'הסרה מהמועדפים', starred: 'מועדף', open: 'פתיחה', renameLecture: 'שינוי שם', moveLecture: 'העברה לתיקייה', deleteLecture: 'מחיקה', options: (n: string) => `אפשרויות עבור „${n}”`,
       search: 'חיפוש הרצאות', sort: 'מיון', sorts: { newest: 'מהחדש לישן', oldest: 'מהישן לחדש', title: 'לפי שם' },

@@ -416,6 +416,13 @@ export const ru: Dict = {
       zoomIn: 'Увеличить', zoomOut: 'Уменьшить', reset: 'По размеру экрана', list: 'Списком', diagram: (title: string) => `Карта понятий: ${title}`,
       links: 'Связано с', needsText: 'Сначала у лекции должен быть конспект или расшифровка.',
     },
+    export: {
+      open: 'Экспорт…', title: 'Экспорт', flashcards: 'Карточки', notes: 'Конспект',
+      anki: 'Anki', ankiBody: 'Файл для импорта в Anki (File → Import), с формулами.', noCards: 'Сначала создайте карточки к этой лекции.',
+      docs: 'Google Docs', docsBody: 'Файл Word: загрузите его в Google Drive и откройте в Google Docs.',
+      notion: 'Notion', notionBody: 'Файл Markdown для импорта в Notion.', copyNotion: 'Скопировать для Notion', copied: 'Скопировано — вставьте на страницу Notion',
+      noNotes: 'Чтобы экспортировать, сначала напишите конспект.',
+    },
     library: {
       favorites: 'Избранное', favorite: 'В избранное', unfavorite: 'Убрать из избранного', starred: 'В избранном', open: 'Открыть', renameLecture: 'Переименовать', moveLecture: 'Переместить в папку', deleteLecture: 'Удалить', options: (n: string) => `Действия с «${n}»`,
       search: 'Поиск по лекциям', sort: 'Сортировка', sorts: { newest: 'Недавние', oldest: 'Старые', title: 'По названию' },
