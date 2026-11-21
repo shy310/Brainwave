@@ -127,7 +127,7 @@ export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay }: P
       {query.trim() && <p className="text-sm text-muted" aria-live="polite">{count ? tt.matches(count) : tt.noMatches}</p>}
       {onPlay && <p className="text-xs text-muted">{tt.tapToPlay}</p>}
       {matching.map((s) => (
-        <div key={s.start} className="flex gap-3">
+        <div key={s.start} id={`seg-${s.start}`} className="flex gap-3">
           {timed && onPlay ? (
             <button type="button" onClick={() => onPlay(s.start)} aria-label={tt.playFrom(formatTime(s.start))}
               className="group -my-1 inline-flex h-7 w-16 shrink-0 items-center gap-1 rounded-lg px-1.5 text-xs tabular-nums text-brand-700 hover:bg-brand-500/10 dark:text-brand-300">

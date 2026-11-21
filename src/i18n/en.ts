@@ -71,7 +71,7 @@ export const en = {
       recordTitle: 'Record your next class', recordBody: 'Get notes, a quiz and flashcards when it ends.', recordCta: 'Start recording',
     },
     quick: {
-      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', games: 'Games',
+      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', search: 'Search', games: 'Games',
       tutor: 'Ask AI', grade: 'Grade', groups: 'Groups',
     },
     recent: 'Continue', seeAll: 'See all', explore: 'Explore',
@@ -103,6 +103,15 @@ export const en = {
     goodLuck: 'Good luck today! 🍀', over: 'This exam is over. How did it go?',
     noQuestions: 'These lectures don’t have flashcards or quiz questions yet. Make some on a lecture first.',
     banner: (title: string, when: string) => `${title} · ${when}`,
+  },
+  search: {
+    title: 'Search your lectures', subtitle: 'Find anything a teacher said or wrote in your notes, and jump right to it.',
+    placeholder: 'Search or ask a question…', open: 'Search all lectures',
+    results: (n: number) => (n === 1 ? '1 match' : `${n} matches`), none: (q: string) => `Nothing in your lectures matches “${q}”.`,
+    inNotes: 'In the notes', at: (time: string) => `At ${time}`, jump: (time: string) => `Open at ${time}`,
+    ask: 'Ask about this', asking: 'Reading your lectures…', answer: 'Answer from your lectures', sources: 'Sources',
+    notFound: 'Your lectures don’t seem to cover this.', hint: 'Tip: ask a full question, like “What did we learn about derivatives?”',
+    empty: 'You have no lectures with a transcript yet.',
   },
   game: {
     source: 'What should the questions be about?', allLectures: 'All lectures', pickLectures: 'Choose lectures',
