@@ -7,6 +7,8 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { isNativeApp } from '@/lib/platform';
 import { nextReminder, reminderClock, type ClassSlot } from '@shared/schedule';
 import { scheduleRepo } from './scheduleRepo';
+import { loadStudyReminder } from './notify';
+import { pushActive, subscribePush } from './webPush';
 
 /** Notification ids for class reminders (stable per slot). */
 const BASE_ID = 41_000;
@@ -18,7 +20,10 @@ export const notificationsSupported = () => isNativeApp() || (typeof window !== 
 export const enableReminders = async (): Promise<boolean> => {
   if (isNativeApp()) return (await LocalNotifications.requestPermissions()).display === 'granted';
   if (!('Notification' in window)) return false;
-  return (await Notification.requestPermission()) === 'granted';
+  const ok = (await Notification.requestPermission()) === 'granted';
+  // With an account, reminders also come when the site is closed.
+  if (ok) await subscribePush(loadStudyReminder());
+  return ok;
 };
 
 export const remindersAllowed = async (): Promise<boolean> => {
@@ -58,7 +63,8 @@ export const onReminderTap = (open: (classId: string) => void) => {
  */
 export const useWebReminders = (text: (s: ClassSlot) => { title: string; body: string }, open: (classId: string) => void) => {
   useEffect(() => {
-    if (isNativeApp() || typeof Notification === 'undefined') return;
+    // Push delivers them on this device already (even when closed): no doubles.
+    if (isNativeApp() || typeof Notification === 'undefined' || pushActive()) return;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let cancelled = false;
     const plan = async () => {

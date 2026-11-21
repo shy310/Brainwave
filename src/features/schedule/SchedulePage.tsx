@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Bell, CalendarPlus, Pencil, Trash2 } from 'lucide-react';
 import { useI18n } from '@/i18n';
-import { isNativeApp } from '@/lib/platform';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -11,6 +10,7 @@ import { BackLink } from '@/features/learn/CoursePage';
 import { folderRepo, type Folder } from '@/features/lectures/folders';
 import { REMIND_OPTIONS, type ClassSlot } from '@shared/schedule';
 import { scheduleRepo } from './scheduleRepo';
+import { PushNote } from './PushNote';
 import { enableReminders, notificationsSupported, remindersAllowed, syncNativeReminders } from './reminders';
 
 type Draft = Omit<ClassSlot, 'id'> & { id?: string };
@@ -80,10 +80,10 @@ export default function SchedulePage() {
       {notificationsSupported() && (
         <Card className="flex flex-wrap items-center gap-3 p-4">
           <Bell className="size-5 text-brand-600 dark:text-brand-300" aria-hidden="true" />
-          <p className="min-w-0 flex-1 text-sm">{allowed ? ts.enabled : !isNativeApp() ? ts.webNote : ''}</p>
+          {allowed ? <p className="min-w-0 flex-1 text-sm">{ts.enabled}</p> : <PushNote className="min-w-0 flex-1 text-sm" />}
           {!allowed && <Button size="sm" onClick={() => void turnOn()}>{ts.enable}</Button>}
           {blocked && <p className="w-full text-sm text-rose-600" role="alert">{ts.blocked}</p>}
-          {allowed && !isNativeApp() && <p className="w-full text-xs text-muted">{ts.webNote}</p>}
+          {allowed && <PushNote className="w-full text-xs text-muted" />}
         </Card>
       )}
 

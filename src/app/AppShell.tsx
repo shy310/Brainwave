@@ -12,6 +12,7 @@ import { ClassReminders } from '@/features/schedule/UpNext';
 import { FocusBar, FocusButton } from '@/features/focus/FocusBar';
 import { useFocus } from '@/features/focus/focus';
 import { useTabBarHidden } from './chrome';
+import { useEnsurePush } from '@/features/schedule/useEnsurePush';
 
 export const AppShell = () => {
   const t = useT();
@@ -19,6 +20,7 @@ export const AppShell = () => {
   // While focusing, the navigation is hidden so the page has nothing else to offer.
   const focusing = useFocus()?.phase === 'focus';
   const noTabs = useTabBarHidden();
+  useEnsurePush();
   const { pathname } = useLocation();
   /** The tab the page belongs to (deepest match), for the sliding highlight. */
   const active = NAV.reduce((best, item, i) => {

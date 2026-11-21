@@ -163,6 +163,51 @@ select pg_temp.ok((select count(*) from storage.objects where name like 'aaaaaaa
 select pg_temp.ok((select not public from storage.buckets where id = 'lecture-audio'), 'the recordings bucket is private');
 delete from storage.objects;
 
+-- ── Web push reminders ─────────────────────────────────────────────────────
+reset role;
+set role authenticated;
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+select public.save_push_subscription('https://push.example/a1', 'key-a', 'auth-a');
+select pg_temp.ok((select count(*) from public.push_subscriptions) = 1, 'a student saves their device');
+select pg_temp.refused($$insert into public.push_subscriptions (endpoint, user_id, p256dh, auth) values ('https://push.example/x', 'bbbbbbbb-0000-0000-0000-000000000002', 'k', 'a')$$, 'adding a device directly, or for someone else');
+select pg_temp.refused($$select public.save_push_subscription('http://insecure.example/a', 'k', 'a')$$, 'a push address that isn''t https');
+insert into public.reminder_settings (timezone, study_enabled, study_time) values ('Asia/Jerusalem', true, '19:00');
+select pg_temp.refused($$update public.reminder_settings set timezone = 'Mars/Olympus'$$, 'an unknown time zone');
+select pg_temp.ok((select count(*) from public.push_config) = 0, 'students cannot read the push keys');
+select pg_temp.ok((select count(*) from public.push_sent) = 0, 'students cannot read what was sent');
+select pg_temp.refused($$select * from public.claim_due_reminders()$$, 'students claiming reminders');
+select pg_temp.refused($$select public.schedule_push_ticks('https://evil.example/api/push/tick')$$, 'students changing the minute job');
+insert into public.class_slots (name, weekday, starts, ends, remind_minutes) values ('Calculus', 1, '10:00', '11:30', 15);
+
+select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
+select public.save_push_subscription('https://push.example/a1', 'key-b', 'auth-b');
+select pg_temp.ok((select count(*) from public.push_subscriptions) = 1 and (select p256dh from public.push_subscriptions) = 'key-b', 'a shared device moves to the student now signed in');
+select pg_temp.ok((select count(*) from public.reminder_settings) = 0, 'others'' reminder settings are hidden');
+delete from public.push_subscriptions;
+select public.save_push_subscription('https://push.example/b1', 'key-b', 'auth-b');
+
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+select pg_temp.ok((select count(*) from public.push_subscriptions) = 0, 'the first student no longer gets pushes on that device');
+select public.save_push_subscription('https://push.example/a2', 'key-a', 'auth-a');
+
+reset role;
+select pg_temp.ok((select length(cron_secret) >= 60 from public.push_config), 'a long secret is made for the minute job');
+-- Monday 23 Nov 2026, 19:04 in Jerusalem (UTC+2): the study reminder is due once.
+select pg_temp.ok((select count(*) from public.claim_due_reminders('2026-11-23 17:04:00+00') where kind = 'study') = 1, 'the study reminder is due at its time');
+select pg_temp.ok((select count(*) from public.claim_due_reminders('2026-11-23 17:05:00+00') where kind = 'study') = 0, 'and is sent only once');
+select pg_temp.ok((select count(*) from public.claim_due_reminders('2026-11-23 16:50:00+00') where kind = 'study') = 0, 'not before its time');
+-- Monday class at 10:00 with a 15-minute reminder: due at 09:45 Jerusalem = 07:45 UTC.
+select pg_temp.ok((select class_name from public.claim_due_reminders('2026-11-23 07:46:00+00') where kind = 'class') = 'Calculus', 'the class reminder is due before class');
+select pg_temp.ok((select count(*) from public.claim_due_reminders('2026-11-30 07:30:00+00')) = 0, 'not 15 minutes too early the next week');
+select pg_temp.ok((select subscriptions -> 0 ->> 'endpoint' from public.claim_due_reminders('2026-11-30 07:47:00+00') where kind = 'class') = 'https://push.example/a2', 'it goes to the student''s own devices');
+-- Studied already today: no study reminder.
+insert into public.study_days (user_id, day, minutes) values ('aaaaaaaa-0000-0000-0000-000000000001', '2026-11-24', 12);
+select pg_temp.ok((select count(*) from public.claim_due_reminders('2026-11-24 17:02:00+00') where kind = 'study') = 0, 'no study reminder after studying that day');
+-- Late at night in Jerusalem the date is already tomorrow.
+update public.reminder_settings set study_time = '00:30';
+select pg_temp.ok((select count(*) from public.claim_due_reminders('2026-11-25 22:35:00+00') where kind = 'study') = 1, 'the local date counts, not UTC');
+delete from public.push_sent;
+
 -- ── Deleting an account removes everything ────────────────────────────────
 reset role;
 delete from auth.users where id = 'aaaaaaaa-0000-0000-0000-000000000001';
@@ -172,6 +217,8 @@ select pg_temp.ok((select count(*) from public.card_reviews) = 0, 'deleted accou
 select pg_temp.ok((select count(*) from public.study_days) = 0, 'deleted account: study days gone');
 select pg_temp.ok((select count(*) from public.class_slots) = 0, 'deleted account: schedule gone');
 select pg_temp.ok((select count(*) from public.grader_tasks) = 0, 'deleted account: graded answers gone');
+select pg_temp.ok((select count(*) from public.push_subscriptions where user_id = 'aaaaaaaa-0000-0000-0000-000000000001') = 0, 'deleted account: push devices gone');
+select pg_temp.ok((select count(*) from public.reminder_settings) = 0, 'deleted account: reminder settings gone');
 select pg_temp.ok((select count(*) from public.study_groups) = 0, 'deleted account: owned groups gone');
 select pg_temp.ok((select count(*) from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001') = 0, 'deleted account: profile gone');
 select pg_temp.ok((select count(*) from public.lectures) = 1, 'other students keep their lectures');

@@ -125,6 +125,8 @@ export const en = {
     daily: 'Daily study reminder', dailyHint: 'A reminder at this time every day — skipped on the web if you already studied.',
     turnOn: 'Turn on', turnOff: 'Turn off', time: 'Time', on: (time: string) => `On, every day at ${time}.`,
     blocked: 'Notifications are blocked. Allow them in your browser or phone settings.',
+    pushOn: 'Reminders arrive on this device even when BrainWave is closed.',
+    homeScreen: 'On iPhone and iPad: tap Share, then “Add to Home Screen”, and open BrainWave from there to get reminders when it’s closed.',
   },
   week: {
     title: 'Your week', streak: (n: number) => (n === 1 ? '1-day streak' : `${n}-day streak`), noStreak: 'Start a streak today',

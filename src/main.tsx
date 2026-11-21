@@ -7,6 +7,9 @@ import { ThemeProvider } from './app/ThemeProvider';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { ErrorBoundary } from './app/ErrorBoundary';
 import './styles.css';
+import { registerServiceWorker } from './features/schedule/webPush';
+
+registerServiceWorker();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

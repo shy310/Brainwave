@@ -40,6 +40,9 @@ export const env = {
   ttsProvider: (process.env.TTS_PROVIDER ?? 'auto').trim().toLowerCase(),
   ttsModel: process.env.TTS_MODEL ?? 'elevenlabs/eleven-v4-turbo',
   ttsVoices: (process.env.TTS_VOICES ?? 'sarah,brian').split(',').map((v) => v.trim()).filter(Boolean),
+  /** Who sends web pushes (a link to the site); push services may contact it. Vercel sets the production host. */
+  pushSubject: process.env.PUSH_SUBJECT
+    ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'https://brainwave.example'),
 };
 
 const azureReady = () => Boolean(env.azureSpeechKey && /^[a-z0-9]+$/.test(env.azureSpeechRegion));
