@@ -39,6 +39,8 @@ import { dateLocale } from '@shared/locales';
 import { copyNotes as copyNotesToClipboard, notesLabels, notesLocale, notesToMarkdown } from './notesExport';
 import { askConfirm } from '@/ui/Confirm';
 import { Shimmer } from '@/ui/Feedback';
+import { markedSegments, transcriptWithMarks } from '@shared/marks';
+import { ImportantMoments } from './ImportantMoments';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
@@ -123,7 +125,14 @@ export default function LecturePage() {
     await lectureRepo.update(id, p).catch((err) => console.error('Could not save lecture', err));
   }, [id]);
 
-  const transcript = useMemo(() => (lecture ? transcriptOf(lecture) : ''), [lecture]);
+  const playFrom = useCallback((start: number) => {
+    const a = audio.current;
+    if (!a) return;
+    a.currentTime = start;
+    void a.play().catch(() => {});
+  }, []);
+  // Marked moments go to the AI with a ⭐ in front, so the notes, quiz and cards give them extra weight.
+  const transcript = useMemo(() => (lecture ? (lecture.marks?.length ? transcriptWithMarks(lecture.segments, lecture.marks) : transcriptOf(lecture)) : ''), [lecture]);
   const input = useMemo(() => lecture && ({
     transcript: transcript.slice(0, MAX_TRANSCRIPT_CHARS),
     slides: lecture.slides_text?.slice(0, MAX_SLIDES_CHARS) || undefined,
@@ -329,6 +338,8 @@ export default function LecturePage() {
                     {t.lectures.summaryModes[notesMode(lecture.notes)]}
                   </button>
                 </div>
+                <ImportantMoments marks={lecture.marks ?? []} segments={lecture.segments} onPlay={lecture.audio_path ? playFrom : undefined}
+                  onShow={(start) => { setTab('transcript'); requestAnimationFrame(() => document.getElementById(`seg-${start}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })); }} />
                 <NotesView notes={lecture.notes} />
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
                 {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
@@ -352,12 +363,8 @@ export default function LecturePage() {
 
           {tab === 'transcript' && (
             <TranscriptPanel segments={lecture.segments} timed={lecture.source === 'record' || lecture.source === 'upload'} fileName={title}
-              onPlay={lecture.audio_path ? (start) => {
-                const a = audio.current;
-                if (!a) return;
-                a.currentTime = start;
-                void a.play().catch(() => {});
-              } : undefined}
+              marked={lecture.marks?.length ? markedSegments(lecture.segments, lecture.marks) : undefined}
+              onPlay={lecture.audio_path ? playFrom : undefined}
               onSave={async (segments: Segment[]) => {
                 await patch({ segments });
                 if (lecture.notes || lecture.quiz || lecture.flashcards) setStale(true);

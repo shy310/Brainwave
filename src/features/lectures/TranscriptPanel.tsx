@@ -1,6 +1,7 @@
 import { Fragment, useMemo, useState } from 'react';
-import { Copy, Download, Pencil, Play, Search, X } from 'lucide-react';
+import { Copy, Download, Pencil, Play, Search, Star, X } from 'lucide-react';
 import { useT } from '@/i18n';
+import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Input, Textarea } from '@/ui/Field';
@@ -47,10 +48,12 @@ interface Props {
   onSave: (segments: Segment[]) => Promise<void>;
   /** Play the kept recording from this time; when set, each time is a play button. */
   onPlay?: (start: number) => void;
+  /** Which segments were marked as important while recording. */
+  marked?: boolean[];
 }
 
 /** The transcript with search, copy, export and editing. */
-export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay }: Props) => {
+export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay, marked }: Props) => {
   const t = useT();
   const tt = t.lectures.transcriptTools;
   const [query, setQuery] = useState('');
@@ -127,7 +130,8 @@ export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay }: P
       {query.trim() && <p className="text-sm text-muted" aria-live="polite">{count ? tt.matches(count) : tt.noMatches}</p>}
       {onPlay && <p className="text-xs text-muted">{tt.tapToPlay}</p>}
       {matching.map((s) => (
-        <div key={s.start} id={`seg-${s.start}`} className="flex gap-3">
+        <div key={s.start} id={`seg-${s.start}`}
+          className={cn('flex gap-3', marked?.[segments.indexOf(s)] && '-mx-2 rounded-xl border-s-4 border-accent-400 bg-accent-300/15 px-2 py-1.5 dark:bg-accent-500/10')}>
           {timed && onPlay ? (
             <button type="button" onClick={() => onPlay(s.start)} aria-label={tt.playFrom(formatTime(s.start))}
               className="group -my-1 inline-flex h-7 w-16 shrink-0 items-center gap-1 rounded-lg px-1.5 text-xs tabular-nums text-brand-700 hover:bg-brand-500/10 dark:text-brand-300">
@@ -135,6 +139,7 @@ export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay }: P
             </button>
           ) : timed && <span className="w-12 shrink-0 pt-0.5 text-xs tabular-nums text-muted">{formatTime(s.start)}</span>}
           {query.trim() ? <Highlighted text={s.text} query={query} /> : <Rich text={s.text} className="min-w-0 flex-1" />}
+          {marked?.[segments.indexOf(s)] && <Star className="mt-1 size-4 shrink-0 fill-accent-400 text-accent-500" role="img" aria-label={t.lectures.marks.badge} />}
         </div>
       ))}
     </Card>

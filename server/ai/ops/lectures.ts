@@ -110,6 +110,10 @@ export const transcribeOp = defineOp({
 const lectureBlock = (transcript: string, slides?: string, title?: string) => [
   title ? `Lecture title: ${title}` : '',
   `Lecture transcript:\n"""\n${transcript}\n"""`,
+  // Parts the student marked as important while recording (a tap when the teacher said "this matters").
+  transcript.includes('⭐')
+    ? 'Paragraphs starting with ⭐ are moments the student marked as important during the lecture. Cover every one of them clearly and give them extra weight: in notes, include them prominently; in quizzes and flashcards, make sure each one is asked about. Do not copy the ⭐ symbol into your answer.'
+    : '',
   slides ? `Text from the lecture slides:\n"""\n${slides}\n"""` : '',
 ].filter(Boolean).join('\n\n');
 

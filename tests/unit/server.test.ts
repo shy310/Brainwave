@@ -212,6 +212,16 @@ describe('lecture operations', () => {
     expect((await res.json()).data).toEqual({ answer: 'It is the slope [1].', cited: [1], found: true });
   });
 
+  it('tells the AI to give extra weight to the parts marked important while recording', async () => {
+    const { lectureNotesOp, lectureQuizOp, flashcardsOp } = await import('../../server/ai/ops/lectures');
+    const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
+    const marked = 'Limits.\n\n⭐ The chain rule is on the exam.';
+    expect(String(lectureNotesOp.build({ transcript: marked, mode: 'detailed' }, ctx)[1].content)).toContain('marked as important');
+    expect(String(lectureQuizOp.build({ transcript: marked, count: 6 }, ctx)[1].content)).toContain('make sure each one is asked about');
+    expect(String(flashcardsOp.build({ transcript: marked, count: 15 }, ctx)[1].content)).toContain('⭐');
+    expect(String(lectureNotesOp.build({ transcript: 'Limits and derivatives.', mode: 'detailed' }, ctx)[1].content)).not.toContain('marked as important');
+  });
+
   it('gives exam prep practice questions and common mistakes, and keeps them out of other styles', async () => {
     const { lectureNotesOp } = await import('../../server/ai/ops/lectures');
     const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
