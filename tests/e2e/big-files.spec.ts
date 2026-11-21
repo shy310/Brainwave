@@ -20,7 +20,8 @@ for (const lang of ['en', 'he'] as const) {
     });
     await onboard(page, { hebrew: lang === 'he' });
     await page.goto('/lectures/new');
-    await page.getByRole('radio', { name: t.lectures.tabs.text }).click();
+    await page.getByRole('radio', { name: t.lectures.modes.document }).click();
+    await page.getByRole('button', { name: t.lectures.doc.paste }).click();
     await page.getByPlaceholder(t.lectures.textPlaceholder).fill(TEXT);
 
     const slides = makePdf(['Limits and continuity', null, 'The derivative'], { name: 'week3-slides.pdf', padBytes: 5 * MB });

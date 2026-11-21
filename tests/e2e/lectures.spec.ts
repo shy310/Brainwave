@@ -47,7 +47,9 @@ test('paste a lecture, get notes, transcript, quiz, flashcards and answers', asy
   await expect(page.getByText('No lectures yet')).toBeVisible();
   await page.getByRole('link', { name: 'New lecture' }).first().click();
 
-  await page.getByRole('radio', { name: 'Paste text' }).click();
+  await page.getByRole('radio', { name: 'Document' }).click();
+
+  await page.getByRole('button', { name: 'Or paste text' }).click();
   await page.getByPlaceholder('Paste the lecture text here…').fill(LECTURE_TEXT);
   await page.getByRole('button', { name: 'Create lecture' }).click();
 
@@ -102,7 +104,7 @@ test('upload a recording: it is cut into pieces of about a minute and transcribe
   const calls = await mockAi(page);
   await onboard(page);
   await page.goto('/lectures/new');
-  await page.getByRole('radio', { name: 'Upload' }).click();
+  await page.goto('/lectures/new?tab=upload');
   await page.getByLabel('Language spoken').selectOption('he');
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Choose a file' }).click();
@@ -128,7 +130,7 @@ test('paragraph times from speech-to-text show in the transcript', async ({ page
   });
   await onboard(page);
   await page.goto('/lectures/new');
-  await page.getByRole('radio', { name: 'Upload' }).click();
+  await page.goto('/lectures/new?tab=upload');
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Choose a file' }).click();
   await (await chooser).setFiles(wavFile(130));
@@ -166,7 +168,8 @@ test('lectures work in Hebrew on a phone without sideways scrolling', async ({ p
   await page.goto('/lectures/new');
   await expect(page.getByRole('heading', { name: 'הרצאה חדשה' })).toBeVisible();
   expect(await hasHorizontalOverflow(page)).toBe(false);
-  await page.getByRole('radio', { name: 'הדבקת טקסט' }).click();
+  await page.getByRole('radio', { name: 'מסמך' }).click();
+  await page.getByRole('button', { name: 'או להדביק טקסט' }).click();
   await page.getByPlaceholder('הדביקו כאן את טקסט ההרצאה…').fill(LECTURE_TEXT);
   await page.getByRole('button', { name: 'יצירת הרצאה' }).click();
   await expect(page.getByText('Problem set 3 is due Sunday.')).toBeVisible();

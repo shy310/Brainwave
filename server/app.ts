@@ -4,6 +4,7 @@ import { ttsHandler } from './tts.js';
 import { deleteAccountHandler } from './account.js';
 import { pushKeyHandler, pushTickHandler } from './push.js';
 import { requireUser, type AuthedRequest } from './auth.js';
+import { youtubeInfoHandler } from './youtube.js';
 import { quota } from './usage.js';
 import { getOp, type OpContext } from './ai/ops.js';
 import { runStructured } from './ai/run.js';
@@ -68,6 +69,9 @@ app.post('/api/push/tick', (req, res) => { void pushTickHandler(req, res).catch(
 
 /** Natural-voice narration (Azure). */
 app.post('/api/tts', requireUser, ttsHandler);
+
+// Which YouTube video a pasted link is (title and channel), before reading it.
+app.get('/api/youtube/info', requireUser, (req: AuthedRequest, res) => { void youtubeInfoHandler(req, res).catch((err) => sendError(res, err)); });
 
 /** One endpoint per named AI operation. */
 app.post('/api/ai/:op', requireUser, (req: AuthedRequest, res, next) => {

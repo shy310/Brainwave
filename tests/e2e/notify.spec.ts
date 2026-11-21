@@ -54,8 +54,7 @@ for (const lang of ['en', 'he'] as const) {
       return r.fulfill({ json: { data: { title: 'Derivatives', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [], reminders: [] } } });
     });
     await onboard(page, { hebrew: lang === 'he' });
-    await page.goto('/lectures/new');
-    await page.getByRole('radio', { name: t.lectures.tabs.upload }).click();
+    await page.goto('/lectures/new?tab=upload');
     const chooser = page.waitForEvent('filechooser');
     await page.getByRole('button', { name: t.lectures.chooseFile }).click();
     await (await chooser).setFiles(wavFile(5));

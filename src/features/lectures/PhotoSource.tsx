@@ -14,7 +14,7 @@ import { lectureRepo } from './repo';
 interface Photo { id: string; file: File; url: string }
 
 /** A lecture made from photos of a whiteboard, handwritten notes or a textbook. */
-export const PhotoSource = ({ title, language, onBusy, onDone }: SourceProps) => {
+export const PhotoSource = ({ title, language, onBusy, onDone, initialFiles }: SourceProps) => {
   const t = useT();
   const toMessage = useAiError();
   const camera = useRef<HTMLInputElement>(null);
@@ -27,7 +27,7 @@ export const PhotoSource = ({ title, language, onBusy, onDone }: SourceProps) =>
 
   useEffect(() => () => photos.forEach((p) => URL.revokeObjectURL(p.url)), []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const add = (files: FileList | null) => {
+  const add = (files: FileList | File[] | null | undefined) => {
     if (!files?.length) return;
     setError('');
     const room = MAX_PHOTOS - photos.length;
@@ -35,6 +35,8 @@ export const PhotoSource = ({ title, language, onBusy, onDone }: SourceProps) =>
     if (picked.length > room) setError(t.lectures.tooManyPhotos(MAX_PHOTOS));
     setPhotos((ps) => [...ps, ...picked.slice(0, room).map((file) => ({ id: crypto.randomUUID(), file, url: URL.createObjectURL(file) }))]);
   };
+
+  useEffect(() => { if (initialFiles?.length) add(initialFiles); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const remove = (id: string) => setPhotos((ps) => {
     const p = ps.find((x) => x.id === id);

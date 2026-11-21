@@ -8,24 +8,23 @@ import { storage } from '@/lib/storage';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
-import { Field, Input, Select, Textarea } from '@/ui/Field';
+import { Field, Input, Select } from '@/ui/Field';
 import { Rich } from '@/ui/Rich';
 import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { BackLink } from '@/features/learn/CoursePage';
 import {
-  BYTES_PER_MINUTE, LECTURE_LANGUAGES, LECTURE_SOURCES, MAX_TRANSCRIPT_CHARS, type LectureLanguage, type LectureSource, type Segment,
+  BYTES_PER_MINUTE, LECTURE_LANGUAGES, type LectureLanguage, type Segment,
 } from '@shared/lectures';
 import { DEFAULT_LIMITS, LiveRecorder, SAMPLE_RATE, decodeFile, formatTime, splitAtQuietPoints, type PieceLimits } from './audio';
 import { audioStore, checkStorage } from './audioStore';
 import { LectureSession } from './session';
 import type { QueueStatus } from './transcriber';
-import { lectureRepo } from './repo';
 import { SlidesPicker, type Slides } from './SlidesPicker';
 import { useKeepAwake } from './useKeepAwake';
-import { PdfSource } from './PdfSource';
-import { PhotoSource } from './PhotoSource';
+import { YouTubeSource } from './YouTubeSource';
+import { DocumentSource } from './DocumentSource';
 import { scheduleRepo } from '@/features/schedule/scheduleRepo';
 import { classLectureTitle } from '@shared/schedule';
 import { notifyIfAway } from '@/features/schedule/notify';
@@ -35,6 +34,10 @@ import { KeepRecorder } from './recording';
 import { KeepRecordingDialog } from './KeepRecordingDialog';
 import { Waveform, hearing, useLevelHistory } from './Waveform';
 import { askConfirm } from '@/ui/Confirm';
+
+const MODES = ['audio', 'youtube', 'document'] as const;
+type Mode = (typeof MODES)[number];
+const modeFor = (tab: string | null): Mode => (tab === 'youtube' ? 'youtube' : tab && ['pdf', 'image', 'text', 'document'].includes(tab) ? 'document' : 'audio');
 
 type Phase = 'setup' | 'checking' | 'preflight' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'finishing' | 'recovering';
 const MAX_FILE_BYTES = 500 * 1024 * 1024;
@@ -70,13 +73,15 @@ export default function NewLecturePage() {
   const classId = params.get('class');
   /** Folder for the lecture, when started from a class in the schedule. */
   const [folderId, setFolderId] = useState<string | null>(null);
-  // ?tab=upload (or pdf, image, text) opens that way of adding a lecture, e.g. from Home's quick actions.
-  const [tab, setTab] = useState<LectureSource>(() => (LECTURE_SOURCES as readonly string[]).includes(params.get('tab') ?? '') ? params.get('tab') as LectureSource : 'record');
+  // Three ways to add a lecture. ?tab= picks one, e.g. from Home's quick actions (old names still work:
+  // upload → Audio, pdf/image/text → Document).
+  const [mode, setMode] = useState<Mode>(() => modeFor(params.get('tab')));
+  /** Within Audio: recording live, or a file being uploaded. */
+  const [tab, setTab] = useState<'record' | 'upload'>(() => (params.get('tab') === 'upload' ? 'upload' : 'record'));
   const [title, setTitle] = useState('');
   // The student's usual lecture language (from onboarding or Settings).
   const [language, setLanguage] = useState<LectureLanguage>(profile?.lecture_language ?? 'auto');
   const [slides, setSlides] = useState<Slides | null>(null);
-  const [text, setText] = useState('');
   const [phase, setPhase] = useState<Phase>(resumeId ? 'recovering' : 'setup');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -213,6 +218,7 @@ export default function NewLecturePage() {
       setTitle((cur) => cur || classLectureTitle(slot.name, new Date(), locale));
       setFolderId(slot.folderId);
       setTab('record');
+      setMode('audio');
     }).catch(() => {});
   }, [classId, locale]);
 
@@ -230,6 +236,7 @@ export default function NewLecturePage() {
       setTitle(s.draft.title);
       setLanguage(s.draft.language);
       setTab(s.draft.source);
+      setMode('audio');
       setStatus(s.status);
       if (s.draft.source === 'record') await askAboutRecording(s);
       await finish();
@@ -431,25 +438,6 @@ export default function NewLecturePage() {
     await finish();
   };
 
-  // ── Paste ──
-  const createFromText = async () => {
-    const body = text.trim();
-    if (body.length < 80) { setError(t.lectures.textTooShort); return; }
-    setError('');
-    setPhase('finishing');
-    try {
-      const lecture = await lectureRepo.create({
-        title: title.trim(), source: 'text', language, slides_text: slides?.text ?? null,
-        segments: [{ start: 0, text: body.slice(0, MAX_TRANSCRIPT_CHARS) }], status: 'ready',
-      });
-      leaving.current = true;
-      navigate(`/lectures/${lecture.id}`, { replace: true });
-    } catch (err) {
-      setError(toMessage(err) || t.auth.errors.generic);
-      setPhase('setup');
-    }
-  };
-
   // A countdown for the next automatic retry.
   useEffect(() => {
     if (!status.retryAt) return;
@@ -469,15 +457,15 @@ export default function NewLecturePage() {
 
       <Card className="space-y-5 p-6">
         <div className="-mx-6 overflow-x-auto px-6">
-          <Segmented scroll label={t.lectures.newTitle} value={tab} onChange={(v) => { if (!busy) { setTab(v); setError(''); } }}
-            options={(['record', 'upload', 'text', 'pdf', 'image'] as const).map((v) => ({ value: v, label: t.lectures.tabs[v] }))} />
+          <Segmented fill label={t.lectures.newTitle} value={mode} onChange={(v) => { if (!busy) { setMode(v); setError(''); } }}
+            options={MODES.map((v) => ({ value: v, label: t.lectures.modes[v] }))} />
         </div>
 
         <Field label={t.lectures.titleLabel}>
           {(id) => <Input id={id} maxLength={200} value={title} placeholder={t.lectures.titlePlaceholder} onChange={(e) => setTitle(e.target.value)} disabled={busy} dir="auto" />}
         </Field>
 
-        {tab !== 'text' && (
+        {mode !== 'document' && (
           <Field label={t.lectures.language}>
             {(id) => (
               <Select id={id} value={language} disabled={busy} onChange={(e) => setLanguage(e.target.value as LectureLanguage)}>
@@ -487,19 +475,23 @@ export default function NewLecturePage() {
           </Field>
         )}
 
-        {phase !== 'recovering' && (tab === 'record' || tab === 'upload' || tab === 'text') && <SlidesPicker value={slides} onChange={setSlides} />}
+        {phase !== 'recovering' && mode === 'audio' && <SlidesPicker value={slides} onChange={setSlides} />}
 
         {error && <Alert tone="error">{error}</Alert>}
         {notice && <Alert tone="info">{notice}</Alert>}
 
         {phase === 'recovering' && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.lectures.recovering}</p>}
 
-        {tab === 'record' && (
+        {mode === 'audio' && tab === 'record' && (
           <div className="space-y-4 border-t border-line pt-5">
             {phase === 'setup' && (
               <>
                 <p className="text-sm text-muted">{t.lectures.recordHint}</p>
                 <Button size="lg" block icon={<Mic className="size-5" />} onClick={startRecording}>{t.lectures.start}</Button>
+                {/* Or a recording made earlier: an audio or video file. */}
+                <div className="flex items-center gap-3 text-xs text-muted" aria-hidden="true"><span className="h-px flex-1 bg-line" />{t.common.or}<span className="h-px flex-1 bg-line" /></div>
+                <Button size="lg" block variant="secondary" icon={<Upload className="size-5" />} onClick={() => fileInput.current?.click()}>{t.lectures.orUpload}</Button>
+                <p className="text-center text-xs text-muted">{t.lectures.uploadHint}</p>
               </>
             )}
             {recordingActive && (
@@ -555,11 +547,11 @@ export default function NewLecturePage() {
           </div>
         )}
 
-        {tab === 'upload' && phase === 'checking' && (
+        {mode === 'audio' && tab === 'upload' && phase === 'checking' && (
           <p className="flex items-center gap-2 border-t border-line pt-5 text-muted"><Spinner className="size-5" />{t.lectures.checkingFile}</p>
         )}
 
-        {tab === 'upload' && phase === 'preflight' && upload && (
+        {mode === 'audio' && tab === 'upload' && phase === 'preflight' && upload && (
           <div className="space-y-3 border-t border-line pt-5" aria-live="polite">
             <p className="truncate font-medium" dir="auto">{upload.file.name}</p>
             {upload.plan.minutes != null ? (
@@ -576,29 +568,25 @@ export default function NewLecturePage() {
           </div>
         )}
 
-        {tab === 'upload' && (
-          <input ref={fileInput} type="file" accept="audio/*,video/*" className="hidden" onChange={(e) => { void onFile(e.target.files?.[0]); e.target.value = ''; }} />
+        {mode === 'audio' && (
+          <input ref={fileInput} type="file" accept="audio/*,video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) setTab('upload'); void onFile(f); e.target.value = ''; }} />
         )}
-        {tab === 'upload' && phase === 'setup' && (
+        {mode === 'audio' && tab === 'upload' && phase === 'setup' && (
           <div className="space-y-3 border-t border-line pt-5">
             <p className="text-sm text-muted">{t.lectures.uploadHint}</p>
             <Button size="lg" block icon={<Upload className="size-5" />} onClick={() => fileInput.current?.click()}>{t.lectures.chooseFile}</Button>
+            <Button block variant="ghost" icon={<Mic className="size-4" />} onClick={() => setTab('record')}>{t.lectures.start}</Button>
           </div>
         )}
 
-        {(tab === 'pdf' || tab === 'image') && phase === 'setup' && (() => {
-          const Source = tab === 'pdf' ? PdfSource : PhotoSource;
-          return <Source key={tab} title={title} language={language} onBusy={setSourceBusy}
-            onDone={(id) => { leaving.current = true; navigate(`/lectures/${id}`, { replace: true }); }} />;
-        })()}
+        {mode === 'youtube' && phase === 'setup' && (
+          <YouTubeSource title={title} language={language} onBusy={setSourceBusy}
+            onDone={(id) => { leaving.current = true; navigate(`/lectures/${id}`, { replace: true }); }} />
+        )}
 
-        {tab === 'text' && (
-          <div className="space-y-3 border-t border-line pt-5">
-            <p className="text-sm text-muted">{t.lectures.textHint}</p>
-            <Textarea aria-label={t.lectures.textPlaceholder} placeholder={t.lectures.textPlaceholder} rows={10} dir="auto"
-              value={text} onChange={(e) => setText(e.target.value)} maxLength={MAX_TRANSCRIPT_CHARS} disabled={busy} />
-            <Button size="lg" block loading={phase === 'finishing'} onClick={createFromText}>{t.lectures.create}</Button>
-          </div>
+        {mode === 'document' && phase === 'setup' && (
+          <DocumentSource title={title} language={language} onBusy={setSourceBusy} slides={slides} onSlides={setSlides}
+            onDone={(id) => { leaving.current = true; navigate(`/lectures/${id}`, { replace: true }); }} />
         )}
 
         {phase === 'decoding' && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.lectures.decoding}</p>}
@@ -613,7 +601,7 @@ export default function NewLecturePage() {
             </div>
           </div>
         )}
-        {phase === 'finishing' && tab !== 'text' && (
+        {phase === 'finishing' && mode === 'audio' && (
           <p className="flex items-center gap-2 text-muted" aria-live="polite"><Spinner className="size-5" />{t.lectures.finishing}</p>
         )}
 
@@ -638,7 +626,7 @@ export default function NewLecturePage() {
         )}
       </Card>
 
-      {tab !== 'text' && (recordingActive || phase === 'transcribing' || live.length > 0) && (
+      {mode === 'audio' && (recordingActive || phase === 'transcribing' || live.length > 0) && (
         <Card className="space-y-3 p-6">
           <h2 className="font-semibold">{t.lectures.liveTranscript}</h2>
           {live.length === 0

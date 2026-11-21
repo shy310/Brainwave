@@ -222,6 +222,23 @@ describe('lecture operations', () => {
     expect(String(lectureNotesOp.build({ transcript: 'Limits and derivatives.', mode: 'detailed' }, ctx)[1].content)).not.toContain('marked as important');
   });
 
+  it('reads a YouTube video with the model watching the link, and tidies the transcript', async () => {
+    const { youtubeTranscriptOp } = await import('../../server/ai/ops/youtube');
+    const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
+    const msgs = youtubeTranscriptOp.build({ videoId: 'WUvTyaaNkzM', language: 'he' }, ctx);
+    expect(msgs[1].content).toContainEqual({ type: 'video_url', video_url: { url: 'https://www.youtube.com/watch?v=WUvTyaaNkzM' } });
+    expect(String(msgs[0].content)).toContain('(Hebrew)');
+    mockModel([JSON.stringify({ speech: true, length: 120, segments: [{ start: 61, text: ' Second. ' }, { start: 0, text: 'First.' }, { start: 90, text: '  ' }] })]);
+    const res = await post('/api/ai/youtubeTranscript', { input: { videoId: 'WUvTyaaNkzM' } });
+    expect((await res.json()).data).toEqual({ speech: true, length: 120, segments: [{ start: 0, text: 'First.' }, { start: 61, text: 'Second.' }] });
+    // A clock that runs past the end of the video is squeezed back into it.
+    mockModel([JSON.stringify({ speech: true, length: 600, segments: [{ start: 0, text: 'a' }, { start: 1185, text: 'b' }] })]);
+    const drift = (await (await post('/api/ai/youtubeTranscript', { input: { videoId: 'WUvTyaaNkzM' } })).json()).data;
+    expect(drift.segments[1].start).toBeLessThan(600);
+    const bad = await post('/api/ai/youtubeTranscript', { input: { videoId: 'not-an-id' } });
+    expect(bad.status).toBe(400);
+  });
+
   it('draws a concept map and tidies it (one main idea, real links, nothing floating)', async () => {
     mockModel([JSON.stringify({
       nodes: [{ id: 'calc', label: 'Calculus', kind: 'main', note: '' }, { id: 'd', label: 'Derivative', kind: 'concept', note: 'Rate of change' }, { id: 'i', label: 'Integral', kind: 'concept', note: '' }],

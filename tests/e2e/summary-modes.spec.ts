@@ -39,7 +39,8 @@ for (const lang of ['en', 'he'] as const) {
     await expect(page.getByRole('radio', { name: t.lectures.summaryModes.exam })).toBeChecked();
 
     await page.goto('/lectures/new');
-    await page.getByRole('radio', { name: t.lectures.tabs.text }).click();
+    await page.getByRole('radio', { name: t.lectures.modes.document }).click();
+    await page.getByRole('button', { name: t.lectures.doc.paste }).click();
     await page.getByPlaceholder(t.lectures.textPlaceholder).fill(TEXT);
     await page.getByRole('button', { name: t.lectures.create }).click();
     await expect(page.getByText('Notes in exam style.')).toBeVisible();

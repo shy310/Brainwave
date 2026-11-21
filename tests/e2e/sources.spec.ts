@@ -37,9 +37,9 @@ for (const lang of ['en', 'he'] as const) {
     });
     await onboard(page, { hebrew: lang === 'he' });
     await page.goto('/lectures/new');
-    await page.getByRole('radio', { name: t.lectures.tabs.pdf }).click();
+    await page.getByRole('radio', { name: t.lectures.modes.document }).click();
     const chooser = page.waitForEvent('filechooser');
-    await page.getByRole('button', { name: t.lectures.choosePdf }).click();
+    await page.getByRole('button', { name: t.lectures.doc.choose }).click();
     await (await chooser).setFiles(makePdf(['Limits and continuity', 'The derivative is the slope of the tangent', null, 'Problem set 4 is due Monday']));
     await expect(page.getByText(t.lectures.pdfPages(4), { exact: true })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(t.lectures.selectedPages(4))).toBeVisible();
@@ -79,9 +79,9 @@ for (const lang of ['en', 'he'] as const) {
     });
     await onboard(page, { hebrew: lang === 'he' });
     await page.goto('/lectures/new');
-    await page.getByRole('radio', { name: t.lectures.tabs.image }).click();
+    await page.getByRole('radio', { name: t.lectures.modes.document }).click();
     const chooser = page.waitForEvent('filechooser');
-    await page.getByRole('button', { name: t.lectures.choosePhotos }).click();
+    await page.getByRole('button', { name: t.lectures.doc.choose }).click();
     await (await chooser).setFiles([makePng('a.png'), makePng('b.png'), makePng('c.png')]);
     await expect(page.getByRole('img')).toHaveCount(3);
     await page.getByRole('button', { name: t.lectures.removePhoto(2) }).click();
