@@ -81,6 +81,7 @@ test('paste a lecture, get notes, transcript, quiz, flashcards and answers', asy
   const tutorInput = calls.tutor[0].input as { lecture: { text: string } };
   expect(tutorInput.lecture.text).toContain('slope of the tangent line');
 
+  await page.keyboard.press('Escape'); // close the Ask panel
   // Everything was saved: reopening the lecture from the list uses no AI.
   const notesCalls = calls.lectureNotes.length;
   await page.getByRole('link', { name: 'Lectures' }).first().click();
@@ -88,8 +89,10 @@ test('paste a lecture, get notes, transcript, quiz, flashcards and answers', asy
   await expect(page.getByText('Problem set 3 is due Sunday.')).toBeVisible();
   expect(calls.lectureNotes).toHaveLength(notesCalls);
 
+  // Delete lives in the options sheet, last.
   page.once('dialog', (d) => d.accept());
-  await page.getByRole('button', { name: 'Delete lecture' }).click();
+  await page.getByRole('toolbar').getByRole('button', { name: 'Lecture options' }).click();
+  await page.getByRole('dialog', { name: 'Lecture options' }).getByRole('button', { name: 'Delete lecture' }).click();
   await expect(page.getByText('No lectures yet')).toBeVisible();
 });
 

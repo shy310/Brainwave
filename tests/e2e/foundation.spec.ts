@@ -59,7 +59,7 @@ test('settings: theme, language and profile', async ({ page }) => {
   await expect(sheet).toBeHidden();
   await expect(page.getByText('Samuel', { exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: 'App language' }).click();
+  await page.getByRole('button', { name: /^App language/ }).click();
   await page.getByRole('radio', { name: 'עברית' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 });
