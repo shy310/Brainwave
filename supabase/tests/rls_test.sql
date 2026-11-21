@@ -41,6 +41,8 @@ select pg_temp.refused($$update public.lectures set folder_id = 'f0000000-0000-0
 select pg_temp.ok((select count(*) from public.lecture_folders) = 0, 'B cannot see A''s folders');
 update public.lectures set favorite = true where id = '20000000-0000-0000-0000-00000000000b';
 select pg_temp.ok((select favorite from public.lectures where id = '20000000-0000-0000-0000-00000000000b'), 'a student can star their own lecture');
+update public.lectures set marks = '{12.5, 340}' where id = '20000000-0000-0000-0000-00000000000b';
+select pg_temp.ok((select marks from public.lectures where id = '20000000-0000-0000-0000-00000000000b') = '{12.5, 340}'::real[], 'important moments are saved with the lecture');
 update public.lectures set favorite = true where id = '10000000-0000-0000-0000-00000000000a';
 
 

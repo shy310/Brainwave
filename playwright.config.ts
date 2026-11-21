@@ -8,6 +8,8 @@ const lectureWav = writeLectureAudio(path.resolve('test-results/.fixtures/lectur
 // E2E runs against the built app served by the local Express server in demo
 // mode (no Supabase), with every AI call mocked inside the tests.
 const executablePath = process.env.PW_CHROMIUM_PATH || undefined;
+// Another port lets a second copy of the repo (a git worktree) be tested at the same time.
+const PORT = process.env.E2E_PORT || '4173';
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -15,7 +17,7 @@ export default defineConfig({
   retries: 0,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
     // A fake microphone playing a speech-like test file lets the lecture recorder run in tests.
     launchOptions: {
@@ -29,8 +31,8 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
   webServer: {
-    command: 'npm run build && PORT=4173 ALLOW_DEMO_MODE=true VITE_SUPABASE_URL= npx tsx server/dev.ts',
-    url: 'http://localhost:4173/api/health',
+    command: `npm run build && PORT=${PORT} ALLOW_DEMO_MODE=true VITE_SUPABASE_URL= npx tsx server/dev.ts`,
+    url: `http://localhost:${PORT}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
