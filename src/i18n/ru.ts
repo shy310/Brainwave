@@ -375,6 +375,12 @@ export const ru: Dict = {
     rename: 'Переименовать', save: 'Сохранить',
     turnInto: 'Превратить в', video: 'Видеоурок', podcast: 'Подкаст',
     emptyTranscript: 'В этой записи не найдено речи.',
+    highlights: {
+      toolbar: 'Выделить', colors: { yellow: 'Жёлтый', green: 'Зелёный', blue: 'Синий', pink: 'Розовый' }, color: (c: string) => `Выделить: ${c.toLowerCase()}`,
+      comment: 'Комментарий', addComment: 'Добавить комментарий', editComment: 'Изменить комментарий', placeholder: 'Ваша заметка об этом…', save: 'Сохранить', remove: 'Убрать выделение',
+      title: 'Ваши выделения', hint: 'Выделите текст в конспекте, чтобы отметить его или добавить комментарий.', missing: 'Больше нет в этом конспекте',
+      count: (n: number) => count(n, 'выделение', 'выделения', 'выделений'), show: 'Показать в конспекте',
+    },
     library: {
       favorites: 'Избранное', favorite: 'В избранное', unfavorite: 'Убрать из избранного', starred: 'В избранном', open: 'Открыть', renameLecture: 'Переименовать', moveLecture: 'Переместить в папку', deleteLecture: 'Удалить', options: (n: string) => `Действия с «${n}»`,
       search: 'Поиск по лекциям', sort: 'Сортировка', sorts: { newest: 'Недавние', oldest: 'Старые', title: 'По названию' },

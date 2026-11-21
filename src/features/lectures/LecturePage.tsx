@@ -39,6 +39,8 @@ import { dateLocale } from '@shared/locales';
 import { copyNotes as copyNotesToClipboard, notesLabels, notesLocale, notesToMarkdown } from './notesExport';
 import { askConfirm } from '@/ui/Confirm';
 import { Shimmer } from '@/ui/Feedback';
+import { Highlighter } from './Highlighter';
+import { HighlightsList } from './HighlightsList';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
@@ -310,7 +312,10 @@ export default function LecturePage() {
                     {t.lectures.summaryModes[notesMode(lecture.notes)]}
                   </button>
                 </div>
-                <NotesView notes={lecture.notes} />
+                <Highlighter highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })}>
+                  <NotesView notes={lecture.notes} />
+                </Highlighter>
+                <HighlightsList highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })} />
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
                 {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
                   onChange={(token, note) => { setLecture((l) => (l ? { ...l, share_token: token } : l)); setShareNote(note); }} />}

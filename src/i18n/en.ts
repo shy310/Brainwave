@@ -369,6 +369,12 @@ export const en = {
     rename: 'Rename', save: 'Save',
     turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
+    highlights: {
+      toolbar: 'Highlight', colors: { yellow: 'Yellow', green: 'Green', blue: 'Blue', pink: 'Pink' }, color: (c: string) => `Highlight in ${c}`,
+      comment: 'Comment', addComment: 'Add a comment', editComment: 'Edit comment', placeholder: 'Your note about this…', save: 'Save', remove: 'Remove highlight',
+      title: 'Your highlights', hint: 'Select text in your notes to highlight it or add a comment.', missing: 'Not in these notes any more',
+      count: (n: number) => (n === 1 ? '1 highlight' : `${n} highlights`), show: 'Show in the notes',
+    },
     library: {
       favorites: 'Favorites', favorite: 'Add to favorites', unfavorite: 'Remove from favorites', starred: 'Favorite', open: 'Open', renameLecture: 'Rename lecture', moveLecture: 'Move to folder', deleteLecture: 'Delete', options: (n: string) => `Options for “${n}”`,
       search: 'Search lectures', sort: 'Sort', sorts: { newest: 'Most recent', oldest: 'Oldest', title: 'Name A–Z' },

@@ -393,6 +393,12 @@ export const he: Dict = {
       stale: 'ערכת את התמלול. הסיכום, הבוחן והכרטיסיות נוצרו מהגרסה הקודמת.',
       updateAll: 'לעדכן אותם לפי הגרסה שלי', updating: 'מעדכנים…',
     },
+    highlights: {
+      toolbar: 'סימון', colors: { yellow: 'צהוב', green: 'ירוק', blue: 'כחול', pink: 'ורוד' }, color: (c: string) => `לסמן ב${c}`,
+      comment: 'הערה', addComment: 'הוספת הערה', editComment: 'עריכת הערה', placeholder: 'ההערה שלך על זה…', save: 'שמירה', remove: 'הסרת הסימון',
+      title: 'הסימונים שלך', hint: 'מסמנים טקסט בסיכום כדי להדגיש אותו או להוסיף הערה.', missing: 'כבר לא מופיע בסיכום הזה',
+      count: (n: number) => (n === 1 ? 'סימון אחד' : `${n} סימונים`), show: 'להציג בסיכום',
+    },
     library: {
       favorites: 'מועדפים', favorite: 'הוספה למועדפים', unfavorite: 'הסרה מהמועדפים', starred: 'מועדף', open: 'פתיחה', renameLecture: 'שינוי שם', moveLecture: 'העברה לתיקייה', deleteLecture: 'מחיקה', options: (n: string) => `אפשרויות עבור „${n}”`,
       search: 'חיפוש הרצאות', sort: 'מיון', sorts: { newest: 'מהחדש לישן', oldest: 'מהישן לחדש', title: 'לפי שם' },
