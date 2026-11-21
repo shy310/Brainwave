@@ -410,6 +410,13 @@ export const en = {
       zoomIn: 'Zoom in', zoomOut: 'Zoom out', reset: 'Fit to screen', list: 'As a list', diagram: (title: string) => `Concept map of ${title}`,
       links: 'Connected to', needsText: 'This lecture needs notes or a transcript first.',
     },
+    export: {
+      open: 'Export…', title: 'Export', flashcards: 'Flashcards', notes: 'Notes',
+      anki: 'Anki', ankiBody: 'A file Anki imports (File → Import), maths included.', noCards: 'Make flashcards on this lecture first.',
+      docs: 'Google Docs', docsBody: 'A Word file: upload it to Google Drive and open it with Google Docs.',
+      notion: 'Notion', notionBody: 'A Markdown file for Notion’s Import.', copyNotion: 'Copy for Notion', copied: 'Copied — paste it into a Notion page',
+      noNotes: 'Write notes for this lecture to export them.',
+    },
     library: {
       favorites: 'Favorites', favorite: 'Add to favorites', unfavorite: 'Remove from favorites', starred: 'Favorite', open: 'Open', renameLecture: 'Rename lecture', moveLecture: 'Move to folder', deleteLecture: 'Delete', options: (n: string) => `Options for “${n}”`,
       search: 'Search lectures', sort: 'Sort', sorts: { newest: 'Most recent', oldest: 'Oldest', title: 'Name A–Z' },
