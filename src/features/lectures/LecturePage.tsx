@@ -36,21 +36,16 @@ import { lectureTitle } from './LecturesPage';
 import { notesMode, switchNotes, withNewNotes } from './notesVersions';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
 import { dateLocale } from '@shared/locales';
-import { copyNotes as copyNotesToClipboard, notesLabels, notesLocale, notesToMarkdown } from './notesExport';
+import { copyNotes as copyNotesToClipboard } from './notesExport';
 import { askConfirm } from '@/ui/Confirm';
 import { Shimmer } from '@/ui/Feedback';
 import { markedSegments, transcriptWithMarks } from '@shared/marks';
 import { ImportantMoments } from './ImportantMoments';
+import { ExportSheet } from './ExportSheet';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
 
-const download = (name: string, text: string) => {
-  const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }));
-  const a = Object.assign(document.createElement('a'), { href: url, download: name });
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-};
 
 export default function LecturePage() {
   const { id = '' } = useParams();
@@ -79,7 +74,7 @@ export default function LecturePage() {
   const [copied, setCopied] = useState(false);
   const [renaming, setRenaming] = useState(false);
   /** Which sheet is open: lecture options, customize the notes, or move to a folder. */
-  const [sheet, setSheet] = useState<'' | 'options' | 'customize' | 'move'>('');
+  const [sheet, setSheet] = useState<'' | 'options' | 'customize' | 'move' | 'export'>('');
   /** The style picked in Customize, applied only on Apply (a new style costs an AI rewrite). */
   const [choice, setChoice] = useState<SummaryMode>('detailed');
   const [name, setName] = useState('');
@@ -425,7 +420,7 @@ export default function LecturePage() {
           </div>
           <ListSection>
             {lecture.notes && <ListRow icon={FileDown} label={t.lectures.share.savePdf} onClick={then(() => navigate(`/lectures/${id}/print`))} chevron={false} />}
-            {lecture.notes && <ListRow icon={Download} label={t.lectures.download} onClick={then(() => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, notesLabels(notesLocale(lecture.notes!, locale)))))} chevron={false} />}
+            {(lecture.notes || lecture.flashcards) && <ListRow icon={Download} label={t.lectures.export.open} onClick={() => setSheet('export')} />}
             {lecture.notes && <ListRow icon={RefreshCw} label={t.lectures.regenerate} onClick={then(() => void generate('notes'))} chevron={false} />}
             {lecture.audio_path && recordingUrl && (
               <ListRow icon={Download} label={tk.download} chevron={false} onClick={then(() => {
@@ -460,6 +455,8 @@ export default function LecturePage() {
           <p className="pt-1 text-sm text-muted">{t.lectures.notesStyleHint}</p>
         </div>
       </Sheet>
+
+      <ExportSheet open={sheet === 'export'} onClose={close} lecture={lecture} title={title} />
 
       <Sheet open={sheet === 'move'} onClose={close} title={to.move}>
         <div role="radiogroup" aria-label={to.move}>

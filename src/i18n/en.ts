@@ -384,6 +384,13 @@ export const en = {
       title: 'Important moments', body: 'You marked these while recording. They get extra attention in the notes, quiz and flashcards.',
       play: (time: string) => `Play from ${time}`, showInTranscript: 'Show in the transcript', badge: 'Marked as important',
     },
+    export: {
+      open: 'Export…', title: 'Export', flashcards: 'Flashcards', notes: 'Notes',
+      anki: 'Anki', ankiBody: 'A file Anki imports (File → Import), maths included.', noCards: 'Make flashcards on this lecture first.',
+      docs: 'Google Docs', docsBody: 'A Word file: upload it to Google Drive and open it with Google Docs.',
+      notion: 'Notion', notionBody: 'A Markdown file for Notion’s Import.', copyNotion: 'Copy for Notion', copied: 'Copied — paste it into a Notion page',
+      noNotes: 'Write notes for this lecture to export them.',
+    },
     library: {
       favorites: 'Favorites', favorite: 'Add to favorites', unfavorite: 'Remove from favorites', starred: 'Favorite', open: 'Open', renameLecture: 'Rename lecture', moveLecture: 'Move to folder', deleteLecture: 'Delete', options: (n: string) => `Options for “${n}”`,
       search: 'Search lectures', sort: 'Sort', sorts: { newest: 'Most recent', oldest: 'Oldest', title: 'Name A–Z' },

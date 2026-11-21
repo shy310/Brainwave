@@ -390,6 +390,13 @@ export const ru: Dict = {
       title: 'Важные моменты', body: 'Вы отметили это во время записи. Этому уделено особое внимание в конспекте, тесте и карточках.',
       play: (time: string) => `Слушать с ${time}`, showInTranscript: 'Показать в расшифровке', badge: 'Отмечено как важное',
     },
+    export: {
+      open: 'Экспорт…', title: 'Экспорт', flashcards: 'Карточки', notes: 'Конспект',
+      anki: 'Anki', ankiBody: 'Файл для импорта в Anki (File → Import), с формулами.', noCards: 'Сначала создайте карточки к этой лекции.',
+      docs: 'Google Docs', docsBody: 'Файл Word: загрузите его в Google Drive и откройте в Google Docs.',
+      notion: 'Notion', notionBody: 'Файл Markdown для импорта в Notion.', copyNotion: 'Скопировать для Notion', copied: 'Скопировано — вставьте на страницу Notion',
+      noNotes: 'Чтобы экспортировать, сначала напишите конспект.',
+    },
     library: {
       favorites: 'Избранное', favorite: 'В избранное', unfavorite: 'Убрать из избранного', starred: 'В избранном', open: 'Открыть', renameLecture: 'Переименовать', moveLecture: 'Переместить в папку', deleteLecture: 'Удалить', options: (n: string) => `Действия с «${n}»`,
       search: 'Поиск по лекциям', sort: 'Сортировка', sorts: { newest: 'Недавние', oldest: 'Старые', title: 'По названию' },

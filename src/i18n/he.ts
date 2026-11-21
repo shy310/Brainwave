@@ -408,6 +408,13 @@ export const he: Dict = {
       title: 'רגעים חשובים', body: 'סימנת את אלה בזמן ההקלטה. הם מקבלים תשומת לב מיוחדת בסיכום, בבוחן ובכרטיסיות.',
       play: (time: string) => `לנגן מ־${time}`, showInTranscript: 'להציג בתמלול', badge: 'סומן כחשוב',
     },
+    export: {
+      open: 'ייצוא…', title: 'ייצוא', flashcards: 'כרטיסיות', notes: 'סיכום',
+      anki: 'Anki', ankiBody: 'קובץ ש־Anki מייבא (File → Import), כולל נוסחאות.', noCards: 'קודם צריך ליצור כרטיסיות להרצאה.',
+      docs: 'Google Docs', docsBody: 'קובץ Word: מעלים ל־Google Drive ופותחים עם Google Docs.',
+      notion: 'Notion', notionBody: 'קובץ Markdown לייבוא ב־Notion.', copyNotion: 'העתקה ל־Notion', copied: 'הועתק — מדביקים בדף ב־Notion',
+      noNotes: 'כדי לייצא, קודם כותבים סיכום להרצאה.',
+    },
     library: {
       favorites: 'מועדפים', favorite: 'הוספה למועדפים', unfavorite: 'הסרה מהמועדפים', starred: 'מועדף', open: 'פתיחה', renameLecture: 'שינוי שם', moveLecture: 'העברה לתיקייה', deleteLecture: 'מחיקה', options: (n: string) => `אפשרויות עבור „${n}”`,
       search: 'חיפוש הרצאות', sort: 'מיון', sorts: { newest: 'מהחדש לישן', oldest: 'מהישן לחדש', title: 'לפי שם' },

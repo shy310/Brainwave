@@ -387,6 +387,13 @@ export const ar: Dict = {
       title: 'لحظات مهمة', body: 'علّمت هذه أثناء التسجيل. تحظى باهتمام خاص في الملاحظات والاختبار والبطاقات.',
       play: (time: string) => `شغّل من ${time}`, showInTranscript: 'اعرض في النص', badge: 'معلّم كمهم',
     },
+    export: {
+      open: 'تصدير…', title: 'تصدير', flashcards: 'البطاقات', notes: 'الملاحظات',
+      anki: 'Anki', ankiBody: 'ملف يستورده Anki (File → Import)، مع المعادلات.', noCards: 'أنشئ بطاقات لهذه المحاضرة أولًا.',
+      docs: 'Google Docs', docsBody: 'ملف Word: ارفعه إلى Google Drive وافتحه باستخدام Google Docs.',
+      notion: 'Notion', notionBody: 'ملف Markdown لميزة الاستيراد في Notion.', copyNotion: 'انسخ إلى Notion', copied: 'تم النسخ — الصقه في صفحة Notion',
+      noNotes: 'اكتب ملاحظات لهذه المحاضرة لتصديرها.',
+    },
     library: {
       favorites: 'المفضلة', favorite: 'أضف إلى المفضلة', unfavorite: 'أزل من المفضلة', starred: 'مفضّلة', open: 'فتح', renameLecture: 'إعادة التسمية', moveLecture: 'نقل إلى مجلد', deleteLecture: 'حذف', options: (n: string) => `خيارات «${n}»`,
       search: 'ابحث في المحاضرات', sort: 'الترتيب', sorts: { newest: 'الأحدث', oldest: 'الأقدم', title: 'حسب الاسم' },
