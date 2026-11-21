@@ -208,6 +208,10 @@
   .draw-check, .draw-check path { animation: none !important; stroke-dashoffset: 0 !important; opacity: 1 !important; }
 }
 
+/* A found passage lights up briefly when the page jumps to it. */
+@keyframes flash-bg { 0%, 40% { background-color: color-mix(in oklab, var(--color-accent-300) 45%, transparent); } 100% { background-color: transparent; } }
+.animate-flash { animation: flash-bg 1.8s ease-out; border-radius: 0.75rem; }
+
 /* Switching light/dark eases over instead of flashing. */
 .theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
   transition: background-color 280ms ease, border-color 280ms ease, color 280ms ease, fill 280ms ease !important;

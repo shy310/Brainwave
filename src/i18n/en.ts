@@ -71,7 +71,7 @@ export const en = {
       recordTitle: 'Record your next class', recordBody: 'Get notes, a quiz and flashcards when it ends.', recordCta: 'Start recording',
     },
     quick: {
-      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', weak: 'Weak spots', games: 'Games',
+      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', weak: 'Weak spots', search: 'Search', games: 'Games',
       tutor: 'Ask AI', grade: 'Grade', groups: 'Groups',
     },
     recent: 'Continue', seeAll: 'See all', explore: 'Explore',
@@ -110,6 +110,15 @@ export const en = {
     missed: (n: number) => (n === 1 ? '1 question you missed' : `${n} questions you missed`), cards: (n: number) => (n === 1 ? '1 flashcard you keep forgetting' : `${n} flashcards you keep forgetting`),
     empty: 'No weak spots right now 🎉 Anything you miss in a quiz or keep forgetting in your flashcards shows up here.',
     again: 'Another round', done: 'Back to your lectures', home: 'Practise your weak spots',
+  },
+  search: {
+    title: 'Search your lectures', subtitle: 'Find anything a teacher said or wrote in your notes, and jump right to it.',
+    placeholder: 'Search or ask a question…', open: 'Search all lectures',
+    results: (n: number) => (n === 1 ? '1 match' : `${n} matches`), none: (q: string) => `Nothing in your lectures matches “${q}”.`,
+    inNotes: 'In the notes', at: (time: string) => `At ${time}`, jump: (time: string) => `Open at ${time}`,
+    ask: 'Ask about this', asking: 'Reading your lectures…', answer: 'Answer from your lectures', sources: 'Sources',
+    notFound: 'Your lectures don’t seem to cover this.', hint: 'Tip: ask a full question, like “What did we learn about derivatives?”',
+    empty: 'You have no lectures with a transcript yet.',
   },
   game: {
     source: 'What should the questions be about?', allLectures: 'All lectures', pickLectures: 'Choose lectures',
@@ -499,6 +508,7 @@ export const en = {
   },
   notFound: { title: 'Page not found', body: "We couldn't find that page.", home: 'Go home' },
   errors: {
+    updated: 'BrainWave was just updated.', updatedHint: 'Reload to get the new version.', notFound: 'We couldn’t find that page.', home: 'Go home', 
     boundary: 'Something went wrong on this page.', reload: 'Reload',
     ai: 'The AI couldn’t answer just now. Please try again.',
     rateLimit: 'You’ve hit today’s AI limit, or are going a bit fast. Try again in a minute.',
