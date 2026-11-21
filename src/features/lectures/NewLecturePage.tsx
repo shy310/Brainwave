@@ -585,7 +585,7 @@ export default function NewLecturePage() {
         )}
 
         {mode === 'document' && phase === 'setup' && (
-          <DocumentSource title={title} language={language} onBusy={setSourceBusy} slidesText={slides?.text ?? null}
+          <DocumentSource title={title} language={language} onBusy={setSourceBusy} slides={slides} onSlides={setSlides}
             onDone={(id) => { leaving.current = true; navigate(`/lectures/${id}`, { replace: true }); }} />
         )}
 

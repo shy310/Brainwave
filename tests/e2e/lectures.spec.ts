@@ -168,7 +168,8 @@ test('lectures work in Hebrew on a phone without sideways scrolling', async ({ p
   await page.goto('/lectures/new');
   await expect(page.getByRole('heading', { name: 'הרצאה חדשה' })).toBeVisible();
   expect(await hasHorizontalOverflow(page)).toBe(false);
-  await page.getByRole('radio', { name: 'הדבקת טקסט' }).click();
+  await page.getByRole('radio', { name: 'מסמך' }).click();
+  await page.getByRole('button', { name: 'או להדביק טקסט' }).click();
   await page.getByPlaceholder('הדביקו כאן את טקסט ההרצאה…').fill(LECTURE_TEXT);
   await page.getByRole('button', { name: 'יצירת הרצאה' }).click();
   await expect(page.getByText('Problem set 3 is due Sunday.')).toBeVisible();

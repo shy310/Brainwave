@@ -11,6 +11,7 @@ import { DOC_ACCEPT, DocumentError, docKind, documentText } from './documentText
 import { PdfSource, type SourceProps } from './PdfSource';
 import { PhotoSource } from './PhotoSource';
 import { lectureRepo } from './repo';
+import { SlidesPicker, type Slides } from './SlidesPicker';
 
 const MAX_DOC_BYTES = 100 * 1024 * 1024;
 const MIN_TEXT = 80;
@@ -22,7 +23,7 @@ type Picked = { kind: 'pdf' | 'image'; files: File[] } | null;
  * pages, read handwriting); Word, PowerPoint, OpenDocument and text files are
  * read right here in the browser. Or paste the text.
  */
-export const DocumentSource = ({ title, language, onBusy, onDone, slidesText }: SourceProps & { slidesText?: string | null }) => {
+export const DocumentSource = ({ title, language, onBusy, onDone, slides, onSlides }: SourceProps & { slides: Slides | null; onSlides: (s: Slides | null) => void }) => {
   const t = useT();
   const td = t.lectures.doc;
   const toMessage = useAiError();
@@ -35,7 +36,7 @@ export const DocumentSource = ({ title, language, onBusy, onDone, slidesText }: 
 
   const save = async (body: string, source: 'document' | 'text', name: string, lang: LectureLanguage) => {
     const lecture = await lectureRepo.create({
-      title: title.trim() || name, source, language: lang, status: 'ready', slides_text: slidesText ?? null,
+      title: title.trim() || name, source, language: lang, status: 'ready', slides_text: source === 'text' ? slides?.text ?? null : null,
       segments: [{ start: 0, text: body.slice(0, MAX_TRANSCRIPT_CHARS) }],
     });
     onDone(lecture.id);
@@ -85,6 +86,8 @@ export const DocumentSource = ({ title, language, onBusy, onDone, slidesText }: 
       {pasting ? (
         <div className="space-y-3">
           <p className="text-sm text-muted">{t.lectures.textHint}</p>
+          {/* Slides from the class can go with pasted notes too. */}
+          <SlidesPicker value={slides} onChange={onSlides} />
           <Textarea aria-label={t.lectures.textPlaceholder} placeholder={t.lectures.textPlaceholder} rows={10} dir="auto"
             value={text} onChange={(e) => setText(e.target.value)} maxLength={MAX_TRANSCRIPT_CHARS} disabled={busy} autoFocus />
           <Button size="lg" block loading={busy} onClick={() => void fromText()}>{t.lectures.create}</Button>
