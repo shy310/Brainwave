@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { storage } from '@/lib/storage';
-import { cardKey, review, type CardState, type Rating } from '@shared/srs';
+import { cardKey, dueCount, review, type CardState, type Rating } from '@shared/srs';
 import type { StudyLecture } from './repo';
 import { track } from '@/features/stats/activity';
 
@@ -63,4 +64,17 @@ export const rate = async (states: Map<string, CardState>, card: { key: string; 
   track({ cards: 1 });
   await reviewRepo.save(next);
   return next;
+};
+
+/** How many flashcards are due for review now, across all lectures (0 while loading or on error). */
+export const useDueCount = () => {
+  const [due, setDue] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    void import('./repo').then(({ lectureRepo }) => Promise.all([lectureRepo.studyMaterial('all'), reviewRepo.list()]))
+      .then(([lectures, states]) => { if (alive) setDue(dueCount(reviewCards(lectures, (l) => l.title), states, Date.now())); })
+      .catch(() => { if (alive) setDue(0); });
+    return () => { alive = false; };
+  }, []);
+  return due;
 };

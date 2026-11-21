@@ -20,7 +20,7 @@ for (const lang of ['en', 'he'] as const) {
       return route.fulfill({ json: { data: grade(scores[sent.length - 1]) } });
     });
     await onboard(page, { hebrew: lang === 'he' });
-    await page.getByRole('link', { name: new RegExp(tg.title) }).click();
+    await page.getByRole('link', { name: t.home.quick.grade, exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: tg.title })).toBeVisible();
 
     await page.getByLabel(tg.question).fill('Was the French Revolution inevitable? Argue your view.');

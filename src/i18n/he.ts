@@ -57,11 +57,14 @@ export const he: Dict = {
     breakOver: 'ההפסקה נגמרה. מוכנים לסבב נוסף?', again: 'עוד סבב ריכוז',
   },
   home: {
+    quick: {
+      title: 'התחלה מהירה', record: 'הקלטה', upload: 'העלאה', pdf: 'PDF', review: 'חזרה', summit: 'פסגה',
+      tutor: 'שאלו AI', grade: 'בדיקה', groups: 'קבוצות',
+    },
+    recent: 'להמשיך', seeAll: 'הכול', explore: 'גלו עוד',
     greeting: (name: string) => (name ? `היי, ${name}` : 'היי'),
     subtitle: 'על מה נעבוד היום?',
-    short: {
-      tutor: 'שאלו כל שאלה, או שלחו תמונה של העבודה.', grader: 'ציון ומשוב על כל תשובה או חיבור.',
-      groups: 'שתפו סיכומים ובחנים עם חברים לכיתה.', learn: 'קורסים מהגן ועד האקדמיה.',
+    short: { learn: 'קורסים מהגן ועד האקדמיה.',
       lectures: 'סיכומים, בחנים וכרטיסיות מהשיעורים שלכם.', videos: 'שיעורים מונפשים קצרים על כל נושא.',
       podcasts: 'שני מנחים מסבירים כל נושא.',
     },
@@ -350,6 +353,8 @@ export const he: Dict = {
       notFound: 'הקישור הזה כבר לא עובד. ייתכן שמי ששיתף הפסיק את השיתוף.',
       madeWith: 'סיכום שנוצר ב-BrainWave', tryIt: 'ליצור סיכומים משלך',
     },
+    actions: { link: 'שיתוף בקישור', more: 'עוד' },
+    mastery: { title: 'התקדמות', new: 'חדשות', learning: 'עדיין לומדים', almost: 'כמעט שם', mastered: 'שולטים' },
     tools: {
       title: 'כלי לימוד', review: 'חזרה על כרטיסיות', summit: 'פסגה', summitBody: 'משחק שאלות קצר מההרצאות שלכם',
       groups: 'קבוצות לימוד', groupsBody: 'שיתוף סיכומים עם חברים לכיתה', schedule: 'מערכת שעות', scheduleBody: 'תזכורות להקלטה',

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Link2, Pencil, RefreshCw, Share2, Sparkles, Trash2, Users } from 'lucide-react';
+import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Link2, Pencil, RefreshCw, Share2, Sparkles, Trash2, Users, MoreHorizontal } from 'lucide-react';
 import { publicUrl } from '@/lib/platform';
 import { useI18n, useT } from '@/i18n';
 import { callAi } from '@/lib/api';
@@ -18,14 +18,15 @@ import { ChatPanel } from '@/features/tutor/ChatPanel';
 import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, SUMMARY_MODES, type Flashcards, type Notes, type Segment, type SummaryMode } from '@shared/lectures';
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { Quiz } from '@shared/learn';
-import { FlashcardDeck } from './Flashcards';
+import { FlashcardDeck, MasteryBar } from './Flashcards';
 import { TranscriptPanel } from './TranscriptPanel';
 import { NotesView } from './NotesView';
 import { notifyIfAway } from '@/features/schedule/notify';
 import { AskPanel } from './AskPanel';
 import { ShareToGroupPanel } from './ShareToGroupPanel';
+import { Menu } from '@/ui/Menu';
 import { rate, reviewRepo } from './reviews';
-import { cardKey, type CardState } from '@shared/srs';
+import { cardKey, masteryCounts, type CardState } from '@shared/srs';
 import { folderRepo, type Folder } from './folders';
 import { lectureTitle } from './LecturesPage';
 import { notesMode, switchNotes, withNewNotes } from './notesVersions';
@@ -78,11 +79,25 @@ export default function LecturePage() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const reviewStates = useRef<Promise<Map<string, CardState>> | null>(null);
   /** Practising here also updates the spaced-repetition schedule. */
+  // Review state of this lecture's cards, for the progress bar (new / learning / almost / mastered).
+  const [cardStates, setCardStates] = useState<Map<string, CardState> | null>(null);
+  const hasCards = Boolean(lecture?.flashcards);
+  useEffect(() => {
+    if (tab !== 'cards' || !hasCards) return;
+    reviewStates.current ??= reviewRepo.list();
+    void reviewStates.current.then((st) => setCardStates(new Map(st))).catch(() => {});
+  }, [tab, hasCards]);
+  const mastery = useMemo(() => lecture?.flashcards && cardStates
+    ? masteryCounts(lecture.flashcards.cards.map((c) => cardStates.get(cardKey(id, c.front)))) : null, [lecture?.flashcards, cardStates, id]);
+
   const onCardAnswer = (i: number, knew: boolean) => {
     const card = lecture?.flashcards?.cards[i];
     if (!card) return;
     reviewStates.current ??= reviewRepo.list();
-    void reviewStates.current.then((st) => rate(st, { key: cardKey(id, card.front), lectureId: id }, knew ? 'good' : 'again'));
+    void reviewStates.current.then(async (st) => {
+      await rate(st, { key: cardKey(id, card.front), lectureId: id }, knew ? 'good' : 'again');
+      setCardStates(new Map(st));
+    });
   };
 
   useEffect(() => {
@@ -257,16 +272,18 @@ export default function LecturePage() {
                     options={SUMMARY_MODES.map((m) => ({ value: m, label: t.lectures.summaryModes[m] }))} />
                 </div>
                 <NotesView notes={lecture.notes} />
+                {/* Three actions instead of six: the rest live in short menus. */}
                 <div className="flex flex-wrap gap-2">
                   <Button variant="secondary" size="sm" icon={<Copy className="size-4" />} onClick={copyNotes}>{copied ? t.lectures.copied : t.lectures.copy}</Button>
-                  <Button variant="secondary" size="sm" icon={<Download className="size-4" />}
-                    onClick={() => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, labels))}>{t.lectures.download}</Button>
-                  <Link to={`/lectures/${id}/print`} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-sm font-medium hover:bg-surface-2">
-                    <FileDown className="size-4" aria-hidden="true" />{t.lectures.share.savePdf}
-                  </Link>
-                  <Button variant="secondary" size="sm" icon={<Share2 className="size-4" />} aria-expanded={sharing} onClick={() => { setSharing((v) => !v); setGroupSharing(false); setShareNote(''); }}>{t.lectures.share.share}</Button>
-                  <Button variant="secondary" size="sm" icon={<Users className="size-4" />} aria-expanded={groupSharing} onClick={() => { setGroupSharing((v) => !v); setSharing(false); }}>{t.lectures.shareGroup.button}</Button>
-                  <Button variant="ghost" size="sm" icon={<RefreshCw className="size-4" />} onClick={() => generate('notes')}>{t.lectures.regenerate}</Button>
+                  <Menu label={t.lectures.share.share} icon={<Share2 className="size-4" />} items={[
+                    { label: t.lectures.actions.link, icon: <Link2 />, onSelect: () => { setSharing(true); setGroupSharing(false); setShareNote(''); } },
+                    { label: t.lectures.shareGroup.button, icon: <Users />, onSelect: () => { setGroupSharing(true); setSharing(false); } },
+                  ]} />
+                  <Menu label={t.lectures.actions.more} align="end" icon={<MoreHorizontal className="size-4" />} items={[
+                    { label: t.lectures.download, icon: <Download />, onSelect: () => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, labels)) },
+                    { label: t.lectures.share.savePdf, icon: <FileDown />, onSelect: () => navigate(`/lectures/${id}/print`) },
+                    { label: t.lectures.regenerate, icon: <RefreshCw />, onSelect: () => void generate('notes') },
+                  ]} />
                 </div>
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
                 {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
@@ -317,6 +334,7 @@ export default function LecturePage() {
             busy === 'cards' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.makingCards}</Card>
             : lecture.flashcards ? (
               <Card className="space-y-4 p-6">
+                {mastery && <MasteryBar counts={mastery} />}
                 <FlashcardDeck deck={lecture.flashcards} onAnswer={onCardAnswer} />
                 <div className="border-t border-line pt-3">
                   <Button variant="ghost" size="sm" icon={<RefreshCw className="size-4" />} onClick={() => generate('cards')}>{t.lectures.newCards}</Button>

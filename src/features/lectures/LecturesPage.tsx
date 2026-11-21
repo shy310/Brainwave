@@ -13,8 +13,7 @@ import { storage } from '@/lib/storage';
 import { lectureRepo, type LectureSummary } from './repo';
 import { arrangeLectures, folderRepo, type Folder, type SortKey } from './folders';
 import { useDragReorder } from './useDragReorder';
-import { reviewCards, reviewRepo } from './reviews';
-import { dueCount } from '@shared/srs';
+import { useDueCount } from './reviews';
 import { UpNextBanner } from '@/features/schedule/UpNext';
 import { IconTile } from '@/ui/IconTile';
 
@@ -49,12 +48,7 @@ export default function LecturesPage() {
       .catch((err) => { console.error(err); setError(true); });
   }, []);
 
-  const [due, setDue] = useState(0);
-  useEffect(() => {
-    Promise.all([lectureRepo.studyMaterial('all'), reviewRepo.list()])
-      .then(([lectures, states]) => setDue(dueCount(reviewCards(lectures, (l) => l.title), states, Date.now())))
-      .catch(() => setDue(0));
-  }, []);
+  const due = useDueCount();
 
   useEffect(() => { storage.set(VIEW_KEY, JSON.stringify({ sort, folder })); }, [sort, folder]);
   // A remembered folder that no longer exists falls back to All.

@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
 import { Rich } from '@/ui/Rich';
 import type { Flashcards } from '@shared/lectures';
+import { MASTERY_LEVELS, type MasteryLevel } from '@shared/srs';
 
 const shuffled = (n: number) => {
   const a = [...Array(n).keys()];
@@ -100,5 +101,35 @@ export const FlashcardDeck = ({ deck, labels, onFinish, onAnswer }: DeckProps) =
         </div>
       )}
     </div>
+  );
+};
+
+const MASTERY_STYLE: Record<MasteryLevel, { dot: string; bar: string }> = {
+  new: { dot: 'bg-slate-400', bar: 'bg-slate-300 dark:bg-slate-600' },
+  learning: { dot: 'bg-rose-500', bar: 'bg-rose-400' },
+  almost: { dot: 'bg-amber-500', bar: 'bg-amber-400' },
+  mastered: { dot: 'bg-emerald-500', bar: 'bg-emerald-500' },
+};
+
+/** How far a deck is: new, still learning, almost done and mastered cards, as a bar and counts. */
+export const MasteryBar = ({ counts }: { counts: Record<MasteryLevel, number> }) => {
+  const t = useT();
+  const tm = t.lectures.mastery;
+  const total = MASTERY_LEVELS.reduce((n, k) => n + counts[k], 0) || 1;
+  return (
+    <section aria-label={tm.title} className="space-y-2.5">
+      <div className="flex h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+        {MASTERY_LEVELS.map((k) => counts[k] > 0 && <div key={k} className={MASTERY_STYLE[k].bar} style={{ width: `${(counts[k] / total) * 100}%` }} />)}
+      </div>
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm sm:grid-cols-4">
+        {MASTERY_LEVELS.map((k) => (
+          <li key={k} className="flex items-center gap-2">
+            <span className={cn('size-2.5 shrink-0 rounded-full', MASTERY_STYLE[k].dot)} aria-hidden="true" />
+            <span className="text-muted">{tm[k]}</span>
+            <span className="ms-auto font-semibold tabular-nums sm:ms-0">{counts[k]}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 };
