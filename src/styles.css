@@ -160,6 +160,70 @@
   .pressable:active { transform: scale(0.98); }
 }
 
+/* Micro-interactions, adapted from transitions.dev's free recipes
+   (error shake, success check, number pop-in, like burst, shimmer text). */
+/* A wrong answer shakes: right, left, a smaller right, back (280ms, each leg eased). */
+@keyframes shake-x {
+  0%     { transform: translateX(0);    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  28.57% { transform: translateX(6px);  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  57.14% { transform: translateX(-6px); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  78.57% { transform: translateX(4px);  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  100%   { transform: translateX(0); }
+}
+.animate-shake { animation: shake-x 280ms linear; }
+/* The right answer's check draws itself in, settling from a slight turn and blur. */
+@keyframes check-settle {
+  from { opacity: 0; transform: rotate(-40deg) translateY(6px); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes check-draw { to { stroke-dashoffset: 0; } }
+.draw-check { animation: check-settle 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.draw-check path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: check-draw 380ms cubic-bezier(0.22, 1, 0.36, 1) 80ms forwards; }
+/* A changed number rises into place. */
+@keyframes digit-in {
+  from { opacity: 0; transform: translateY(8px); filter: blur(2px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+.animate-digit { display: inline-block; animation: digit-in 420ms cubic-bezier(0.34, 1.45, 0.64, 1) both; }
+/* Starring: the star squeezes and springs back while a few dots fly out. */
+@keyframes star-pop { 0% { transform: scale(1); } 30% { transform: scale(0.75); } 100% { transform: scale(1); } }
+@keyframes star-burst {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  20%  { opacity: 1; transform: translate(calc(var(--px) * 0.25), calc(var(--py) * 0.25)) scale(1); }
+  100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0.6); }
+}
+.star-pop { animation: star-pop 360ms cubic-bezier(0.34, 1.96, 0.64, 1); }
+.star-burst > i { position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px; border-radius: 9999px; background: currentColor; opacity: 0; animation: star-burst 600ms ease-out var(--pd, 0ms) forwards; }
+/* While the AI is writing, a soft light sweeps across the words. */
+@keyframes shimmer-sweep { from { background-position: 100% 0; } to { background-position: 0% 0; } }
+.shimmer-text { position: relative; display: inline-block; }
+.shimmer-text::before {
+  content: attr(data-text); position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, transparent 40%, var(--fg) 50%, transparent 60%, transparent 100%) no-repeat;
+  background-size: 400% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+  animation: shimmer-sweep 2s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-shake, .star-pop, .star-burst > i, .shimmer-text::before { animation: none !important; }
+  .draw-check, .draw-check path { animation: none !important; stroke-dashoffset: 0 !important; opacity: 1 !important; }
+}
+
+/* Switching light/dark eases over instead of flashing. */
+.theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
+  transition: background-color 280ms ease, border-color 280ms ease, color 280ms ease, fill 280ms ease !important;
+}
+
+/* Less transparency: frosted bars become solid. */
+@media (prefers-reduced-transparency: reduce) {
+  [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background-color: var(--surface) !important; }
+}
+
+/* More contrast: clearer edges and secondary text. */
+@media (prefers-contrast: more) {
+  :root { --line: #8b94a9; --muted: #3d4559; }
+  .dark { --line: #5d6884; --muted: #c6cddc; }
+}
+
 /* Respect users who ask for less motion. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

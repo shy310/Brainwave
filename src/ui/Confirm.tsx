@@ -3,6 +3,7 @@ import { LogOut, Trash2, TriangleAlert } from 'lucide-react';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from './Button';
+import { animateOut, resetAnimations } from './motion';
 
 export interface ConfirmOptions {
   message: string;
@@ -38,7 +39,11 @@ const ICON = { delete: Trash2, remove: Trash2, leave: LogOut } as const;
 /** Mounted once at the root; shows whatever askConfirm() is waiting on. */
 export const ConfirmHost = () => {
   const t = useT();
-  const p = useSyncExternalStore((l) => { listeners.add(l); return () => listeners.delete(l); }, () => pending, () => null);
+  const live = useSyncExternalStore((l) => { listeners.add(l); return () => listeners.delete(l); }, () => pending, () => null);
+  // The last question stays on screen while the dialog animates out.
+  const last = useRef<Pending | null>(null);
+  if (live) last.current = live;
+  const p = live ?? last.current;
   const ref = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const id = useId();
@@ -46,9 +51,10 @@ export const ConfirmHost = () => {
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
-    if (p && !d.open) { d.showModal?.(); cancelRef.current?.focus(); }
-    if (!p && d.open) d.close();
-  }, [p]);
+    if (live) resetAnimations(d);
+    if (live && !d.open) { d.showModal?.(); cancelRef.current?.focus(); }
+    if (!live && d.open) void animateOut(d, 'pop').then(() => { if (!pending) { d.close(); resetAnimations(d); } });
+  }, [live]);
 
   const Icon = p ? ICON[p.action] : TriangleAlert;
   return (

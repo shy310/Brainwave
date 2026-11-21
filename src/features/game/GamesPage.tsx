@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { BookOpen, CarFront, Check, ChevronRight, Folder as FolderIcon, Library, ListChecks, Send } from 'lucide-react';
+import { BookOpen, CarFront, ChevronRight, Folder as FolderIcon, Library, ListChecks, Send } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { storage } from '@/lib/storage';
 import { Alert } from '@/ui/Alert';
 import { Spinner } from '@/ui/Spinner';
 import { ListSection } from '@/ui/List';
+import { DrawCheck } from '@/ui/Feedback';
 import { BackLink } from '@/features/learn/CoursePage';
 import { lectureTitle } from '@/features/lectures/LecturesPage';
 import { lectureRepo, type StudyLecture } from '@/features/lectures/repo';
@@ -34,7 +35,7 @@ const Row = ({ checked, onClick, icon: Icon, label, hint, role = 'radio' }: {
     <span className={cn('flex size-6 shrink-0 items-center justify-center border-2 transition-colors',
       role === 'radio' ? 'rounded-full' : 'rounded-md',
       checked ? 'border-brand-600 bg-brand-600 text-white' : 'border-line')} aria-hidden="true">
-      {checked && <Check className="size-4" strokeWidth={3} />}
+      {checked && <DrawCheck className="size-3.5" />}
     </span>
   </button>
 );

@@ -54,7 +54,11 @@ export const Menu = ({ label, icon, items, align = 'start', above, trigger }: {
       {open && (
         <div ref={list} id={id} role="menu" aria-label={label}
           className={cn('absolute z-50 min-w-52 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-line bg-surface p-1 shadow-[var(--shadow-lift)] animate-pop-in',
-            above ? 'bottom-full mb-2' : 'top-11', align === 'end' ? 'end-0' : 'start-0')}>
+            above ? 'bottom-full mb-2' : 'top-11', align === 'end' ? 'end-0' : 'start-0',
+            // Grow out of the button that opened it.
+            above
+              ? (align === 'end' ? 'ltr:origin-bottom-right rtl:origin-bottom-left' : 'ltr:origin-bottom-left rtl:origin-bottom-right')
+              : (align === 'end' ? 'ltr:origin-top-right rtl:origin-top-left' : 'ltr:origin-top-left rtl:origin-top-right'))}>
           {items.map((it) => (
             <button key={it.label} type="button" role="menuitem" tabIndex={-1}
               onClick={() => { close(); it.onSelect(); }}
