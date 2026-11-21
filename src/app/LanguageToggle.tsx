@@ -12,9 +12,10 @@ export const LanguageToggle = () => {
     if (profile?.onboarded) updateProfile({ locale: next }).catch(() => {});
   };
   return (
-    <button type="button" onClick={onClick} className="inline-flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium text-muted hover:bg-surface-2 hover:text-fg">
+    <button type="button" onClick={onClick} className="inline-flex h-10 items-center gap-2 rounded-xl px-2.5 text-sm sm:px-3 font-medium text-muted hover:bg-surface-2 hover:text-fg">
       <Languages className="size-4" aria-hidden="true" />
-      <span>{next === 'he' ? 'עברית' : 'English'}</span>
+      {/* On the narrowest phones only the icon shows; the name stays for screen readers. */}
+      <span className="max-[379px]:sr-only">{next === 'he' ? 'עברית' : 'English'}</span>
       <span className="sr-only">{t.onboarding.language}</span>
     </button>
   );
