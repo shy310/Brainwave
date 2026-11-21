@@ -63,7 +63,8 @@ for (const lang of ['en', 'he'] as const) {
 
     // In front of the page: no notification.
     await hide(page, false);
-    await page.getByRole('button', { name: t.lectures.regenerate }).click();
+    await page.getByRole('button', { name: t.lectures.actions.more }).click();
+    await page.getByRole('menuitem', { name: t.lectures.regenerate }).click();
     await page.waitForTimeout(500);
     expect(await shown(page)).toHaveLength(2);
   });

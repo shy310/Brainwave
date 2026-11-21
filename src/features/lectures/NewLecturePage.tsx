@@ -15,7 +15,7 @@ import { Spinner } from '@/ui/Spinner';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { BackLink } from '@/features/learn/CoursePage';
 import {
-  BYTES_PER_MINUTE, LECTURE_LANGUAGES, MAX_TRANSCRIPT_CHARS, type LectureLanguage, type LectureSource, type Segment,
+  BYTES_PER_MINUTE, LECTURE_LANGUAGES, LECTURE_SOURCES, MAX_TRANSCRIPT_CHARS, type LectureLanguage, type LectureSource, type Segment,
 } from '@shared/lectures';
 import { DEFAULT_LIMITS, LiveRecorder, SAMPLE_RATE, decodeFile, formatTime, splitAtQuietPoints, type PieceLimits } from './audio';
 import { audioStore, checkStorage } from './audioStore';
@@ -66,7 +66,8 @@ export default function NewLecturePage() {
   const classId = params.get('class');
   /** Folder for the lecture, when started from a class in the schedule. */
   const [folderId, setFolderId] = useState<string | null>(null);
-  const [tab, setTab] = useState<LectureSource>('record');
+  // ?tab=upload (or pdf, image, text) opens that way of adding a lecture, e.g. from Home's quick actions.
+  const [tab, setTab] = useState<LectureSource>(() => (LECTURE_SOURCES as readonly string[]).includes(params.get('tab') ?? '') ? params.get('tab') as LectureSource : 'record');
   const [title, setTitle] = useState('');
   // The student's usual lecture language (from onboarding or Settings).
   const [language, setLanguage] = useState<LectureLanguage>(profile?.lecture_language ?? 'auto');

@@ -51,7 +51,8 @@ for (const lang of ['en', 'he'] as const) {
     expect(modes).toEqual(['exam', 'short']);
 
     // "Write again" keeps this lecture's style.
-    await page.getByRole('button', { name: t.lectures.regenerate }).click();
+    await page.getByRole('button', { name: t.lectures.actions.more }).click();
+    await page.getByRole('menuitem', { name: t.lectures.regenerate }).click();
     await expect.poll(() => modes).toEqual(['exam', 'short', 'short']);
     await expect(page.getByText('Notes in short style.')).toBeVisible();
 

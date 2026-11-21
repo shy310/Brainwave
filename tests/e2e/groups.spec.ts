@@ -16,7 +16,7 @@ for (const lang of ['en', 'he'] as const) {
     await onboard(page, { hebrew: lang === 'he' });
     await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), lecture);
     await page.goto('/');
-    await page.getByRole('link', { name: new RegExp(tg.title) }).click();
+    await page.getByRole('link', { name: t.home.quick.groups, exact: true }).click();
     await expect(page.getByText(tg.empty)).toBeVisible();
     await page.getByRole('button', { name: tg.create }).click();
     await page.getByRole('textbox', { name: tg.name }).fill('Calculus study group');
@@ -93,7 +93,8 @@ for (const lang of ['en', 'he'] as const) {
 
     // Not in a group yet: the panel offers to make one.
     await page.goto('/lectures/lec1');
-    await page.getByRole('button', { name: ts.button }).click();
+    await page.getByRole('button', { name: t.lectures.share.share, exact: true }).click();
+    await page.getByRole('menuitem', { name: ts.button }).click();
     await expect(page.getByText(ts.none)).toBeVisible();
     await page.getByRole('link', { name: ts.create }).click();
     await page.getByRole('button', { name: t.groups.create }).click();
@@ -102,7 +103,8 @@ for (const lang of ['en', 'he'] as const) {
     await expect(page.getByRole('heading', { level: 1, name: 'Calculus' })).toBeVisible();
 
     await page.goto('/lectures/lec1');
-    await page.getByRole('button', { name: ts.button }).click();
+    await page.getByRole('button', { name: t.lectures.share.share, exact: true }).click();
+    await page.getByRole('menuitem', { name: ts.button }).click();
     await expect(page.getByLabel(ts.pick)).toHaveValue(/.+/); // the only group is picked
     await page.getByRole('button', { name: ts.share }).click();
     await expect(page.getByText(ts.done('Calculus'))).toBeVisible();

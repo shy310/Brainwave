@@ -56,11 +56,14 @@ export const en = {
     breakOver: 'Break’s over. Ready for another round?', again: 'Focus again',
   },
   home: {
+    quick: {
+      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', summit: 'Summit',
+      tutor: 'Ask AI', grade: 'Grade', groups: 'Groups',
+    },
+    recent: 'Continue', seeAll: 'See all', explore: 'Explore',
     greeting: (name: string) => (name ? `Hi, ${name}` : 'Hi there'),
     subtitle: 'What do you want to work on today?',
-    short: {
-      tutor: 'Ask anything, or send a photo of your work.', grader: 'A score and feedback on any answer or essay.',
-      groups: 'Share notes and quizzes with classmates.', learn: 'Courses from kindergarten to college.',
+    short: { learn: 'Courses from kindergarten to college.',
       lectures: 'Notes, quizzes and flashcards from your classes.', videos: 'Short animated lessons on any topic.',
       podcasts: 'Two hosts talk through any topic.',
     },
@@ -344,6 +347,8 @@ export const en = {
       notFound: 'This link doesn’t work anymore. The person who shared it may have stopped sharing.',
       madeWith: 'Notes made with BrainWave', tryIt: 'Make your own notes',
     },
+    actions: { link: 'Share a link', more: 'More' },
+    mastery: { title: 'Progress', new: 'New', learning: 'Still learning', almost: 'Almost done', mastered: 'Mastered' },
     tools: {
       title: 'Study tools', review: 'Review flashcards', summit: 'Summit', summitBody: 'A quick quiz game from your lectures',
       groups: 'Study groups', groupsBody: 'Share notes with classmates', schedule: 'Class schedule', scheduleBody: 'Reminders to record',

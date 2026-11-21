@@ -81,3 +81,14 @@ export const buildQueue = <C extends { key: string }>(cards: C[], states: Map<st
 
 /** How many cards are waiting right now (due + new allowed today). */
 export const dueCount = (cards: { key: string }[], states: Map<string, CardState>, now: number) => buildQueue(cards, states, now).length;
+
+/** Where a card stands, from its review box: new (never reviewed), still learning, almost done, mastered (2+ weeks apart). */
+export type MasteryLevel = 'new' | 'learning' | 'almost' | 'mastered';
+export const MASTERY_LEVELS: MasteryLevel[] = ['new', 'learning', 'almost', 'mastered'];
+export const masteryLevel = (s: CardState | undefined): MasteryLevel =>
+  !s ? 'new' : s.box <= 1 ? 'learning' : s.box <= 3 ? 'almost' : 'mastered';
+export const masteryCounts = (states: (CardState | undefined)[]): Record<MasteryLevel, number> => {
+  const out: Record<MasteryLevel, number> = { new: 0, learning: 0, almost: 0, mastered: 0 };
+  for (const s of states) out[masteryLevel(s)]++;
+  return out;
+};
