@@ -72,7 +72,7 @@ export const he: Dict = {
       recordTitle: 'להקליט את השיעור הבא', recordBody: 'בסוף תקבלו סיכום, בוחן וכרטיסיות.', recordCta: 'להתחיל הקלטה',
     },
     quick: {
-      title: 'התחלה מהירה', record: 'הקלטה', upload: 'העלאה', pdf: 'PDF', review: 'חזרה', exams: 'מבחנים', games: 'משחקים',
+      title: 'התחלה מהירה', record: 'הקלטה', upload: 'העלאה', pdf: 'PDF', review: 'חזרה', exams: 'מבחנים', search: 'חיפוש', games: 'משחקים',
       tutor: 'שאלו AI', grade: 'בדיקה', groups: 'קבוצות',
     },
     recent: 'להמשיך', seeAll: 'הכול', explore: 'גלו עוד',
@@ -104,6 +104,15 @@ export const he: Dict = {
     goodLuck: 'בהצלחה היום! 🍀', over: 'המבחן הזה כבר עבר. איך היה?',
     noQuestions: 'בהרצאות האלה עוד אין כרטיסיות או שאלות בוחן. צרו קודם בהרצאה.',
     banner: (title: string, when: string) => `${title} · ${when}`,
+  },
+  search: {
+    title: 'חיפוש בהרצאות', subtitle: 'למצוא כל דבר שהמרצה אמר או שכתוב בסיכומים, ולקפוץ ישר אליו.',
+    placeholder: 'חיפוש או שאלה…', open: 'חיפוש בכל ההרצאות',
+    results: (n: number) => (n === 1 ? 'תוצאה אחת' : `${n} תוצאות`), none: (q: string) => `אין בהרצאות שלך שום דבר שמתאים ל„${q}”.`,
+    inNotes: 'בסיכום', at: (time: string) => `ב־${time}`, jump: (time: string) => `לפתוח ב־${time}`,
+    ask: 'לשאול על זה', asking: 'קוראים את ההרצאות שלך…', answer: 'תשובה מההרצאות שלך', sources: 'מקורות',
+    notFound: 'נראה שההרצאות שלך לא עוסקות בזה.', hint: 'טיפ: אפשר לשאול שאלה מלאה, למשל „מה למדנו על נגזרות?”',
+    empty: 'עדיין אין לך הרצאות עם תמלול.',
   },
   game: {
     source: 'על מה יהיו השאלות?', allLectures: 'כל ההרצאות', pickLectures: 'בחירת הרצאות',

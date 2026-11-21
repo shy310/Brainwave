@@ -160,6 +160,10 @@ export default function LecturesPage() {
           <p className="text-muted">{t.lectures.subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link to="/search" aria-label={t.search.open} title={t.search.open}
+            className={cn(linkButton, 'border border-line bg-surface px-3 hover:bg-surface-2')}>
+            <Search className="size-4" aria-hidden="true" /><span className="max-sm:sr-only">{t.home.quick.search}</span>
+          </Link>
           <Link to="/lectures/new" className={cn(linkButton, 'bg-brand-600 text-white hover:bg-brand-700')}>
             <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
           </Link>
@@ -267,7 +271,14 @@ export default function LecturesPage() {
           )}
 
           {shown.length === 0 && (
-            <EmptyState icon={query.trim() ? Search : FolderIcon} body={query.trim() ? tl.noResults(query.trim()) : tl.emptyFolder} className="border-0 bg-transparent" />
+            <div className="space-y-2 text-center">
+              <EmptyState icon={query.trim() ? Search : FolderIcon} body={query.trim() ? tl.noResults(query.trim()) : tl.emptyFolder} className="border-0 bg-transparent" />
+              {query.trim() && (
+                <Link to={`/search?q=${encodeURIComponent(query.trim())}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">
+                  <Search className="size-4" aria-hidden="true" />{t.search.open}
+                </Link>
+              )}
+            </div>
           )}
 
           <div className="grid gap-3 sm:grid-cols-2">

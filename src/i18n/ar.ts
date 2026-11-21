@@ -76,7 +76,7 @@ export const ar: Dict = {
       recordTitle: 'سجّل حصتك القادمة', recordBody: 'احصل على ملخص واختبار وبطاقات عند انتهائها.', recordCta: 'ابدأ التسجيل',
     },
     quick: {
-      title: 'بداية سريعة', record: 'تسجيل', upload: 'رفع', pdf: 'PDF', review: 'مراجعة', exams: 'الامتحانات', games: 'الألعاب',
+      title: 'بداية سريعة', record: 'تسجيل', upload: 'رفع', pdf: 'PDF', review: 'مراجعة', exams: 'الامتحانات', search: 'بحث', games: 'الألعاب',
       tutor: 'اسأل الذكاء الاصطناعي', grade: 'تقييم', groups: 'المجموعات',
     },
     recent: 'تابع', seeAll: 'عرض الكل', explore: 'استكشف',
@@ -108,6 +108,15 @@ export const ar: Dict = {
     goodLuck: 'بالتوفيق اليوم! 🍀', over: 'انتهى هذا الامتحان. كيف كان؟',
     noQuestions: 'لا تحتوي هذه المحاضرات على بطاقات أو أسئلة اختبار بعد. أنشئها في محاضرة أولًا.',
     banner: (title: string, when: string) => `${title} · ${when}`,
+  },
+  search: {
+    title: 'ابحث في محاضراتك', subtitle: 'اعثر على أي شيء قاله المحاضر أو كُتب في ملاحظاتك، وانتقل إليه مباشرة.',
+    placeholder: 'ابحث أو اطرح سؤالًا…', open: 'ابحث في كل المحاضرات',
+    results: (n: number) => count(n, 'نتيجة واحدة', 'نتيجتان', 'نتائج', 'نتيجة'), none: (q: string) => `لا شيء في محاضراتك يطابق «${q}».`,
+    inNotes: 'في الملاحظات', at: (time: string) => `عند ${time}`, jump: (time: string) => `افتح عند ${time}`,
+    ask: 'اسأل عن هذا', asking: 'نقرأ محاضراتك…', answer: 'إجابة من محاضراتك', sources: 'المصادر',
+    notFound: 'يبدو أن محاضراتك لا تتناول هذا.', hint: 'نصيحة: اطرح سؤالًا كاملًا، مثل «ماذا تعلّمنا عن المشتقات؟»',
+    empty: 'ليست لديك محاضرات بنص مكتوب بعد.',
   },
   game: {
     source: 'عن ماذا ستكون الأسئلة؟', allLectures: 'كل المحاضرات', pickLectures: 'اختر محاضرات',

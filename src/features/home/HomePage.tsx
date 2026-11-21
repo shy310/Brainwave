@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import {
-  ArrowRight, CalendarClock, ClipboardCheck, FileText, Layers, MessageCircle, Mic, Gamepad2, MoreHorizontal, NotebookText, Upload, Users,
+  ArrowRight, CalendarClock, Search, ClipboardCheck, FileText, Layers, MessageCircle, Mic, Gamepad2, MoreHorizontal, NotebookText, Upload, Users,
 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -86,6 +86,7 @@ export default function HomePage() {
         </div>
         <div className="flex justify-center">
           <Menu label={t.home.more} items={[
+            { label: tq.search, icon: <Search />, onSelect: () => navigate('/search') },
             { label: tq.review, icon: <Layers />, onSelect: () => navigate('/lectures/review') },
             { label: tq.exams, icon: <CalendarClock />, onSelect: () => navigate('/exams') },
             { label: tq.games, icon: <Gamepad2 />, onSelect: () => navigate('/play') },
