@@ -72,13 +72,13 @@ export const folderRepo = {
 export type SortKey = 'newest' | 'oldest' | 'title';
 
 /** Search, filter by folder and sort the lecture list. Pure, for tests. */
-export const arrangeLectures = <L extends { title: string; created_at: string; folder_id?: string | null }>(
-  items: L[], o: { query: string; folder: string | 'all' | 'none'; sort: SortKey; untitled: (l: L) => string; locale: string },
+export const arrangeLectures = <L extends { title: string; created_at: string; folder_id?: string | null; favorite?: boolean }>(
+  items: L[], o: { query: string; folder: string | 'all' | 'none' | 'favorites'; sort: SortKey; untitled: (l: L) => string; locale: string },
 ): L[] => {
   const q = o.query.trim().toLocaleLowerCase();
   const name = (l: L) => (l.title || o.untitled(l));
   return items
-    .filter((l) => o.folder === 'all' || (o.folder === 'none' ? !l.folder_id : l.folder_id === o.folder))
+    .filter((l) => o.folder === 'all' || (o.folder === 'favorites' ? !!l.favorite : o.folder === 'none' ? !l.folder_id : l.folder_id === o.folder))
     .filter((l) => !q || name(l).toLocaleLowerCase().includes(q))
     .sort((a, b) => {
       if (o.sort === 'title') return name(a).localeCompare(name(b), o.locale, { sensitivity: 'base', numeric: true });

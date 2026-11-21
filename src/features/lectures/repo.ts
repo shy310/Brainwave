@@ -26,11 +26,13 @@ export interface Lecture {
   audio_path?: string | null;
   audio_type?: string | null;
   audio_bytes?: number | null;
+  /** Starred in the library (needs migration 0019). */
+  favorite?: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export type LectureSummary = Pick<Lecture, 'id' | 'title' | 'source' | 'status' | 'duration_sec' | 'created_at' | 'folder_id'>;
+export type LectureSummary = Pick<Lecture, 'id' | 'title' | 'source' | 'status' | 'duration_sec' | 'created_at' | 'folder_id' | 'favorite'>;
 export type NewLecture = Pick<Lecture, 'title' | 'source' | 'language'> & Partial<Pick<Lecture, 'segments' | 'slides_text' | 'status' | 'duration_sec' | 'folder_id'>>;
 /** What a share link shows: the notes and flashcards, nothing else. */
 export interface SharedLecture { title: string; source: LectureSource; notes: Notes; flashcards: Flashcards | null; created_at: string }
@@ -60,12 +62,14 @@ const missingColumn = (error: { code?: string } | null) => error?.code === '4270
 export const lectureRepo = {
   async list(): Promise<LectureSummary[]> {
     if (!supabase) return readDemo().sort((a, b) => b.created_at.localeCompare(a.created_at));
-    const first = await supabase.from('lectures').select(`${LIST_COLUMNS}, folder_id`).order('created_at', { ascending: false });
-    const { data, error } = missingColumn(first.error)
-      ? await supabase.from('lectures').select(LIST_COLUMNS).order('created_at', { ascending: false })
-      : first;
-    if (error) throw error;
-    return data as LectureSummary[];
+    // Newest columns first; fall back when a migration hasn't been run yet.
+    for (const cols of [`${LIST_COLUMNS}, folder_id, favorite`, `${LIST_COLUMNS}, folder_id`, LIST_COLUMNS]) {
+      const { data, error } = await supabase.from('lectures').select(cols).order('created_at', { ascending: false });
+      if (missingColumn(error)) continue;
+      if (error) throw error;
+      return data as unknown as LectureSummary[];
+    }
+    return [];
   },
 
   /** Lectures in a folder ('all', 'none' or a folder id) with what's needed to study them. */

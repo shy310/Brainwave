@@ -39,10 +39,15 @@ insert into public.lectures (id, title, source) values ('20000000-0000-0000-0000
 select pg_temp.refused($$update public.lectures set folder_id = 'f0000000-0000-0000-0000-00000000000a' where id = '20000000-0000-0000-0000-00000000000b'$$,
   'B putting a lecture in A''s folder');
 select pg_temp.ok((select count(*) from public.lecture_folders) = 0, 'B cannot see A''s folders');
+update public.lectures set favorite = true where id = '20000000-0000-0000-0000-00000000000b';
+select pg_temp.ok((select favorite from public.lectures where id = '20000000-0000-0000-0000-00000000000b'), 'a student can star their own lecture');
+update public.lectures set favorite = true where id = '10000000-0000-0000-0000-00000000000a';
+
 
 -- ── Share links ───────────────────────────────────────────────────────────
 select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
 select pg_temp.ok((select title from public.lectures where id = '10000000-0000-0000-0000-00000000000a') = 'A lecture', 'B''s update did not touch A''s lecture');
+select pg_temp.ok(not (select favorite from public.lectures where id = '10000000-0000-0000-0000-00000000000a'), 'B cannot star A''s lecture');
 update public.lectures set share_token = 'Abc_def-ghijklmnopqrstu' where id = '10000000-0000-0000-0000-00000000000a';
 select pg_temp.refused($$update public.lectures set share_token = 'short' where id = '10000000-0000-0000-0000-00000000000a'$$, 'short share tokens');
 set role anon;

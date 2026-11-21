@@ -23,7 +23,7 @@ const COLLAPSED = 'bw.dockCollapsed';
 
 const Round = ({ a, ...props }: { a: DockAction } & React.ButtonHTMLAttributes<HTMLButtonElement> & { ref?: React.Ref<HTMLButtonElement> }) => (
   <button type="button" disabled={a.disabled} aria-label={a.name ?? a.label} title={a.name} {...props}
-    className="group flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl py-1 text-[11px] font-medium text-muted transition-colors hover:text-fg disabled:opacity-40">
+    className="group flex w-full min-w-0 flex-col items-center gap-1 rounded-2xl py-1 text-[11px] font-medium text-muted transition-colors hover:text-fg disabled:opacity-40">
     <span className={cn('flex size-11 items-center justify-center rounded-full shadow-sm transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-0.5 group-active:scale-90 [&>svg]:size-5', a.tone)} aria-hidden="true">
       {a.icon}
     </span>
@@ -47,7 +47,9 @@ export const LectureDock = ({ actions, player }: { actions: DockAction[]; player
       <div className="pointer-events-auto mx-auto max-w-lg space-y-2 animate-rise">
         {!(collapsed && player) && (
           <div role="toolbar" aria-label={t.lectures.actions.toolbar}
-            className="flex items-start gap-1 rounded-[1.75rem] border border-line/80 bg-surface/95 px-2 py-2.5 shadow-[var(--shadow-lift)] backdrop-blur-xl">
+            // Equal columns, so every button sits the same distance apart (menus included).
+            style={{ gridTemplateColumns: `repeat(${actions.length}, minmax(0, 1fr))` }}
+            className="grid items-start gap-1 rounded-[1.75rem] border border-line/80 bg-surface/95 px-2 py-2.5 shadow-[var(--shadow-lift)] backdrop-blur-xl">
             {actions.map((a) => a.items
               ? (
                 <Menu key={a.key} label={a.name ?? a.label} items={a.items} above align={a.key === actions.at(-1)?.key ? 'end' : 'start'}

@@ -82,3 +82,57 @@ for (const lang of ['en', 'he'] as const) {
     await expect(cards).toHaveCount(3);
   });
 }
+
+for (const lang of ['en', 'he'] as const) {
+  const t = lang === 'he' ? he : en;
+  const tl = t.lectures.library;
+
+  test(`right-click a lecture to rename, favorite, move or delete it (${lang})`, async ({ page }) => {
+    await onboard(page, { hebrew: lang === 'he' });
+    await seed(page);
+    await page.evaluate(() => localStorage.setItem('bw.lectureFolders', JSON.stringify([{ id: 'f1', name: 'Math', position: 0, created_at: '2026-11-01T00:00:00.000Z' }])));
+    await page.goto('/lectures');
+    const card = (title: string) => page.locator('main a[href^="/lectures/"]').filter({ hasText: title });
+
+    // Right-click opens the menu where the pointer is; Escape closes it.
+    await card('World history').click({ button: 'right' });
+    const menu = page.getByRole('menu', { name: tl.options('World history') });
+    await expect(menu).toBeVisible();
+    await expect(menu.getByRole('menuitem')).toHaveText([tl.open, tl.renameLecture, tl.favorite, tl.moveLecture, tl.deleteLecture]);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+
+    // Favorite: a star on the card and a Favorites filter.
+    await card('World history').click({ button: 'right' });
+    await menu.getByRole('menuitem', { name: tl.favorite }).click();
+    await expect(card('World history').getByRole('img', { name: tl.starred })).toBeVisible();
+    await page.getByRole('button', { name: new RegExp(tl.favorites) }).click();
+    await expect(page.locator('main a[href^="/lectures/"]').filter({ hasText: /week|history/ })).toHaveCount(1);
+    await page.getByRole('button', { name: new RegExp(`^${tl.all}`) }).click();
+
+    // Rename, from the ⋯ button (the same menu, for touch and keyboard).
+    await page.getByRole('button', { name: tl.options('Calculus week 2') }).click();
+    await page.getByRole('menuitem', { name: tl.renameLecture }).click();
+    await page.getByRole('dialog').getByRole('textbox').fill('Derivatives');
+    await page.getByRole('dialog').getByRole('button', { name: t.common.save }).click();
+    await expect(card('Derivatives')).toBeVisible();
+
+    // Move to a folder.
+    await card('Derivatives').click({ button: 'right' });
+    await page.getByRole('menuitem', { name: tl.moveLecture }).click();
+    await page.getByRole('radio', { name: 'Math' }).click();
+    await expect(card('Derivatives')).toContainText('Math');
+
+    // Delete asks first.
+    page.once('dialog', (d) => void d.accept());
+    await card('Calculus week 10').click({ button: 'right' });
+    await page.getByRole('menuitem', { name: tl.deleteLecture }).click();
+    await expect(card('Calculus week 10')).toHaveCount(0);
+
+    // All of it is saved.
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('bw.lectures')!) as { id: string; title: string; favorite?: boolean; folder_id?: string }[]);
+    expect(saved.map((l) => l.id).sort()).toEqual(['a', 'c']);
+    expect(saved.find((l) => l.id === 'a')).toMatchObject({ title: 'Derivatives', folder_id: 'f1' });
+    expect(saved.find((l) => l.id === 'c')?.favorite).toBe(true);
+  });
+}
