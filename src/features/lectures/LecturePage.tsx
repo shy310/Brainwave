@@ -41,6 +41,7 @@ import { askConfirm } from '@/ui/Confirm';
 import { Shimmer } from '@/ui/Feedback';
 import { markedSegments, transcriptWithMarks } from '@shared/marks';
 import { ImportantMoments } from './ImportantMoments';
+import { youtubeId, youtubeUrl } from '@shared/youtube';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
@@ -210,6 +211,10 @@ export default function LecturePage() {
     }));
   }, [lecture, jumpTo, jumped]);
 
+  // A lecture made from a YouTube video: times open the video there.
+  const videoId = lecture?.source === 'youtube' && lecture.source_url ? youtubeId(lecture.source_url) : null;
+  const openVideoAt = videoId ? (start: number) => { window.open(youtubeUrl(videoId, start), '_blank', 'noopener'); } : undefined;
+
   if (lecture === undefined) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
   if (lecture === null) return <Alert tone="error">{t.lectures.notFound}</Alert>;
 
@@ -288,7 +293,9 @@ export default function LecturePage() {
           </div>
         )}
         <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted">
-          <span>{t.lectures.sources[lecture.source]}</span>
+          {videoId ? (
+            <a href={youtubeUrl(videoId)} target="_blank" rel="noopener noreferrer" className="font-medium text-brand-700 hover:underline dark:text-brand-300">{t.lectures.yt.watch}</a>
+          ) : <span>{t.lectures.sources[lecture.source]}</span>}
           {lecture.duration_sec > 0 && <><span aria-hidden="true">·</span><span>{t.lectures.minutes(Math.max(1, Math.round(lecture.duration_sec / 60)))}</span></>}
           <span aria-hidden="true">·</span><span>{new Date(lecture.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short', year: 'numeric' })}</span>
           {folder && (
@@ -338,7 +345,7 @@ export default function LecturePage() {
                     {t.lectures.summaryModes[notesMode(lecture.notes)]}
                   </button>
                 </div>
-                <ImportantMoments marks={lecture.marks ?? []} segments={lecture.segments} onPlay={lecture.audio_path ? playFrom : undefined}
+                <ImportantMoments marks={lecture.marks ?? []} segments={lecture.segments} onPlay={lecture.audio_path ? playFrom : openVideoAt}
                   onShow={(start) => { setTab('transcript'); requestAnimationFrame(() => document.getElementById(`seg-${start}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })); }} />
                 <NotesView notes={lecture.notes} />
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
@@ -362,9 +369,9 @@ export default function LecturePage() {
           )}
 
           {tab === 'transcript' && (
-            <TranscriptPanel segments={lecture.segments} timed={lecture.source === 'record' || lecture.source === 'upload'} fileName={title}
+            <TranscriptPanel segments={lecture.segments} timed={lecture.source === 'record' || lecture.source === 'upload' || lecture.source === 'youtube'} fileName={title}
               marked={lecture.marks?.length ? markedSegments(lecture.segments, lecture.marks) : undefined}
-              onPlay={lecture.audio_path ? playFrom : undefined}
+              onPlay={lecture.audio_path ? playFrom : openVideoAt}
               onSave={async (segments: Segment[]) => {
                 await patch({ segments });
                 if (lecture.notes || lecture.quiz || lecture.flashcards) setStale(true);

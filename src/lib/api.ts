@@ -39,6 +39,13 @@ export const postApi = async <T,>(path: string, body: unknown): Promise<T> => {
   return (await res.json()) as T;
 };
 
+/** GET a non-AI API route (signed in), returning its JSON. */
+export const getApi = async <T,>(path: string, signal?: AbortSignal): Promise<T> => {
+  const res = await fetch(apiUrl(path), { headers: await authHeaders(), signal });
+  if (!res.ok) throw await failure(res);
+  return (await res.json()) as T;
+};
+
 /** Run a named AI operation that returns structured data. */
 export const callAi = async <T,>(op: string, input: unknown, signal?: AbortSignal, opts: { locale?: Locale } = {}): Promise<T> => {
   // `locale` overrides the language the AI writes in (e.g. an English podcast while the app is in Hebrew).

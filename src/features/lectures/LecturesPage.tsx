@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, CalendarClock, CalendarDays, Camera, FileText, Gamepad2, Layers, Folder as FolderIcon, FolderInput, FolderPlus, Mic, MoreHorizontal, Pencil, Star, StarOff, Check, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, FileType, MonitorPlay, CalendarClock, CalendarDays, Camera, FileText, Gamepad2, Layers, Folder as FolderIcon, FolderInput, FolderPlus, Mic, MoreHorizontal, Pencil, Star, StarOff, Check, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
@@ -24,7 +24,7 @@ import { Sheet } from '@/ui/Sheet';
 import { ListSection } from '@/ui/List';
 import { askConfirm } from '@/ui/Confirm';
 
-const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera } as const;
+const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera, youtube: MonitorPlay, document: FileType } as const;
 const VIEW_KEY = 'bw.lectures.view';
 
 export const lectureTitle = (l: Pick<LectureSummary, 'title' | 'created_at'>, untitled: string, locale: string) =>

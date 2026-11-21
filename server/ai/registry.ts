@@ -5,4 +5,5 @@ import './ops/lectures.js';
 import './ops/media.js';
 import './ops/podcast.js';
 import './ops/grader.js';
+import './ops/youtube.js';
 import './ops/search.js';

@@ -29,6 +29,8 @@ export interface Lecture {
   audio_bytes?: number | null;
   /** Moments marked as important while recording, in seconds (needs migration 0021). */
   marks?: number[] | null;
+  /** Where it came from, e.g. the YouTube video (needs migration 0026). */
+  source_url?: string | null;
   /** Starred in the library (needs migration 0019). */
   favorite?: boolean;
   created_at: string;
@@ -36,7 +38,7 @@ export interface Lecture {
 }
 
 export type LectureSummary = Pick<Lecture, 'id' | 'title' | 'source' | 'status' | 'duration_sec' | 'created_at' | 'folder_id' | 'favorite'>;
-export type NewLecture = Pick<Lecture, 'title' | 'source' | 'language'> & Partial<Pick<Lecture, 'segments' | 'slides_text' | 'status' | 'duration_sec' | 'folder_id'>>;
+export type NewLecture = Pick<Lecture, 'title' | 'source' | 'language'> & Partial<Pick<Lecture, 'segments' | 'slides_text' | 'status' | 'duration_sec' | 'folder_id' | 'source_url'>>;
 /** What a share link shows: the notes and flashcards, nothing else. */
 export interface SharedLecture { title: string; source: LectureSource; notes: Notes; flashcards: Flashcards | null; created_at: string }
 
@@ -115,9 +117,14 @@ export const lectureRepo = {
       return lecture;
     }
     let { data, error } = await supabase.from('lectures').insert(base).select('*').single();
-    // Before migration 0008, the database only allows record/upload/text: save PDF and photo notes as text.
-    if (error?.code === '23514' && (base.source === 'pdf' || base.source === 'image')) {
+    // Before migrations 0008/0026, the database only allows some sources: save the others as text.
+    if (error?.code === '23514' && base.source !== 'record' && base.source !== 'upload' && base.source !== 'text') {
       ({ data, error } = await supabase.from('lectures').insert({ ...base, source: 'text' }).select('*').single());
+    }
+    // Before migration 0026 there's nowhere to keep the video link.
+    if (missingColumn(error) && 'source_url' in base) {
+      const { source_url: _drop, ...rest } = base;
+      ({ data, error } = await supabase.from('lectures').insert(rest).select('*').single());
     }
     if (error) throw error;
     track({ lectures: 1 });

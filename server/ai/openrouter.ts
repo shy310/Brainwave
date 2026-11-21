@@ -5,7 +5,9 @@ export type ContentPart =
   | { type: 'text'; text: string }
   | { type: 'image_url'; image_url: { url: string } }
   | { type: 'file'; file: { filename: string; file_data: string } }
-  | { type: 'input_audio'; input_audio: { data: string; format: 'mp3' | 'wav' } };
+  | { type: 'input_audio'; input_audio: { data: string; format: 'mp3' | 'wav' } }
+  /** A public video link (YouTube) the model watches itself. */
+  | { type: 'video_url'; video_url: { url: string } };
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -58,8 +60,8 @@ export const callModel = async (o: ChatOptions): Promise<Response> => {
     await sleep(1500);
     res = await request(env.model, o);
   }
-  // The fallback model can't read PDFs or audio, so only use it for text and images.
-  const media = o.messages.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'file' || p.type === 'input_audio'));
+  // The fallback model can't read PDFs, audio or video, so only use it for text and images.
+  const media = o.messages.some(m => Array.isArray(m.content) && m.content.some(p => p.type === 'file' || p.type === 'input_audio' || p.type === 'video_url'));
   if ((res.status === 429 || res.status >= 500) && env.fallbackModel && !media) {
     res = await request(env.fallbackModel, o);
   }

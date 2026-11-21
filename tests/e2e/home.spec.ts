@@ -33,7 +33,7 @@ test('home: next up, quick actions straight to the task, recent lectures', async
 
   // "Upload" opens the new-lecture page on the Upload tab.
   await quick.getByRole('link', { name: en.home.quick.upload }).click();
-  await expect(page.getByRole('radio', { name: en.lectures.tabs.upload })).toBeChecked();
+  await expect(page.getByRole('radio', { name: en.lectures.modes.audio })).toBeChecked();
 });
 
 test('lecture actions: the Share menu works with the keyboard, More opens the options sheet', async ({ page }) => {

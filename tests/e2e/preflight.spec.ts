@@ -23,8 +23,7 @@ for (const lang of ['en', 'he'] as const) {
       await onboard(page, { hebrew: lang === 'he' });
       // Pretend this device can only decode 1 minute, so a 2-minute file is "too long".
       await page.evaluate(() => localStorage.setItem('bw.test.uploadMaxMinutes', '1'));
-      await page.goto('/lectures/new');
-      await page.getByRole('radio', { name: t.lectures.tabs.upload }).click();
+      await page.goto('/lectures/new?tab=upload');
       const chooser = page.waitForEvent('filechooser');
       await page.getByRole('button', { name: t.lectures.chooseFile }).click();
       await (await chooser).setFiles(wavFile(130));
@@ -35,8 +34,7 @@ for (const lang of ['en', 'he'] as const) {
 
     test('shows length, cost and time, and lets the student pick another file', async ({ page }) => {
       await onboard(page, { hebrew: lang === 'he' });
-      await page.goto('/lectures/new');
-      await page.getByRole('radio', { name: t.lectures.tabs.upload }).click();
+      await page.goto('/lectures/new?tab=upload');
       let chooser = page.waitForEvent('filechooser');
       await page.getByRole('button', { name: t.lectures.chooseFile }).click();
       await (await chooser).setFiles(wavFile(130));

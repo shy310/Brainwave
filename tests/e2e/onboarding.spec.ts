@@ -27,7 +27,8 @@ for (const lang of ['en', 'he'] as const) {
     await expect(page.getByLabel(t.lectures.language)).toHaveValue('he');
 
     // Notes are written for exam prep.
-    await page.getByRole('radio', { name: t.lectures.tabs.text }).click();
+    await page.getByRole('radio', { name: t.lectures.modes.document }).click();
+    await page.getByRole('button', { name: t.lectures.doc.paste }).click();
     await page.getByPlaceholder(t.lectures.textPlaceholder).fill('Today we start derivatives. The derivative of a function tells us how fast it changes. It is the slope of the tangent line.');
     await page.getByRole('button', { name: t.lectures.create }).click();
     await expect.poll(() => modes).toEqual(['exam']);

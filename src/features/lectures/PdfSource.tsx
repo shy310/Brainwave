@@ -21,10 +21,12 @@ export interface SourceProps {
   language: LectureLanguage;
   onBusy: (busy: boolean) => void;
   onDone: (lectureId: string) => void;
+  /** Files already chosen (from the document picker), opened right away. */
+  initialFiles?: File[];
 }
 
 /** A lecture made from chosen pages of a PDF. */
-export const PdfSource = ({ title, language, onBusy, onDone }: SourceProps) => {
+export const PdfSource = ({ title, language, onBusy, onDone, initialFiles }: SourceProps) => {
   const t = useT();
   const toMessage = useAiError();
   const input = useRef<HTMLInputElement>(null);
@@ -39,6 +41,7 @@ export const PdfSource = ({ title, language, onBusy, onDone }: SourceProps) => {
   const [error, setError] = useState('');
 
   useEffect(() => () => { void doc.current?.destroy(); }, []);
+  useEffect(() => { if (initialFiles?.[0]) void open(initialFiles[0]); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const choose = (pages: number[]) => { setChosen(pages); setRange(formatPageRange(pages)); };
 

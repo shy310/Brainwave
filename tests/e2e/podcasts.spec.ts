@@ -65,7 +65,8 @@ test('a lecture can be turned into a podcast', async ({ page }) => {
   } } }));
   await onboard(page);
   await page.goto('/lectures/new');
-  await page.getByRole('radio', { name: 'Paste text' }).click();
+  await page.getByRole('radio', { name: 'Document' }).click();
+  await page.getByRole('button', { name: 'Or paste text' }).click();
   await page.getByPlaceholder('Paste the lecture text here…').fill('Stars are born in clouds of gas. They fuse hydrogen into helium for billions of years, and the biggest ones end as black holes.');
   await page.getByRole('button', { name: 'Create lecture' }).click();
   await expect(page.getByText('Stars fuse hydrogen.')).toBeVisible();

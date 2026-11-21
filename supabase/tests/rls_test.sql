@@ -28,6 +28,8 @@ insert into public.lectures (id, title, source, segments, notes, folder_id) valu
   ('10000000-0000-0000-0000-00000000000a', 'A lecture', 'record', '[{"start":0,"text":"secret transcript"}]',
    '{"title":"t","summary":"s","sections":[],"keyTerms":[],"reminders":[]}', 'f0000000-0000-0000-0000-00000000000a');
 insert into public.lectures (title, source) values ('A pdf', 'pdf'), ('A photos', 'image');
+insert into public.lectures (title, source, source_url) values ('A video', 'youtube', 'https://www.youtube.com/watch?v=WUvTyaaNkzM'), ('A doc', 'document', null);
+select pg_temp.refused($$insert into public.lectures (title, source, source_url) values ('x', 'youtube', 'javascript:alert(1)')$$, 'a link that isn''t https');
 select pg_temp.refused($$insert into public.lectures (title, source) values ('x', 'video')$$, 'unknown lecture sources');
 select pg_temp.refused($$insert into public.lectures (title, source, user_id) values ('x', 'text', 'bbbbbbbb-0000-0000-0000-000000000002')$$, 'creating a lecture for someone else');
 

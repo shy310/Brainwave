@@ -48,13 +48,15 @@ test('AI requests and new lectures use the chosen language', async ({ page }) =>
   });
   await onboard(page, { locale: 'ru' });
   await page.goto('/lectures/new');
-  await page.getByRole('radio', { name: ru.lectures.tabs.text }).click();
+  await page.getByRole('radio', { name: ru.lectures.modes.document }).click();
+  await page.getByRole('button', { name: ru.lectures.doc.paste }).click();
   // Lectures can be in Arabic or Russian.
   await expect(page.getByLabel(ru.lectures.language)).toHaveCount(0); // not shown for pasted text
-  await page.getByRole('radio', { name: ru.lectures.tabs.record }).click();
+  await page.getByRole('radio', { name: ru.lectures.modes.audio }).click();
   await page.getByLabel(ru.lectures.language).selectOption('ar');
   await page.getByLabel(ru.lectures.language).selectOption('ru');
-  await page.getByRole('radio', { name: ru.lectures.tabs.text }).click();
+  await page.getByRole('radio', { name: ru.lectures.modes.document }).click();
+  await page.getByRole('button', { name: ru.lectures.doc.paste }).click();
   await page.getByLabel(ru.lectures.textPlaceholder).fill('Сегодня мы говорили о производных. '.repeat(6));
   await page.getByRole('button', { name: ru.lectures.create }).click();
   await expect.poll(() => sent.length).toBeGreaterThan(0);
