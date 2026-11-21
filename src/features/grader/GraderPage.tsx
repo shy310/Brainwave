@@ -14,7 +14,7 @@ import { MAX_GRADED_ANSWER, type GradeAnswer } from '@shared/grading';
 import { MAX_SLIDES_CHARS } from '@shared/lectures';
 import { lectureRepo, transcriptOf, type LectureSummary } from '@/features/lectures/repo';
 import { lectureTitle } from '@/features/lectures/LecturesPage';
-import { addAttempt, loadTasks, taskId, type Task } from './history';
+import { addAttempt, graderRepo, loadTasks, taskId, type Task } from './history';
 
 const DRAFT_KEY = 'bw.grader.draft';
 interface Draft { question: string; answer: string; rubric: string; lectureId: string }
@@ -44,6 +44,8 @@ export default function GraderPage() {
   const answerRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { lectureRepo.list().then((l) => setLectures(l.filter((x) => x.status === 'ready'))).catch(() => {}); }, []);
+  // History from every device (this browser's copy shows first).
+  useEffect(() => { graderRepo.list().then(setTasks).catch(() => {}); }, []);
 
   // Keep the draft on this device, so nothing is lost if the page closes.
   useEffect(() => {
@@ -69,7 +71,9 @@ export default function GraderPage() {
       });
       setResult(g);
       setShowImproved(false);
-      setTasks((all) => addAttempt(all, question.trim(), rubric.trim(), { at: Date.now(), answer: answer.trim(), grade: g }));
+      const next = addAttempt(tasks, question.trim(), rubric.trim(), { at: Date.now(), answer: answer.trim(), grade: g });
+      setTasks(next);
+      void graderRepo.save(next[0], next);
       requestAnimationFrame(() => document.getElementById('grade-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     } catch (err) {
       setError(toMessage(err) || t.auth.errors.generic);

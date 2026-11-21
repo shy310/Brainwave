@@ -70,11 +70,15 @@ select pg_temp.refused($$insert into public.class_slots (name, weekday, starts, 
 select pg_temp.refused($$insert into public.class_slots (name, weekday, starts, ends) values ('x', 1, '25:00', '11:00')$$, 'invalid time');
 update public.profiles set summary_mode = 'exam', study_goal = 'exams', lecture_language = 'he';
 select pg_temp.refused($$update public.profiles set study_goal = 'party'$$, 'unknown study goal');
+insert into public.grader_tasks (task_id, question, attempts) values ('abc', 'Why is the sky blue?', '[{"at": 1, "answer": "Rayleigh"}]');
+select pg_temp.refused($$insert into public.grader_tasks (task_id, question, attempts) values ('x', 'q', '{"not": "a list"}')$$, 'grader attempts must be a list');
 
 select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
 select pg_temp.ok((select count(*) from public.card_reviews) = 0, 'B cannot see A''s card reviews');
 select pg_temp.ok((select count(*) from public.study_days) = 0, 'B cannot see A''s study days');
 select pg_temp.ok((select count(*) from public.class_slots) = 0, 'B cannot see A''s schedule');
+select pg_temp.ok((select count(*) from public.grader_tasks) = 0, 'B cannot see A''s graded answers');
+select pg_temp.refused($$insert into public.grader_tasks (task_id, question, user_id) values ('y', 'q', 'aaaaaaaa-0000-0000-0000-000000000001')$$, 'writing A''s graded answers');
 select pg_temp.refused($$insert into public.card_reviews (card_key, lecture_id, due_at, last_at, first_at, user_id) values ('x', '10000000-0000-0000-0000-00000000000a', now(), now(), now(), 'aaaaaaaa-0000-0000-0000-000000000001')$$, 'writing A''s reviews');
 
 -- ── Study groups ──────────────────────────────────────────────────────────
@@ -133,6 +137,7 @@ select pg_temp.ok((select count(*) from public.lecture_folders) = 0, 'deleted ac
 select pg_temp.ok((select count(*) from public.card_reviews) = 0, 'deleted account: reviews gone');
 select pg_temp.ok((select count(*) from public.study_days) = 0, 'deleted account: study days gone');
 select pg_temp.ok((select count(*) from public.class_slots) = 0, 'deleted account: schedule gone');
+select pg_temp.ok((select count(*) from public.grader_tasks) = 0, 'deleted account: graded answers gone');
 select pg_temp.ok((select count(*) from public.study_groups) = 0, 'deleted account: owned groups gone');
 select pg_temp.ok((select count(*) from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001') = 0, 'deleted account: profile gone');
 select pg_temp.ok((select count(*) from public.lectures) = 1, 'other students keep their lectures');
