@@ -8,7 +8,7 @@ const lecture = { id: 'lec1', title: 'Derivatives', source: 'text', language: 'a
   segments: [{ start: 0, text: 'The derivative is the slope.' }], slides_text: null,
   notes: { title: 'D', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [{ term: 'T', definition: 'D' }], reminders: ['r'], mode: 'exam', practice: [{ question: 'Q?', answer: 'A.' }], mistakes: ['m'] },
   quiz: null, flashcards: { cards: [{ front: 'F', back: 'B' }] }, folder_id: null, created_at: '2026-11-03T10:00:00.000Z', updated_at: '' };
-const SCREENS = ['/', '/learn', '/lectures', '/lectures/lec1', '/lectures/review', '/play', '/groups', '/tutor', '/grader', '/videos', '/settings'];
+const SCREENS = ['/', '/learn', '/lectures', '/lectures/lec1', '/lectures/review', '/exams', '/play', '/groups', '/tutor', '/grader', '/videos', '/settings'];
 
 for (const [lang, scheme] of [['en', 'light'], ['he', 'dark'], ['ar', 'light'], ['ru', 'dark']] as const) {
   test(`no accessibility violations on the main screens (${lang}, ${scheme})`, async ({ page }) => {

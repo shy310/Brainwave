@@ -123,7 +123,7 @@ test('the Lectures page has the study tools: review, games, study groups and the
   await onboard(page);
   await page.goto('/lectures');
   const tools = page.getByRole('region', { name: en.lectures.tools.title });
-  for (const [name, path] of [[en.lectures.tools.review, '/lectures/review'], [en.lectures.tools.games, '/play'], [en.lectures.tools.groups, '/groups'], [en.lectures.tools.schedule, '/lectures/schedule']]) {
+  for (const [name, path] of [[en.lectures.tools.review, '/lectures/review'], [en.lectures.tools.exams, '/exams'], [en.lectures.tools.games, '/play'], [en.lectures.tools.groups, '/groups'], [en.lectures.tools.schedule, '/lectures/schedule']]) {
     await expect(tools.getByRole('link', { name: new RegExp(name) })).toHaveAttribute('href', path);
   }
   await tools.getByRole('link', { name: new RegExp(en.lectures.tools.games) }).click();
