@@ -1,5 +1,5 @@
-import { Fragment, useMemo, useState } from 'react';
-import { Copy, Download, Pencil, Search, X } from 'lucide-react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
+import { Copy, Download, Pencil, Play, Search, X } from 'lucide-react';
 import { useT } from '@/i18n';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -45,10 +45,14 @@ interface Props {
   timed: boolean;
   fileName: string;
   onSave: (segments: Segment[]) => Promise<void>;
+  /** Play the kept recording from this time; when set, each time is a play button. */
+  onPlay?: (start: number) => void;
+  /** Shown above the transcript (the recording player). */
+  player?: ReactNode;
 }
 
 /** The transcript with search, copy, export and editing. */
-export const TranscriptPanel = ({ segments, timed, fileName, onSave }: Props) => {
+export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay, player }: Props) => {
   const t = useT();
   const tt = t.lectures.transcriptTools;
   const [query, setQuery] = useState('');
@@ -104,6 +108,8 @@ export const TranscriptPanel = ({ segments, timed, fileName, onSave }: Props) =>
   }
 
   return (
+    <div className="space-y-3">
+    {player}
     <Card className="space-y-4 p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative min-w-0 flex-1">
@@ -123,12 +129,19 @@ export const TranscriptPanel = ({ segments, timed, fileName, onSave }: Props) =>
         </div>
       </div>
       {query.trim() && <p className="text-sm text-muted" aria-live="polite">{count ? tt.matches(count) : tt.noMatches}</p>}
+      {onPlay && <p className="text-xs text-muted">{tt.tapToPlay}</p>}
       {matching.map((s) => (
         <div key={s.start} className="flex gap-3">
-          {timed && <span className="w-12 shrink-0 pt-0.5 text-xs tabular-nums text-muted">{formatTime(s.start)}</span>}
+          {timed && onPlay ? (
+            <button type="button" onClick={() => onPlay(s.start)} aria-label={tt.playFrom(formatTime(s.start))}
+              className="group -my-1 inline-flex h-7 w-16 shrink-0 items-center gap-1 rounded-lg px-1.5 text-xs tabular-nums text-brand-700 hover:bg-brand-500/10 dark:text-brand-300">
+              <Play className="size-3 shrink-0 fill-current" aria-hidden="true" />{formatTime(s.start)}
+            </button>
+          ) : timed && <span className="w-12 shrink-0 pt-0.5 text-xs tabular-nums text-muted">{formatTime(s.start)}</span>}
           {query.trim() ? <Highlighted text={s.text} query={query} /> : <Rich text={s.text} className="min-w-0 flex-1" />}
         </div>
       ))}
     </Card>
+    </div>
   );
 };

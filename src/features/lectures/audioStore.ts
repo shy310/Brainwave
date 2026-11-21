@@ -29,6 +29,11 @@ export interface Draft {
   duration: number;
   /** Index for the next piece. */
   nextIndex: number;
+  /**
+   * Whether to keep the compressed recording with the lecture: asked when
+   * recording stops. Unset until the student answers.
+   */
+  keepAudio?: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -37,12 +42,14 @@ export interface PieceMeta { draftId: string; index: number; start: number; dura
 export interface SavedSegment extends Segment { draftId: string; index: number; /** Paragraphs with lecture times, when the transcriber gave them. */ parts?: Segment[] }
 
 const DB_NAME = 'bw-lecture-audio';
-const VERSION = 1;
+const VERSION = 2;
 const DRAFTS = 'drafts';
 const PIECES = 'pieces'; // PieceMeta, small
 const AUDIO = 'audio'; // { draftId, index, pcm: Int16Array }
 const SEGMENTS = 'segments'; // SavedSegment
 const CHECKPOINTS = 'checkpoints'; // { draftId, start, pcm }
+const CLIPS = 'clips'; // { draftId, seq, blob }: the compressed copy of a recording, in order
+const KEPT = 'kept'; // { lectureId, blob }: kept recordings of demo lectures (accounts use Supabase Storage)
 
 type Key = [string, number];
 const range = (draftId: string) => IDBKeyRange.bound([draftId, -Infinity], [draftId, Infinity]);
@@ -63,11 +70,14 @@ const db = () => {
     const open = indexedDB.open(DB_NAME, VERSION);
     open.onupgradeneeded = () => {
       const d = open.result;
-      d.createObjectStore(DRAFTS, { keyPath: 'id' });
-      d.createObjectStore(PIECES, { keyPath: ['draftId', 'index'] });
-      d.createObjectStore(AUDIO, { keyPath: ['draftId', 'index'] });
-      d.createObjectStore(SEGMENTS, { keyPath: ['draftId', 'index'] });
-      d.createObjectStore(CHECKPOINTS, { keyPath: 'draftId' });
+      const make = (name: string, keyPath: string | string[]) => { if (!d.objectStoreNames.contains(name)) d.createObjectStore(name, { keyPath }); };
+      make(DRAFTS, 'id');
+      make(PIECES, ['draftId', 'index']);
+      make(AUDIO, ['draftId', 'index']);
+      make(SEGMENTS, ['draftId', 'index']);
+      make(CHECKPOINTS, 'draftId');
+      make(CLIPS, ['draftId', 'seq']);
+      make(KEPT, 'lectureId');
     };
     open.onsuccess = () => {
       open.result.onversionchange = () => { open.result.close(); dbPromise = null; };
@@ -202,13 +212,54 @@ export const audioStore = {
     return meta;
   },
 
+  /** A few seconds of the compressed copy of a recording. */
+  async putClip(draftId: string, seq: number, blob: Blob) {
+    const t = await tx([CLIPS], 'readwrite');
+    t.objectStore(CLIPS).put({ draftId, seq, blob });
+    await done(t);
+  },
+
+  /** The whole compressed recording, or null if none was made. */
+  async recording(draftId: string): Promise<Blob | null> {
+    const t = await tx([CLIPS], 'readonly');
+    const rows = await req<{ seq: number; blob: Blob }[]>(t.objectStore(CLIPS).getAll(range(draftId)));
+    if (!rows.length) return null;
+    rows.sort((a, b) => a.seq - b.seq);
+    return new Blob(rows.map((r) => r.blob), { type: rows[0].blob.type });
+  },
+
+  async clearRecording(draftId: string) {
+    const t = await tx([CLIPS], 'readwrite');
+    t.objectStore(CLIPS).delete(range(draftId));
+    await done(t);
+  },
+
+  /** Demo lectures keep their recording here. */
+  async putKept(lectureId: string, blob: Blob) {
+    const t = await tx([KEPT], 'readwrite');
+    t.objectStore(KEPT).put({ lectureId, blob });
+    await done(t);
+  },
+
+  async getKept(lectureId: string): Promise<Blob | undefined> {
+    const t = await tx([KEPT], 'readonly');
+    return (await req<{ blob: Blob } | undefined>(t.objectStore(KEPT).get(lectureId)))?.blob;
+  },
+
+  async deleteKept(lectureId: string) {
+    const t = await tx([KEPT], 'readwrite');
+    t.objectStore(KEPT).delete(lectureId);
+    await done(t);
+  },
+
   async deleteDraft(draftId: string) {
-    const t = await tx([DRAFTS, PIECES, AUDIO, SEGMENTS, CHECKPOINTS], 'readwrite');
+    const t = await tx([DRAFTS, PIECES, AUDIO, SEGMENTS, CHECKPOINTS, CLIPS], 'readwrite');
     t.objectStore(DRAFTS).delete(draftId);
     t.objectStore(PIECES).delete(range(draftId));
     t.objectStore(AUDIO).delete(range(draftId));
     t.objectStore(SEGMENTS).delete(range(draftId));
     t.objectStore(CHECKPOINTS).delete(draftId);
+    t.objectStore(CLIPS).delete(range(draftId));
     await done(t);
   },
 

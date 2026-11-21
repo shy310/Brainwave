@@ -1,4 +1,4 @@
-import { test, expect, onboard } from './fixtures';
+import { test, expect, onboard, answerKeepRecording } from './fixtures';
 import { en } from '../../src/i18n/en';
 import { he } from '../../src/i18n/he';
 
@@ -54,6 +54,7 @@ for (const lang of ['en', 'he'] as const) {
     await page.getByRole('button', { name: t.lectures.start }).click();
     await page.waitForTimeout(1500);
     await page.getByRole('button', { name: t.lectures.stop }).click();
+      await answerKeepRecording(page, t.lectures.keepRecording, false);
     await expect(page).toHaveURL(/\/lectures\/(?!new)[\w-]+$/, { timeout: 20_000 });
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('bw.lectures') ?? '[]')[0]);
     expect(saved).toMatchObject({ folder_id: 'calc', title: expect.stringMatching(/^Calculus 1 — /) });

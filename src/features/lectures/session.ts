@@ -3,6 +3,7 @@ import { SAMPLE_RATE, isSilent, toPcm16 } from './audio';
 import { audioStore as defaultStore, type AudioStore, type Draft, type DraftSource } from './audioStore';
 import { lectureRepo as defaultRepo } from './repo';
 import { TranscriptionQueue, type QueueStatus, type TranscribeFn } from './transcriber';
+import { RecordingError, recordingRepo } from './recording';
 
 type Repo = Pick<typeof defaultRepo, 'create' | 'update'>;
 
@@ -17,6 +18,8 @@ interface Deps {
   transcribe?: TranscribeFn;
   isOnline?: () => boolean;
   retryDelays?: number[];
+  /** Keep the compressed recording with the lecture. */
+  saveRecording?: (lectureId: string, blob: Blob) => Promise<void>;
 }
 
 export interface NewSession {
@@ -45,10 +48,14 @@ export class LectureSession {
   private releaseLock: (() => void) | null = null;
   private store: AudioStore;
   private repo: Repo;
+  private saveRecording: (lectureId: string, blob: Blob) => Promise<void>;
+  /** Why the kept recording couldn't be saved, after `finalize`. */
+  recordingProblem: RecordingError['reason'] | null = null;
 
   private constructor(public draft: Draft, private events: SessionEvents, deps: Deps) {
     this.store = deps.store ?? defaultStore;
     this.repo = deps.repo ?? defaultRepo;
+    this.saveRecording = deps.saveRecording ?? ((id, blob) => recordingRepo.save(id, blob));
     this.queue = new TranscriptionQueue({
       draftId: draft.id,
       store: this.store,
@@ -147,6 +154,17 @@ export class LectureSession {
     this.sync();
   }
 
+  /** The compressed copy of the recording, if one was made and not deleted. */
+  recording(): Promise<Blob | null> {
+    return this.store.recording(this.draft.id).catch(() => null);
+  }
+
+  /** The student chose to keep the recording with the lecture, or to delete it now. */
+  async setKeepAudio(keep: boolean) {
+    await this.patchDraft({ keepAudio: keep });
+    if (!keep) await this.store.clearRecording(this.draft.id);
+  }
+
   setSlides(text: string | null) {
     void this.patchDraft({ slidesText: text });
     if (this.draft.lectureId) void this.repo.update(this.draft.lectureId, { slides_text: text }).catch(() => {});
@@ -177,12 +195,26 @@ export class LectureSession {
   }
 
   /**
-   * Save the final transcript and mark the lecture ready. Only then is the
-   * local draft deleted. Throws if the server can't be reached; the draft stays.
+   * Save the final transcript and mark the lecture ready, and upload the
+   * recording if the student kept it. Only then is the local draft deleted.
+   * Throws if the server can't be reached; the draft stays. A recording that
+   * can't be kept at all (too big, too many kept) is reported in
+   * `recordingProblem` and doesn't stop the lecture from being saved.
    */
   async finalize(): Promise<string> {
     await this.syncing;
     await this.push('ready');
+    if (this.draft.keepAudio) {
+      const blob = await this.store.recording(this.draft.id);
+      if (blob?.size) {
+        try {
+          await this.saveRecording(this.draft.lectureId!, blob);
+        } catch (err) {
+          if (!(err instanceof RecordingError)) throw err;
+          this.recordingProblem = err.reason;
+        }
+      }
+    }
     this.close();
     await this.store.deleteDraft(this.draft.id);
     return this.draft.lectureId!;

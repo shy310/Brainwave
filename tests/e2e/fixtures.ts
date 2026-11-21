@@ -36,3 +36,10 @@ export const wavFile = (seconds: number) => {
   for (let i = 0; i < n; i++) buf.writeInt16LE(Math.round(8000 * Math.sin((2 * Math.PI * 220 * i) / rate)), 44 + i * 2);
   return { name: 'week3.wav', mimeType: 'audio/wav', buffer: buf };
 };
+
+/** Answer "Keep the recording?", which appears when recording stops. */
+export const answerKeepRecording = async (page: Page, labels: { keep: string; delete: string }, keep: boolean) => {
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: keep ? labels.keep : labels.delete, exact: true }).click({ timeout: 20_000 });
+  await expect(dialog).toBeHidden();
+};

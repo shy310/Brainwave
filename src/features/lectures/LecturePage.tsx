@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Link2, Pencil, RefreshCw, Share2, Sparkles, Trash2, Users, MoreHorizontal } from 'lucide-react';
 import { publicUrl } from '@/lib/platform';
 import { useI18n, useT } from '@/i18n';
@@ -20,6 +20,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import type { Quiz } from '@shared/learn';
 import { FlashcardDeck, MasteryBar } from './Flashcards';
 import { TranscriptPanel } from './TranscriptPanel';
+import { RecordingPlayer } from './RecordingPlayer';
 import { NotesView } from './NotesView';
 import { notifyIfAway } from '@/features/schedule/notify';
 import { AskPanel } from './AskPanel';
@@ -63,6 +64,9 @@ export default function LecturePage() {
   const [shareNote, setShareNote] = useState('');
   const [lecture, setLecture] = useState<Lecture | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>('notes');
+  const audio = useRef<HTMLAudioElement>(null);
+  /** Set by the new-lecture page when the kept recording couldn't be saved. */
+  const recordingProblem = (useLocation().state as { recordingProblem?: 'too-big' | 'limit' } | null)?.recordingProblem;
   const [busy, setBusy] = useState<'' | 'notes' | 'quiz' | 'cards'>('');
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
@@ -230,6 +234,8 @@ export default function LecturePage() {
         )}
       </header>
 
+      {recordingProblem && <Alert tone="error">{t.lectures.keepRecording.problems[recordingProblem]}</Alert>}
+
       {lecture.status === 'transcribing' && (
         <Alert>
           <p className="flex items-center gap-2"><AlertTriangle className="size-4" aria-hidden="true" />{t.lectures.interrupted}</p>
@@ -307,6 +313,16 @@ export default function LecturePage() {
 
           {tab === 'transcript' && (
             <TranscriptPanel segments={lecture.segments} timed={lecture.source === 'record' || lecture.source === 'upload'} fileName={title}
+              player={lecture.audio_path ? (
+                <RecordingPlayer lecture={lecture} fileName={title} audioRef={audio}
+                  onDeleted={() => setLecture((l) => (l ? { ...l, audio_path: null, audio_type: null, audio_bytes: null } : l))} />
+              ) : undefined}
+              onPlay={lecture.audio_path ? (start) => {
+                const a = audio.current;
+                if (!a) return;
+                a.currentTime = start;
+                void a.play().catch(() => {});
+              } : undefined}
               onSave={async (segments: Segment[]) => {
                 await patch({ segments });
                 if (lecture.notes || lecture.quiz || lecture.flashcards) setStale(true);

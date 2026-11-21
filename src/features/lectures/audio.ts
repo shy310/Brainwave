@@ -216,6 +216,8 @@ export class LiveRecorder {
 
   get elapsed(): number { return this.emittedSec + this.buffered / this.rate; }
   get state(): AudioContextState | 'closed' { return this.ctx?.state ?? 'closed'; }
+  /** The microphone stream, while recording (the kept copy records it too). */
+  get mediaStream(): MediaStream | null { return this.stream; }
   get micLive(): boolean { return this.stream?.getAudioTracks().some((t) => t.readyState === 'live') ?? false; }
 
   async start() {

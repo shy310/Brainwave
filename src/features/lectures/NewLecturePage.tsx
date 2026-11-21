@@ -31,6 +31,8 @@ import { classLectureTitle } from '@shared/schedule';
 import { notifyIfAway } from '@/features/schedule/notify';
 import { NativeRecorder, nativeRecorderAvailable, recoverNative } from './nativeRecorder';
 import { inBrowserMaxMinutes, planUpload, probeDuration, type UploadPlan } from './preflight';
+import { KeepRecorder } from './recording';
+import { KeepRecordingDialog } from './KeepRecordingDialog';
 
 type Phase = 'setup' | 'checking' | 'preflight' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'finishing' | 'recovering';
 const MAX_FILE_BYTES = 500 * 1024 * 1024;
@@ -87,6 +89,12 @@ export default function NewLecturePage() {
 
   const session = useRef<LectureSession | null>(null);
   const recorder = useRef<Recorder | null>(null);
+  /** Makes the compressed copy the student can keep (web recorder only). */
+  const keeper = useRef<KeepRecorder | null>(null);
+  /** Shown when recording stops and a copy was made: keep it or delete it? */
+  const [askKeep, setAskKeep] = useState<{ seconds: number; bytes: number } | null>(null);
+  /** Finishing waits for that answer. */
+  const keepAnswer = useRef<{ promise: Promise<void>; resolve: () => void } | null>(null);
   const native = nativeRecorderAvailable();
   /** Writes to local storage happen one after another, in order. */
   const writes = useRef<Promise<void>>(Promise.resolve());
@@ -111,6 +119,7 @@ export default function NewLecturePage() {
 
   // Leaving the page keeps the draft on this device; it can be recovered later.
   useEffect(() => () => {
+    void keeper.current?.stop();
     void recorder.current?.stop();
     session.current?.close();
   }, []);
@@ -144,7 +153,7 @@ export default function NewLecturePage() {
       // Finished while the student was in another tab or app: let them know.
       void notifyIfAway(t.notify.lectureReady, s.draft.title || t.lectures.untitled, `/lectures/${id}`, (p) => navigate(p));
       leaving.current = true;
-      navigate(`/lectures/${id}`, { replace: true });
+      navigate(`/lectures/${id}`, { replace: true, state: s.recordingProblem ? { recordingProblem: s.recordingProblem } : undefined });
     } catch (err) {
       setError(toMessage(err) || t.auth.errors.generic);
       setFinalizeFailed(true);
@@ -152,13 +161,32 @@ export default function NewLecturePage() {
     }
   }, [navigate, t, toMessage]);
 
-  /** Wait for every saved piece to be transcribed, then save the lecture. */
+  /** Ask whether to keep the recording, if a copy was made and the student hasn't said yet. */
+  const askAboutRecording = async (s: LectureSession) => {
+    if (s.draft.keepAudio !== undefined) return;
+    const blob = await s.recording();
+    if (!blob?.size) return;
+    let resolve = () => {};
+    const promise = new Promise<void>((r) => { resolve = r; });
+    keepAnswer.current = { promise, resolve };
+    setAskKeep({ seconds: s.draft.duration, bytes: blob.size });
+  };
+
+  const chooseKeep = async (keep: boolean) => {
+    setAskKeep(null);
+    await session.current?.setKeepAudio(keep).catch((err) => console.error(err));
+    keepAnswer.current?.resolve();
+    keepAnswer.current = null;
+  };
+
+  /** Wait for every saved piece to be transcribed (and the keep-recording answer), then save the lecture. */
   const finish = useCallback(async () => {
     const s = session.current;
     if (!s) return;
     setPhase('transcribing');
     setDuration(s.draft.duration);
     await s.queue.idle();
+    await keepAnswer.current?.promise;
     if (session.current === s) await finalize();
   }, [finalize]);
 
@@ -197,6 +225,7 @@ export default function NewLecturePage() {
       setLanguage(s.draft.language);
       setTab(s.draft.source);
       setStatus(s.status);
+      if (s.draft.source === 'record') await askAboutRecording(s);
       await finish();
     })();
     return () => { cancelled = true; };
@@ -245,6 +274,12 @@ export default function NewLecturePage() {
     }
     session.current = s;
     recorder.current = rec;
+    // The copy the student may keep records the same microphone stream.
+    const stream = rec instanceof LiveRecorder ? rec.mediaStream : null;
+    if (stream) {
+      const k = new KeepRecorder(s.draft.id);
+      if (k.start(stream)) keeper.current = k;
+    }
     setPhase('recording');
   };
 
@@ -273,8 +308,8 @@ export default function NewLecturePage() {
   });
 
   const togglePause = async () => {
-    if (phase === 'recording') { await recorder.current?.pause(); setPhase('paused'); setLevel(0); }
-    else { await recorder.current?.resume(); setPhase('recording'); }
+    if (phase === 'recording') { keeper.current?.pause(); await recorder.current?.pause(); setPhase('paused'); setLevel(0); }
+    else { await recorder.current?.resume(); keeper.current?.resume(); setPhase('recording'); }
   };
 
   const stopRecording = async () => {
@@ -282,9 +317,13 @@ export default function NewLecturePage() {
     const s = session.current;
     if (!rec || !s) return;
     recorder.current = null;
+    const k = keeper.current;
+    keeper.current = null;
+    await k?.stop();
     await rec.stop(); // emits the last piece
     await write(() => s.stopRecording()).catch(() => {});
     setLevel(0);
+    await askAboutRecording(s);
     await finish();
   };
 
@@ -534,6 +573,8 @@ export default function NewLecturePage() {
             ))}
         </Card>
       )}
+
+      {askKeep && <KeepRecordingDialog seconds={askKeep.seconds} bytes={askKeep.bytes} onChoose={(keep) => void chooseKeep(keep)} />}
     </div>
   );
 }
