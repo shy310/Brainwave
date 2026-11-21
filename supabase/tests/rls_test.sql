@@ -225,6 +225,21 @@ select pg_temp.refused($$insert into public.lectures (title, source, language) v
 delete from public.lectures where title = 'Лекция';
 reset role;
 
+-- ── Exams ─────────────────────────────────────────────────────────────────
+reset role;
+set role authenticated;
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+insert into public.exams (title, exam_date, lecture_ids) values ('Calculus final', '2026-12-10', array['10000000-0000-0000-0000-00000000000a']::uuid[]);
+select pg_temp.ok((select count(*) from public.exams) = 1, 'a student can add an exam');
+select pg_temp.refused($$insert into public.exams (title, exam_date, user_id) values ('x', '2026-12-10', 'bbbbbbbb-0000-0000-0000-000000000002')$$, 'adding an exam for someone else');
+select pg_temp.refused($$update public.exams set best_score = 120$$, 'a score above 100');
+select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
+select pg_temp.ok((select count(*) from public.exams) = 0, 'B cannot see A''s exams');
+update public.exams set title = 'hacked';
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+select pg_temp.ok((select title from public.exams) = 'Calculus final', 'B could not change A''s exam');
+reset role;
+
 -- ── Deleting an account removes everything ────────────────────────────────
 reset role;
 delete from auth.users where id = 'aaaaaaaa-0000-0000-0000-000000000001';
@@ -236,6 +251,7 @@ select pg_temp.ok((select count(*) from public.class_slots) = 0, 'deleted accoun
 select pg_temp.ok((select count(*) from public.grader_tasks) = 0, 'deleted account: graded answers gone');
 select pg_temp.ok((select count(*) from public.push_subscriptions where user_id = 'aaaaaaaa-0000-0000-0000-000000000001') = 0, 'deleted account: push devices gone');
 select pg_temp.ok((select count(*) from public.reminder_settings) = 0, 'deleted account: reminder settings gone');
+select pg_temp.ok((select count(*) from public.exams) = 0, 'deleted account: exams gone');
 select pg_temp.ok((select count(*) from public.study_groups) = 0, 'deleted account: owned groups gone');
 select pg_temp.ok((select count(*) from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001') = 0, 'deleted account: profile gone');
 select pg_temp.ok((select count(*) from public.lectures) = 1, 'other students keep their lectures');
