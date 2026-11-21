@@ -28,7 +28,7 @@ export const UpNextBanner = () => {
     <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-card)] border border-accent-300 bg-accent-400/10 p-4" role="status">
       <CalendarClock className="size-5 shrink-0 text-accent-600" aria-hidden="true" />
       <p className="min-w-0 flex-1 font-medium" dir="auto">{next.on ? t.schedule.on(next.slot.name) : t.schedule.soon(next.slot.name, time)}</p>
-      <Link to={`/lectures/new?class=${next.slot.id}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-accent-500 px-3 text-sm font-medium text-white hover:bg-accent-600">
+      <Link to={`/lectures/new?class=${next.slot.id}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-accent-500 px-3 text-sm font-semibold text-slate-950 hover:bg-accent-400">
         <Mic className="size-4" aria-hidden="true" />{t.schedule.record}
       </Link>
     </div>

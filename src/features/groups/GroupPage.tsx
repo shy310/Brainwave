@@ -15,6 +15,7 @@ import { lectureTitle } from '@/features/lectures/LecturesPage';
 import { lectureShare } from './share';
 import { groupsRepo, type Group, type Member, type Share } from './groupsRepo';
 import { dateLocale } from '@shared/locales';
+import { EmptyState } from '@/ui/EmptyState';
 
 export default function GroupPage() {
   const { id = '' } = useParams();
@@ -104,7 +105,7 @@ export default function GroupPage() {
             </form>
           </Card>
         )}
-        {shares.length === 0 && !sharing && <p className="rounded-xl border border-dashed border-line p-6 text-center text-muted">{tg.noShares}</p>}
+        {shares.length === 0 && !sharing && <EmptyState icon={Share2} body={tg.noShares} />}
         <ul className="space-y-2">
           {shares.map((s) => (
             <li key={s.id}>

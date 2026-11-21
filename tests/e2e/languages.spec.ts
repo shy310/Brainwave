@@ -34,8 +34,10 @@ test('switch the app to Arabic (right to left) and Russian from the header', asy
 
   // Settings offers all four languages.
   await page.goto('/settings');
-  for (const name of ['English', 'עברית', 'العربية', 'Русский']) await expect(page.getByRole('radio', { name })).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'Русский' })).toBeChecked();
+  await page.getByRole('button', { name: ru.onboarding.language }).last().click();
+  const appLanguage = page.getByRole('radiogroup', { name: ru.onboarding.language });
+  for (const name of ['English', 'עברית', 'العربية', 'Русский']) await expect(appLanguage.getByRole('radio', { name })).toBeVisible();
+  await expect(appLanguage.getByRole('radio', { name: 'Русский' })).toBeChecked();
 });
 
 test('AI requests and new lectures use the chosen language', async ({ page }) => {
@@ -48,10 +50,10 @@ test('AI requests and new lectures use the chosen language', async ({ page }) =>
   await page.goto('/lectures/new');
   await page.getByRole('radio', { name: ru.lectures.tabs.text }).click();
   // Lectures can be in Arabic or Russian.
-  await expect(page.getByRole('radio', { name: ru.lectures.languages.ar })).toHaveCount(0); // not shown for pasted text
+  await expect(page.getByLabel(ru.lectures.language)).toHaveCount(0); // not shown for pasted text
   await page.getByRole('radio', { name: ru.lectures.tabs.record }).click();
-  await expect(page.getByRole('radio', { name: ru.lectures.languages.ar })).toBeVisible();
-  await expect(page.getByRole('radio', { name: ru.lectures.languages.ru })).toBeVisible();
+  await page.getByLabel(ru.lectures.language).selectOption('ar');
+  await page.getByLabel(ru.lectures.language).selectOption('ru');
   await page.getByRole('radio', { name: ru.lectures.tabs.text }).click();
   await page.getByLabel(ru.lectures.textPlaceholder).fill('Сегодня мы говорили о производных. '.repeat(6));
   await page.getByRole('button', { name: ru.lectures.create }).click();

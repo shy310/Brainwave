@@ -5,45 +5,61 @@ const lecture = (id: string, title: string, days: number) => ({ id, title, sourc
   segments: [{ start: 0, text: 'x' }], slides_text: null, notes: null, quiz: null, folder_id: null,
   flashcards: { cards: [{ front: `${title} card?`, back: 'Yes.' }] }, created_at: new Date(Date.now() - days * 864e5).toISOString(), updated_at: '' });
 
-test('home: quick actions go straight to the task, due cards show a badge, recent lectures continue', async ({ page }) => {
+test('home: next up, quick actions straight to the task, recent lectures', async ({ page }) => {
   await onboard(page);
   await page.evaluate((L) => localStorage.setItem('bw.lectures', JSON.stringify(L)),
     [lecture('a', 'Newest', 0), lecture('b', 'Middle', 1), lecture('c', 'Older', 2), lecture('d', 'Oldest', 3)]);
   await page.reload();
+  // Cards are due, so "Next up" is reviewing them.
+  const next = page.getByRole('region', { name: en.home.nextUp });
+  await expect(next.getByRole('heading', { name: en.home.hero.review(4) })).toBeVisible();
+  await expect(next.getByRole('link', { name: en.home.hero.reviewCta })).toHaveAttribute('href', '/lectures/review');
   const quick = page.getByRole('navigation', { name: en.home.quick.title });
-  await expect(quick.getByRole('link', { name: new RegExp(en.lectures.review.due(4)) })).toBeVisible(); // 4 new cards to learn
+  await expect(quick.getByRole('link', { name: en.home.record })).toHaveAttribute('href', '/lectures/new');
   await expect(quick.getByRole('link', { name: en.home.quick.upload })).toHaveAttribute('href', '/lectures/new?tab=upload');
+  // The rest are one tap away in More.
+  await quick.getByRole('button', { name: en.home.more }).click();
+  await expect(page.getByRole('menuitem', { name: en.home.quick.grade })).toBeVisible();
+  await page.keyboard.press('Escape');
 
-  // The three most recent lectures, newest first.
+  // Recent lectures, newest first.
   const recent = page.getByRole('region', { name: en.home.recent });
   const lectures = recent.getByRole('link').filter({ hasNotText: en.home.seeAll });
-  await expect(lectures).toHaveCount(3);
+  await expect(lectures).toHaveCount(4);
   await expect(lectures.first()).toContainText('Newest');
-  await expect(recent.getByText('Oldest')).toHaveCount(0);
+
+  // Today's goals: nothing done yet with cards due.
+  await expect(page.getByText(en.home.doneOf(0, 3))).toBeVisible();
 
   // "Upload" opens the new-lecture page on the Upload tab.
   await quick.getByRole('link', { name: en.home.quick.upload }).click();
   await expect(page.getByRole('radio', { name: en.lectures.tabs.upload })).toBeChecked();
 });
 
-test('lecture actions: Share and More menus work with the keyboard', async ({ page }) => {
+test('lecture actions: the Share menu works with the keyboard, More opens the options sheet', async ({ page }) => {
   await onboard(page);
   await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])),
     { ...lecture('a', 'Derivatives', 0), notes: { title: 'D', summary: 'S', sections: [{ heading: 'H', points: ['p'] }], keyTerms: [], reminders: [], mode: 'detailed' } });
   await page.goto('/lectures/a');
-  const more = page.getByRole('button', { name: en.lectures.actions.more });
-  await more.focus();
+  const bar = page.getByRole('toolbar', { name: en.lectures.actions.toolbar });
+  const share = bar.getByRole('button', { name: en.lectures.share.share });
+  await share.focus();
   await page.keyboard.press('Enter');
-  const menu = page.getByRole('menu', { name: en.lectures.actions.more });
-  await expect(menu).toBeVisible();
-  await expect(menu.getByRole('menuitem', { name: en.lectures.download })).toBeFocused();
+  const menu = page.getByRole('menu', { name: en.lectures.share.share });
+  await expect(menu.getByRole('menuitem', { name: en.lectures.actions.link })).toBeFocused();
   await page.keyboard.press('ArrowDown');
-  await expect(menu.getByRole('menuitem', { name: en.lectures.regenerate })).toBeFocused();
+  await expect(menu.getByRole('menuitem', { name: en.lectures.shareGroup.button })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(menu).toHaveCount(0);
-  await expect(more).toBeFocused();
+  await expect(share).toBeFocused();
 
-  await page.getByRole('button', { name: en.lectures.share.share, exact: true }).click();
+  await bar.getByRole('button', { name: en.lectures.options.title }).click();
+  const sheet = page.getByRole('dialog', { name: en.lectures.options.title });
+  await expect(sheet.getByRole('button', { name: en.lectures.delete })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(sheet).toBeHidden();
+
+  await share.click();
   await page.getByRole('menuitem', { name: en.lectures.shareGroup.button }).click();
   await expect(page.getByRole('heading', { name: en.lectures.shareGroup.title })).toBeVisible();
 });

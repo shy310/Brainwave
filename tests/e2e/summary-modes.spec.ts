@@ -24,8 +24,17 @@ for (const lang of ['en', 'he'] as const) {
       } } });
     });
     await onboard(page, { hebrew: lang === 'he' });
+    // A new style is chosen in the Customize sheet and applied with Apply.
+    const pickStyle = async (name: string) => {
+      await page.getByRole('toolbar').getByRole('button', { name: t.lectures.options.customize }).click();
+      const sheet = page.getByRole('dialog', { name: t.lectures.options.customizeTitle });
+      await sheet.getByRole('radio', { name: new RegExp(`^${name}`) }).click();
+      await sheet.getByRole('button', { name: t.lectures.options.apply }).click();
+      await expect(sheet).toBeHidden();
+    };
 
     await page.goto('/settings');
+    await page.getByRole('button', { name: t.lectures.notesStyle }).click();
     await page.getByRole('radio', { name: t.lectures.summaryModes.exam }).click();
     await expect(page.getByRole('radio', { name: t.lectures.summaryModes.exam })).toBeChecked();
 
@@ -35,7 +44,7 @@ for (const lang of ['en', 'he'] as const) {
     await page.getByRole('button', { name: t.lectures.create }).click();
     await expect(page.getByText('Notes in exam style.')).toBeVisible();
     expect(modes).toEqual(['exam']);
-    await expect(page.getByRole('radio', { name: t.lectures.summaryModes.exam })).toBeChecked();
+    await expect(page.getByRole('button', { name: `${t.lectures.options.customize}: ${t.lectures.summaryModes.exam}` })).toBeVisible();
 
     // Exam prep has its own parts: practice questions (answer hidden until asked) and common mistakes.
     await expect(page.getByRole('heading', { name: t.lectures.practice })).toBeVisible();
@@ -45,31 +54,31 @@ for (const lang of ['en', 'he'] as const) {
     await expect(page.getByText('It is')).toBeVisible();
     await expect(page.getByRole('button', { name: t.lectures.hideAnswer })).toHaveAttribute('aria-expanded', 'true');
 
-    await page.getByRole('radio', { name: t.lectures.summaryModes.short }).click();
+    await pickStyle(t.lectures.summaryModes.short);
     await expect(page.getByText('Notes in short style.')).toBeVisible();
     await expect(page.getByRole('heading', { name: t.lectures.practice })).toHaveCount(0);
     expect(modes).toEqual(['exam', 'short']);
 
     // "Write again" keeps this lecture's style.
-    await page.getByRole('button', { name: t.lectures.actions.more }).click();
-    await page.getByRole('menuitem', { name: t.lectures.regenerate }).click();
+    await page.getByRole('toolbar').getByRole('button', { name: t.lectures.options.title }).click();
+    await page.getByRole('dialog', { name: t.lectures.options.title }).getByRole('button', { name: t.lectures.regenerate }).click();
     await expect.poll(() => modes).toEqual(['exam', 'short', 'short']);
     await expect(page.getByText('Notes in short style.')).toBeVisible();
 
     // Going back to a style already written shows it again, without asking the AI.
-    await page.getByRole('radio', { name: t.lectures.summaryModes.exam }).click();
+    await pickStyle(t.lectures.summaryModes.exam);
     await expect(page.getByText('Notes in exam style.')).toBeVisible();
     await expect(page.getByRole('heading', { name: t.lectures.practice })).toBeVisible();
-    await page.getByRole('radio', { name: t.lectures.summaryModes.short }).click();
+    await pickStyle(t.lectures.summaryModes.short);
     await expect(page.getByText('Notes in short style.')).toBeVisible();
     // ...and they are still there after a reload.
     await page.reload();
-    await page.getByRole('radio', { name: t.lectures.summaryModes.exam }).click();
+    await pickStyle(t.lectures.summaryModes.exam);
     await expect(page.getByText('Notes in exam style.')).toBeVisible();
     expect(modes).toEqual(['exam', 'short', 'short']);
 
     // A style not written yet still asks the AI.
-    await page.getByRole('radio', { name: t.lectures.summaryModes.detailed }).click();
+    await pickStyle(t.lectures.summaryModes.detailed);
     await expect(page.getByText('Notes in detailed style.')).toBeVisible();
     expect(modes).toEqual(['exam', 'short', 'short', 'detailed']);
   });

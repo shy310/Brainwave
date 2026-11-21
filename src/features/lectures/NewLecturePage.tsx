@@ -8,7 +8,7 @@ import { storage } from '@/lib/storage';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
-import { Field, Input, Textarea } from '@/ui/Field';
+import { Field, Input, Select, Textarea } from '@/ui/Field';
 import { Rich } from '@/ui/Rich';
 import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
@@ -453,11 +453,13 @@ export default function NewLecturePage() {
         </Field>
 
         {tab !== 'text' && (
-          <div className="space-y-1.5">
-            <p className="text-sm font-medium">{t.lectures.language}</p>
-            <Segmented label={t.lectures.language} value={language} onChange={(v) => { if (!busy) setLanguage(v); }}
-              options={LECTURE_LANGUAGES.map((l) => ({ value: l, label: t.lectures.languages[l] }))} />
-          </div>
+          <Field label={t.lectures.language}>
+            {(id) => (
+              <Select id={id} value={language} disabled={busy} onChange={(e) => setLanguage(e.target.value as LectureLanguage)}>
+                {LECTURE_LANGUAGES.map((l) => <option key={l} value={l}>{t.lectures.languages[l]}</option>)}
+              </Select>
+            )}
+          </Field>
         )}
 
         {phase !== 'recovering' && (tab === 'record' || tab === 'upload' || tab === 'text') && <SlidesPicker value={slides} onChange={setSlides} />}

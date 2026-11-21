@@ -16,7 +16,8 @@ for (const lang of ['en', 'he'] as const) {
     await onboard(page, { hebrew: lang === 'he' });
     await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), lecture);
     await page.goto('/');
-    await page.getByRole('link', { name: t.home.quick.groups, exact: true }).click();
+    await page.getByRole('navigation', { name: t.home.quick.title }).getByRole('button', { name: t.home.more }).click();
+    await page.getByRole('menuitem', { name: t.home.quick.groups }).click();
     await expect(page.getByText(tg.empty)).toBeVisible();
     await page.getByRole('button', { name: tg.create }).click();
     await page.getByRole('textbox', { name: tg.name }).fill('Calculus study group');

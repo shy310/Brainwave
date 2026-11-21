@@ -132,7 +132,7 @@ export default function GamePage() {
           {/* The mountain: ledges climbed so far. */}
           <div className="relative w-10 shrink-0 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-600 to-brand-400 transition-[height] duration-500 motion-reduce:transition-none" style={{ height: `${climb}%` }} />
-            <span className="absolute start-1/2 flex size-7 -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-accent-500 text-white shadow transition-[bottom] duration-500 motion-reduce:transition-none rtl:translate-x-1/2"
+            <span className="absolute start-1/2 flex size-7 -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-accent-500 text-slate-950 shadow transition-[bottom] duration-500 motion-reduce:transition-none rtl:translate-x-1/2"
               style={{ bottom: `${climb}%` }}>
               <Mountain className="size-3.5" />
             </span>

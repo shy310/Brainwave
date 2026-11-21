@@ -122,3 +122,18 @@ export const SegmentSchema = z.object({ start: z.number().min(0), text: z.string
 export type Segment = z.infer<typeof SegmentSchema>;
 
 export { QuizSchema };
+
+/** The emoji at the start of a title, if any ("🧬 Cell division" → "🧬"). */
+export const leadingEmoji = (title: string): string | null => {
+  const m = title.trim().match(/^(\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic}|\p{Emoji_Modifier})*)/u);
+  return m ? m[1] : null;
+};
+
+/**
+ * A lecture title with the notes' emoji in front, when the title has none yet
+ * (e.g. "Calculus — 20 Nov" from the class schedule + "🧮" → "🧮 Calculus — 20 Nov").
+ */
+export const withEmoji = (title: string, notesTitle: string): string => {
+  const emoji = leadingEmoji(notesTitle);
+  return !title.trim() || !emoji || leadingEmoji(title) ? title : `${emoji} ${title.trim()}`.slice(0, 200);
+};

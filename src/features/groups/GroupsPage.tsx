@@ -9,6 +9,7 @@ import { Input } from '@/ui/Field';
 import { Spinner } from '@/ui/Spinner';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { groupsRepo, type Group } from './groupsRepo';
+import { EmptyState } from '@/ui/EmptyState';
 
 /** An invite link (…/join/CODE) or just the code → the code. */
 export const inviteCodeFrom = (text: string) => {
@@ -50,7 +51,7 @@ export default function GroupsPage() {
       </header>
       {error && <Alert tone="error">{error}</Alert>}
       {!groups && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>}
-      {groups?.length === 0 && <p className="rounded-xl border border-dashed border-line p-6 text-center text-muted">{tg.empty}</p>}
+      {groups?.length === 0 && <EmptyState icon={Users} body={tg.empty} />}
       {groups && groups.length > 0 && (
         <ul className="grid gap-3 sm:grid-cols-2">
           {groups.map((g) => (

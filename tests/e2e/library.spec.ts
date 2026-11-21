@@ -52,7 +52,9 @@ for (const lang of ['en', 'he'] as const) {
     // Move a lecture into Math from its page.
     await folders.getByRole('button', { name: new RegExp(tl.all) }).click();
     await cards.filter({ hasText: 'Calculus week 2' }).click();
-    await page.getByRole('combobox').selectOption({ label: 'Math' });
+    await page.getByRole('toolbar').getByRole('button', { name: t.lectures.options.title }).click();
+    await page.getByRole('dialog').getByRole('button', { name: t.lectures.options.move }).click();
+    await page.getByRole('dialog', { name: t.lectures.options.move }).getByRole('radio', { name: 'Math' }).click();
     await page.goto('/lectures');
     await folders.getByRole('button', { name: /Math/ }).click();
     await expect(cards).toHaveCount(1);

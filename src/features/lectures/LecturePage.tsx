@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
-import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Layers, Link2, ListChecks, MessageCircleQuestion, MessageSquareText, NotebookText, Pencil, RefreshCw, Share2, Sparkles, Trash2, Users, MoreHorizontal } from 'lucide-react';
+import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal } from 'lucide-react';
+import { Sheet } from '@/ui/Sheet';
+import { ListRow, ListSection } from '@/ui/List';
 import { publicUrl } from '@/lib/platform';
 import { useI18n, useT } from '@/i18n';
 import { callAi } from '@/lib/api';
@@ -9,13 +11,12 @@ import { useAiError } from '@/lib/useAiError';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
-import { Input, Select } from '@/ui/Field';
+import { Input } from '@/ui/Field';
 import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
 import { BackLink } from '@/features/learn/CoursePage';
 import { QuizRunner } from '@/features/learn/QuizRunner';
-import { ChatPanel } from '@/features/tutor/ChatPanel';
-import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, SUMMARY_MODES, type Flashcards, type Notes, type Segment, type SummaryMode } from '@shared/lectures';
+import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, SUMMARY_MODES, withEmoji, type Flashcards, type Notes, type Segment, type SummaryMode } from '@shared/lectures';
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { Quiz } from '@shared/learn';
 import { FlashcardDeck, MasteryBar } from './Flashcards';
@@ -36,8 +37,8 @@ import { notesMode, switchNotes, withNewNotes } from './notesVersions';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
 import { dateLocale } from '@shared/locales';
 
-type Tab = 'notes' | 'transcript' | 'quiz' | 'cards' | 'ask';
-const TAB_ICONS = { notes: NotebookText, transcript: MessageSquareText, quiz: ListChecks, cards: Layers, ask: MessageCircleQuestion };
+const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
+type Tab = (typeof TABS)[number];
 
 export interface NotesLabels { summary: string; keyTerms: string; reminders: string; practice: string; mistakes: string }
 
@@ -79,6 +80,10 @@ export default function LecturePage() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  /** Which sheet is open: lecture options, customize the notes, or move to a folder. */
+  const [sheet, setSheet] = useState<'' | 'options' | 'customize' | 'move'>('');
+  /** The style picked in Customize, applied only on Apply (a new style costs an AI rewrite). */
+  const [choice, setChoice] = useState<SummaryMode>('detailed');
   const [name, setName] = useState('');
   const [quizRound, setQuizRound] = useState(0);
   const autoNotes = useRef(false);
@@ -142,7 +147,8 @@ export default function LecturePage() {
       if (kind === 'notes') {
         const current = lecture?.notes ?? null;
         const notes = await callAi<Notes>('lectureNotes', { ...input, mode: mode ?? current?.mode ?? profile?.summary_mode ?? 'detailed' });
-        await patch({ notes: withNewNotes(current, notes, !fresh), ...(lecture?.title ? {} : { title: notes.title.slice(0, 200) }) });
+        // Titles get the notes' emoji too (🧬 Cell division), so lectures are easy to tell apart.
+        await patch({ notes: withNewNotes(current, notes, !fresh), title: lecture?.title ? withEmoji(lecture.title, notes.title) : notes.title.slice(0, 200) });
         void notifyIfAway(t.notify.notesReady, lecture?.title || notes.title, `/lectures/${id}`, (p) => navigate(p));
       } else if (kind === 'quiz') {
         const quiz = await callAi<Quiz>('lectureQuiz', { ...input, count: 6 });
@@ -215,29 +221,28 @@ export default function LecturePage() {
   };
 
   const tk = t.lectures.keepRecording;
+  const to = t.lectures.options;
+  const folder = folders.find((f) => f.id === lecture.folder_id);
+  const close = () => setSheet('');
+  const openCustomize = () => { setChoice(lecture.notes ? notesMode(lecture.notes) : profile?.summary_mode ?? 'detailed'); setSheet('customize'); };
+  /** Run a sheet action after the sheet has closed. */
+  const then = (fn: () => void) => () => { close(); fn(); };
+  const pickStyle = (m: SummaryMode) => {
+    close();
+    if (!lecture.notes || m === notesMode(lecture.notes)) return;
+    // A style written before is shown again as it was; only a new style asks the AI.
+    const saved = switchNotes(lecture.notes, m);
+    if (saved) void patch({ notes: saved }); else void generate('notes', m);
+  };
   const dockActions: DockAction[] = [
-    { key: 'share', label: t.lectures.share.share, icon: <Share2 />, tone: 'bg-accent-500', disabled: !lecture.notes, items: [
+    { key: 'share', label: t.lectures.share.share, icon: <Share2 />, tone: 'bg-[#fff3c9] text-brand-700 dark:bg-[#2a2410] dark:text-accent-300', disabled: !lecture.notes, items: [
       { label: t.lectures.actions.link, icon: <Link2 />, onSelect: () => openShare('link') },
       { label: t.lectures.shareGroup.button, icon: <Users />, onSelect: () => openShare('group') },
     ] },
-    { key: 'ask', label: t.lectures.askPanel.open, icon: <MessageCircleQuestion />, tone: 'bg-brand-600', onSelect: (el) => {
-      // On the Ask tab the conversation is already open: go to its message box.
-      if (tab === 'ask') content.current?.parentElement?.querySelector<HTMLTextAreaElement>('textarea')?.focus();
-      else ask.current?.open(el);
-    } },
-    { key: 'copy', label: copied ? t.lectures.copied : t.lectures.copy, icon: <Copy />, tone: 'bg-sky-600', disabled: !lecture.notes, onSelect: () => void copyNotes() },
-    { key: 'pdf', label: t.lectures.actions.pdf, name: t.lectures.share.savePdf, icon: <FileDown />, tone: 'bg-amber-500', disabled: !lecture.notes, onSelect: () => navigate(`/lectures/${id}/print`) },
-    { key: 'more', label: t.lectures.actions.more, icon: <MoreHorizontal />, tone: 'bg-fg/70 dark:bg-fg/25', items: [
-      ...(lecture.notes ? [
-        { label: t.lectures.download, icon: <Download />, onSelect: () => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, labels)) },
-        { label: t.lectures.regenerate, icon: <RefreshCw />, onSelect: () => void generate('notes') },
-      ] : []),
-      ...(lecture.audio_path && recordingUrl ? [{ label: tk.download, icon: <Download />, onSelect: () => {
-        Object.assign(document.createElement('a'), { href: recordingUrl, download: `${title}.${recordingExtension(lecture.audio_type)}` }).click();
-      } }] : []),
-      ...(lecture.audio_path ? [{ label: tk.deleteRecording, icon: <Trash2 />, danger: true, onSelect: () => void removeRecording() }] : []),
-      { label: t.lectures.delete, icon: <Trash2 />, danger: true, onSelect: () => void remove() },
-    ] },
+    { key: 'ask', label: t.lectures.askPanel.open, icon: <MessageCircleQuestion />, tone: 'bg-brand-600 text-white', onSelect: (el) => ask.current?.open(el) },
+    { key: 'customize', label: to.customize, icon: <SlidersHorizontal />, tone: 'bg-brand-500/12 text-brand-700 dark:bg-brand-400/18 dark:text-brand-300', disabled: !lecture.notes, onSelect: () => openCustomize() },
+    { key: 'copy', label: copied ? t.lectures.copied : t.lectures.copy, icon: <Copy />, tone: 'bg-brand-500/12 text-brand-700 dark:bg-brand-400/18 dark:text-brand-300', disabled: !lecture.notes, onSelect: () => void copyNotes() },
+    { key: 'more', label: t.lectures.actions.more, name: to.title, icon: <MoreHorizontal />, tone: 'bg-surface-2 text-fg ring-1 ring-line', onSelect: () => setSheet('options') },
   ];
 
   const copyNotes = async () => {
@@ -260,30 +265,19 @@ export default function LecturePage() {
           </form>
         ) : (
           <div className="flex items-start gap-2">
-            <h1 className="flex-1 text-3xl font-semibold tracking-tight" dir="auto">{title}</h1>
-            <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={t.lectures.rename} onClick={() => { setName(lecture.title); setRenaming(true); }}>
-              <Pencil className="size-4" aria-hidden="true" />
-            </Button>
-            <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={t.lectures.delete} onClick={remove}>
-              <Trash2 className="size-4" aria-hidden="true" />
-            </Button>
+            <h1 className="min-w-0 flex-1 text-3xl font-semibold tracking-tight" dir="auto">{title}</h1>
           </div>
         )}
-        <p className="text-sm text-muted">
-          {t.lectures.sources[lecture.source]}
-          {lecture.duration_sec > 0 && ` · ${t.lectures.minutes(Math.max(1, Math.round(lecture.duration_sec / 60)))}`}
-          {' · '}{new Date(lecture.created_at).toLocaleDateString(dateLocale(locale))}
+        <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted">
+          <span>{t.lectures.sources[lecture.source]}</span>
+          {lecture.duration_sec > 0 && <><span aria-hidden="true">·</span><span>{t.lectures.minutes(Math.max(1, Math.round(lecture.duration_sec / 60)))}</span></>}
+          <span aria-hidden="true">·</span><span>{new Date(lecture.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+          {folder && (
+            <button type="button" onClick={() => setSheet('move')} className="ms-1 inline-flex h-7 max-w-[12rem] items-center gap-1 rounded-full bg-surface-2 px-2.5 text-xs font-medium text-fg hover:bg-line">
+              <FolderIcon className="size-3.5 shrink-0" aria-hidden="true" /><span className="truncate">{folder.name}</span>
+            </button>
+          )}
         </p>
-        {folders.length > 0 && (
-          <label className="flex items-center gap-2 text-sm">
-            <span className="text-muted">{t.lectures.library.folder}</span>
-            <Select className="h-9 w-auto min-w-40 py-0" value={lecture.folder_id ?? ''}
-              onChange={(e) => void patch({ folder_id: e.target.value || null })}>
-              <option value="">{t.lectures.library.noFolder}</option>
-              {folders.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-            </Select>
-          </label>
-        )}
       </header>
 
       {recordingProblem && <Alert tone="error">{t.lectures.keepRecording.problems[recordingProblem]}</Alert>}
@@ -297,13 +291,11 @@ export default function LecturePage() {
 
       {!transcript && lecture.status === 'ready' ? <Alert>{t.lectures.emptyTranscript}</Alert> : (
         <>
-          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-            <Segmented scroll label={title} value={tab} onChange={setTab}
-              options={(['notes', 'transcript', 'quiz', 'cards', 'ask'] as const).map((v) => ({ value: v, label: t.lectures.tabsView[v], icon: TAB_ICONS[v] }))} />
-          </div>
+          <Segmented fill label={title} value={tab} onChange={setTab}
+            options={TABS.map((v) => ({ value: v, label: t.lectures.tabsView[v] }))} />
 
           {error && <Alert tone="error">{error}</Alert>}
-          <AskPanel sessionKey={`bw.lectureChat.${id}`} context={chatContext} within={content} hidden={tab === 'ask'} handle={ask} />
+          <AskPanel sessionKey={`bw.lectureChat.${id}`} context={chatContext} within={content} handle={ask} />
 
           {stale && (
             <Alert>
@@ -319,15 +311,13 @@ export default function LecturePage() {
             busy === 'notes' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" />{t.lectures.writingNotes}</Card>
             : lecture.notes ? (
               <article className="space-y-4">
-                <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-                  <Segmented<SummaryMode> label={t.lectures.notesStyle} value={lecture.notes.mode ?? 'detailed'}
-                    onChange={(m) => {
-                      if (!lecture.notes || m === notesMode(lecture.notes)) return;
-                      // A style written before is shown again as it was; only a new style asks the AI.
-                      const saved = switchNotes(lecture.notes, m);
-                      if (saved) void patch({ notes: saved }); else void generate('notes', m);
-                    }}
-                    options={SUMMARY_MODES.map((m) => ({ value: m, label: t.lectures.summaryModes[m] }))} />
+                {/* The notes' style is a setting of the notes: a chip that opens Customize, not a second row of tabs. */}
+                <div className="flex justify-end">
+                  <button type="button" onClick={() => openCustomize()} aria-label={`${to.customize}: ${t.lectures.summaryModes[notesMode(lecture.notes)]}`}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-sm font-medium hover:bg-surface-2">
+                    <SlidersHorizontal className="size-4 text-brand-700 dark:text-brand-300" aria-hidden="true" />
+                    {t.lectures.summaryModes[notesMode(lecture.notes)]}
+                  </button>
                 </div>
                 <NotesView notes={lecture.notes} />
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
@@ -398,11 +388,77 @@ export default function LecturePage() {
             )
           )}
 
-          {tab === 'ask' && (
-            <ChatPanel sessionKey={`bw.lectureChat.${id}`} context={chatContext} emptyTitle={t.lectures.askEmpty} starters={t.lectures.askStarters} />
-          )}
         </>
       )}
+
+      <Sheet open={sheet === 'options'} onClose={close} title={to.title}>
+        <div className="space-y-4">
+          {/* The three things people do most, as big shortcuts; everything else is a list; delete is last. */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: t.lectures.rename, icon: Pencil, onClick: then(() => { setName(lecture.title); setRenaming(true); }) },
+              { label: to.customize, icon: SlidersHorizontal, onClick: () => openCustomize(), disabled: !lecture.notes },
+              { label: to.move, icon: FolderInput, onClick: () => setSheet('move') },
+            ].map((a) => (
+              <button key={a.label} type="button" onClick={a.onClick} disabled={a.disabled}
+                className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-2xl bg-surface-2 px-2 text-center text-sm font-medium hover:bg-line disabled:opacity-40">
+                <a.icon className="size-5 text-brand-700 dark:text-brand-300" aria-hidden="true" />{a.label}
+              </button>
+            ))}
+          </div>
+          <ListSection>
+            {lecture.notes && <ListRow icon={FileDown} label={t.lectures.share.savePdf} onClick={then(() => navigate(`/lectures/${id}/print`))} chevron={false} />}
+            {lecture.notes && <ListRow icon={Download} label={t.lectures.download} onClick={then(() => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, labels)))} chevron={false} />}
+            {lecture.notes && <ListRow icon={RefreshCw} label={t.lectures.regenerate} onClick={then(() => void generate('notes'))} chevron={false} />}
+            {lecture.audio_path && recordingUrl && (
+              <ListRow icon={Download} label={tk.download} chevron={false} onClick={then(() => {
+                Object.assign(document.createElement('a'), { href: recordingUrl, download: `${title}.${recordingExtension(lecture.audio_type)}` }).click();
+              })} />
+            )}
+          </ListSection>
+          <ListSection>
+            {lecture.audio_path && <ListRow icon={Trash2} danger label={tk.deleteRecording} onClick={then(() => void removeRecording())} chevron={false} />}
+            <ListRow icon={Trash2} danger label={t.lectures.delete} onClick={then(() => void remove())} chevron={false} />
+          </ListSection>
+        </div>
+      </Sheet>
+
+      <Sheet open={sheet === 'customize'} onClose={close} title={to.customizeTitle}
+        footer={<Button block size="lg" onClick={() => pickStyle(choice)}>{to.apply}</Button>}>
+        <div role="radiogroup" aria-label={t.lectures.notesStyle} className="space-y-2">
+          {SUMMARY_MODES.map((m) => {
+            const on = choice === m;
+            return (
+              <button key={m} type="button" role="radio" aria-checked={on} onClick={() => setChoice(m)}
+                className={cn('flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-start transition-colors',
+                  on ? 'border-brand-600 bg-brand-500/10' : 'border-line hover:bg-surface-2')}>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">{t.lectures.summaryModes[m]}</span>
+                  <span className="block text-sm text-muted">{to.styleHelp[m]}</span>
+                </span>
+                {on && <Check className="size-5 shrink-0 text-brand-700 dark:text-brand-300" aria-hidden="true" />}
+              </button>
+            );
+          })}
+          <p className="pt-1 text-sm text-muted">{t.lectures.notesStyleHint}</p>
+        </div>
+      </Sheet>
+
+      <Sheet open={sheet === 'move'} onClose={close} title={to.move}>
+        <div role="radiogroup" aria-label={to.move}>
+          <ListSection>
+            {[{ id: '', name: t.lectures.library.noFolder }, ...folders].map((f) => (
+              <button key={f.id || 'none'} type="button" role="radio" aria-checked={(lecture.folder_id ?? '') === f.id}
+                onClick={then(() => void patch({ folder_id: f.id || null }))}
+                className="flex min-h-14 w-full items-center gap-3 px-4 text-start hover:bg-surface-2">
+                <FolderIcon className="size-[18px] shrink-0 text-muted" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate font-medium" dir="auto">{f.name}</span>
+                {(lecture.folder_id ?? '') === f.id && <Check className="size-5 shrink-0 text-brand-700 dark:text-brand-300" aria-hidden="true" />}
+              </button>
+            ))}
+          </ListSection>
+        </div>
+      </Sheet>
 
       <LectureDock actions={dockActions}
         player={lecture.audio_path ? <RecordingPlayer url={recordingUrl} audioRef={audio} fallbackDuration={lecture.duration_sec} /> : undefined} />

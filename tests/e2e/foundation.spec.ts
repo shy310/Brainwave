@@ -8,11 +8,13 @@ test('signed-out visitors are sent to sign-in', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Learn anything, your way.' })).toBeVisible();
 });
 
-test('onboarding → home with the four pillars', async ({ page }) => {
+test('onboarding → home with what to do next, and the four pillars one tap away', async ({ page }) => {
   await onboard(page, { name: 'Maya' });
   await expect(page.getByRole('heading', { name: 'Hi, Maya' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Next up' })).toBeVisible();
+  const nav = page.getByRole('navigation', { name: 'Main' }).filter({ visible: true }).first();
   for (const name of ['Learn', 'Lectures', 'Video lessons', 'Podcasts']) {
-    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name, exact: true })).toBeVisible();
   }
   expect(await hasHorizontalOverflow(page)).toBe(false);
 });
@@ -43,17 +45,22 @@ test('navigation, deep links and the back button work', async ({ page }) => {
 test('settings: theme, language and profile', async ({ page }) => {
   await onboard(page, { name: 'Sam' });
   await page.goto('/settings');
+  await page.getByRole('button', { name: 'Theme' }).click();
   await page.getByRole('radio', { name: 'Dark' }).click();
   await expect(page.locator('html')).toHaveClass(/dark/);
   await page.reload();
   await expect(page.locator('html')).toHaveClass(/dark/);
 
-  const name = page.getByLabel('What should we call you?');
-  await name.fill('Samuel');
-  await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByRole('button', { name: 'Saved' })).toBeVisible();
+  // The profile is edited in a sheet: the one place with a Save button.
+  await page.getByRole('button', { name: 'Edit profile' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Edit profile' });
+  await sheet.getByLabel('What should we call you?').fill('Samuel');
+  await sheet.getByRole('button', { name: 'Save' }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByText('Samuel', { exact: true })).toBeVisible();
 
-  await page.getByRole('radio', { name: /עברית/ }).click();
+  await page.getByRole('button', { name: /^App language/ }).click();
+  await page.getByRole('radio', { name: 'עברית' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 });
 

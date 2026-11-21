@@ -114,7 +114,7 @@ export const SceneView = ({ scene, progress }: { scene: Scene; progress: number 
             {scene.items.map((it, i) => (
               <li key={i} aria-hidden={i >= shown} dir="auto"
                 className={cn('flex items-start gap-[1.5cqw] text-[max(11px,3cqw)] leading-snug transition-all duration-500', i < shown ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0')}>
-                  {numbered ? <span className="flex size-[4cqw] shrink-0 items-center justify-center rounded-full bg-accent-500 text-[max(11px,2.2cqw)] font-bold">{i + 1}</span>
+                  {numbered ? <span className="flex size-[4cqw] shrink-0 items-center justify-center rounded-full bg-accent-500 text-[max(11px,2.2cqw)] font-bold text-slate-950">{i + 1}</span>
                     : check ? <CheckCircle2 className="mt-[0.3cqw] size-[3.4cqw] shrink-0 text-emerald-400" aria-hidden="true" />
                     : <span className="mt-[1.2cqw] size-[1.2cqw] shrink-0 rounded-full bg-accent-400" aria-hidden="true" />}
                   <span className="min-w-0"><RichInline text={it} /></span>
