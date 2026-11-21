@@ -65,8 +65,8 @@ for (const lang of ['en', 'he'] as const) {
     await page.getByLabel(ts.name).fill('Calculus I');
     await page.getByRole('button', { name: ts.save }).click();
     await expect(page.getByText('Calculus I', { exact: true })).toBeVisible();
-    page.once('dialog', (d) => d.accept());
     await page.getByRole('button', { name: `${ts.remove}: Calculus I` }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: t.common.delete }).click();
     await expect(page.getByText(ts.empty)).toBeVisible();
   });
 }

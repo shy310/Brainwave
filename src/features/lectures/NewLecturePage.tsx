@@ -34,6 +34,7 @@ import { inBrowserMaxMinutes, planUpload, probeDuration, type UploadPlan } from 
 import { KeepRecorder } from './recording';
 import { KeepRecordingDialog } from './KeepRecordingDialog';
 import { Waveform, hearing, useLevelHistory } from './Waveform';
+import { askConfirm } from '@/ui/Confirm';
 
 type Phase = 'setup' | 'checking' | 'preflight' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'finishing' | 'recovering';
 const MAX_FILE_BYTES = 500 * 1024 * 1024;
@@ -108,8 +109,12 @@ export default function NewLecturePage() {
   const recordingActive = phase === 'recording' || phase === 'paused';
   const leaving = useRef(false);
   const blocker = useBlocker(({ currentLocation, nextLocation }) =>
-    guarded && !leaving.current && currentLocation.pathname !== nextLocation.pathname && !window.confirm(t.lectures.leaveWarning));
-  useEffect(() => { if (blocker.state === 'blocked') blocker.reset(); }, [blocker]);
+    guarded && !leaving.current && currentLocation.pathname !== nextLocation.pathname);
+  // Leaving mid-recording asks first, in the app's own dialog.
+  useEffect(() => {
+    if (blocker.state !== 'blocked') return;
+    void askConfirm({ message: t.lectures.leaveWarning, action: 'leave' }).then((ok) => (ok ? blocker.proceed() : blocker.reset()));
+  }, [blocker, t]);
 
   useEffect(() => {
     if (!guarded || phase === 'finishing') return;
@@ -334,7 +339,7 @@ export default function NewLecturePage() {
   const discardRecording = async () => {
     const rec = recorder.current;
     const s = session.current;
-    if (!rec || !s || !window.confirm(t.lectures.discardConfirm)) return;
+    if (!rec || !s || !(await askConfirm({ message: t.lectures.discardConfirm, action: 'delete' }))) return;
     recorder.current = null;
     session.current = null;
     const k = keeper.current;

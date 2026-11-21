@@ -6,6 +6,7 @@ export const en = {
     podcasts: 'Podcasts', settings: 'Settings', signOut: 'Sign out', menu: 'Menu', account: 'Account',
   },
   common: {
+    delete: 'Delete', leave: 'Leave', remove: 'Remove',
     loading: 'Loading…', save: 'Save', saving: 'Saving…', saved: 'Saved', cancel: 'Cancel',
     continue: 'Continue', back: 'Back', tryAgain: 'Try again',
     close: 'Close', or: 'or', open: 'Open',
@@ -88,6 +89,8 @@ export const en = {
     podcastsTitle: 'Podcasts',
   },
   game: {
+    source: 'What should the questions be about?', allLectures: 'All lectures', pickLectures: 'Choose lectures',
+    questions: (n: number) => (n === 1 ? '1 question' : `${n} questions`), chooseFirst: 'Choose what the questions are about first.', pickOne: 'Pick at least one lecture.',
     title: 'Games', subtitle: 'Quick games with questions from your own lectures.', play: 'Play a game',
     notEnough: 'The games need some flashcards or quiz questions. Make flashcards on a lecture first.',
     glide: { name: 'Glide', body: 'Fly a paper plane between stacks of books.', controls: 'Tap, click or press Space to fly up.' },

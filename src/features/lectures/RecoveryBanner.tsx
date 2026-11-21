@@ -7,6 +7,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { audioStore, type Draft } from './audioStore';
 import { recoverableDrafts } from './session';
 import { dateLocale } from '@shared/locales';
+import { askConfirm } from '@/ui/Confirm';
 
 /**
  * Shown on every page when a lecture recording or upload was left unfinished
@@ -32,7 +33,7 @@ export const RecoveryBanner = () => {
   if (onNewLecture || !drafts.length) return null;
 
   const discard = async (id: string) => {
-    if (!window.confirm(t.lectures.confirmDiscard)) return;
+    if (!(await askConfirm({ message: t.lectures.confirmDiscard, action: 'delete' }))) return;
     await audioStore.deleteDraft(id).catch(() => {});
     setDrafts((d) => d.filter((x) => x.id !== id));
   };

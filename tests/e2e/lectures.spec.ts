@@ -90,9 +90,11 @@ test('paste a lecture, get notes, transcript, quiz, flashcards and answers', asy
   expect(calls.lectureNotes).toHaveLength(notesCalls);
 
   // Delete lives in the options sheet, last.
-  page.once('dialog', (d) => d.accept());
   await page.getByRole('toolbar').getByRole('button', { name: 'Lecture options' }).click();
   await page.getByRole('dialog', { name: 'Lecture options' }).getByRole('button', { name: 'Delete lecture' }).click();
+  // The app's own confirm dialog, not the browser's; Cancel is the safe default.
+  await expect(page.getByRole('alertdialog').getByRole('button', { name: 'Cancel' })).toBeFocused();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Delete', exact: true }).click();
   await expect(page.getByText('No lectures yet')).toBeVisible();
 });
 

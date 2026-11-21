@@ -9,12 +9,17 @@ import { buildGame, shuffle, type GameQuestion } from './game';
  * in a shuffled order and starts over when they run out, so a long game never
  * runs dry.
  */
-export const useDeck = (folder: string) => {
+export const useDeck = (folder: string, lectures?: string[]) => {
   const { t, locale } = useI18n();
   const [pool, setPool] = useState<StudyLecture[] | null>(null);
   useEffect(() => { lectureRepo.studyMaterial(folder).then(setPool).catch(() => setPool([])); }, [folder]);
   const title = useCallback((l: StudyLecture) => lectureTitle(l, t.lectures.untitled, locale), [t, locale]);
-  const deck = useMemo<GameQuestion[]>(() => (pool ? buildGame(pool, title, Math.random, 500) : []), [pool, title]);
+  const only = lectures?.join(',');
+  const deck = useMemo<GameQuestion[]>(() => {
+    if (!pool) return [];
+    const ids = only ? new Set(only.split(',')) : null;
+    return buildGame(ids ? pool.filter((l) => ids.has(l.id)) : pool, title, Math.random, 500);
+  }, [pool, title, only]);
   const order = useRef<number[]>([]);
 
   const next = useCallback((): number => {

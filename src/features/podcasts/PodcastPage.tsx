@@ -13,6 +13,7 @@ import type { PodcastScript } from '@shared/media';
 import { VOICE_PAIRS } from '@shared/tts';
 import { loadSpeech, useCloudVoices } from '@/features/media/cloudVoice';
 import { PodcastPlayer } from './PodcastPlayer';
+import { askConfirm } from '@/ui/Confirm';
 
 const scriptText = (p: PodcastScript) =>
   p.lines.map((l) => `${l.chapter ? `\n## ${l.chapter}\n` : ''}${p.hosts[l.speaker]?.name}: ${l.text}`).join('\n').trim();
@@ -49,7 +50,7 @@ export default function PodcastPage() {
   if (episode === null) return <Alert tone="error">{t.podcasts.notFound}</Alert>;
 
   const remove = async () => {
-    if (!window.confirm(t.podcasts.confirmDelete)) return;
+    if (!(await askConfirm({ message: t.podcasts.confirmDelete, action: 'delete' }))) return;
     await mediaRepo.remove(id);
     navigate('/podcasts', { replace: true });
   };
