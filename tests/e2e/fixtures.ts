@@ -1,4 +1,11 @@
 import { test as base, expect, type Page } from '@playwright/test';
+import { NATIVE_NAME } from '../../shared/locales';
+import { en } from '../../src/i18n/en';
+import { he } from '../../src/i18n/he';
+import { ar } from '../../src/i18n/ar';
+import { ru } from '../../src/i18n/ru';
+
+const FINISH = { en: en.onboarding.finish, he: he.onboarding.finish, ar: ar.onboarding.finish, ru: ru.onboarding.finish };
 
 /** Block third-party requests (fonts) so tests are fast and offline-safe. */
 export const test = base.extend({
@@ -10,15 +17,16 @@ export const test = base.extend({
 export { expect };
 
 /** Fresh demo student who completes onboarding. */
-export const onboard = async (page: Page, opts: { name?: string; hebrew?: boolean } = {}) => {
+export const onboard = async (page: Page, opts: { name?: string; hebrew?: boolean; locale?: 'en' | 'he' | 'ar' | 'ru' } = {}) => {
+  const locale = opts.locale ?? (opts.hebrew ? 'he' : 'en');
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/signin');
   await page.getByRole('button', { name: /Try BrainWave|נסו את BrainWave/ }).click();
   await expect(page).toHaveURL(/\/onboarding/);
-  if (opts.hebrew) await page.getByRole('radio', { name: /עברית/ }).click();
+  if (locale !== 'en') await page.getByRole('radio', { name: NATIVE_NAME[locale] }).click();
   await page.getByRole('textbox').fill(opts.name ?? 'Maya');
-  await page.getByRole('button', { name: /Start learning|מתחילים ללמוד/ }).click();
+  await page.getByRole('button', { name: FINISH[locale] }).click();
   await expect(page).toHaveURL(/\/$/);
 };
 

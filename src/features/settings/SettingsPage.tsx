@@ -8,7 +8,7 @@ import { Field, Input, Select, Textarea } from '@/ui/Field';
 import { Segmented } from '@/ui/Segmented';
 import { Alert } from '@/ui/Alert';
 import { GRADES, type Grade } from '@shared/grades';
-import type { Locale } from '@shared/locales';
+import { NATIVE_NAME, LOCALES, type Locale } from '@shared/locales';
 import { LECTURE_LANGUAGES, SUMMARY_MODES, type LectureLanguage, type SummaryMode } from '@shared/lectures';
 import { AccountSection } from './AccountSection';
 import { StudyReminderControl } from './StudyReminderControl';
@@ -78,7 +78,7 @@ export default function SettingsPage() {
         <div className="space-y-1.5">
           <span className="block text-sm font-medium">{t.onboarding.language}</span>
           <Segmented<Locale> label={t.onboarding.language} value={locale} onChange={l => updateProfile({ locale: l }).catch(() => {})}
-            options={[{ value: 'en', label: t.languages.en }, { value: 'he', label: t.languages.he }]} />
+            options={LOCALES.map((l) => ({ value: l, label: NATIVE_NAME[l] }))} />
         </div>
         <div className="space-y-1.5">
           <span className="block text-sm font-medium">{t.settings.theme}</span>

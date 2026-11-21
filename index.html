@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="BrainWave" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script>
       // Apply the saved theme before first paint to avoid a flash.
       try {
@@ -20,7 +20,8 @@
         var dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
         if (dark) document.documentElement.classList.add('dark');
         var l = localStorage.getItem('bw.locale');
-        if (l === 'he') { document.documentElement.lang = 'he'; document.documentElement.dir = 'rtl'; }
+        if (l === 'he' || l === 'ar' || l === 'ru') document.documentElement.lang = l;
+        if (l === 'he' || l === 'ar') document.documentElement.dir = 'rtl';
       } catch (e) {}
     </script>
   </head>

@@ -15,6 +15,7 @@ import { MAX_SLIDES_CHARS } from '@shared/lectures';
 import { lectureRepo, transcriptOf, type LectureSummary } from '@/features/lectures/repo';
 import { lectureTitle } from '@/features/lectures/LecturesPage';
 import { addAttempt, graderRepo, loadTasks, taskId, type Task } from './history';
+import { dateLocale } from '@shared/locales';
 
 const DRAFT_KEY = 'bw.grader.draft';
 interface Draft { question: string; answer: string; rubric: string; lectureId: string }
@@ -92,7 +93,7 @@ export default function GraderPage() {
   };
 
   const fresh = () => { setQuestion(''); setAnswer(''); setRubric(''); setLectureId(''); setResult(null); setError(''); };
-  const date = (ms: number) => new Date(ms).toLocaleString(locale === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const date = (ms: number) => new Date(ms).toLocaleString(dateLocale(locale), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

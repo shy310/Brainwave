@@ -64,11 +64,19 @@ const TEXT = {
     study: { title: 'הגיע הזמן ללמוד', body: 'כמה דקות היום שומרות על הרצף. הכרטיסיות מחכות.' },
     class: (name: string) => ({ title: `${name} מתחיל בקרוב`, body: 'הקישו כדי להקליט ולקבל סיכום בסוף.' }),
   },
+  ar: {
+    study: { title: 'حان وقت الدراسة', body: 'بضع دقائق اليوم تحافظ على سلسلتك. بطاقاتك بانتظارك.' },
+    class: (name: string) => ({ title: `${name} تبدأ قريبًا`, body: 'اضغط لتسجيلها والحصول على ملخص عند انتهائها.' }),
+  },
+  ru: {
+    study: { title: 'Пора учиться', body: 'Несколько минут сегодня сохранят вашу серию. Карточки ждут.' },
+    class: (name: string) => ({ title: `${name} скоро начнётся`, body: 'Нажмите, чтобы записать занятие и получить конспект.' }),
+  },
 };
 
 /** What a reminder says and where tapping it goes. Pure. */
 export const reminderMessage = (d: Pick<Due, 'kind' | 'locale' | 'class_id' | 'class_name'>) => {
-  const text = d.locale === 'he' ? TEXT.he : TEXT.en;
+  const text = TEXT[d.locale as keyof typeof TEXT] ?? TEXT.en;
   if (d.kind === 'class') {
     return { ...text.class(d.class_name ?? ''), url: `/lectures/new?class=${encodeURIComponent(d.class_id ?? '')}`, tag: `class-${d.class_id}` };
   }

@@ -12,12 +12,13 @@ import { REMIND_OPTIONS, type ClassSlot } from '@shared/schedule';
 import { scheduleRepo } from './scheduleRepo';
 import { PushNote } from './PushNote';
 import { enableReminders, notificationsSupported, remindersAllowed, syncNativeReminders } from './reminders';
+import { dateLocale } from '@shared/locales';
 
 type Draft = Omit<ClassSlot, 'id'> & { id?: string };
 const blank = (): Draft => ({ name: '', weekday: new Date().getDay(), starts: '10:00', ends: '11:30', folderId: null, remindMinutes: 10 });
 
 export const weekdayName = (day: number, locale: string, style: 'long' | 'short' = 'long') =>
-  new Date(2026, 10, 15 + day).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { weekday: style }); // 15 Nov 2026 is a Sunday
+  new Date(2026, 10, 15 + day).toLocaleDateString(dateLocale(locale), { weekday: style }); // 15 Nov 2026 is a Sunday
 
 /** The weekly class timetable, with reminders to record. */
 export default function SchedulePage() {

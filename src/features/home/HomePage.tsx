@@ -14,6 +14,7 @@ import { UpNextBanner } from '@/features/schedule/UpNext';
 import { lectureRepo, type LectureSummary } from '@/features/lectures/repo';
 import { useDueCount } from '@/features/lectures/reviews';
 import { lectureTitle } from '@/features/lectures/LecturesPage';
+import { dateLocale } from '@shared/locales';
 
 interface Action { to: string; icon: LucideIcon; label: string; tint: string; badge?: number }
 
@@ -87,7 +88,7 @@ export default function HomePage() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium" dir="auto">{lectureTitle(l, t.lectures.untitled, locale)}</span>
-                  <span className="block text-xs text-muted">{new Date(l.created_at).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'short' })}</span>
+                  <span className="block text-xs text-muted">{new Date(l.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short' })}</span>
                 </span>
                 <ChevronRight className="size-4 shrink-0 text-muted rtl:rotate-180" aria-hidden="true" />
               </Link>

@@ -16,12 +16,13 @@ import { useDragReorder } from './useDragReorder';
 import { useDueCount } from './reviews';
 import { UpNextBanner } from '@/features/schedule/UpNext';
 import { IconTile } from '@/ui/IconTile';
+import { dateLocale } from '@shared/locales';
 
 const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera } as const;
 const VIEW_KEY = 'bw.lectures.view';
 
 export const lectureTitle = (l: Pick<LectureSummary, 'title' | 'created_at'>, untitled: string, locale: string) =>
-  l.title || `${untitled} · ${new Date(l.created_at).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'short' })}`;
+  l.title || `${untitled} · ${new Date(l.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short' })}`;
 
 const chip = (active: boolean) => cn(
   'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors',
@@ -239,7 +240,7 @@ export default function LecturesPage() {
                       <p className="mt-0.5 text-sm text-muted">
                         {t.lectures.sources[l.source]}
                         {l.duration_sec > 0 && ` · ${t.lectures.minutes(Math.max(1, Math.round(l.duration_sec / 60)))}`}
-                        {' · '}{new Date(l.created_at).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB')}
+                        {' · '}{new Date(l.created_at).toLocaleDateString(dateLocale(locale))}
                         {inFolder && activeFolder === 'all' && <> · <span dir="auto">{inFolder.name}</span></>}
                       </p>
                     </div>

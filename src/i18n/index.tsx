@@ -1,16 +1,18 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { en, type Dict } from './en';
 import { he } from './he';
-import { isLocale, isRtl, type Locale } from '@shared/locales';
+import { ar } from './ar';
+import { ru } from './ru';
+import { isLocale, isRtl, localeFromBrowser, type Locale } from '@shared/locales';
 import { storage } from '@/lib/storage';
 
-const DICTS: Record<Locale, Dict> = { en, he };
+const DICTS: Record<Locale, Dict> = { en, he, ar, ru };
 const KEY = 'bw.locale';
 
 const initialLocale = (): Locale => {
   const saved = storage.get(KEY);
   if (isLocale(saved)) return saved;
-  return typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('he') ? 'he' : 'en';
+  return localeFromBrowser(typeof navigator !== 'undefined' ? navigator.language : undefined);
 };
 
 interface I18n {

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { test, expect, onboard } from './fixtures';
 
-// axe-core on the main screens, light and dark, English and Hebrew: contrast, names, roles, headings.
+// axe-core on the main screens, light and dark, in all four languages: contrast, names, roles, headings.
 const AXE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 const lecture = { id: 'lec1', title: 'Derivatives', source: 'text', language: 'auto', status: 'ready', duration_sec: 0,
   segments: [{ start: 0, text: 'The derivative is the slope.' }], slides_text: null,
@@ -10,12 +10,12 @@ const lecture = { id: 'lec1', title: 'Derivatives', source: 'text', language: 'a
   quiz: null, flashcards: { cards: [{ front: 'F', back: 'B' }] }, folder_id: null, created_at: '2026-11-03T10:00:00.000Z', updated_at: '' };
 const SCREENS = ['/', '/learn', '/lectures', '/lectures/lec1', '/lectures/review', '/play', '/groups', '/tutor', '/grader', '/videos', '/settings'];
 
-for (const [lang, scheme] of [['en', 'light'], ['he', 'dark']] as const) {
+for (const [lang, scheme] of [['en', 'light'], ['he', 'dark'], ['ar', 'light'], ['ru', 'dark']] as const) {
   test(`no accessibility violations on the main screens (${lang}, ${scheme})`, async ({ page }) => {
     test.slow();
     // Reduced motion: measure finished screens, not text mid-fade.
     await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
-    await onboard(page, { hebrew: lang === 'he' });
+    await onboard(page, { locale: lang });
     await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), lecture);
     for (const path of SCREENS) {
       await page.goto(path);

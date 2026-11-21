@@ -17,9 +17,11 @@ import {
 } from '../../../shared/lectures.js';
 
 const LANGUAGE_HINT: Record<LectureLanguage, string> = {
-  auto: 'The lecture may be in English, Hebrew or a mix. Write each part in the language it was spoken in.',
+  auto: 'The lecture may be in English, Hebrew, Arabic, Russian or a mix. Write each part in the language it was spoken in, in its own script.',
   en: 'The lecture is in English.',
   he: 'The lecture is in Hebrew (it may include English technical terms — keep those in English). Write Hebrew in Hebrew script, without niqqud.',
+  ar: 'The lecture is in Arabic (it may include English technical terms — keep those in English). Write Arabic in Arabic script, without tashkeel, keeping the dialect as spoken.',
+  ru: 'The lecture is in Russian (it may include English technical terms — keep those in English). Write Russian in Cyrillic.',
 };
 
 const CLEANUP_RULES = `- Clean it up: remove filler words (um, uh, אה, אמ), false starts and repeated words; add punctuation; start a new paragraph when the topic shifts.
@@ -112,7 +114,7 @@ const lectureBlock = (transcript: string, slides?: string, title?: string) => [
 ].filter(Boolean).join('\n\n');
 
 const notesLanguage = (ctx: OpContext) =>
-  `Write in ${LOCALE_NAME[ctx.locale]}${ctx.locale === 'he' ? ' (keep technical terms in their original language where students would expect them)' : ''}.`;
+  `Write in ${LOCALE_NAME[ctx.locale]}${ctx.locale !== 'en' ? ' (keep technical terms in their original language where students would expect them)' : ''}.`;
 
 /** Learn topics the lecture may cover, for the model to choose from (empty when nothing matches). */
 const topicChoices = (transcript: string, slides?: string, title?: string) => {

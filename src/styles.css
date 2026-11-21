@@ -4,7 +4,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Rubik", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Rubik covers Latin, Hebrew and Cyrillic; Arabic letters come from IBM Plex Sans Arabic. */
+  --font-sans: "Rubik", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Deep teal: calm and focused, with a warm coral for highlights. */
   --color-brand-50: #edf9f6;

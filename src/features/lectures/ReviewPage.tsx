@@ -12,6 +12,7 @@ import { buildQueue, preview, type CardState, type Rating } from '@shared/srs';
 import { lectureTitle } from './LecturesPage';
 import { lectureRepo } from './repo';
 import { rate, reviewCards, reviewRepo, type ReviewCard } from './reviews';
+import { dateLocale } from '@shared/locales';
 
 const RATINGS: { rating: Rating; variant: 'secondary' | 'primary' }[] = [
   { rating: 'again', variant: 'secondary' }, { rating: 'good', variant: 'primary' }, { rating: 'easy', variant: 'secondary' },
@@ -60,7 +61,7 @@ export default function ReviewPage() {
   const nextDue = () => {
     const soonest = Math.min(...[...(states?.values() ?? [])].map((s) => s.due));
     if (!Number.isFinite(soonest)) return '';
-    return new Date(soonest).toLocaleString(locale === 'he' ? 'he-IL' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return new Date(soonest).toLocaleString(dateLocale(locale), { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
 
   return (

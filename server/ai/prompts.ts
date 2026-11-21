@@ -12,11 +12,18 @@ const TONE: Record<ReturnType<typeof gradeBand>, string> = {
   college: 'Be rigorous and concise, at an introductory university level. Use standard notation and terminology.',
 };
 
+/** How to write each language well. */
+const LANGUAGE_STYLE: Partial<Record<OpContext['locale'], string>> = {
+  he: ' Use natural modern Hebrew without niqqud. Keep math, code and formulas in standard Latin notation.',
+  ar: ' Use clear Modern Standard Arabic without tashkeel, with Western digits (0-9). Keep math, code and formulas in standard Latin notation.',
+  ru: ' Use natural modern Russian. Keep math, code and formulas in standard Latin notation.',
+};
+
 /** Shared rules for every learning prompt: audience, language and formatting. */
 export const audience = (ctx: OpContext): string => [
   `The student is in ${GRADE_LABEL(ctx.grade)}. ${TONE[gradeBand(ctx.grade)]}`,
   `Write ALL student-facing text in ${LOCALE_NAME[ctx.locale]}.` +
-    (ctx.locale === 'he' ? ' Use natural modern Hebrew without niqqud. Keep math, code and formulas in standard Latin notation.' : ''),
+    (LANGUAGE_STYLE[ctx.locale] ?? ''),
   'Formatting: Markdown is allowed (bold, lists, `code`, fenced code blocks). Write math in LaTeX: $...$ inline, $$...$$ on its own line.',
   'Be accurate. If something is uncertain or debated, say so briefly instead of inventing facts.',
 ].join('\n');

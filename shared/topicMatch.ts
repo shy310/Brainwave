@@ -1,11 +1,14 @@
 // Which Learn topics a lecture is about. A cheap word-overlap shortlist is
-// made here (English and Hebrew); the notes model then picks the topics the
+// made here (English, Hebrew, Arabic and Russian); the notes model then picks the topics the
 // lecture really covers from that shortlist.
 
 import { COURSES, findTopic } from './curriculum.js';
+import { LOCALES } from './locales.js';
 
 const STOP = new Set(('the and for are but not you all any can her was one our out has have this that with from they will what when which their there about into than then them these those your more some such also only very just over most other '
-  + 'של את על עם זה זו גם או אם כי לא כל יש אין הוא היא הם הן אנחנו אתם מה איך למה כמו בין אחרי לפני עוד רק כבר מאוד').split(' '));
+  + 'של את על עם זה זו גם או אם כי לא כל יש אין הוא היא הם הן אנחנו אתם מה איך למה כמו בין אחרי לפני עוד רק כבר מאוד '
+  + 'التي الذي هذا هذه ذلك تلك على إلى من في عن مع كان كانت لكن أيضا كيف لماذا ماذا بين بعد قبل '
+  + 'это как что для или так все его она они при уже ещё еще есть был была были чтобы если когда только').split(' '));
 
 /** Words of 3+ letters, lowercased; Hebrew one-letter prefixes (ה, ו, ב, ל, מ, ש, כ) are also tried without them. */
 export const words = (text: string): string[] => {
@@ -15,6 +18,11 @@ export const words = (text: string): string[] => {
     out.push(raw);
     if (/^[הובלמשכ][א-ת]{3,}$/.test(raw)) out.push(raw.slice(1));
     if (/^[a-z]{5,}s$/.test(raw)) out.push(raw.slice(0, -1)); // derivatives → derivative
+    // Arabic "the" (ال), also after "and" (وال): الخلية → خلية.
+    const al = raw.match(/^و?ال([؀-ۿ]{3,})$/);
+    if (al) out.push(al[1]);
+    // Russian endings change a lot (клетка, клетки, клеток): long words also match on their first letters.
+    if (/^[а-яё]{6,}$/.test(raw)) out.push(`${raw.slice(0, 5)}…`);
   }
   return out;
 };
@@ -24,8 +32,8 @@ let index: Indexed[] | null = null;
 const topicsIndex = () => {
   index ??= COURSES.flatMap((c) => c.units.flatMap((u) => u.topics.map((t) => ({
     id: t.id,
-    title: [...new Set([...words(t.title.en), ...words(t.title.he)])],
-    body: new Set([...words(t.title.en), ...words(t.title.he), ...words(t.description.en), ...words(t.description.he), ...words(u.title.en), ...words(u.title.he)]),
+    title: [...new Set(LOCALES.flatMap((l) => words(t.title[l])))],
+    body: new Set(LOCALES.flatMap((l) => [...words(t.title[l]), ...words(t.description[l]), ...words(u.title[l])])),
   }))));
   return index;
 };

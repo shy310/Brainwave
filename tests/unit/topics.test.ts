@@ -22,6 +22,17 @@ describe('related Learn topics', () => {
     expect(titles(ids.slice(0, 5)).join(' | ').toLowerCase()).toMatch(/photosynth|plant/);
   });
 
+  it('shortlists topics an Arabic lecture is about', () => {
+    expect(words('والخلية')).toContain('خلية');
+    const ids = candidateTopics('درسنا اليوم البناء الضوئي: يستخدم النبات الضوء والماء لصنع الغذاء. البناء الضوئي يطلق الأكسجين، والتنفس الخلوي يحرر الطاقة.');
+    expect(titles(ids.slice(0, 5)).join(' | ').toLowerCase()).toMatch(/photosynth|plant/);
+  });
+
+  it('shortlists topics a Russian lecture is about, whatever the word endings', () => {
+    const ids = candidateTopics('Сегодня говорим о фотосинтезе: растения используют свет и воду. Фотосинтезом растение получает энергию, а клеточного дыхания хватает ночью.');
+    expect(titles(ids.slice(0, 5)).join(' | ').toLowerCase()).toMatch(/photosynth|plant/);
+  });
+
   it('finds nothing for unrelated text', () => {
     expect(candidateTopics('Lorem ipsum dolor sit amet')).toEqual([]);
   });

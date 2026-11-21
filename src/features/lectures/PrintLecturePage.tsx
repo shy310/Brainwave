@@ -8,6 +8,7 @@ import { Spinner } from '@/ui/Spinner';
 import { NotesView } from './NotesView';
 import { lectureTitle } from './LecturesPage';
 import { lectureRepo, type Lecture } from './repo';
+import { dateLocale } from '@shared/locales';
 
 /**
  * A clean page of a lecture's notes for printing or "Save as PDF". The browser
@@ -44,7 +45,7 @@ export default function PrintLecturePage() {
       </div>
       <header className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight" dir="auto">{title}</h1>
-        <p className="text-sm text-muted">{new Date(lecture.created_at).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB')} · BrainWave</p>
+        <p className="text-sm text-muted">{new Date(lecture.created_at).toLocaleDateString(dateLocale(locale))} · BrainWave</p>
       </header>
       <NotesView notes={lecture.notes} />
     </div>
