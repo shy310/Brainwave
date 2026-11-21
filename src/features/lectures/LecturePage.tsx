@@ -39,6 +39,7 @@ import { dateLocale } from '@shared/locales';
 import { copyNotes as copyNotesToClipboard, notesLabels, notesLocale, notesToMarkdown } from './notesExport';
 import { askConfirm } from '@/ui/Confirm';
 import { Shimmer } from '@/ui/Feedback';
+import { recordQuizAnswer } from '@/features/weak/mistakeRepo';
 import { markedSegments, transcriptWithMarks } from '@shared/marks';
 import { ImportantMoments } from './ImportantMoments';
 
@@ -377,6 +378,7 @@ export default function LecturePage() {
             busy === 'quiz' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" /><Shimmer text={t.lectures.makingQuiz} /></Card>
             : lecture.quiz ? (
               <QuizRunner key={quizRound} questions={lecture.quiz.questions} context={transcript}
+                onQuestion={(q, ok) => void recordQuizAnswer(q, id, ok)}
                 resultActions={<>
                   <Button variant="secondary" onClick={() => setQuizRound((r) => r + 1)}>{t.quiz.retry}</Button>
                   <Button icon={<Sparkles className="size-4" />} onClick={() => generate('quiz')}>{t.lectures.newQuiz}</Button>
