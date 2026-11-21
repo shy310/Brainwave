@@ -72,7 +72,7 @@ export const he: Dict = {
       recordTitle: 'להקליט את השיעור הבא', recordBody: 'בסוף תקבלו סיכום, בוחן וכרטיסיות.', recordCta: 'להתחיל הקלטה',
     },
     quick: {
-      title: 'התחלה מהירה', record: 'הקלטה', upload: 'העלאה', pdf: 'PDF', review: 'חזרה', exams: 'מבחנים', search: 'חיפוש', games: 'משחקים',
+      title: 'התחלה מהירה', record: 'הקלטה', upload: 'העלאה', pdf: 'PDF', review: 'חזרה', exams: 'מבחנים', weak: 'נקודות חולשה', search: 'חיפוש', games: 'משחקים',
       tutor: 'שאלו AI', grade: 'בדיקה', groups: 'קבוצות',
     },
     recent: 'להמשיך', seeAll: 'הכול', explore: 'גלו עוד',
@@ -105,6 +105,13 @@ export const he: Dict = {
     noQuestions: 'בהרצאות האלה עוד אין כרטיסיות או שאלות בוחן. צרו קודם בהרצאה.',
     banner: (title: string, when: string) => `${title} · ${when}`,
   },
+  weak: {
+    title: 'נקודות חולשה', subtitle: 'שאלות שטעית בהן וכרטיסיות שחוזרות להישכח, בתרגול קצר אחד. עונים נכון פעמיים ברצף וזה יוצא מהרשימה.',
+    start: 'לתרגל עכשיו', count: (n: number) => (n === 1 ? 'אחת לתרגול' : `${n} לתרגול`),
+    missed: (n: number) => (n === 1 ? 'שאלה אחת שטעית בה' : `${n} שאלות שטעית בהן`), cards: (n: number) => (n === 1 ? 'כרטיסייה אחת שחוזרת להישכח' : `${n} כרטיסיות שחוזרות להישכח`),
+    empty: 'אין כרגע נקודות חולשה 🎉 כל מה שטועים בו בבוחן או ששוכחים בכרטיסיות יופיע כאן.',
+    again: 'עוד סבב', done: 'חזרה להרצאות', home: 'לתרגל את נקודות החולשה',
+  },
   search: {
     title: 'חיפוש בהרצאות', subtitle: 'למצוא כל דבר שהמרצה אמר או שכתוב בסיכומים, ולקפוץ ישר אליו.',
     placeholder: 'חיפוש או שאלה…', open: 'חיפוש בכל ההרצאות',
@@ -134,6 +141,13 @@ export const he: Dict = {
     area: (name: string) => `המשחק ${name}`,
   },
   groups: {
+    challenge: {
+      daily: 'שאלת היום', dailyHint: 'אותה שאלה לכל חברי הקבוצה, מתוך מה ששיתפתם.',
+      noQuestion: 'שתפו בוחן או כרטיסיות בקבוצה כדי לקבל שאלת יום.',
+      answered: (n: number, total: number) => `${n} מתוך ${total} ענו היום`, gotIt: 'צדק', missed: 'טעה', you: 'את/ה',
+      board: 'המשחקים של השבוע', boardHint: 'הניקוד הכי טוב של כל אחד בגלישה ובמרוץ נתיבים השבוע.',
+      noScores: 'עוד אין ניקוד השבוע. שחקו כדי לפתוח את המרוץ!', play: 'לשחק',
+    },
     title: 'קבוצות לימוד', subtitle: 'לומדים עם חברים לכיתה: משתפים סיכומים, כרטיסיות ובחנים עם הקבוצה.',
     empty: 'עוד לא הצטרפת לקבוצה. צרו קבוצה והזמינו את החברים לכיתה.',
     create: 'קבוצה חדשה', name: 'שם הקבוצה', namePlaceholder: 'למשל: קבוצת לימוד חדו״א', make: 'יצירה',
@@ -418,11 +432,30 @@ export const he: Dict = {
       stale: 'ערכת את התמלול. הסיכום, הבוחן והכרטיסיות נוצרו מהגרסה הקודמת.',
       updateAll: 'לעדכן אותם לפי הגרסה שלי', updating: 'מעדכנים…',
     },
+    highlights: {
+      toolbar: 'סימון', colors: { yellow: 'צהוב', green: 'ירוק', blue: 'כחול', pink: 'ורוד' }, color: (c: string) => `לסמן ב${c}`,
+      comment: 'הערה', addComment: 'הוספת הערה', editComment: 'עריכת הערה', placeholder: 'ההערה שלך על זה…', save: 'שמירה', remove: 'הסרת הסימון',
+      title: 'הסימונים שלך', hint: 'מסמנים טקסט בסיכום כדי להדגיש אותו או להוסיף הערה.', missing: 'כבר לא מופיע בסיכום הזה',
+      count: (n: number) => (n === 1 ? 'סימון אחד' : `${n} סימונים`), show: 'להציג בסיכום',
+    },
     marks: {
       mark: 'חשוב', markHint: 'מקישים כשמשהו חשוב (או לוחצים M). זה יקבל תשומת לב מיוחדת בסיכום, בבוחן ובכרטיסיות.',
       marked: (time: string) => `סומן ב־${time}`, count: (n: number) => (n === 1 ? 'סימון אחד' : `${n} סימונים`),
       title: 'רגעים חשובים', body: 'סימנת את אלה בזמן ההקלטה. הם מקבלים תשומת לב מיוחדת בסיכום, בבוחן ובכרטיסיות.',
       play: (time: string) => `לנגן מ־${time}`, showInTranscript: 'להציג בתמלול', badge: 'סומן כחשוב',
+    },
+    map: {
+      title: 'מפת מושגים', open: 'מפת מושגים', make: 'לשרטט מפת מושגים', making: 'משרטטים את המפה…', redo: 'לשרטט מחדש',
+      body: 'לראות איך הרעיונות של ההרצאה מתחברים. מקישים על רעיון כדי לראות למה הוא מקושר.',
+      zoomIn: 'הגדלה', zoomOut: 'הקטנה', reset: 'התאמה למסך', list: 'כרשימה', diagram: (title: string) => `מפת מושגים של ${title}`,
+      links: 'מקושר אל', needsText: 'קודם צריך סיכום או תמלול להרצאה.',
+    },
+    export: {
+      open: 'ייצוא…', title: 'ייצוא', flashcards: 'כרטיסיות', notes: 'סיכום',
+      anki: 'Anki', ankiBody: 'קובץ ש־Anki מייבא (File → Import), כולל נוסחאות.', noCards: 'קודם צריך ליצור כרטיסיות להרצאה.',
+      docs: 'Google Docs', docsBody: 'קובץ Word: מעלים ל־Google Drive ופותחים עם Google Docs.',
+      notion: 'Notion', notionBody: 'קובץ Markdown לייבוא ב־Notion.', copyNotion: 'העתקה ל־Notion', copied: 'הועתק — מדביקים בדף ב־Notion',
+      noNotes: 'כדי לייצא, קודם כותבים סיכום להרצאה.',
     },
     library: {
       favorites: 'מועדפים', favorite: 'הוספה למועדפים', unfavorite: 'הסרה מהמועדפים', starred: 'מועדף', open: 'פתיחה', renameLecture: 'שינוי שם', moveLecture: 'העברה לתיקייה', deleteLecture: 'מחיקה', options: (n: string) => `אפשרויות עבור „${n}”`,
@@ -449,7 +482,7 @@ export const he: Dict = {
       styleHelp: { short: 'הרעיונות המרכזיים במסך אחד.', detailed: 'כל מה שחשוב, חלק אחר חלק.', exam: 'עם שאלות תרגול וטעויות נפוצות.' } },
     mastery: { title: 'התקדמות', new: 'חדשות', learning: 'עדיין לומדים', almost: 'כמעט שם', mastered: 'שולטים' },
     tools: {
-      title: 'כלי לימוד', review: 'חזרה על כרטיסיות', exams: 'מבחנים', examsBody: 'תוכנית עד יום המבחן', games: 'משחקים', gamesBody: 'גלישה ומרוץ נתיבים, עם השאלות שלכם',
+      title: 'כלי לימוד', review: 'חזרה על כרטיסיות', weak: 'נקודות חולשה', weakBody: 'מה שחוזרים לטעות בו', exams: 'מבחנים', examsBody: 'תוכנית עד יום המבחן', games: 'משחקים', gamesBody: 'גלישה ומרוץ נתיבים, עם השאלות שלכם',
       groups: 'קבוצות לימוד', groupsBody: 'שיתוף סיכומים עם חברים לכיתה', schedule: 'מערכת שעות', scheduleBody: 'תזכורות להקלטה',
       reviewBody: 'כמה דקות ביום',
     },

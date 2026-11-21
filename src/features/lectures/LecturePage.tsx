@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
-import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal } from 'lucide-react';
+import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal, Network } from 'lucide-react';
 import { Sheet } from '@/ui/Sheet';
 import { ListRow, ListSection } from '@/ui/List';
 import { publicUrl } from '@/lib/platform';
@@ -36,22 +36,20 @@ import { lectureTitle } from './LecturesPage';
 import { notesMode, switchNotes, withNewNotes } from './notesVersions';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
 import { dateLocale } from '@shared/locales';
-import { copyNotes as copyNotesToClipboard, notesLabels, notesLocale, notesToMarkdown } from './notesExport';
+import { copyNotes as copyNotesToClipboard } from './notesExport';
 import { askConfirm } from '@/ui/Confirm';
 import { Shimmer } from '@/ui/Feedback';
+import { recordQuizAnswer } from '@/features/weak/mistakeRepo';
 import { markedSegments, transcriptWithMarks } from '@shared/marks';
 import { ImportantMoments } from './ImportantMoments';
 import { youtubeId, youtubeUrl } from '@shared/youtube';
+import { Highlighter } from './Highlighter';
+import { HighlightsList } from './HighlightsList';
+import { ExportSheet } from './ExportSheet';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
 
-const download = (name: string, text: string) => {
-  const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }));
-  const a = Object.assign(document.createElement('a'), { href: url, download: name });
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-};
 
 export default function LecturePage() {
   const { id = '' } = useParams();
@@ -80,7 +78,7 @@ export default function LecturePage() {
   const [copied, setCopied] = useState(false);
   const [renaming, setRenaming] = useState(false);
   /** Which sheet is open: lecture options, customize the notes, or move to a folder. */
-  const [sheet, setSheet] = useState<'' | 'options' | 'customize' | 'move'>('');
+  const [sheet, setSheet] = useState<'' | 'options' | 'customize' | 'move' | 'export'>('');
   /** The style picked in Customize, applied only on Apply (a new style costs an AI rewrite). */
   const [choice, setChoice] = useState<SummaryMode>('detailed');
   const [name, setName] = useState('');
@@ -347,7 +345,10 @@ export default function LecturePage() {
                 </div>
                 <ImportantMoments marks={lecture.marks ?? []} segments={lecture.segments} onPlay={lecture.audio_path ? playFrom : openVideoAt}
                   onShow={(start) => { setTab('transcript'); requestAnimationFrame(() => document.getElementById(`seg-${start}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })); }} />
-                <NotesView notes={lecture.notes} />
+                <Highlighter highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })}>
+                  <NotesView notes={lecture.notes} />
+                </Highlighter>
+                <HighlightsList highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })} />
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
                 {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
                   onChange={(token, note) => { setLecture((l) => (l ? { ...l, share_token: token } : l)); setShareNote(note); }} />}
@@ -384,6 +385,7 @@ export default function LecturePage() {
             busy === 'quiz' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" /><Shimmer text={t.lectures.makingQuiz} /></Card>
             : lecture.quiz ? (
               <QuizRunner key={quizRound} questions={lecture.quiz.questions} context={transcript}
+                onQuestion={(q, ok) => void recordQuizAnswer(q, id, ok)}
                 resultActions={<>
                   <Button variant="secondary" onClick={() => setQuizRound((r) => r + 1)}>{t.quiz.retry}</Button>
                   <Button icon={<Sparkles className="size-4" />} onClick={() => generate('quiz')}>{t.lectures.newQuiz}</Button>
@@ -431,8 +433,9 @@ export default function LecturePage() {
             ))}
           </div>
           <ListSection>
+            <ListRow icon={Network} label={t.lectures.map.open} onClick={then(() => navigate(`/lectures/${id}/map`))} />
             {lecture.notes && <ListRow icon={FileDown} label={t.lectures.share.savePdf} onClick={then(() => navigate(`/lectures/${id}/print`))} chevron={false} />}
-            {lecture.notes && <ListRow icon={Download} label={t.lectures.download} onClick={then(() => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, notesLabels(notesLocale(lecture.notes!, locale)))))} chevron={false} />}
+            {(lecture.notes || lecture.flashcards) && <ListRow icon={Download} label={t.lectures.export.open} onClick={() => setSheet('export')} />}
             {lecture.notes && <ListRow icon={RefreshCw} label={t.lectures.regenerate} onClick={then(() => void generate('notes'))} chevron={false} />}
             {lecture.audio_path && recordingUrl && (
               <ListRow icon={Download} label={tk.download} chevron={false} onClick={then(() => {
@@ -467,6 +470,8 @@ export default function LecturePage() {
           <p className="pt-1 text-sm text-muted">{t.lectures.notesStyleHint}</p>
         </div>
       </Sheet>
+
+      <ExportSheet open={sheet === 'export'} onClose={close} lecture={lecture} title={title} />
 
       <Sheet open={sheet === 'move'} onClose={close} title={to.move}>
         <div role="radiogroup" aria-label={to.move}>

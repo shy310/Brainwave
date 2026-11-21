@@ -239,6 +239,16 @@ describe('lecture operations', () => {
     expect(bad.status).toBe(400);
   });
 
+  it('draws a concept map and tidies it (one main idea, real links, nothing floating)', async () => {
+    mockModel([JSON.stringify({
+      nodes: [{ id: 'calc', label: 'Calculus', kind: 'main', note: '' }, { id: 'd', label: 'Derivative', kind: 'concept', note: 'Rate of change' }, { id: 'i', label: 'Integral', kind: 'concept', note: '' }],
+      edges: [{ from: 'calc', to: 'd', label: 'includes' }, { from: 'd', to: 'ghost', label: 'x' }],
+    })]);
+    const res = await post('/api/ai/conceptMap', { input: { title: 'Calculus', text: 'Derivatives and integrals are the two halves of calculus.' } });
+    const map = (await res.json()).data;
+    expect(map.edges).toEqual([{ from: 'calc', to: 'd', label: 'includes' }, { from: 'calc', to: 'i', label: '' }]);
+  });
+
   it('gives exam prep practice questions and common mistakes, and keeps them out of other styles', async () => {
     const { lectureNotesOp } = await import('../../server/ai/ops/lectures');
     const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };

@@ -20,6 +20,7 @@ import { cardKey, type CardState } from '@shared/srs';
 import { folderRepo, type Folder } from './folders';
 import { lectureTitle } from './LecturesPage';
 import { lectureRepo, transcriptOf, type StudyLecture } from './repo';
+import { recordQuizAnswer } from '@/features/weak/mistakeRepo';
 
 type Tab = 'cards' | 'quiz';
 interface Last { cards?: { knew: number; total: number }; quiz?: { score: number } }
@@ -161,6 +162,7 @@ export default function StudyFolderPage() {
             <div className="space-y-3">
               <p className="text-sm text-muted">{ts.questionsFrom(Math.min(QUIZ_ROUND, quiz.total), quiz.lectures)}</p>
               <QuizRunner key={round} questions={quiz.questions} onFinish={(score) => remember({ quiz: { score } })}
+                onQuestion={(q, ok) => void recordQuizAnswer(q, null, ok)}
                 resultActions={<Button onClick={() => setRound((r) => r + 1)}>{ts.newRound}</Button>} />
             </div>
           )}

@@ -4,6 +4,8 @@ import { storage } from '@/lib/storage';
 import { track } from '@/features/stats/activity';
 import type { SavedNotes } from './notesVersions';
 import type { SearchableLecture } from '@shared/search';
+import type { NoteHighlight } from '@shared/highlights';
+import type { ConceptMap } from '@shared/conceptMap';
 import type { Quiz } from '@shared/learn';
 import type { Flashcards, LectureLanguage, LectureSource, Notes, Segment } from '@shared/lectures';
 
@@ -27,10 +29,14 @@ export interface Lecture {
   audio_path?: string | null;
   audio_type?: string | null;
   audio_bytes?: number | null;
+  /** Highlights and comments in the notes (needs migration 0023). */
+  highlights?: NoteHighlight[] | null;
   /** Moments marked as important while recording, in seconds (needs migration 0021). */
   marks?: number[] | null;
   /** Where it came from, e.g. the YouTube video (needs migration 0026). */
   source_url?: string | null;
+  /** A map of the lecture's ideas (needs migration 0025). */
+  concept_map?: ConceptMap | null;
   /** Starred in the library (needs migration 0019). */
   favorite?: boolean;
   created_at: string;
