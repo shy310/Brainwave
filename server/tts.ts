@@ -1,7 +1,7 @@
 import type { Response } from 'express';
 import type { AuthedRequest } from './auth.js';
 import { env, ttsService } from './env.js';
-import { TtsInputSchema, type CloudVoice } from '../shared/tts.js';
+import { TtsInputSchema, VOICE_PAIRS, type CloudVoice } from '../shared/tts.js';
 
 const escapeXml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
@@ -29,7 +29,7 @@ const consumeTts = async (userId: string, chars: number): Promise<boolean> => {
 
 /** The OpenRouter voice for one of our voice slots: the first or second voice of its language. */
 export const openRouterVoice = (voice: CloudVoice) => {
-  const second = voice === 'en-US-AndrewNeural' || voice === 'he-IL-AvriNeural';
+  const second = Object.values(VOICE_PAIRS).some((pair) => pair[1] === voice);
   return env.ttsVoices[second ? 1 : 0] ?? env.ttsVoices[0];
 };
 

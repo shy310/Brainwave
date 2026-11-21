@@ -25,7 +25,7 @@ export const estimateMs = (text: string, rate = 1) => Math.max(1200, (text.split
 
 const matchesLocale = (v: SpeechSynthesisVoice, locale: Locale) => {
   const lang = v.lang.toLowerCase();
-  return locale === 'he' ? lang.startsWith('he') || lang.startsWith('iw') : lang.startsWith('en');
+  return lang.startsWith(locale) || (locale === 'he' && lang.startsWith('iw'));
 };
 
 const quality = (v: SpeechSynthesisVoice) =>
@@ -34,7 +34,7 @@ const quality = (v: SpeechSynthesisVoice) =>
 /** The best device voice for the language of a natural voice, if the device has one. */
 const deviceVoiceFor = (cloud: CloudVoice): SpeechSynthesisVoice | null => {
   if (!hasSpeech()) return null;
-  const locale: Locale = cloud.startsWith('he') ? 'he' : 'en';
+  const locale = cloud.slice(0, 2) as Locale;
   return speechSynthesis.getVoices().filter((v) => matchesLocale(v, locale)).sort((a, b) => quality(b) - quality(a))[0] ?? null;
 };
 

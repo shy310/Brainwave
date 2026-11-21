@@ -46,7 +46,7 @@ export const en = {
     '6': 'Grade 6', '7': 'Grade 7', '8': 'Grade 8', '9': 'Grade 9', '10': 'Grade 10', '11': 'Grade 11',
     '12': 'Grade 12', college: 'College / university',
   },
-  languages: { en: 'English', he: 'עברית (Hebrew)' },
+  languages: { en: 'English', he: 'עברית (Hebrew)', ar: 'العربية (Arabic)', ru: 'Русский (Russian)' },
   focus: {
     button: 'Focus', title: 'Focus mode', minutes: (n: number) => `${n} min`,
     body: 'Hide distractions and study for a set time, then take a short break. Focus time counts toward your streak.',
@@ -161,7 +161,7 @@ export const en = {
     deleteNow: 'Delete permanently', deleting: 'Deleting…', deleted: 'Your account and all its data were deleted.',
     publicTitle: 'Delete your BrainWave account',
     publicSteps: ['Open BrainWave and sign in.', 'Go to Settings → Account.', 'Tap “Delete my account”, type DELETE and confirm.'],
-    publicWhat: 'Your account and all its data — lectures, transcripts, notes, flashcards, quizzes, folders, schedule and progress — are deleted right away. Lecture audio is never kept on our servers.',
+    publicWhat: 'Your account and all its data — lectures, transcripts, notes, flashcards, quizzes, folders, schedule and progress — are deleted right away. Lecture recordings are kept only if you chose to keep them, and are deleted with the account.',
     publicHelp: (email: string) => `Can’t sign in? Email ${email} from your account’s address and we’ll delete it for you.`,
     publicNoEmail: 'Can’t sign in? Contact us from the app store listing and we’ll delete it for you.',
   },
@@ -238,7 +238,7 @@ export const en = {
     // New lecture
     newTitle: 'New lecture', tabs: { record: 'Record', upload: 'Upload', text: 'Paste text', pdf: 'PDF', image: 'Photos' },
     titleLabel: 'Title (optional)', titlePlaceholder: 'e.g. Calculus — week 3',
-    language: 'Language spoken', languages: { auto: 'Detect', en: 'English', he: 'Hebrew' },
+    language: 'Language spoken', languages: { auto: 'Detect', en: 'English', he: 'Hebrew', ar: 'Arabic', ru: 'Russian' },
     slides: 'Slides (optional PDF)', addSlides: 'Add slides', slidesReading: 'Reading slides…',
     slidesReady: (name: string) => `Slides added: ${name}`, slidesTooBig: 'That PDF is too big (100 MB max).', slidesFailed: 'Could not read those slides.',
     recordHint: 'Put your phone or laptop near the speaker. The transcript appears as you go — about every minute.',

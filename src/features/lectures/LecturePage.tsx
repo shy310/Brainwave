@@ -34,6 +34,7 @@ import { folderRepo, type Folder } from './folders';
 import { lectureTitle } from './LecturesPage';
 import { notesMode, switchNotes, withNewNotes } from './notesVersions';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
+import { dateLocale } from '@shared/locales';
 
 type Tab = 'notes' | 'transcript' | 'quiz' | 'cards' | 'ask';
 const TAB_ICONS = { notes: NotebookText, transcript: MessageSquareText, quiz: ListChecks, cards: Layers, ask: MessageCircleQuestion };
@@ -271,7 +272,7 @@ export default function LecturePage() {
         <p className="text-sm text-muted">
           {t.lectures.sources[lecture.source]}
           {lecture.duration_sec > 0 && ` · ${t.lectures.minutes(Math.max(1, Math.round(lecture.duration_sec / 60)))}`}
-          {' · '}{new Date(lecture.created_at).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB')}
+          {' · '}{new Date(lecture.created_at).toLocaleDateString(dateLocale(locale))}
         </p>
         {folders.length > 0 && (
           <label className="flex items-center gap-2 text-sm">

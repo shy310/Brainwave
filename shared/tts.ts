@@ -2,13 +2,18 @@ import { z } from 'zod';
 import type { Locale } from './locales.js';
 
 /** Natural voices offered through the server (Microsoft Azure neural voices). */
-export const CLOUD_VOICES = ['en-US-AvaNeural', 'en-US-AndrewNeural', 'he-IL-HilaNeural', 'he-IL-AvriNeural'] as const;
+export const CLOUD_VOICES = [
+  'en-US-AvaNeural', 'en-US-AndrewNeural', 'he-IL-HilaNeural', 'he-IL-AvriNeural',
+  'ar-SA-ZariyahNeural', 'ar-SA-HamedNeural', 'ru-RU-SvetlanaNeural', 'ru-RU-DmitryNeural',
+] as const;
 export type CloudVoice = (typeof CLOUD_VOICES)[number];
 
 /** [narrator / first host, second host] for each language. */
 export const VOICE_PAIRS: Record<Locale, [CloudVoice, CloudVoice]> = {
   en: ['en-US-AvaNeural', 'en-US-AndrewNeural'],
   he: ['he-IL-HilaNeural', 'he-IL-AvriNeural'],
+  ar: ['ar-SA-ZariyahNeural', 'ar-SA-HamedNeural'],
+  ru: ['ru-RU-SvetlanaNeural', 'ru-RU-DmitryNeural'],
 };
 
 export const MAX_TTS_CHARS = 1500;

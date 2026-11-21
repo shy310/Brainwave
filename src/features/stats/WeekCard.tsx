@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn';
 import { Card } from '@/ui/Card';
 import { lastWeek, localDay, streaks, type DayActivity } from '@shared/activity';
 import { activityRepo } from './activity';
+import { dateLocale } from '@shared/locales';
 
 /** Streak, minutes studied each day this week, and the week's totals. */
 export const WeekCard = () => {
@@ -21,7 +22,7 @@ export const WeekCard = () => {
   const max = Math.max(30, ...week.map((d) => d.minutes));
   const weekday = (day: string) => {
     const [y, m, d] = day.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { weekday: 'short' });
+    return new Date(y, m - 1, d).toLocaleDateString(dateLocale(locale), { weekday: 'short' });
   };
 
   // Nothing studied this week yet: a short nudge instead of an empty chart and four zeros.

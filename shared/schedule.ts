@@ -1,6 +1,8 @@
 // A student's weekly class timetable, used to remind them to record and to
 // prefill the lecture. Pure time logic, tested.
 
+import { dateLocale } from './locales.js';
+
 export interface ClassSlot {
   id: string;
   name: string;
@@ -68,4 +70,4 @@ export const reminderClock = (slot: ClassSlot) => {
 
 /** Lecture title for a class on a date, e.g. "Calculus — 20 Nov". */
 export const classLectureTitle = (name: string, date: Date, locale: string) =>
-  `${name} — ${date.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'short' })}`;
+  `${name} — ${date.toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short' })}`;

@@ -10,7 +10,7 @@ import { Segmented } from '@/ui/Segmented';
 import { Alert } from '@/ui/Alert';
 import { Logo } from '@/ui/Logo';
 import { GRADES, type Grade } from '@shared/grades';
-import type { Locale } from '@shared/locales';
+import { NATIVE_NAME, LOCALES, type Locale } from '@shared/locales';
 import { STUDY_GOALS, summaryModeForGoal, type StudyGoal } from '@shared/profile';
 import { LECTURE_LANGUAGES, type LectureLanguage } from '@shared/lectures';
 
@@ -78,7 +78,7 @@ export default function OnboardingPage() {
           <div className="space-y-1.5">
             <span className="block text-sm font-medium">{t.onboarding.language}</span>
             <Segmented<Locale> label={t.onboarding.language} value={locale} onChange={setLocale}
-              options={[{ value: 'en', label: t.languages.en }, { value: 'he', label: t.languages.he }]} />
+              options={LOCALES.map((l) => ({ value: l, label: NATIVE_NAME[l] }))} />
           </div>
           <Button type="submit" block size="lg" loading={busy} disabled={!name.trim()}>{t.onboarding.finish}</Button>
         </form>

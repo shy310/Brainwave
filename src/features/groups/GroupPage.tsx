@@ -14,6 +14,7 @@ import { lectureRepo, type Lecture, type LectureSummary } from '@/features/lectu
 import { lectureTitle } from '@/features/lectures/LecturesPage';
 import { lectureShare } from './share';
 import { groupsRepo, type Group, type Member, type Share } from './groupsRepo';
+import { dateLocale } from '@shared/locales';
 
 export default function GroupPage() {
   const { id = '' } = useParams();
@@ -39,7 +40,7 @@ export default function GroupPage() {
   const { group, members, shares } = data;
   const isOwner = group.owner_id === user?.id;
   const link = publicUrl(`/join/${group.invite_code}`);
-  const date = (iso: string) => new Date(iso).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'short' });
+  const date = (iso: string) => new Date(iso).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short' });
   const run = async (fn: () => Promise<void>) => { setError(''); try { await fn(); } catch { setError(t.auth.errors.generic); } };
 
   const share = async (e: FormEvent) => {

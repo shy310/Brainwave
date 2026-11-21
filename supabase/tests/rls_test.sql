@@ -208,6 +208,18 @@ update public.reminder_settings set study_time = '00:30';
 select pg_temp.ok((select count(*) from public.claim_due_reminders('2026-11-25 22:35:00+00') where kind = 'study') = 1, 'the local date counts, not UTC');
 delete from public.push_sent;
 
+-- ── Arabic and Russian ────────────────────────────────────────────────────
+reset role;
+set role authenticated;
+select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
+update public.profiles set locale = 'ar', lecture_language = 'ru' where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+select pg_temp.ok((select locale || lecture_language from public.profiles where id = 'bbbbbbbb-0000-0000-0000-000000000002') = 'arru', 'a student can choose Arabic or Russian');
+select pg_temp.refused($$update public.profiles set locale = 'fr' where id = 'bbbbbbbb-0000-0000-0000-000000000002'$$, 'an unsupported app language');
+insert into public.lectures (title, source, language) values ('Лекция', 'text', 'ru');
+select pg_temp.refused($$insert into public.lectures (title, source, language) values ('x', 'text', 'xx')$$, 'an unsupported lecture language');
+delete from public.lectures where title = 'Лекция';
+reset role;
+
 -- ── Deleting an account removes everything ────────────────────────────────
 reset role;
 delete from auth.users where id = 'aaaaaaaa-0000-0000-0000-000000000001';

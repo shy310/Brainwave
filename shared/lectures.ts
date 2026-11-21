@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { QuizSchema } from './learn.js';
 
-export const LECTURE_LANGUAGES = ['auto', 'en', 'he'] as const;
+export const LECTURE_LANGUAGES = ['auto', 'en', 'he', 'ar', 'ru'] as const;
 export type LectureLanguage = (typeof LECTURE_LANGUAGES)[number];
 
 export const LECTURE_SOURCES = ['record', 'upload', 'text', 'pdf', 'image'] as const;

@@ -10,6 +10,7 @@ import { onNotificationOpen, useWebStudyReminder } from './notify';
 import { activityRepo } from '@/features/stats/activity';
 import { localDay, streaks } from '@shared/activity';
 import { useMemo } from 'react';
+import { dateLocale } from '@shared/locales';
 
 /** "Calculus starts at 10:00 — Record it", shown shortly before and during a class. */
 export const UpNextBanner = () => {
@@ -22,7 +23,7 @@ export const UpNextBanner = () => {
 
   const next = upNext(slots, now);
   if (!next) return null;
-  const time = next.startsAt.toLocaleTimeString(locale === 'he' ? 'he-IL' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
+  const time = next.startsAt.toLocaleTimeString(dateLocale(locale), { hour: '2-digit', minute: '2-digit' });
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-card)] border border-accent-300 bg-accent-400/10 p-4" role="status">
       <CalendarClock className="size-5 shrink-0 text-accent-600" aria-hidden="true" />

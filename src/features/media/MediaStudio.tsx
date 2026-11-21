@@ -11,7 +11,7 @@ import { Textarea } from '@/ui/Field';
 import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
 import { LENGTHS, type MediaKind, type MediaLength } from '@shared/media';
-import { LOCALES, type Locale } from '@shared/locales';
+import { LOCALES, NATIVE_NAME, type Locale } from '@shared/locales';
 import { mediaRepo, type Media } from './repo';
 import { useMediaSource } from './useMediaSource';
 import { IconTile } from '@/ui/IconTile';
@@ -33,7 +33,7 @@ interface Props {
 
 const LANGUAGE_KEY = 'bw.mediaLanguage';
 /** Each language in its own name, so it is recognisable whatever the app language. */
-const LANGUAGE_NAMES: Record<Locale, string> = { en: 'English', he: 'עברית' };
+const LANGUAGE_NAMES: Record<Locale, string> = NATIVE_NAME;
 
 /** Shared "make a video / podcast" page: pick a source, make it, list saved ones. */
 export const MediaStudio = ({ kind, op, strings: s, icon: Icon, tint }: Props) => {
