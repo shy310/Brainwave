@@ -407,6 +407,12 @@ export const ar: Dict = {
       title: 'لحظات مهمة', body: 'علّمت هذه أثناء التسجيل. تحظى باهتمام خاص في الملاحظات والاختبار والبطاقات.',
       play: (time: string) => `شغّل من ${time}`, showInTranscript: 'اعرض في النص', badge: 'معلّم كمهم',
     },
+    map: {
+      title: 'خريطة المفاهيم', open: 'خريطة المفاهيم', make: 'ارسم خريطة مفاهيم', making: 'نرسم الخريطة…', redo: 'ارسم من جديد',
+      body: 'شاهد كيف تترابط أفكار هذه المحاضرة. انقر على فكرة لترى ما ترتبط به.',
+      zoomIn: 'تكبير', zoomOut: 'تصغير', reset: 'ملاءمة الشاشة', list: 'كقائمة', diagram: (title: string) => `خريطة مفاهيم ${title}`,
+      links: 'مرتبطة بـ', needsText: 'تحتاج المحاضرة إلى ملاحظات أو نص أولًا.',
+    },
     library: {
       favorites: 'المفضلة', favorite: 'أضف إلى المفضلة', unfavorite: 'أزل من المفضلة', starred: 'مفضّلة', open: 'فتح', renameLecture: 'إعادة التسمية', moveLecture: 'نقل إلى مجلد', deleteLecture: 'حذف', options: (n: string) => `خيارات «${n}»`,
       search: 'ابحث في المحاضرات', sort: 'الترتيب', sorts: { newest: 'الأحدث', oldest: 'الأقدم', title: 'حسب الاسم' },

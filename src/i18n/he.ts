@@ -428,6 +428,12 @@ export const he: Dict = {
       title: 'רגעים חשובים', body: 'סימנת את אלה בזמן ההקלטה. הם מקבלים תשומת לב מיוחדת בסיכום, בבוחן ובכרטיסיות.',
       play: (time: string) => `לנגן מ־${time}`, showInTranscript: 'להציג בתמלול', badge: 'סומן כחשוב',
     },
+    map: {
+      title: 'מפת מושגים', open: 'מפת מושגים', make: 'לשרטט מפת מושגים', making: 'משרטטים את המפה…', redo: 'לשרטט מחדש',
+      body: 'לראות איך הרעיונות של ההרצאה מתחברים. מקישים על רעיון כדי לראות למה הוא מקושר.',
+      zoomIn: 'הגדלה', zoomOut: 'הקטנה', reset: 'התאמה למסך', list: 'כרשימה', diagram: (title: string) => `מפת מושגים של ${title}`,
+      links: 'מקושר אל', needsText: 'קודם צריך סיכום או תמלול להרצאה.',
+    },
     library: {
       favorites: 'מועדפים', favorite: 'הוספה למועדפים', unfavorite: 'הסרה מהמועדפים', starred: 'מועדף', open: 'פתיחה', renameLecture: 'שינוי שם', moveLecture: 'העברה לתיקייה', deleteLecture: 'מחיקה', options: (n: string) => `אפשרויות עבור „${n}”`,
       search: 'חיפוש הרצאות', sort: 'מיון', sorts: { newest: 'מהחדש לישן', oldest: 'מהישן לחדש', title: 'לפי שם' },

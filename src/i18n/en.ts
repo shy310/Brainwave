@@ -404,6 +404,12 @@ export const en = {
       title: 'Important moments', body: 'You marked these while recording. They get extra attention in the notes, quiz and flashcards.',
       play: (time: string) => `Play from ${time}`, showInTranscript: 'Show in the transcript', badge: 'Marked as important',
     },
+    map: {
+      title: 'Concept map', open: 'Concept map', make: 'Draw a concept map', making: 'Drawing the map…', redo: 'Draw again',
+      body: 'See how the ideas of this lecture fit together. Tap an idea to see what it links to.',
+      zoomIn: 'Zoom in', zoomOut: 'Zoom out', reset: 'Fit to screen', list: 'As a list', diagram: (title: string) => `Concept map of ${title}`,
+      links: 'Connected to', needsText: 'This lecture needs notes or a transcript first.',
+    },
     library: {
       favorites: 'Favorites', favorite: 'Add to favorites', unfavorite: 'Remove from favorites', starred: 'Favorite', open: 'Open', renameLecture: 'Rename lecture', moveLecture: 'Move to folder', deleteLecture: 'Delete', options: (n: string) => `Options for “${n}”`,
       search: 'Search lectures', sort: 'Sort', sorts: { newest: 'Most recent', oldest: 'Oldest', title: 'Name A–Z' },

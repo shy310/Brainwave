@@ -6,3 +6,4 @@ import './ops/media.js';
 import './ops/podcast.js';
 import './ops/grader.js';
 import './ops/search.js';
+import './ops/conceptMap.js';
