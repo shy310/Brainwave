@@ -29,6 +29,8 @@ for (const lang of ['en', 'he'] as const) {
     await page.getByLabel(tn.time).fill('19:00');
     await page.getByRole('button', { name: tn.turnOn }).click();
     await expect(page.getByText(tn.on('19:00'))).toBeVisible();
+    // A demo account has no push: reminders show while the site is open.
+    await expect(page.getByText(t.schedule.webNote)).toBeVisible();
     await page.clock.runFor(11 * 60_000);
     await expect.poll(() => shown(page)).toEqual([tn.studyTitle]);
 

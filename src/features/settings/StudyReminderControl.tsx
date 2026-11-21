@@ -3,6 +3,7 @@ import { Bell } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Field';
+import { PushNote } from '@/features/schedule/PushNote';
 import { enableReminders, notificationsSupported } from '@/features/schedule/reminders';
 import { loadStudyReminder, saveStudyReminder, type StudyReminder } from '@/features/schedule/notify';
 
@@ -36,6 +37,7 @@ export const StudyReminderControl = () => {
           : <Button onClick={() => void turnOn()}>{tn.turnOn}</Button>}
       </div>
       {blocked && <p className="text-sm text-rose-600" role="alert">{tn.blocked}</p>}
+      {r.enabled && <PushNote />}
     </div>
   );
 };

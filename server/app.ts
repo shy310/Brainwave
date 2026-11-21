@@ -2,6 +2,7 @@ import express, { type Response } from 'express';
 import { env, supabaseConfigured, demoModeActive, ttsConfigured } from './env.js';
 import { ttsHandler } from './tts.js';
 import { deleteAccountHandler } from './account.js';
+import { pushKeyHandler, pushTickHandler } from './push.js';
 import { requireUser, type AuthedRequest } from './auth.js';
 import { quota } from './usage.js';
 import { getOp, type OpContext } from './ai/ops.js';
@@ -60,6 +61,10 @@ const sendError = (res: Response, err: unknown) => {
 
 /** Delete the signed-in student's account and all their data. */
 app.post('/api/account/delete', requireUser, (req: AuthedRequest, res) => { void deleteAccountHandler(req, res).catch((err) => sendError(res, err)); });
+
+/** Web Push: the key browsers subscribe with, and the minute job that sends due reminders. */
+app.get('/api/push/key', requireUser, (req: AuthedRequest, res) => { void pushKeyHandler(req, res).catch((err) => sendError(res, err)); });
+app.post('/api/push/tick', (req, res) => { void pushTickHandler(req, res).catch((err) => sendError(res, err)); });
 
 /** Natural-voice narration (Azure). */
 app.post('/api/tts', requireUser, ttsHandler);

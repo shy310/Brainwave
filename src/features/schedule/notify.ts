@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { isNativeApp } from '@/lib/platform';
 import { storage } from '@/lib/storage';
+import { pushActive, saveReminderSettings } from './webPush';
 
 const STUDY_ID = 42_000;
 const READY_ID = 42_001;
@@ -26,7 +27,8 @@ export const nextDaily = (time: string, now: Date): Date => {
 /** Save the daily reminder and (in the Android app) schedule or cancel it. */
 export const saveStudyReminder = async (r: StudyReminder, text: { title: string; body: string }) => {
   storage.set(KEY, JSON.stringify(r));
-  if (!isNativeApp()) return;
+  // On the website, the server sends it at this time (in this time zone).
+  if (!isNativeApp()) { if (pushActive()) await saveReminderSettings(r); return; }
   await LocalNotifications.cancel({ notifications: [{ id: STUDY_ID }] }).catch(() => {});
   if (!r.enabled) return;
   const [hour, minute] = r.time.split(':').map(Number);
@@ -68,7 +70,7 @@ export const useWebStudyReminder = (text: { title: string; body: string }, studi
     let timer: ReturnType<typeof setTimeout> | null = null;
     const plan = () => {
       const r = loadStudyReminder();
-      if (!r.enabled || Notification.permission !== 'granted') return;
+      if (!r.enabled || Notification.permission !== 'granted' || pushActive()) return;
       const at = nextDaily(r.time, new Date());
       timer = setTimeout(() => {
         const due = Date.now() >= at.getTime() - 1000;

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { supabase, isDemo } from '@/lib/supabase';
+import { unsubscribePush } from '@/features/schedule/webPush';
 import { storage } from '@/lib/storage';
 import { setAiContext } from '@/lib/api';
 import { useI18n } from '@/i18n';
@@ -117,6 +118,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loadProfile(u);
     },
     async signOut() {
+      // This device shouldn't keep getting this student's reminders.
+      if (supabase) await unsubscribePush().catch(() => {});
       if (supabase) await supabase.auth.signOut();
       else storage.remove(DEMO_USER_KEY);
       setUser(null);
