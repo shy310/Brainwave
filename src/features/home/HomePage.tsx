@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import {
-  ArrowRight, CalendarClock, ClipboardCheck, FileText, Layers, MessageCircle, Mic, Gamepad2, MoreHorizontal, NotebookText, Upload, Users,
+  ArrowRight, CalendarClock, Target, ClipboardCheck, FileText, Layers, MessageCircle, Mic, Gamepad2, MoreHorizontal, NotebookText, Upload, Users,
 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Menu } from '@/ui/Menu';
 import { TodayCard } from './TodayCard';
 import { ExamBanner } from '@/features/exams/ExamBanner';
+import { WeakSpotsBanner } from '@/features/weak/WeakSpotsBanner';
 import { WeekCard } from '@/features/stats/WeekCard';
 import { UpNextBanner } from '@/features/schedule/UpNext';
 import { activityRepo } from '@/features/stats/activity';
@@ -87,6 +88,7 @@ export default function HomePage() {
         <div className="flex justify-center">
           <Menu label={t.home.more} items={[
             { label: tq.review, icon: <Layers />, onSelect: () => navigate('/lectures/review') },
+            { label: tq.weak, icon: <Target />, onSelect: () => navigate('/practice') },
             { label: tq.exams, icon: <CalendarClock />, onSelect: () => navigate('/exams') },
             { label: tq.games, icon: <Gamepad2 />, onSelect: () => navigate('/play') },
             { label: tq.grade, icon: <ClipboardCheck />, onSelect: () => navigate('/grader') },
@@ -100,6 +102,7 @@ export default function HomePage() {
       </nav>
 
       <ExamBanner />
+      <WeakSpotsBanner />
 
       {days && <TodayCard days={days} due={due} />}
 

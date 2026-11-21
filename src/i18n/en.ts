@@ -71,7 +71,7 @@ export const en = {
       recordTitle: 'Record your next class', recordBody: 'Get notes, a quiz and flashcards when it ends.', recordCta: 'Start recording',
     },
     quick: {
-      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', games: 'Games',
+      title: 'Quick start', record: 'Record', upload: 'Upload', pdf: 'PDF', review: 'Review', exams: 'Exams', weak: 'Weak spots', games: 'Games',
       tutor: 'Ask AI', grade: 'Grade', groups: 'Groups',
     },
     recent: 'Continue', seeAll: 'See all', explore: 'Explore',
@@ -103,6 +103,13 @@ export const en = {
     goodLuck: 'Good luck today! 🍀', over: 'This exam is over. How did it go?',
     noQuestions: 'These lectures don’t have flashcards or quiz questions yet. Make some on a lecture first.',
     banner: (title: string, when: string) => `${title} · ${when}`,
+  },
+  weak: {
+    title: 'Weak spots', subtitle: 'Questions you missed and flashcards you keep forgetting, in one short practice. Get one right twice in a row and it’s off the list.',
+    start: 'Practise now', count: (n: number) => (n === 1 ? '1 to practise' : `${n} to practise`),
+    missed: (n: number) => (n === 1 ? '1 question you missed' : `${n} questions you missed`), cards: (n: number) => (n === 1 ? '1 flashcard you keep forgetting' : `${n} flashcards you keep forgetting`),
+    empty: 'No weak spots right now 🎉 Anything you miss in a quiz or keep forgetting in your flashcards shows up here.',
+    again: 'Another round', done: 'Back to your lectures', home: 'Practise your weak spots',
   },
   game: {
     source: 'What should the questions be about?', allLectures: 'All lectures', pickLectures: 'Choose lectures',
@@ -394,7 +401,7 @@ export const en = {
       styleHelp: { short: 'The key ideas on one screen.', detailed: 'Everything important, section by section.', exam: 'Adds practice questions and common mistakes.' } },
     mastery: { title: 'Progress', new: 'New', learning: 'Still learning', almost: 'Almost done', mastered: 'Mastered' },
     tools: {
-      title: 'Study tools', review: 'Review flashcards', exams: 'Exams', examsBody: 'A plan up to exam day', games: 'Games', gamesBody: 'Glide and Lane Rush, with your questions',
+      title: 'Study tools', review: 'Review flashcards', weak: 'Weak spots', weakBody: 'What you keep missing', exams: 'Exams', examsBody: 'A plan up to exam day', games: 'Games', gamesBody: 'Glide and Lane Rush, with your questions',
       groups: 'Study groups', groupsBody: 'Share notes with classmates', schedule: 'Class schedule', scheduleBody: 'Reminders to record',
       reviewBody: 'A few minutes a day',
     },
