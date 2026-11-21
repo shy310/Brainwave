@@ -15,8 +15,10 @@ test('on a phone, drag a sheet down to close it; a small drag springs back', asy
   const sheet = page.getByRole('dialog', { name: en.lectures.options.title });
   const title = sheet.getByRole('heading', { name: en.lectures.options.title });
 
+  const settled = () => sheet.evaluate((d) => Promise.all(d.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})))).then(() => page.waitForTimeout(50));
   await open();
   await expect(sheet).toBeVisible();
+  await settled(); // it slides up first
   let box = (await title.boundingBox())!;
   // A small drag: it follows the finger, then settles back.
   await page.mouse.move(box.x + 10, box.y + 5);
@@ -29,6 +31,7 @@ test('on a phone, drag a sheet down to close it; a small drag springs back', asy
   await expect(sheet).toBeVisible();
 
   // A long drag down closes it.
+  await settled();
   box = (await title.boundingBox())!;
   await page.mouse.move(box.x + 10, box.y + 5);
   await page.mouse.down();
@@ -39,6 +42,7 @@ test('on a phone, drag a sheet down to close it; a small drag springs back', asy
   // It opens again normally afterwards.
   await open();
   await expect(sheet).toBeVisible();
+  await settled();
   await expect.poll(async () => Math.round((await title.boundingBox())!.y)).toBe(Math.round(box.y));
 });
 
