@@ -148,6 +148,7 @@ test('record live with the microphone', async ({ page }) => {
   await expect(page.getByText('Paused', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Resume' }).click();
   await page.getByRole('button', { name: 'Stop and finish' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete recording', exact: true }).click();
   await expect(page).toHaveURL(/\/lectures\/(?!new)[\w-]+$/, { timeout: 20_000 });
   expect(calls.transcribe.length).toBeGreaterThanOrEqual(1);
   await expect(page.getByRole('heading', { level: 1, name: 'Derivatives, week 3' })).toBeVisible();

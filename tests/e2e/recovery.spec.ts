@@ -1,5 +1,5 @@
 import type { BrowserContext, Page } from '@playwright/test';
-import { test, expect, onboard } from './fixtures';
+import { test, expect, onboard, answerKeepRecording } from './fixtures';
 import { en } from '../../src/i18n/en';
 import { he } from '../../src/i18n/he';
 
@@ -81,11 +81,14 @@ for (const lang of ['en', 'he'] as const) {
       const banner = again.getByRole('region', { name: t.lectures.recoverTitle });
       await expect(banner).toBeVisible();
       await banner.getByRole('link', { name: t.lectures.recover }).click();
+      // The copy saved before the tab was closed can still be kept.
+      await answerKeepRecording(again, t.lectures.keepRecording, true);
 
       await expect(again).toHaveURL(/\/lectures\/(?!new)[\w-]+$/, { timeout: 20_000 });
       const lecture = await savedLecture(again);
       expect(lecture.status).toBe('ready');
       expectNoGaps(lecture.segments, recorded);
+      expect((lecture as { audio_path?: string }).audio_path).toMatch(/^local:/);
       // Nothing is left to recover.
       await again.goto('/');
       await expect(again.getByRole('region', { name: t.lectures.recoverTitle })).toHaveCount(0);
@@ -111,6 +114,7 @@ for (const lang of ['en', 'he'] as const) {
       await expect.poll(() => state.transcribed, { timeout: 10_000 }).toBeGreaterThan(waiting);
       const recorded = await elapsedSeconds(page);
       await page.getByRole('button', { name: t.lectures.stop }).click();
+      await answerKeepRecording(page, t.lectures.keepRecording, false);
       await expect(page).toHaveURL(/\/lectures\/(?!new)[\w-]+$/, { timeout: 20_000 });
       expectNoGaps((await savedLecture(page)).segments, recorded);
     });
@@ -125,6 +129,7 @@ for (const lang of ['en', 'he'] as const) {
       await page.waitForTimeout(2000);
       const recorded = await elapsedSeconds(page);
       await page.getByRole('button', { name: t.lectures.stop }).click();
+      await answerKeepRecording(page, t.lectures.keepRecording, false);
 
       // Still blocked: the student can leave and come back later.
       await expect(page.getByRole('button', { name: t.lectures.finishLater })).toBeVisible();

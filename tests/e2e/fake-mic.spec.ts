@@ -1,4 +1,4 @@
-import { test, expect, onboard } from './fixtures';
+import { test, expect, onboard, answerKeepRecording } from './fixtures';
 import { en } from '../../src/i18n/en';
 import { he } from '../../src/i18n/he';
 
@@ -29,6 +29,7 @@ for (const lang of ['en', 'he'] as const) {
     await page.getByRole('button', { name: t.lectures.start }).click();
     await expect.poll(() => pieces.length, { timeout: 20_000 }).toBeGreaterThanOrEqual(4);
     await page.getByRole('button', { name: t.lectures.stop }).click();
+      await answerKeepRecording(page, t.lectures.keepRecording, false);
     await expect(page).toHaveURL(/\/lectures\/(?!new)[\w-]+$/, { timeout: 20_000 });
 
     const RATE = 16_000;

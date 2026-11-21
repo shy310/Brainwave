@@ -129,6 +129,40 @@ select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
 delete from public.group_members where user_id = 'bbbbbbbb-0000-0000-0000-000000000002';
 select pg_temp.ok((select count(*) from public.study_groups) = 0, 'after leaving, the group is gone from view');
 
+-- ── Kept lecture recordings (Storage) ──────────────────────────────────────
+reset role;
+set role authenticated;
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+insert into storage.objects (bucket_id, name) values ('lecture-audio', 'aaaaaaaa-0000-0000-0000-000000000001/l1.webm');
+select pg_temp.ok((select count(*) from storage.objects) = 1, 'a student keeps a recording in their own folder');
+update storage.objects set metadata = '{"size": 1}' where name = 'aaaaaaaa-0000-0000-0000-000000000001/l1.webm';
+select pg_temp.refused($$insert into storage.objects (bucket_id, name) values ('lecture-audio', 'bbbbbbbb-0000-0000-0000-000000000002/x.webm')$$, 'saving into someone else''s folder');
+select pg_temp.refused($$insert into storage.objects (bucket_id, name) values ('lecture-audio', 'x.webm')$$, 'saving outside any folder');
+select pg_temp.refused($$update storage.objects set name = 'bbbbbbbb-0000-0000-0000-000000000002/moved.webm'$$, 'moving a recording into someone else''s folder');
+insert into storage.objects (bucket_id, name)
+  select 'lecture-audio', 'aaaaaaaa-0000-0000-0000-000000000001/n' || i || '.webm' from generate_series(2, 29) i;
+select pg_temp.ok(public.may_keep_recording('aaaaaaaa-0000-0000-0000-000000000001/n30.webm'), '29 kept: one more is allowed');
+insert into storage.objects (bucket_id, name) values ('lecture-audio', 'aaaaaaaa-0000-0000-0000-000000000001/n30.webm');
+select pg_temp.refused($$insert into storage.objects (bucket_id, name) values ('lecture-audio', 'aaaaaaaa-0000-0000-0000-000000000001/n31.webm')$$, 'a 31st kept recording');
+select pg_temp.ok(public.may_keep_recording('aaaaaaaa-0000-0000-0000-000000000001/n30.webm'), 'at the limit, an existing recording can still be replaced');
+delete from storage.objects where name = 'aaaaaaaa-0000-0000-0000-000000000001/n30.webm';
+insert into storage.objects (bucket_id, name) values ('lecture-audio', 'aaaaaaaa-0000-0000-0000-000000000001/n31.webm');
+select pg_temp.ok((select count(*) from storage.objects) = 30, 'deleting one makes room for another');
+
+select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
+select pg_temp.ok((select count(*) from storage.objects) = 0, 'other students cannot see someone''s recordings');
+delete from storage.objects;
+update storage.objects set name = 'bbbbbbbb-0000-0000-0000-000000000002/stolen.webm';
+select pg_temp.as_user(null);
+reset role;
+set role anon;
+select pg_temp.ok((select count(*) from storage.objects) = 0, 'signed-out visitors cannot see recordings');
+select pg_temp.refused($$insert into storage.objects (bucket_id, name) values ('lecture-audio', 'aaaaaaaa-0000-0000-0000-000000000001/anon.webm')$$, 'signed-out uploads');
+reset role;
+select pg_temp.ok((select count(*) from storage.objects where name like 'aaaaaaaa-0000-0000-0000-000000000001/%') = 30, 'another student could not delete or move them');
+select pg_temp.ok((select not public from storage.buckets where id = 'lecture-audio'), 'the recordings bucket is private');
+delete from storage.objects;
+
 -- ── Deleting an account removes everything ────────────────────────────────
 reset role;
 delete from auth.users where id = 'aaaaaaaa-0000-0000-0000-000000000001';

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { audioStore } from './audioStore';
 import { storage } from '@/lib/storage';
 import { track } from '@/features/stats/activity';
 import type { SavedNotes } from './notesVersions';
@@ -21,6 +22,10 @@ export interface Lecture {
   share_token?: string | null;
   /** The folder it's in, if any (needs migration 0007). */
   folder_id?: string | null;
+  /** The kept recording (needs migration 0016): a Supabase Storage path, or `local:<id>` for demo lectures. */
+  audio_path?: string | null;
+  audio_type?: string | null;
+  audio_bytes?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -138,8 +143,20 @@ export const lectureRepo = {
     return row ?? null;
   },
 
+  /** Delete a lecture and its kept recording. */
   async remove(id: string): Promise<void> {
-    if (!supabase) { writeDemo(readDemo().filter((l) => l.id !== id)); return; }
+    if (!supabase) {
+      writeDemo(readDemo().filter((l) => l.id !== id));
+      if (audioStore.available()) await audioStore.deleteKept(id).catch(() => {});
+      return;
+    }
+    // Storage files don't go with the row, so delete the recording first.
+    const kept = await supabase.from('lectures').select('audio_path').eq('id', id).maybeSingle();
+    const path = (kept.data as { audio_path?: string | null } | null)?.audio_path;
+    if (path) {
+      const { error } = await supabase.storage.from('lecture-audio').remove([path]);
+      if (error) console.warn('Could not delete the recording', error);
+    }
     const { error } = await supabase.from('lectures').delete().eq('id', id);
     if (error) throw error;
   },
