@@ -388,6 +388,12 @@ export const ar: Dict = {
     rename: 'إعادة تسمية', save: 'حفظ',
     turnInto: 'حوّلها إلى', video: 'درس فيديو', podcast: 'بودكاست',
     emptyTranscript: 'لم يُعثر على كلام في هذا التسجيل.',
+    highlights: {
+      toolbar: 'تظليل', colors: { yellow: 'أصفر', green: 'أخضر', blue: 'أزرق', pink: 'وردي' }, color: (c: string) => `ظلّل بالـ${c}`,
+      comment: 'تعليق', addComment: 'أضف تعليقًا', editComment: 'عدّل التعليق', placeholder: 'ملاحظتك عن هذا…', save: 'حفظ', remove: 'أزل التظليل',
+      title: 'تظليلاتك', hint: 'حدّد نصًا في ملاحظاتك لتظليله أو إضافة تعليق.', missing: 'لم يعد في هذه الملاحظات',
+      count: (n: number) => count(n, 'تظليل واحد', 'تظليلان', 'تظليلات', 'تظليلًا'), show: 'اعرض في الملاحظات',
+    },
     marks: {
       mark: 'مهم', markHint: 'انقر عندما يكون شيء مهمًا (أو اضغط M). سيحظى باهتمام خاص في ملاحظاتك واختبارك وبطاقاتك.',
       marked: (time: string) => `عُلّم عند ${time}`, count: (n: number) => count(n, 'علامة واحدة', 'علامتان', 'علامات', 'علامة'),

@@ -17,12 +17,12 @@ export const NotesView = ({ notes }: { notes: Notes }) => {
       <Card className="space-y-5 p-6 print:border-0 print:p-0 print:shadow-none">
         <section className="break-inside-avoid">
           <h2 className="mb-2 text-lg font-semibold">{t.lectures.summary}</h2>
-          <Rich text={notes.summary} />
+          <div data-block="summary"><Rich text={notes.summary} /></div>
         </section>
         {notes.sections.map((s, i) => (
           <section key={i} className="break-inside-avoid">
             <h2 className="mb-2 text-lg font-semibold" dir="auto">{s.heading}</h2>
-            <ul className="list-disc space-y-1.5 ps-6">{s.points.map((p, j) => <li key={j} dir="auto"><RichInline text={p} /></li>)}</ul>
+            <ul className="list-disc space-y-1.5 ps-6">{s.points.map((p, j) => <li key={j} dir="auto" data-block={`s${i}.${j}`}><RichInline text={p} /></li>)}</ul>
           </section>
         ))}
       </Card>
@@ -31,7 +31,7 @@ export const NotesView = ({ notes }: { notes: Notes }) => {
           <h2 className="mb-3 text-lg font-semibold">{t.lectures.keyTerms}</h2>
           <dl className="space-y-2">
             {notes.keyTerms.map((k, i) => (
-              <div key={i} className="break-inside-avoid"><dt className="font-medium" dir="auto"><RichInline text={k.term} /></dt><dd className="text-sm text-muted" dir="auto"><RichInline text={k.definition} /></dd></div>
+              <div key={i} className="break-inside-avoid"><dt className="font-medium" dir="auto"><RichInline text={k.term} /></dt><dd className="text-sm text-muted" dir="auto" data-block={`k${i}`}><RichInline text={k.definition} /></dd></div>
             ))}
           </dl>
         </Card>

@@ -42,6 +42,8 @@ import { Shimmer } from '@/ui/Feedback';
 import { recordQuizAnswer } from '@/features/weak/mistakeRepo';
 import { markedSegments, transcriptWithMarks } from '@shared/marks';
 import { ImportantMoments } from './ImportantMoments';
+import { Highlighter } from './Highlighter';
+import { HighlightsList } from './HighlightsList';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
@@ -341,7 +343,10 @@ export default function LecturePage() {
                 </div>
                 <ImportantMoments marks={lecture.marks ?? []} segments={lecture.segments} onPlay={lecture.audio_path ? playFrom : undefined}
                   onShow={(start) => { setTab('transcript'); requestAnimationFrame(() => document.getElementById(`seg-${start}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })); }} />
-                <NotesView notes={lecture.notes} />
+                <Highlighter highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })}>
+                  <NotesView notes={lecture.notes} />
+                </Highlighter>
+                <HighlightsList highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })} />
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
                 {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
                   onChange={(token, note) => { setLecture((l) => (l ? { ...l, share_token: token } : l)); setShareNote(note); }} />}
