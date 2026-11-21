@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Link2, LogOut, Pencil, RefreshCw, Share2, Trash2, UserMinus } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -17,6 +17,7 @@ import { groupsRepo, type Group, type Member, type Share } from './groupsRepo';
 import { dateLocale } from '@shared/locales';
 import { EmptyState } from '@/ui/EmptyState';
 import { askConfirm } from '@/ui/Confirm';
+import { GroupChallenges } from './GroupChallenges';
 
 export default function GroupPage() {
   const { id = '' } = useParams();
@@ -35,6 +36,9 @@ export default function GroupPage() {
 
   const load = () => groupsRepo.get(id).then(setData).catch(() => setData(null));
   useEffect(() => { void load(); lectureRepo.list().then(setLectures).catch(() => {}); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Who I am on the group's boards: my id, and the name the group knows me by.
+  const myName = data?.members.find((m) => m.user_id === user?.id)?.display_name || profile?.display_name || '';
+  const me = useMemo(() => (user ? { id: user.id, name: myName } : null), [user, myName]);
 
   if (data === undefined) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
   if (!data) return <div className="mx-auto max-w-2xl space-y-4"><BackLink to="/groups" label={tg.title} /><Alert tone="error">{tg.notFound}</Alert></div>;
@@ -75,6 +79,8 @@ export default function GroupPage() {
         <p className="text-sm text-muted">{tg.members(members.length)}</p>
       </header>
       {error && <Alert tone="error">{error}</Alert>}
+
+      {me && <GroupChallenges groupId={id} shares={shares} members={members} me={me} />}
 
       <Card className="space-y-3 p-5">
         <h2 className="font-semibold">{tg.invite}</h2>

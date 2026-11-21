@@ -132,6 +132,24 @@ select public.reset_study_group_invite((select gid from ids));
 select pg_temp.as_user('cccccccc-0000-0000-0000-000000000003');
 select pg_temp.refused($$select public.join_study_group((select invite_code from code), 'Cy')$$, 'an old invite link after a reset');
 
+-- Group challenges: the weekly game board and the question of the day.
+select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
+select public.submit_game_score('glide', 120);
+select public.submit_game_score('glide', 80);
+select public.answer_group_daily((select gid from ids), true);
+select public.answer_group_daily((select gid from ids), false);
+select pg_temp.ok((select best from public.group_scores where user_id = 'bbbbbbbb-0000-0000-0000-000000000002') = 120, 'the best score of the week is kept');
+select pg_temp.ok((select display_name from public.group_scores where user_id = 'bbbbbbbb-0000-0000-0000-000000000002') = 'Ben', 'the board shows the member''s name');
+select pg_temp.ok((select correct from public.group_daily where user_id = 'bbbbbbbb-0000-0000-0000-000000000002'), 'only the first answer of the day counts');
+select pg_temp.refused($$insert into public.group_scores (group_id, user_id, week, game, best) select gid, 'bbbbbbbb-0000-0000-0000-000000000002', current_date, 'glide', 999999 from ids$$, 'writing scores directly');
+select pg_temp.refused($$select public.submit_game_score('glide', -5)$$, 'a negative score');
+select pg_temp.refused($$select public.submit_game_score('chess', 5)$$, 'an unknown game');
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+select pg_temp.ok((select count(*) from public.group_scores) = 1 and (select count(*) from public.group_daily) = 1, 'members see the group board');
+select pg_temp.as_user('cccccccc-0000-0000-0000-000000000003');
+select pg_temp.ok((select count(*) from public.group_scores) = 0 and (select count(*) from public.group_daily) = 0, 'outsiders cannot see the board');
+select pg_temp.refused($$select public.answer_group_daily((select gid from ids), true)$$, 'outsiders answering the question of the day');
+
 select pg_temp.as_user('bbbbbbbb-0000-0000-0000-000000000002');
 delete from public.group_members where user_id = 'bbbbbbbb-0000-0000-0000-000000000002';
 select pg_temp.ok((select count(*) from public.study_groups) = 0, 'after leaving, the group is gone from view');

@@ -124,6 +124,13 @@ export const en = {
     area: (name: string) => `${name} game`,
   },
   groups: {
+    challenge: {
+      daily: 'Question of the day', dailyHint: 'The same question for everyone in the group, from what you’ve shared.',
+      noQuestion: 'Share a quiz or flashcards with the group to get a question of the day.',
+      answered: (n: number, total: number) => `${n} of ${total} answered today`, gotIt: 'Got it', missed: 'Missed it', you: 'you',
+      board: 'This week’s games', boardHint: 'Everyone’s best Glide and Lane Rush score this week.',
+      noScores: 'No scores yet this week. Play a game to start the race!', play: 'Play a game',
+    },
     title: 'Study groups', subtitle: 'Study with classmates: share notes, flashcards and quizzes with your group.',
     empty: 'You’re not in a group yet. Make one and invite your classmates.',
     create: 'New group', name: 'Group name', namePlaceholder: 'e.g. Calculus study group', make: 'Create',
