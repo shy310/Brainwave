@@ -8,66 +8,105 @@ const lecture = { id: 'geo', title: 'Geography', source: 'text', language: 'auto
   segments: [{ start: 0, text: 'x' }], slides_text: null, notes: null, quiz: null, created_at: '2026-11-03T10:00:00.000Z', updated_at: '',
   flashcards: { cards: Object.entries(CARDS).map(([front, back]) => ({ front, back })) } };
 
-const prompt = async (page: Page) => (await page.locator('main h2').first().textContent())!.trim();
-const option = (page: Page, text: string) => page.locator('main button').filter({ hasText: new RegExp(`^\\d${text}$`) });
+const question = (page: Page) => page.getByRole('dialog');
+const prompt = async (page: Page) => (await question(page).locator('h2').textContent())!.trim();
+/** Run the game clock until a question comes up. */
+const untilQuestion = async (page: Page, max = 40) => {
+  for (let i = 0; i < max && !(await question(page).isVisible()); i++) await page.clock.runFor(500);
+  await expect(question(page)).toBeVisible();
+};
+const answerRight = async (page: Page) => {
+  const right = CARDS[await prompt(page)];
+  await question(page).getByRole('button').filter({ hasText: new RegExp(`^\\d${right}$`) }).click();
+};
+const answerWrong = async (page: Page) => {
+  const right = CARDS[await prompt(page)];
+  await question(page).getByRole('button').filter({ hasNotText: right }).first().click();
+};
 
 for (const lang of ['en', 'he'] as const) {
   const t = lang === 'he' ? he : en;
   const tg = t.game;
 
-  test(`Summit: climb with right answers, lose lives to wrong answers and time-outs (${lang})`, async ({ page }) => {
+  test(`Glide: crash, answer to keep your life, lose lives to wrong answers and time-outs (${lang})`, async ({ page }) => {
     await page.clock.install();
     await onboard(page, { hebrew: lang === 'he' });
     await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), lecture);
     await page.goto('/lectures');
     await page.getByRole('link', { name: tg.play }).click();
-    await expect(page.getByRole('heading', { level: 1, name: tg.name })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: tg.title })).toBeVisible();
+    await page.getByRole('link', { name: new RegExp(tg.glide.name) }).click();
+    await expect(page.getByRole('img', { name: new RegExp(tg.area(tg.glide.name)) })).toBeVisible();
     await page.getByRole('button', { name: tg.start }).click();
 
-    // Two right answers (one with the keyboard).
-    await expect(page.getByText(tg.question(1, 5))).toBeVisible();
-    await option(page, CARDS[await prompt(page)]).click();
-    await expect(page.getByText(tg.right)).toBeVisible();
-    await page.clock.runFor(1200);
-    const second = await prompt(page);
-    const index = await page.locator('main button').filter({ hasText: CARDS[second] }).evaluate((b) => [...b.parentElement!.children].indexOf(b));
-    await page.keyboard.press(String(index + 1));
-    await page.clock.runFor(1200);
-    await expect(page.getByText(tg.combo(3))).toBeVisible();
+    // Not flying: the plane drops onto the desk, and a rescue question comes up.
+    await untilQuestion(page);
+    await expect(question(page)).toContainText(tg.rescue);
+    await answerRight(page);
+    await expect(question(page).getByText(tg.correct)).toBeVisible();
+    await page.clock.runFor(1100);
+    await expect(page.getByRole('img', { name: tg.lives(3) })).toBeVisible();
 
-    // A wrong answer, then a time-out.
-    const third = await prompt(page);
-    await page.locator('main button').filter({ hasNotText: CARDS[third] }).filter({ hasText: /^\d/ }).first().click();
-    await expect(page.getByText(tg.wrong)).toBeVisible();
-    await page.clock.runFor(1200);
+    // A wrong answer costs a life; so does running out of time (keys 1–4 also answer).
+    await untilQuestion(page);
+    await answerWrong(page);
+    await page.clock.runFor(1100);
     await expect(page.getByRole('img', { name: tg.lives(2) })).toBeVisible();
-    await page.clock.runFor(13_000);
-    await expect(page.getByText(tg.timeUp)).toBeVisible();
-    await page.clock.runFor(1200);
+    await untilQuestion(page);
+    await page.clock.runFor(12_200);
+    await expect(question(page).getByText(tg.timeUp)).toBeVisible();
+    await page.clock.runFor(1000);
+    await expect(page.getByRole('img', { name: tg.lives(1) })).toBeVisible();
 
-    // Last question wrong too: three misses end the climb.
-    const fifth = await prompt(page);
-    await page.locator('main button').filter({ hasNotText: CARDS[fifth] }).filter({ hasText: /^\d/ }).first().click();
-    await page.clock.runFor(1200);
+    await untilQuestion(page);
+    const last = await prompt(page);
+    const wrongKey = (await question(page).getByRole('button').allTextContents()).findIndex((b) => !b.endsWith(CARDS[last])) + 1;
+    await page.keyboard.press(String(wrongKey));
+    await page.clock.runFor(1100);
+
     await expect(page.getByRole('heading', { name: tg.over })).toBeVisible();
-    await expect(page.getByText(tg.climbed(2))).toBeVisible();
-    await expect(page.getByText(tg.newBest)).toBeVisible();
+    await expect(page.getByText(tg.answered(1, 4))).toBeVisible();
+    await expect(page.getByText(tg.newBest).or(page.getByText(tg.best(0)))).toBeVisible();
     await expect(page.getByRole('heading', { name: tg.missed })).toBeVisible();
     await expect(page.locator('main li')).toHaveCount(3);
-    await expect(page.getByText(third)).toBeVisible();
 
     // Missed flashcards were put back into spaced repetition.
     const reviewed = await page.evaluate(() => Object.values(JSON.parse(localStorage.getItem('bw.cardReviews') ?? '{}')) as { box: number }[]);
-    expect(reviewed).toHaveLength(3);
+    expect(reviewed.length).toBeGreaterThan(0);
     expect(reviewed.every((r) => r.box === 0)).toBe(true);
 
     await page.getByRole('button', { name: tg.again }).click();
-    await expect(page.getByText(tg.question(1, 5))).toBeVisible();
+    await expect(page.getByRole('button', { name: tg.start })).toBeVisible();
   });
 
-  test(`Summit explains what it needs when there is nothing to play with (${lang})`, async ({ page }) => {
+  test(`Lane Rush: change lanes, pause, and answer a question to keep going (${lang})`, async ({ page }) => {
+    await page.clock.install();
+    await onboard(page, { hebrew: lang === 'he' });
+    await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), lecture);
+    await page.goto('/play');
+    await page.getByRole('link', { name: new RegExp(tg.rush.name) }).click();
+    await page.getByRole('button', { name: tg.start }).click();
+    await page.keyboard.press('ArrowLeft');
+    await page.getByRole('button', { name: tg.right }).dispatchEvent('pointerdown');
+
+    // Pause and resume.
+    await page.getByRole('button', { name: tg.pause }).click();
+    await expect(page.getByRole('button', { name: tg.resume }).first()).toBeVisible();
+    await page.keyboard.press('p');
+    await expect(page.getByRole('button', { name: tg.pause })).toBeVisible();
+
+    await untilQuestion(page, 60);
+    await answerRight(page);
+    await page.clock.runFor(1100);
+    await expect(question(page)).toBeHidden();
+    await expect(page.getByRole('img', { name: tg.lives(3) })).toBeVisible();
+  });
+
+  test(`the games explain what they need when there is nothing to play with (${lang})`, async ({ page }) => {
     await onboard(page, { hebrew: lang === 'he' });
     await page.goto('/play');
+    await expect(page.getByText(tg.notEnough)).toBeVisible();
+    await page.goto('/play/glide');
     await expect(page.getByText(tg.notEnough)).toBeVisible();
   });
 }

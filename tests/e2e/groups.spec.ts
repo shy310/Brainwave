@@ -119,13 +119,13 @@ for (const lang of ['en', 'he'] as const) {
   });
 }
 
-test('the Lectures page has the study tools: review, Summit, study groups and the class schedule', async ({ page }) => {
+test('the Lectures page has the study tools: review, games, study groups and the class schedule', async ({ page }) => {
   await onboard(page);
   await page.goto('/lectures');
   const tools = page.getByRole('region', { name: en.lectures.tools.title });
-  for (const [name, path] of [[en.lectures.tools.review, '/lectures/review'], [en.lectures.tools.summit, '/play'], [en.lectures.tools.groups, '/groups'], [en.lectures.tools.schedule, '/lectures/schedule']]) {
+  for (const [name, path] of [[en.lectures.tools.review, '/lectures/review'], [en.lectures.tools.games, '/play'], [en.lectures.tools.groups, '/groups'], [en.lectures.tools.schedule, '/lectures/schedule']]) {
     await expect(tools.getByRole('link', { name: new RegExp(name) })).toHaveAttribute('href', path);
   }
-  await tools.getByRole('link', { name: new RegExp(en.lectures.tools.summit) }).click();
-  await expect(page.getByRole('heading', { level: 1, name: en.game.name })).toBeVisible();
+  await tools.getByRole('link', { name: new RegExp(en.lectures.tools.games) }).click();
+  await expect(page.getByRole('heading', { level: 1, name: en.game.title })).toBeVisible();
 });

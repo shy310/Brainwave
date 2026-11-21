@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
-import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, CalendarDays, Camera, FileText, Layers, Mountain, Folder as FolderIcon, FolderPlus, Mic, Pencil, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, CalendarDays, Camera, FileText, Gamepad2, Layers, Folder as FolderIcon, FolderInput, FolderPlus, Mic, MoreHorizontal, Pencil, Star, StarOff, Check, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
@@ -18,6 +18,9 @@ import { UpNextBanner } from '@/features/schedule/UpNext';
 import { IconTile } from '@/ui/IconTile';
 import { dateLocale } from '@shared/locales';
 import { EmptyState } from '@/ui/EmptyState';
+import { ContextMenu, useContextTriggers, type ContextMenuState } from '@/ui/ContextMenu';
+import { Sheet } from '@/ui/Sheet';
+import { ListSection } from '@/ui/List';
 
 const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera } as const;
 const VIEW_KEY = 'bw.lectures.view';
@@ -43,6 +46,13 @@ export default function LecturesPage() {
   const [creating, setCreating] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState('');
+  const navigate = useNavigate();
+  const [menu, setMenu] = useState<ContextMenuState | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
+  const triggers = useContextTriggers();
+  // The lecture being renamed or moved from the menu.
+  const [editing, setEditing] = useState<{ lecture: LectureSummary; mode: 'rename' | 'move' } | null>(null);
+  const [lectureName, setLectureName] = useState('');
 
   useEffect(() => {
     Promise.all([lectureRepo.list(), folderRepo.list()])
@@ -55,7 +65,8 @@ export default function LecturesPage() {
   useEffect(() => { storage.set(VIEW_KEY, JSON.stringify({ sort, folder })); }, [sort, folder]);
   // A remembered folder that no longer exists falls back to All.
   const current = folders.find((f) => f.id === folder);
-  const activeFolder = folder === 'all' || folder === 'none' || current ? folder : 'all';
+  const hasFavorites = Boolean(items?.some((l) => l.favorite));
+  const activeFolder = folder === 'all' || folder === 'none' || current || (folder === 'favorites' && hasFavorites) ? folder : 'all';
 
   const untitled = (l: LectureSummary) => lectureTitle(l, t.lectures.untitled, locale);
   const shown = useMemo(() => (items ? arrangeLectures(items, { query, folder: activeFolder, sort, untitled, locale }) : []),
@@ -111,6 +122,34 @@ export default function LecturesPage() {
 
   const hasAny = Boolean(items?.length);
 
+  const patchLecture = async (id: string, patch: Partial<LectureSummary>) => {
+    setItems((all) => all?.map((l) => (l.id === id ? { ...l, ...patch } : l)) ?? null);
+    await lectureRepo.update(id, patch).catch((err) => { console.error(err); setError(true); });
+  };
+  const deleteLecture = async (l: LectureSummary) => {
+    if (!window.confirm(t.lectures.confirmDelete)) return;
+    setItems((all) => all?.filter((x) => x.id !== l.id) ?? null);
+    await lectureRepo.remove(l.id).catch((err) => { console.error(err); setError(true); });
+  };
+  const saveLectureName = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editing || !lectureName.trim()) return;
+    await patchLecture(editing.lecture.id, { title: lectureName.trim() });
+    setEditing(null);
+  };
+  const openMenu = (l: LectureSummary) => (x: number, y: number) => setMenu({
+    x, y, label: tl.options(untitled(l)),
+    items: [
+      { label: tl.open, icon: <ArrowRight className="rtl:rotate-180" />, onSelect: () => navigate(`/lectures/${l.id}`) },
+      { label: tl.renameLecture, icon: <Pencil />, onSelect: () => { setLectureName(l.title); setEditing({ lecture: l, mode: 'rename' }); } },
+      l.favorite
+        ? { label: tl.unfavorite, icon: <StarOff />, onSelect: () => void patchLecture(l.id, { favorite: false }) }
+        : { label: tl.favorite, icon: <Star />, onSelect: () => void patchLecture(l.id, { favorite: true }) },
+      ...(folders.length ? [{ label: tl.moveLecture, icon: <FolderInput />, onSelect: () => setEditing({ lecture: l, mode: 'move' }) }] : []),
+      { label: tl.deleteLecture, icon: <Trash2 />, danger: true, onSelect: () => void deleteLecture(l) },
+    ],
+  });
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
@@ -161,6 +200,11 @@ export default function LecturesPage() {
             <button type="button" className={chip(activeFolder === 'all')} aria-pressed={activeFolder === 'all'} onClick={() => setFolder('all')}>
               {tl.all} <span className="opacity-70">{items!.length}</span>
             </button>
+            {hasFavorites && (
+              <button type="button" className={chip(activeFolder === 'favorites')} aria-pressed={activeFolder === 'favorites'} onClick={() => setFolder('favorites')}>
+                <Star className="size-4 shrink-0" aria-hidden="true" />{tl.favorites} <span className="opacity-70">{items!.filter((l) => l.favorite).length}</span>
+              </button>
+            )}
             {shownFolders.map((f) => (
               <button key={f.id} type="button" {...drag.itemProps(f.id)}
                 className={cn(chip(activeFolder === f.id), 'touch-pan-x select-none', drag.dragging === f.id && 'cursor-grabbing opacity-80 shadow-[var(--shadow-lift)] ring-2 ring-brand-400')}
@@ -209,13 +253,13 @@ export default function LecturesPage() {
             )
           )}
 
-          {activeFolder !== 'none' && (activeFolder === 'all' ? items!.length : count(activeFolder)) > 0 && (
+          {activeFolder !== 'none' && activeFolder !== 'favorites' && (activeFolder === 'all' ? items!.length : count(activeFolder)) > 0 && (
             <div className="flex flex-wrap gap-2">
               <Link to={`/lectures/study?folder=${activeFolder}`} className={cn(linkButton, 'flex-1 border border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100 sm:flex-none dark:border-brand-800 dark:bg-brand-900/30 dark:text-brand-100')}>
                 <BookOpenCheck className="size-4" aria-hidden="true" />{activeFolder === 'all' ? t.lectures.study.studyAll : t.lectures.study.studyFolder}
               </Link>
               <Link to={`/play?folder=${activeFolder}`} className={cn(linkButton, 'flex-1 border border-line bg-surface hover:bg-surface-2 sm:flex-none')}>
-                <Mountain className="size-4" aria-hidden="true" />{t.game.play}
+                <Gamepad2 className="size-4" aria-hidden="true" />{t.game.play}
               </Link>
             </div>
           )}
@@ -229,13 +273,18 @@ export default function LecturesPage() {
               const Icon = SOURCE_ICON[l.source];
               const inFolder = folders.find((f) => f.id === l.folder_id);
               return (
-                <Link key={l.id} to={`/lectures/${l.id}`} className="min-w-0 rounded-[var(--radius-card)]">
-                  <Card className="flex items-start gap-3 p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
+                // Right-click, long-press or the ⋯ button for Rename, Favorite, Move and Delete.
+                <div key={l.id} className="relative min-w-0 select-none [-webkit-touch-callout:none]" {...triggers(openMenu(l))}>
+                <Link to={`/lectures/${l.id}`} className="block min-w-0 rounded-[var(--radius-card)]">
+                  <Card className="flex items-start gap-3 p-4 pe-12 transition-shadow hover:shadow-[var(--shadow-lift)]">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-muted">
                       <Icon className="size-5" aria-hidden="true" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium" dir="auto">{untitled(l)}</p>
+                      <p className="flex min-w-0 items-center gap-1.5 font-medium">
+                        <span className="truncate" dir="auto">{untitled(l)}</span>
+                        {l.favorite && <Star className="size-4 shrink-0 fill-accent-400 text-accent-500" role="img" aria-label={tl.starred} />}
+                      </p>
                       <p className="mt-0.5 text-sm text-muted">
                         {t.lectures.sources[l.source]}
                         {l.duration_sec > 0 && ` · ${t.lectures.minutes(Math.max(1, Math.round(l.duration_sec / 60)))}`}
@@ -251,22 +300,56 @@ export default function LecturesPage() {
                     )}
                   </Card>
                 </Link>
+                <button type="button" aria-label={tl.options(untitled(l))} aria-haspopup="menu"
+                  onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); openMenu(l)(r.left, r.bottom + 4); }}
+                  className="absolute end-2 top-3 flex size-9 items-center justify-center rounded-full text-muted hover:bg-surface-2 hover:text-fg">
+                  <MoreHorizontal className="size-5" aria-hidden="true" />
+                </button>
+                </div>
               );
             })}
           </div>
+
+          <ContextMenu menu={menu} onClose={closeMenu} />
+
+          <Sheet open={editing?.mode === 'rename'} onClose={() => setEditing(null)} title={tl.renameLecture}
+            footer={<Button block size="lg" onClick={(e) => void saveLectureName(e)} disabled={!lectureName.trim()}>{t.common.save}</Button>}>
+            <form onSubmit={saveLectureName}>
+              <Input aria-label={tl.renameLecture} value={lectureName} maxLength={200} onChange={(e) => setLectureName(e.target.value)} autoFocus dir="auto" />
+            </form>
+          </Sheet>
+
+          <Sheet open={editing?.mode === 'move'} onClose={() => setEditing(null)} title={tl.moveLecture}>
+            <div role="radiogroup" aria-label={tl.moveLecture}>
+              <ListSection>
+                {[{ id: '', name: tl.noFolder }, ...folders].map((f) => {
+                  const on = (editing?.lecture.folder_id ?? '') === f.id;
+                  return (
+                    <button key={f.id || 'none'} type="button" role="radio" aria-checked={on}
+                      onClick={() => { if (editing) void patchLecture(editing.lecture.id, { folder_id: f.id || null }); setEditing(null); }}
+                      className="flex min-h-14 w-full items-center gap-3 px-4 text-start hover:bg-surface-2">
+                      <FolderIcon className="size-[18px] shrink-0 text-muted" aria-hidden="true" />
+                      <span className="min-w-0 flex-1 truncate font-medium" dir="auto">{f.name}</span>
+                      {on && <Check className="size-5 shrink-0 text-brand-700 dark:text-brand-300" aria-hidden="true" />}
+                    </button>
+                  );
+                })}
+              </ListSection>
+            </div>
+          </Sheet>
         </>
       )}
     </div>
   );
 }
 
-/** Everything for studying the lectures, in one place: review, Summit, study groups and the class schedule. */
+/** Everything for studying the lectures, in one place: review, games, study groups and the class schedule. */
 const StudyTools = ({ due }: { due: number }) => {
   const { t } = useI18n();
   const tt = t.lectures.tools;
   const tools = [
     { to: '/lectures/review', icon: Layers, title: tt.review, body: due > 0 ? t.lectures.review.due(due) : tt.reviewBody, tint: 'bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-200', highlight: due > 0 },
-    { to: '/play', icon: Mountain, title: tt.summit, body: tt.summitBody, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },
+    { to: '/play', icon: Gamepad2, title: tt.games, body: tt.gamesBody, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },
     { to: '/groups', icon: Users, title: tt.groups, body: tt.groupsBody, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
     { to: '/lectures/schedule', icon: CalendarDays, title: tt.schedule, body: tt.scheduleBody, tint: 'bg-sky-500/12 text-sky-700 dark:text-sky-300' },
   ];

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { Mountain, Sparkles } from 'lucide-react';
+import { Gamepad2, Sparkles } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { storage } from '@/lib/storage';
@@ -124,7 +124,7 @@ export default function StudyFolderPage() {
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="flex-1 text-3xl font-semibold tracking-tight" dir="auto">{ts.title(name)}</h1>
           <Link to={`/play?folder=${folder}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-sm font-medium hover:bg-surface-2">
-            <Mountain className="size-4" aria-hidden="true" />{t.game.play}
+            <Gamepad2 className="size-4" aria-hidden="true" />{t.game.play}
           </Link>
         </div>
         {(last.cards || last.quiz) && (

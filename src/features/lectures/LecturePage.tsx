@@ -36,20 +36,10 @@ import { lectureTitle } from './LecturesPage';
 import { notesMode, switchNotes, withNewNotes } from './notesVersions';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
 import { dateLocale } from '@shared/locales';
+import { copyNotes as copyNotesToClipboard, notesLabels, notesLocale, notesToMarkdown } from './notesExport';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
-
-export interface NotesLabels { summary: string; keyTerms: string; reminders: string; practice: string; mistakes: string }
-
-export const notesToMarkdown = (title: string, n: Notes, labels: NotesLabels) => [
-  `# ${title}`, '', `## ${labels.summary}`, n.summary, '',
-  ...n.sections.flatMap((s) => [`## ${s.heading}`, ...s.points.map((p) => `- ${p}`), '']),
-  ...(n.keyTerms.length ? [`## ${labels.keyTerms}`, ...n.keyTerms.map((k) => `- **${k.term}** — ${k.definition}`), ''] : []),
-  ...(n.practice?.length ? [`## ${labels.practice}`, ...n.practice.map((p, i) => `${i + 1}. ${p.question}\n   ${p.answer}`), ''] : []),
-  ...(n.mistakes?.length ? [`## ${labels.mistakes}`, ...n.mistakes.map((m) => `- ${m}`), ''] : []),
-  ...(n.reminders.length ? [`## ${labels.reminders}`, ...n.reminders.map((r) => `- ${r}`), ''] : []),
-].join('\n');
 
 const download = (name: string, text: string) => {
   const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }));
@@ -194,7 +184,6 @@ export default function LecturePage() {
   if (lecture === null) return <Alert tone="error">{t.lectures.notFound}</Alert>;
 
   const title = lectureTitle(lecture, t.lectures.untitled, locale);
-  const labels: NotesLabels = { summary: t.lectures.summary, keyTerms: t.lectures.keyTerms, reminders: t.lectures.reminders, practice: t.lectures.practice, mistakes: t.lectures.mistakes };
 
   const remove = async () => {
     if (!window.confirm(t.lectures.confirmDelete)) return;
@@ -247,7 +236,7 @@ export default function LecturePage() {
 
   const copyNotes = async () => {
     if (!lecture.notes) return;
-    await navigator.clipboard.writeText(notesToMarkdown(title, lecture.notes, labels)).catch(() => {});
+    await copyNotesToClipboard(title, lecture.notes, locale).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -408,7 +397,7 @@ export default function LecturePage() {
           </div>
           <ListSection>
             {lecture.notes && <ListRow icon={FileDown} label={t.lectures.share.savePdf} onClick={then(() => navigate(`/lectures/${id}/print`))} chevron={false} />}
-            {lecture.notes && <ListRow icon={Download} label={t.lectures.download} onClick={then(() => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, labels)))} chevron={false} />}
+            {lecture.notes && <ListRow icon={Download} label={t.lectures.download} onClick={then(() => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, notesLabels(notesLocale(lecture.notes!, locale)))))} chevron={false} />}
             {lecture.notes && <ListRow icon={RefreshCw} label={t.lectures.regenerate} onClick={then(() => void generate('notes'))} chevron={false} />}
             {lecture.audio_path && recordingUrl && (
               <ListRow icon={Download} label={tk.download} chevron={false} onClick={then(() => {

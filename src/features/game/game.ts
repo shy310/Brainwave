@@ -1,5 +1,6 @@
-// "Summit": a quick climbing quiz built from the student's own flashcards and
-// lecture quizzes. Pure game rules, tested; the page only draws them.
+// Questions and the shared rules of the arcade games (Glide and Lane Rush):
+// lives, shield, score and the question checkpoints. Pure and tested; the
+// pages only draw them.
 
 import type { StudyLecture } from '@/features/lectures/repo';
 import { cardKey } from '@shared/srs';
@@ -15,13 +16,14 @@ export interface GameQuestion {
 }
 
 export const LIVES = 3;
+/** Seconds to answer a question. */
 export const SECONDS = 12;
-export const MAX_COMBO = 5;
-export const ROUND = 20;
-const BASE = 100;
+/** Points for a right answer at a checkpoint. */
+export const BONUS = 50;
+export const ROUND = 40;
 
-type Rand = () => number;
-const shuffle = <T,>(xs: T[], rand: Rand): T[] => {
+export type Rand = () => number;
+export const shuffle = <T,>(xs: T[], rand: Rand): T[] => {
   const a = [...xs];
   for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
   return a;
@@ -53,23 +55,48 @@ export const buildGame = (lectures: StudyLecture[], title: (l: StudyLecture) => 
   return shuffle(out, rand).slice(0, size);
 };
 
-export interface GameState { index: number; lives: number; score: number; combo: number; height: number; missed: number[]; over: boolean }
+/** Why a question is on screen: a regular checkpoint, or a crash you can talk your way out of. */
+export type Ask = 'checkpoint' | 'rescue';
 
-export const start = (): GameState => ({ index: 0, lives: LIVES, score: 0, combo: 1, height: 0, missed: [], over: false });
+export interface Run {
+  lives: number;
+  /** Points from the game itself (gates, distance). */
+  points: number;
+  /** Points from right answers. */
+  bonus: number;
+  /** A shield takes the next crash for you. */
+  shield: boolean;
+  asked: number;
+  right: number;
+  /** Indexes (into the deck) of questions answered wrong. */
+  missed: number[];
+  over: boolean;
+}
 
-/** Points for a right answer: faster answers and longer combos score more. */
-export const points = (combo: number, secondsLeft: number) => Math.round(BASE * combo * (1 + Math.max(0, secondsLeft) / SECONDS));
+export const newRun = (): Run => ({ lives: LIVES, points: 0, bonus: 0, shield: false, asked: 0, right: 0, missed: [], over: false });
+export const score = (r: Run) => r.points + r.bonus;
 
-/** Apply an answer (or a timeout, `choice` = null) to question `total` long game. */
-export const answer = (s: GameState, q: GameQuestion, choice: number | null, secondsLeft: number, total: number): GameState => {
-  const right = choice === q.correct;
-  const next: GameState = right
-    ? { ...s, score: s.score + points(s.combo, secondsLeft), combo: Math.min(MAX_COMBO, s.combo + 1), height: s.height + 1 }
-    : { ...s, lives: s.lives - 1, combo: 1, missed: [...s.missed, s.index] };
-  next.index = s.index + 1;
-  next.over = next.lives <= 0 || next.index >= total;
+/**
+ * A crash: the shield takes it if you have one (no question), otherwise a
+ * rescue question decides whether you keep your life.
+ */
+export const crash = (r: Run): { run: Run; ask: Ask | null } =>
+  r.shield ? { run: { ...r, shield: false }, ask: null } : { run: r, ask: 'rescue' };
+
+/**
+ * Apply an answer (`right` false for a wrong answer or a time-out).
+ * Checkpoint: right gives a shield and bonus points, wrong costs a life.
+ * Rescue: right keeps your life, wrong costs it.
+ */
+export const answer = (r: Run, ask: Ask, right: boolean, deckIndex: number): Run => {
+  const next: Run = { ...r, asked: r.asked + 1 };
+  if (right) {
+    next.right = r.right + 1;
+    if (ask === 'checkpoint') { next.shield = true; next.bonus = r.bonus + BONUS; }
+  } else {
+    next.lives = r.lives - 1;
+    next.missed = r.missed.includes(deckIndex) ? r.missed : [...r.missed, deckIndex];
+  }
+  next.over = next.lives <= 0;
   return next;
 };
-
-/** The climb ended at the top: lives left and at least one right answer (a short round can end with neither). */
-export const reachedSummit = (s: GameState) => s.over && s.lives > 0 && s.height > 0;
