@@ -160,6 +160,22 @@
   .pressable:active { transform: scale(0.98); }
 }
 
+/* Switching light/dark eases over instead of flashing. */
+.theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
+  transition: background-color 280ms ease, border-color 280ms ease, color 280ms ease, fill 280ms ease !important;
+}
+
+/* Less transparency: frosted bars become solid. */
+@media (prefers-reduced-transparency: reduce) {
+  [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background-color: var(--surface) !important; }
+}
+
+/* More contrast: clearer edges and secondary text. */
+@media (prefers-contrast: more) {
+  :root { --line: #8b94a9; --muted: #3d4559; }
+  .dark { --line: #5d6884; --muted: #c6cddc; }
+}
+
 /* Respect users who ask for less motion. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

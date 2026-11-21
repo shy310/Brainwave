@@ -11,6 +11,8 @@ import './styles.css';
 import { registerServiceWorker } from './features/schedule/webPush';
 
 registerServiceWorker();
+// iOS Safari only shows :active (the pressed look) on touch when the page listens for touches.
+document.addEventListener('touchstart', () => {}, { passive: true });
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

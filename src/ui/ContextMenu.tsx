@@ -52,8 +52,9 @@ export const ContextMenu = ({ menu, onClose }: { menu: ContextMenuState | null; 
   // In a portal so a transformed ancestor (entry animations) can't shift the fixed position.
   return createPortal(
     <div ref={ref} role="menu" aria-label={menu.label}
-      style={pos ? { left: pos.left, top: pos.top } : { left: -9999, top: -9999 }}
-      className="fixed z-[60] min-w-56 max-w-[calc(100vw-1rem)] origin-top-left overflow-hidden rounded-2xl border border-line bg-surface p-1 shadow-[var(--shadow-lift)] animate-pop-in">
+      // It grows out of the spot you clicked or pressed.
+      style={pos ? { left: pos.left, top: pos.top, transformOrigin: `${menu.x - pos.left}px ${menu.y - pos.top}px` } : { left: -9999, top: -9999 }}
+      className="fixed z-[60] min-w-56 max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl border border-line bg-surface p-1 shadow-[var(--shadow-lift)] animate-pop-in">
       {menu.items.map((it, i) => (
         <button key={i} type="button" role="menuitem" tabIndex={-1}
           onClick={() => { onClose(); it.onSelect(); }}

@@ -105,6 +105,8 @@ const Game = ({ id, folder, lectures, back }: { id: GameId; folder: string; lect
         const p = worldPoints(world.current);
         if (p !== runRef.current.points) { runRef.current = { ...runRef.current, points: p }; setPoints(p); }
         if (r.event === 'crash') {
+          // A short buzz on phones that can, on the same frame as the crash.
+          try { navigator.vibrate?.(40); } catch { /* not allowed */ }
           const c = crash(runRef.current);
           setRunBoth(c.run);
           if (c.ask) openQuestion(c.ask); else recover();

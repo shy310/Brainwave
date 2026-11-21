@@ -8,7 +8,15 @@ const Ctx = createContext<{ theme: Theme; setTheme: (t: Theme) => void } | null>
 
 const apply = (theme: Theme) => {
   const dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  document.documentElement.classList.toggle('dark', dark);
+  const root = document.documentElement;
+  if (root.classList.contains('dark') === dark) return;
+  // Ease between light and dark instead of a sudden flash (only when it actually changes after load).
+  if (root.dataset.themed) {
+    root.classList.add('theme-fade');
+    window.setTimeout(() => root.classList.remove('theme-fade'), 320);
+  }
+  root.dataset.themed = '1';
+  root.classList.toggle('dark', dark);
 };
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
