@@ -11,6 +11,7 @@ import { ChatPanel } from '@/features/tutor/ChatPanel';
 import { mediaRepo, type Media } from '@/features/media/repo';
 import type { VideoScript } from '@shared/media';
 import { VideoPlayer } from './VideoPlayer';
+import { askConfirm } from '@/ui/Confirm';
 
 export default function VideoPage() {
   const { id = '' } = useParams();
@@ -40,7 +41,7 @@ export default function VideoPage() {
   if (video === null) return <Alert tone="error">{t.videos.notFound}</Alert>;
 
   const remove = async () => {
-    if (!window.confirm(t.videos.confirmDelete)) return;
+    if (!(await askConfirm({ message: t.videos.confirmDelete, action: 'delete' }))) return;
     await mediaRepo.remove(id);
     navigate('/videos', { replace: true });
   };

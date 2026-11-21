@@ -84,6 +84,10 @@ for (const lang of ['en', 'he'] as const) {
     await onboard(page, { hebrew: lang === 'he' });
     await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), lecture);
     await page.goto('/play');
+    // From the Lectures page there's no folder yet: choose what the questions are about first.
+    await expect(page.getByText(tg.chooseFirst)).toBeVisible();
+    await expect(page.getByRole('link', { name: new RegExp(tg.rush.name) })).toHaveCount(0);
+    await page.getByRole('radio', { name: new RegExp(tg.allLectures) }).click();
     await page.getByRole('link', { name: new RegExp(tg.rush.name) }).click();
     await page.getByRole('button', { name: tg.start }).click();
     await page.keyboard.press('ArrowLeft');
@@ -100,6 +104,23 @@ for (const lang of ['en', 'he'] as const) {
     await page.clock.runFor(1100);
     await expect(question(page)).toBeHidden();
     await expect(page.getByRole('img', { name: tg.lives(3) })).toBeVisible();
+  });
+
+  test(`choose which lectures the questions come from (${lang})`, async ({ page }) => {
+    await page.clock.install();
+    await onboard(page, { hebrew: lang === 'he' });
+    const other = { ...lecture, id: 'hist', title: 'History', flashcards: { cards: [{ front: 'Year of the French Revolution?', back: '1789' }, { front: 'First US president?', back: 'Washington' }, { front: 'Fall of Rome?', back: '476' }, { front: 'Moon landing?', back: '1969' }] } };
+    await page.evaluate((ls) => localStorage.setItem('bw.lectures', JSON.stringify(ls)), [lecture, other]);
+    await page.goto('/play');
+    await page.getByRole('radio', { name: new RegExp(tg.pickLectures) }).click();
+    await expect(page.getByText(tg.pickOne)).toBeVisible();
+    await page.getByRole('checkbox', { name: /History/ }).click();
+    await expect(page.getByRole('radio', { name: new RegExp(tg.pickLectures) })).toContainText(tg.questions(4));
+    await page.getByRole('link', { name: new RegExp(tg.glide.name) }).click();
+    await expect(page).toHaveURL(/lectures=hist/);
+    await page.getByRole('button', { name: tg.start }).click();
+    await untilQuestion(page);
+    expect(Object.keys({ 'Year of the French Revolution?': 1, 'First US president?': 1, 'Fall of Rome?': 1, 'Moon landing?': 1 })).toContain(await prompt(page));
   });
 
   test(`the games explain what they need when there is nothing to play with (${lang})`, async ({ page }) => {

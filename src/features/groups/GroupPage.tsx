@@ -16,6 +16,7 @@ import { lectureShare } from './share';
 import { groupsRepo, type Group, type Member, type Share } from './groupsRepo';
 import { dateLocale } from '@shared/locales';
 import { EmptyState } from '@/ui/EmptyState';
+import { askConfirm } from '@/ui/Confirm';
 
 export default function GroupPage() {
   const { id = '' } = useParams();
@@ -135,7 +136,7 @@ export default function GroupPage() {
               {m.role === 'owner' && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/40 dark:text-brand-200">{tg.owner}</span>}
               {isOwner && m.user_id !== user?.id && (
                 <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={tg.removeMember(m.display_name)}
-                  onClick={() => { if (window.confirm(tg.confirmRemoveMember(m.display_name))) void run(async () => { await groupsRepo.removeMember(id, m.user_id); await load(); }); }}>
+                  onClick={() => { void askConfirm({ message: tg.confirmRemoveMember(m.display_name), action: 'remove' }).then((ok) => { if (ok) void run(async () => { await groupsRepo.removeMember(id, m.user_id); await load(); }); }); }}>
                   <UserMinus className="size-4" aria-hidden="true" />
                 </Button>
               )}
@@ -146,9 +147,9 @@ export default function GroupPage() {
 
       <div className="flex flex-wrap gap-2 border-t border-line pt-4">
         {isOwner ? (
-          <Button variant="ghost" icon={<Trash2 className="size-4" />} onClick={() => { if (window.confirm(tg.confirmDelete)) void run(async () => { await groupsRepo.remove(id); navigate('/groups', { replace: true }); }); }}>{tg.deleteGroup}</Button>
+          <Button variant="ghost" icon={<Trash2 className="size-4" />} onClick={() => { void askConfirm({ message: tg.confirmDelete, action: 'delete' }).then((ok) => { if (ok) void run(async () => { await groupsRepo.remove(id); navigate('/groups', { replace: true }); }); }); }}>{tg.deleteGroup}</Button>
         ) : (
-          <Button variant="ghost" icon={<LogOut className="size-4 rtl:rotate-180" />} onClick={() => { if (window.confirm(tg.confirmLeave)) void run(async () => { await groupsRepo.removeMember(id, user!.id); navigate('/groups', { replace: true }); }); }}>{tg.leave}</Button>
+          <Button variant="ghost" icon={<LogOut className="size-4 rtl:rotate-180" />} onClick={() => { void askConfirm({ message: tg.confirmLeave, action: 'leave' }).then((ok) => { if (ok) void run(async () => { await groupsRepo.removeMember(id, user!.id); navigate('/groups', { replace: true }); }); }); }}>{tg.leave}</Button>
         )}
       </div>
     </div>

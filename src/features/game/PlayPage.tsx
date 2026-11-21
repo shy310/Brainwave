@@ -35,15 +35,17 @@ export default function PlayPage() {
   const { game = '' } = useParams();
   const [params] = useSearchParams();
   const folder = params.get('folder') ?? 'all';
-  if (game !== 'glide' && game !== 'rush') return <Navigate to={`/play${folder !== 'all' ? `?folder=${folder}` : ''}`} replace />;
-  return <Game key={game} id={game} folder={folder} />;
+  const lectures = params.get('lectures')?.split(',').filter(Boolean);
+  const query = params.toString();
+  if (game !== 'glide' && game !== 'rush') return <Navigate to={`/play${query ? `?${query}` : ''}`} replace />;
+  return <Game key={game} id={game} folder={folder} lectures={lectures} back={`/play${query ? `?${query}` : ''}`} />;
 }
 
-const Game = ({ id, folder }: { id: GameId; folder: string }) => {
+const Game = ({ id, folder, lectures, back }: { id: GameId; folder: string; lectures?: string[]; back: string }) => {
   const { t } = useI18n();
   const tg = t.game;
   const name = tg[id].name;
-  const { loading, deck, next, reset } = useDeck(folder);
+  const { loading, deck, next, reset } = useDeck(folder, lectures);
   // The game needs the whole screen on a phone.
   useHideTabBar();
   const [phase, setPhase] = useState<Phase>('ready');
@@ -198,7 +200,6 @@ const Game = ({ id, folder }: { id: GameId; folder: string }) => {
   };
 
   if (loading) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
-  const back = `/play${folder !== 'all' ? `?folder=${folder}` : ''}`;
   if (!deck.length) {
     return (
       <div className="mx-auto max-w-md space-y-4">

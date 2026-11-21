@@ -11,6 +11,7 @@ export const ar: Dict = {
     podcasts: 'البودكاست', settings: 'الإعدادات', signOut: 'تسجيل الخروج', menu: 'القائمة', account: 'الحساب',
   },
   common: {
+    delete: 'حذف', leave: 'مغادرة', remove: 'إزالة',
     loading: 'جارٍ التحميل…', save: 'حفظ', saving: 'جارٍ الحفظ…', saved: 'تم الحفظ', cancel: 'إلغاء',
     continue: 'متابعة', back: 'رجوع', tryAgain: 'حاول مرة أخرى',
     close: 'إغلاق', or: 'أو', open: 'فتح',
@@ -93,6 +94,8 @@ export const ar: Dict = {
     podcastsTitle: 'البودكاست',
   },
   game: {
+    source: 'عن ماذا ستكون الأسئلة؟', allLectures: 'كل المحاضرات', pickLectures: 'اختر محاضرات',
+    questions: (n: number) => count(n, 'سؤال واحد', 'سؤالان', 'أسئلة', 'سؤالًا'), chooseFirst: 'اختر أولًا موضوع الأسئلة.', pickOne: 'اختر محاضرة واحدة على الأقل.',
     title: 'الألعاب', subtitle: 'ألعاب سريعة بأسئلة من محاضراتك.', play: 'العب',
     notEnough: 'تحتاج الألعاب إلى بطاقات أو أسئلة اختبار. أنشئ بطاقات لمحاضرة أولًا.',
     glide: { name: 'تحليق', body: 'طيّر طائرة ورقية بين أكوام الكتب.', controls: 'انقر أو اضغط على المسافة لترتفع.' },

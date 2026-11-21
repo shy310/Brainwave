@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
 import { router } from './app/router';
 import { I18nProvider } from './i18n';
+import { ConfirmHost } from './ui/Confirm';
 import { ThemeProvider } from './app/ThemeProvider';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { ErrorBoundary } from './app/ErrorBoundary';
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')!).render(
         <ErrorBoundary>
           <AuthProvider>
             <RouterProvider router={router} />
+            <ConfirmHost />
           </AuthProvider>
         </ErrorBoundary>
       </I18nProvider>

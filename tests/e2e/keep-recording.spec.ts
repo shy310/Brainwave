@@ -67,9 +67,9 @@ for (const lang of ['en', 'he'] as const) {
     expect(await audio.evaluate((a: HTMLAudioElement) => a.playbackRate)).toBe(1.25);
 
     // Delete only the recording (from More); the transcript stays.
-    page.once('dialog', (d) => void d.accept());
     await page.getByRole('toolbar', { name: t.lectures.actions.toolbar }).getByRole('button', { name: t.lectures.options.title }).click();
     await page.getByRole('dialog').getByRole('button', { name: tk.deleteRecording }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: t.common.delete }).click();
     await expect(player).toHaveCount(0);
     await expect(page.getByText(t.lectures.transcriptTools.tapToPlay)).toHaveCount(0);
     await expect(page.getByText('Part 1 of the lecture.')).toBeVisible();

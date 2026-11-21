@@ -21,6 +21,7 @@ import { EmptyState } from '@/ui/EmptyState';
 import { ContextMenu, useContextTriggers, type ContextMenuState } from '@/ui/ContextMenu';
 import { Sheet } from '@/ui/Sheet';
 import { ListSection } from '@/ui/List';
+import { askConfirm } from '@/ui/Confirm';
 
 const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera } as const;
 const VIEW_KEY = 'bw.lectures.view';
@@ -105,7 +106,7 @@ export default function LecturesPage() {
   };
 
   const removeFolder = async () => {
-    if (!current || !window.confirm(tl.confirmRemove(current.name))) return;
+    if (!current || !(await askConfirm({ message: tl.confirmRemove(current.name), action: 'delete' }))) return;
     await folderRepo.remove(current.id).catch(() => setError(true));
     setFolders((all) => all.filter((f) => f.id !== current.id));
     setItems((all) => all?.map((l) => (l.folder_id === current.id ? { ...l, folder_id: null } : l)) ?? null);
@@ -127,7 +128,7 @@ export default function LecturesPage() {
     await lectureRepo.update(id, patch).catch((err) => { console.error(err); setError(true); });
   };
   const deleteLecture = async (l: LectureSummary) => {
-    if (!window.confirm(t.lectures.confirmDelete)) return;
+    if (!(await askConfirm({ message: t.lectures.confirmDelete, action: 'delete' }))) return;
     setItems((all) => all?.filter((x) => x.id !== l.id) ?? null);
     await lectureRepo.remove(l.id).catch((err) => { console.error(err); setError(true); });
   };

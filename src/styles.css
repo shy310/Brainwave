@@ -47,6 +47,8 @@
   --line: #e0e5ef;
   --fg: #141a2e;
   --muted: #586178;
+  --scroll-thumb: #c4ccdc;
+  --scroll-thumb-hover: #8fa6e6;
 }
 .dark {
   --bg: #0a0e19;
@@ -55,6 +57,8 @@
   --line: #273046;
   --fg: #eef1f8;
   --muted: #9ba4ba;
+  --scroll-thumb: #34405a;
+  --scroll-thumb-hover: #4b5f8f;
   color-scheme: dark;
 }
 
@@ -93,6 +97,14 @@
 
 @layer base {
   html { -webkit-text-size-adjust: 100%; }
+  /* Scrollbars in the app's colours: thin, rounded, on a clear track (not the browser's grey bar). */
+  html { scrollbar-color: var(--scroll-thumb) transparent; }
+  * { scrollbar-width: thin; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; background: transparent; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border: 3px solid transparent; border-radius: 999px; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--scroll-thumb-hover); }
+  ::-webkit-scrollbar-corner, ::-webkit-scrollbar-button { display: none; background: transparent; }
   body {
     @apply bg-bg text-fg font-sans antialiased;
     min-height: 100dvh;

@@ -37,6 +37,7 @@ import { notesMode, switchNotes, withNewNotes } from './notesVersions';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
 import { dateLocale } from '@shared/locales';
 import { copyNotes as copyNotesToClipboard, notesLabels, notesLocale, notesToMarkdown } from './notesExport';
+import { askConfirm } from '@/ui/Confirm';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
@@ -186,13 +187,13 @@ export default function LecturePage() {
   const title = lectureTitle(lecture, t.lectures.untitled, locale);
 
   const remove = async () => {
-    if (!window.confirm(t.lectures.confirmDelete)) return;
+    if (!(await askConfirm({ message: t.lectures.confirmDelete, action: 'delete' }))) return;
     await lectureRepo.remove(id);
     navigate('/lectures', { replace: true });
   };
 
   const removeRecording = async () => {
-    if (!window.confirm(t.lectures.keepRecording.confirmDelete)) return;
+    if (!(await askConfirm({ message: t.lectures.keepRecording.confirmDelete, action: 'delete' }))) return;
     audio.current?.pause();
     try {
       await recordingRepo.remove(lecture);

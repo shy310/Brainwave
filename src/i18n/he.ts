@@ -7,6 +7,7 @@ export const he: Dict = {
     podcasts: 'פודקאסטים', settings: 'הגדרות', signOut: 'התנתקות', menu: 'תפריט', account: 'חשבון',
   },
   common: {
+    delete: 'מחיקה', leave: 'יציאה', remove: 'הסרה',
     loading: 'טוען…', save: 'שמירה', saving: 'שומר…', saved: 'נשמר', cancel: 'ביטול',
     continue: 'המשך', back: 'חזרה', tryAgain: 'נסו שוב',
     close: 'סגירה', or: 'או', open: 'פתיחה',
@@ -89,6 +90,8 @@ export const he: Dict = {
     podcastsTitle: 'פודקאסטים',
   },
   game: {
+    source: 'על מה יהיו השאלות?', allLectures: 'כל ההרצאות', pickLectures: 'בחירת הרצאות',
+    questions: (n: number) => (n === 1 ? 'שאלה אחת' : `${n} שאלות`), chooseFirst: 'קודם בוחרים על מה יהיו השאלות.', pickOne: 'בוחרים לפחות הרצאה אחת.',
     title: 'משחקים', subtitle: 'משחקים קצרים עם שאלות מההרצאות שלך.', play: 'לשחק',
     notEnough: 'בשביל המשחקים צריך כרטיסיות או שאלות בוחן. צרו קודם כרטיסיות בהרצאה.',
     glide: { name: 'גלישה', body: 'מטיסים מטוס נייר בין ערימות של ספרים.', controls: 'מקישים, לוחצים או לוחצים על רווח כדי לעלות.' },

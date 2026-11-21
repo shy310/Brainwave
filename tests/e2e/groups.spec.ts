@@ -56,8 +56,8 @@ for (const lang of ['en', 'he'] as const) {
     await expect(page.getByText(tg.badInvite)).toBeVisible();
 
     await page.goBack();
-    page.once('dialog', (d) => d.accept());
     await page.getByRole('button', { name: tg.deleteGroup }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: t.common.delete }).click();
     await expect(page.getByText(tg.empty)).toBeVisible();
   });
 

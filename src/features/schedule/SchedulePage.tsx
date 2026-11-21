@@ -14,6 +14,7 @@ import { PushNote } from './PushNote';
 import { enableReminders, notificationsSupported, remindersAllowed, syncNativeReminders } from './reminders';
 import { dateLocale } from '@shared/locales';
 import { EmptyState } from '@/ui/EmptyState';
+import { askConfirm } from '@/ui/Confirm';
 
 type Draft = Omit<ClassSlot, 'id'> & { id?: string };
 const blank = (): Draft => ({ name: '', weekday: new Date().getDay(), starts: '10:00', ends: '11:30', folderId: null, remindMinutes: 10 });
@@ -55,7 +56,7 @@ export default function SchedulePage() {
   };
 
   const remove = async (s: ClassSlot) => {
-    if (!window.confirm(ts.confirmRemove(s.name))) return;
+    if (!(await askConfirm({ message: ts.confirmRemove(s.name), action: 'delete' }))) return;
     await scheduleRepo.remove(s.id).catch(() => {});
     const all = (slots ?? []).filter((x) => x.id !== s.id);
     setSlots(all);

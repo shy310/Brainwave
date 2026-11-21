@@ -76,8 +76,8 @@ for (const lang of ['en', 'he'] as const) {
     await expect(folders.getByRole('button', { name: /Calculus/ })).toHaveAttribute('aria-pressed', 'true');
 
     // Deleting a folder keeps its lectures.
-    page.once('dialog', (d) => d.accept());
     await page.getByRole('button', { name: tl.remove }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: t.common.delete }).click();
     await expect(folders.getByRole('button', { name: /Calculus/ })).toHaveCount(0);
     await expect(cards).toHaveCount(3);
   });
@@ -124,9 +124,10 @@ for (const lang of ['en', 'he'] as const) {
     await expect(card('Derivatives')).toContainText('Math');
 
     // Delete asks first.
-    page.once('dialog', (d) => void d.accept());
     await card('Calculus week 10').click({ button: 'right' });
     await page.getByRole('menuitem', { name: tl.deleteLecture }).click();
+    await expect(page.getByRole('alertdialog')).toContainText(t.lectures.confirmDelete);
+    await page.getByRole('alertdialog').getByRole('button', { name: t.common.delete }).click();
     await expect(card('Calculus week 10')).toHaveCount(0);
 
     // All of it is saved.
