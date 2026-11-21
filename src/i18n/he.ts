@@ -326,6 +326,8 @@ export const he: Dict = {
     delete: 'מחיקת ההרצאה', confirmDelete: 'למחוק את ההרצאה? אי אפשר לבטל.', notFound: 'לא מצאנו את ההרצאה.',
     rename: 'שינוי שם', save: 'שמירה',
     turnInto: 'להפוך ל', video: 'שיעור וידאו', podcast: 'פודקאסט',
+    micGood: 'שומעים אותך היטב', micQuiet: 'שקט מאוד: התקרבו לדובר',
+    discardConfirm: 'לזרוק את ההקלטה? שום דבר ממנה לא יישמר.',
     keepRecording: {
       title: 'לשמור את ההקלטה?',
       body: 'שמרו את השמע עם ההרצאה כדי להאזין שוב אחר כך ולהקיש על כל חלק בתמלול כדי לשמוע אותו.',
@@ -334,6 +336,7 @@ export const he: Dict = {
       keep: 'לשמור את ההקלטה', delete: 'למחוק את ההקלטה',
       player: 'הקלטה', mb: (mb: number) => `${mb} MB`, download: 'הורדת ההקלטה',
       deleteRecording: 'מחיקת ההקלטה', confirmDelete: 'למחוק את ההקלטה של ההרצאה? התמלול והסיכום יישארו.',
+      seek: 'מיקום בהקלטה', play: 'ניגון', pause: 'השהיה', speed: (x: number) => `מהירות ${x}×`, back: (s: number) => `${s} שניות אחורה`, forward: (s: number) => `${s} שניות קדימה`,
       unavailable: 'אי אפשר לנגן את ההקלטה כרגע.',
       problems: {
         'too-big': 'ההקלטה הייתה ארוכה מדי לשמירה, ולכן נשמר רק התמלול.',
@@ -368,7 +371,7 @@ export const he: Dict = {
       notFound: 'הקישור הזה כבר לא עובד. ייתכן שמי ששיתף הפסיק את השיתוף.',
       madeWith: 'סיכום שנוצר ב-BrainWave', tryIt: 'ליצור סיכומים משלך',
     },
-    actions: { link: 'שיתוף בקישור', more: 'עוד' },
+    actions: { pdf: 'PDF', toolbar: 'פעולות להרצאה', showActions: 'הצגת הפעולות', hideActions: 'הסתרת הפעולות', link: 'שיתוף בקישור', more: 'עוד' },
     mastery: { title: 'התקדמות', new: 'חדשות', learning: 'עדיין לומדים', almost: 'כמעט שם', mastered: 'שולטים' },
     tools: {
       title: 'כלי לימוד', review: 'חזרה על כרטיסיות', summit: 'פסגה', summitBody: 'משחק שאלות קצר מההרצאות שלכם',

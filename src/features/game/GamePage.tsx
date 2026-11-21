@@ -108,7 +108,7 @@ export default function GamePage() {
 
       {phase === 'intro' && (
         <Card className="space-y-5 p-8 text-center">
-          <span className="icon-tile relative mx-auto flex size-16 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-500 to-accent-500 text-white">
+          <span className="icon-tile relative mx-auto flex size-16 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 text-white">
             <Mountain className="relative size-8" fill="currentColor" fillOpacity={0.2} aria-hidden="true" />
           </span>
           <div className="space-y-1">

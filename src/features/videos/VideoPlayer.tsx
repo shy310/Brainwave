@@ -80,7 +80,7 @@ export const VideoPlayer = ({ script, locale, onAsk }: Props) => {
 
   return (
     <div className="space-y-3">
-      <div ref={frame} className="@container relative aspect-video w-full overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-[#1d1450] to-slate-900 text-white shadow-[var(--shadow-lift)]">
+      <div ref={frame} className="@container relative aspect-video w-full overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-[#0e3d38] to-slate-900 text-white shadow-[var(--shadow-lift)]">
         <div className="pointer-events-none absolute -end-[10cqw] -top-[10cqw] size-[40cqw] rounded-full bg-brand-500/20 blur-3xl" aria-hidden="true" />
         <div className="pointer-events-none absolute -bottom-[15cqw] -start-[10cqw] size-[40cqw] rounded-full bg-accent-500/15 blur-3xl" aria-hidden="true" />
 

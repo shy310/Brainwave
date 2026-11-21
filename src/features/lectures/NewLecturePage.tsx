@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useBlocker, useNavigate, useSearchParams } from 'react-router';
-import { Mic, Pause, Play, RefreshCw, Square, Upload } from 'lucide-react';
+import { Ear, Mic, Pause, Play, RefreshCw, Square, Trash2, Upload } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAiError } from '@/lib/useAiError';
 import { cn } from '@/lib/cn';
@@ -33,6 +33,7 @@ import { NativeRecorder, nativeRecorderAvailable, recoverNative } from './native
 import { inBrowserMaxMinutes, planUpload, probeDuration, type UploadPlan } from './preflight';
 import { KeepRecorder } from './recording';
 import { KeepRecordingDialog } from './KeepRecordingDialog';
+import { Waveform, hearing, useLevelHistory } from './Waveform';
 
 type Phase = 'setup' | 'checking' | 'preflight' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'finishing' | 'recovering';
 const MAX_FILE_BYTES = 500 * 1024 * 1024;
@@ -283,6 +284,8 @@ export default function NewLecturePage() {
     setPhase('recording');
   };
 
+  const history = useLevelHistory(level, phase === 'recording');
+
   useEffect(() => {
     if (!recordingActive) return;
     const id = setInterval(() => setElapsed(recorder.current?.elapsed ?? 0), 500);
@@ -325,6 +328,26 @@ export default function NewLecturePage() {
     setLevel(0);
     await askAboutRecording(s);
     await finish();
+  };
+
+  /** Throw the recording away (asked first). Nothing is saved. */
+  const discardRecording = async () => {
+    const rec = recorder.current;
+    const s = session.current;
+    if (!rec || !s || !window.confirm(t.lectures.discardConfirm)) return;
+    recorder.current = null;
+    session.current = null;
+    const k = keeper.current;
+    keeper.current = null;
+    await k?.stop();
+    await rec.stop();
+    await writes.current;
+    await s.discard().catch((err) => console.error(err));
+    setLevel(0);
+    setElapsed(0);
+    setLive([]);
+    setStatus(IDLE);
+    setPhase('setup');
   };
 
   // ── Upload ──
@@ -453,20 +476,38 @@ export default function NewLecturePage() {
               </>
             )}
             {recordingActive && (
-              <div className="space-y-4 text-center">
-                <p className="flex items-center justify-center gap-2 text-sm font-medium">
-                  <span className={cn('size-2.5 rounded-full', phase === 'recording' ? 'animate-pulse bg-rose-500' : 'bg-muted')} aria-hidden="true" />
-                  {phase === 'recording' ? t.lectures.recording : t.lectures.paused}
-                </p>
-                <p className="text-5xl font-semibold tabular-nums" aria-live="off">{formatTime(elapsed)}</p>
-                <div className="mx-auto h-2 max-w-xs overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
-                  <div className="h-full rounded-full bg-brand-500 transition-[width] duration-100" style={{ width: `${Math.round(level * 100)}%` }} />
+              <div className="space-y-5 text-center">
+                <div className="relative overflow-hidden rounded-3xl bg-surface-2 px-4 py-6">
+                  <p className="mb-2 flex items-center justify-center gap-2 text-sm font-medium">
+                    <span className={cn('size-2.5 rounded-full', phase === 'recording' ? 'animate-pulse bg-rose-500' : 'bg-muted')} aria-hidden="true" />
+                    {phase === 'recording' ? t.lectures.recording : t.lectures.paused}
+                  </p>
+                  <Waveform history={history} paused={phase === 'paused'} />
                 </div>
-                <div className="grid grid-cols-2 gap-2 sm:mx-auto sm:max-w-sm">
-                  <Button size="lg" variant="secondary" icon={phase === 'recording' ? <Pause className="size-5" /> : <Play className="size-5" />} onClick={togglePause}>
-                    {phase === 'recording' ? t.lectures.pause : t.lectures.resume}
-                  </Button>
-                  <Button size="lg" variant="danger" icon={<Square className="size-5" />} onClick={stopRecording}>{t.lectures.stop}</Button>
+                {phase === 'recording' && hearing(history) !== 'starting' && (
+                  <p role="status" className={cn('mx-auto flex w-fit items-center gap-2 rounded-full px-4 py-2 text-sm font-medium animate-fade-in',
+                    hearing(history) === 'good'
+                      ? 'bg-brand-500/12 text-brand-800 dark:text-brand-200'
+                      : 'bg-amber-500/15 text-amber-800 dark:text-amber-200')}>
+                    <Ear className="size-4" aria-hidden="true" />
+                    {hearing(history) === 'good' ? t.lectures.micGood : t.lectures.micQuiet}
+                  </p>
+                )}
+                <p className="text-6xl font-semibold tracking-tight tabular-nums" aria-live="off">{formatTime(elapsed)}</p>
+                <div className="flex items-center justify-center gap-6">
+                  <button type="button" onClick={() => void discardRecording()} aria-label={t.lectures.discard} title={t.lectures.discard}
+                    className="flex size-14 items-center justify-center rounded-full bg-surface-2 text-rose-600 transition-transform duration-150 hover:bg-line active:scale-95 dark:text-rose-400">
+                    <Trash2 className="size-6" aria-hidden="true" />
+                  </button>
+                  <button type="button" onClick={stopRecording} aria-label={t.lectures.stop} title={t.lectures.stop}
+                    className="flex size-20 items-center justify-center rounded-full bg-rose-500 text-white shadow-[0_10px_30px_-8px_rgb(244_63_94/0.6)] ring-4 ring-rose-500/15 transition-transform duration-150 hover:bg-rose-600 active:scale-95">
+                    <Square className="size-7 fill-current" aria-hidden="true" />
+                  </button>
+                  <button type="button" onClick={togglePause} aria-label={phase === 'recording' ? t.lectures.pause : t.lectures.resume}
+                    title={phase === 'recording' ? t.lectures.pause : t.lectures.resume}
+                    className="flex size-14 items-center justify-center rounded-full bg-surface-2 text-fg transition-transform duration-150 hover:bg-line active:scale-95">
+                    {phase === 'recording' ? <Pause className="size-6 fill-current" aria-hidden="true" /> : <Play className="size-6 fill-current" aria-hidden="true" />}
+                  </button>
                 </div>
                 <div className="space-y-1 text-xs text-muted">
                   <p>{t.lectures.keepOpen}{wakeLockHeld ? ` ${t.lectures.screenOn}` : ''}</p>

@@ -38,7 +38,7 @@ test('lecture actions: Share and More menus work with the keyboard', async ({ pa
   await expect(menu).toBeVisible();
   await expect(menu.getByRole('menuitem', { name: en.lectures.download })).toBeFocused();
   await page.keyboard.press('ArrowDown');
-  await expect(menu.getByRole('menuitem', { name: en.lectures.share.savePdf })).toBeFocused();
+  await expect(menu.getByRole('menuitem', { name: en.lectures.regenerate })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(menu).toHaveCount(0);
   await expect(more).toBeFocused();

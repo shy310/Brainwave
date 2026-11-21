@@ -22,7 +22,7 @@ for (const lang of ['en', 'he'] as const) {
     await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), lecture);
     await page.goto('/lectures/lec1');
 
-    // The floating button opens the tutor with this lecture as context.
+    // Ask in the lecture's bar opens the tutor with this lecture as context.
     await page.getByRole('button', { name: ta.open, exact: true }).click();
     const dialog = page.getByRole('dialog', { name: ta.title });
     await expect(dialog).toBeVisible();
@@ -53,7 +53,10 @@ for (const lang of ['en', 'he'] as const) {
     await page.getByRole('button', { name: ta.close }).click();
     await page.getByRole('radio', { name: t.lectures.tabsView.ask }).click();
     await expect(page.getByText('why instantaneous?')).toBeVisible();
-    await expect(page.getByRole('button', { name: ta.open, exact: true })).toHaveCount(0);
+    // There, Ask goes to the open conversation instead of a second panel.
+    await page.getByRole('button', { name: ta.open, exact: true }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole('textbox').last()).toBeFocused();
   });
 }
 

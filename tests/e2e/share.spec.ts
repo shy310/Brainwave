@@ -18,8 +18,7 @@ for (const lang of ['en', 'he'] as const) {
     await onboard(page, { hebrew: lang === 'he' });
     await page.evaluate((l) => localStorage.setItem('bw.lectures', JSON.stringify([l])), lecture);
     await page.goto('/lectures/lec1');
-    await page.getByRole('button', { name: t.lectures.actions.more }).click();
-    await page.getByRole('menuitem', { name: t.lectures.share.savePdf }).click();
+    await page.getByRole('button', { name: t.lectures.share.savePdf }).click();
     await expect(page).toHaveURL(/\/lectures\/lec1\/print$/);
     await expect(page.getByRole('heading', { level: 1, name: lecture.title })).toBeVisible();
     await expect(page.locator('.katex').first()).toBeVisible();

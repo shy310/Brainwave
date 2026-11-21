@@ -267,7 +267,7 @@ const StudyTools = ({ due }: { due: number }) => {
   const tools = [
     { to: '/lectures/review', icon: Layers, title: tt.review, body: due > 0 ? t.lectures.review.due(due) : tt.reviewBody, tint: 'bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-200', highlight: due > 0 },
     { to: '/play', icon: Mountain, title: tt.summit, body: tt.summitBody, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },
-    { to: '/groups', icon: Users, title: tt.groups, body: tt.groupsBody, tint: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' },
+    { to: '/groups', icon: Users, title: tt.groups, body: tt.groupsBody, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
     { to: '/lectures/schedule', icon: CalendarDays, title: tt.schedule, body: tt.scheduleBody, tint: 'bg-sky-500/12 text-sky-700 dark:text-sky-300' },
   ];
   return (

@@ -51,7 +51,7 @@ const expectNoGaps = (segments: { start: number }[], recordedSec: number) => {
 };
 
 const elapsedSeconds = async (page: Page) => {
-  const text = (await page.locator('p.text-5xl').textContent()) ?? '0:00';
+  const text = (await page.locator('p.text-6xl').textContent()) ?? '0:00';
   const [m, s] = text.split(':').map(Number);
   return m * 60 + s;
 };

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState, type RefObject } from 'react';
 import { MessageCircleQuestion, X } from 'lucide-react';
 import { useT } from '@/i18n';
 import { Button } from '@/ui/Button';
@@ -12,7 +12,11 @@ interface Props {
   within: RefObject<HTMLElement | null>;
   /** Hide the floating button (e.g. while the full Ask tab is open). */
   hidden?: boolean;
+  /** Something else opens the panel (the lecture dock): no floating button. */
+  handle?: RefObject<AskPanelHandle | null>;
 }
+
+export interface AskPanelHandle { open: (opener?: HTMLElement | null) => void }
 
 const MAX_QUOTE = 400;
 
@@ -21,14 +25,15 @@ const MAX_QUOTE = 400;
  * button opens the tutor in a panel, and selecting text in the notes or
  * transcript offers "Ask about this" with the selection quoted.
  */
-export const AskPanel = ({ sessionKey, context, within, hidden }: Props) => {
+export const AskPanel = ({ sessionKey, context, within, hidden, handle }: Props) => {
   const t = useT();
   const ta = t.lectures.askPanel;
   const [open, setOpen] = useState(false);
   const [chip, setChip] = useState<{ text: string; x: number; y: number } | null>(null);
   const chat = useRef<ChatPanelHandle>(null);
   const pending = useRef('');
-  const opener = useRef<HTMLButtonElement>(null);
+  const opener = useRef<HTMLElement | null>(null);
+  useImperativeHandle(handle, () => ({ open: (from) => { if (from) opener.current = from; setOpen(true); } }), []);
   const panel = useRef<HTMLDivElement>(null);
 
   // Offer "Ask about this" when text inside the lecture is selected.
@@ -75,9 +80,9 @@ export const AskPanel = ({ sessionKey, context, within, hidden }: Props) => {
         </button>
       )}
 
-      {!open && !hidden && (
-        <button ref={opener} type="button" onClick={() => setOpen(true)}
-          className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] end-4 z-40 inline-flex h-12 items-center gap-2 rounded-full bg-brand-600 px-5 font-medium text-white shadow-[var(--shadow-lift)] hover:bg-brand-700 md:bottom-6 md:end-6 print:hidden">
+      {!open && !hidden && !handle && (
+        <button ref={(el) => { opener.current = el; }} type="button" onClick={() => setOpen(true)}
+          className="fixed bottom-[calc(6.25rem+env(safe-area-inset-bottom))] end-4 z-40 inline-flex h-12 items-center gap-2 rounded-full bg-brand-600 px-5 font-medium text-white shadow-[var(--shadow-lift)] hover:bg-brand-700 md:bottom-6 md:end-6 print:hidden">
           <MessageCircleQuestion className="size-5" aria-hidden="true" />{ta.open}
         </button>
       )}

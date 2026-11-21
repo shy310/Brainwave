@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Copy, Download, Pencil, Play, Search, X } from 'lucide-react';
 import { useT } from '@/i18n';
 import { Button } from '@/ui/Button';
@@ -47,12 +47,10 @@ interface Props {
   onSave: (segments: Segment[]) => Promise<void>;
   /** Play the kept recording from this time; when set, each time is a play button. */
   onPlay?: (start: number) => void;
-  /** Shown above the transcript (the recording player). */
-  player?: ReactNode;
 }
 
 /** The transcript with search, copy, export and editing. */
-export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay, player }: Props) => {
+export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay }: Props) => {
   const t = useT();
   const tt = t.lectures.transcriptTools;
   const [query, setQuery] = useState('');
@@ -108,8 +106,6 @@ export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay, pla
   }
 
   return (
-    <div className="space-y-3">
-    {player}
     <Card className="space-y-4 p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative min-w-0 flex-1">
@@ -142,6 +138,5 @@ export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay, pla
         </div>
       ))}
     </Card>
-    </div>
   );
 };

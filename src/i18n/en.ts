@@ -347,7 +347,7 @@ export const en = {
       notFound: 'This link doesn’t work anymore. The person who shared it may have stopped sharing.',
       madeWith: 'Notes made with BrainWave', tryIt: 'Make your own notes',
     },
-    actions: { link: 'Share a link', more: 'More' },
+    actions: { pdf: 'PDF', toolbar: 'Lecture actions', showActions: 'Show actions', hideActions: 'Hide actions', link: 'Share a link', more: 'More' },
     mastery: { title: 'Progress', new: 'New', learning: 'Still learning', almost: 'Almost done', mastered: 'Mastered' },
     tools: {
       title: 'Study tools', review: 'Review flashcards', summit: 'Summit', summitBody: 'A quick quiz game from your lectures',
@@ -380,6 +380,8 @@ export const en = {
     practice: 'Practice questions', practiceHint: 'Try each one before you look at the answer.',
     showAnswer: 'Show answer', hideAnswer: 'Hide answer', mistakes: 'Common mistakes',
     summaryModes: { short: 'Short', detailed: 'Detailed', exam: 'Exam prep' },
+    micGood: 'We can hear you clearly', micQuiet: 'It’s very quiet: move closer to the speaker',
+    discardConfirm: 'Throw away this recording? Nothing from it will be saved.',
     keepRecording: {
       title: 'Keep the recording?',
       body: 'Keep the audio with this lecture to listen again later and tap any part of the transcript to hear it.',
@@ -388,6 +390,7 @@ export const en = {
       keep: 'Keep recording', delete: 'Delete recording',
       player: 'Recording', mb: (mb: number) => `${mb} MB`, download: 'Download the recording',
       deleteRecording: 'Delete the recording', confirmDelete: 'Delete the recording of this lecture? The transcript and notes stay.',
+      seek: 'Position in the recording', play: 'Play', pause: 'Pause', speed: (x: number) => `Speed ${x}×`, back: (s: number) => `Back ${s} seconds`, forward: (s: number) => `Forward ${s} seconds`,
       unavailable: 'The recording can’t be played right now.',
       problems: {
         'too-big': 'The recording was too long to keep, so only the transcript was saved.',
