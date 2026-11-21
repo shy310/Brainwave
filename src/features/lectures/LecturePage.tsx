@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
-import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Link2, Pencil, RefreshCw, Share2, Sparkles, Trash2, Users, MoreHorizontal } from 'lucide-react';
+import { AlertTriangle, Clapperboard, Copy, Download, FileDown, Headphones, Layers, Link2, ListChecks, MessageCircleQuestion, MessageSquareText, NotebookText, Pencil, RefreshCw, Share2, Sparkles, Trash2, Users, MoreHorizontal } from 'lucide-react';
 import { publicUrl } from '@/lib/platform';
 import { useI18n, useT } from '@/i18n';
 import { callAi } from '@/lib/api';
@@ -20,12 +20,14 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import type { Quiz } from '@shared/learn';
 import { FlashcardDeck, MasteryBar } from './Flashcards';
 import { TranscriptPanel } from './TranscriptPanel';
-import { RecordingPlayer } from './RecordingPlayer';
+import { RecordingPlayer, recordingExtension, useRecordingUrl } from './RecordingPlayer';
+import { LectureDock, type DockAction } from './LectureDock';
+import { recordingRepo } from './recording';
+import { useHideTabBar } from '@/app/chrome';
 import { NotesView } from './NotesView';
 import { notifyIfAway } from '@/features/schedule/notify';
-import { AskPanel } from './AskPanel';
+import { AskPanel, type AskPanelHandle } from './AskPanel';
 import { ShareToGroupPanel } from './ShareToGroupPanel';
-import { Menu } from '@/ui/Menu';
 import { rate, reviewRepo } from './reviews';
 import { cardKey, masteryCounts, type CardState } from '@shared/srs';
 import { folderRepo, type Folder } from './folders';
@@ -34,6 +36,7 @@ import { notesMode, switchNotes, withNewNotes } from './notesVersions';
 import { lectureRepo, transcriptOf, type Lecture, type LecturePatch } from './repo';
 
 type Tab = 'notes' | 'transcript' | 'quiz' | 'cards' | 'ask';
+const TAB_ICONS = { notes: NotebookText, transcript: MessageSquareText, quiz: ListChecks, cards: Layers, ask: MessageCircleQuestion };
 
 export interface NotesLabels { summary: string; keyTerms: string; reminders: string; practice: string; mistakes: string }
 
@@ -65,6 +68,10 @@ export default function LecturePage() {
   const [lecture, setLecture] = useState<Lecture | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>('notes');
   const audio = useRef<HTMLAudioElement>(null);
+  const ask = useRef<AskPanelHandle>(null);
+  // The lecture has its own bar at the bottom (actions and player) instead of the app's tabs.
+  useHideTabBar();
+  const recordingUrl = useRecordingUrl({ id, audio_path: lecture?.audio_path });
   /** Set by the new-lecture page when the kept recording couldn't be saved. */
   const recordingProblem = (useLocation().state as { recordingProblem?: 'too-big' | 'limit' } | null)?.recordingProblem;
   const [busy, setBusy] = useState<'' | 'notes' | 'quiz' | 'cards'>('');
@@ -188,6 +195,50 @@ export default function LecturePage() {
     navigate('/lectures', { replace: true });
   };
 
+  const removeRecording = async () => {
+    if (!window.confirm(t.lectures.keepRecording.confirmDelete)) return;
+    audio.current?.pause();
+    try {
+      await recordingRepo.remove(lecture);
+      setLecture((l) => (l ? { ...l, audio_path: null, audio_type: null, audio_bytes: null } : l));
+    } catch (err) {
+      setError(toMessage(err) || t.auth.errors.generic);
+    }
+  };
+
+  const openShare = (kind: 'link' | 'group') => {
+    setTab('notes');
+    setSharing(kind === 'link');
+    setGroupSharing(kind === 'group');
+    if (kind === 'link') setShareNote('');
+  };
+
+  const tk = t.lectures.keepRecording;
+  const dockActions: DockAction[] = [
+    { key: 'share', label: t.lectures.share.share, icon: <Share2 />, tone: 'bg-accent-500', disabled: !lecture.notes, items: [
+      { label: t.lectures.actions.link, icon: <Link2 />, onSelect: () => openShare('link') },
+      { label: t.lectures.shareGroup.button, icon: <Users />, onSelect: () => openShare('group') },
+    ] },
+    { key: 'ask', label: t.lectures.askPanel.open, icon: <MessageCircleQuestion />, tone: 'bg-brand-600', onSelect: (el) => {
+      // On the Ask tab the conversation is already open: go to its message box.
+      if (tab === 'ask') content.current?.parentElement?.querySelector<HTMLTextAreaElement>('textarea')?.focus();
+      else ask.current?.open(el);
+    } },
+    { key: 'copy', label: copied ? t.lectures.copied : t.lectures.copy, icon: <Copy />, tone: 'bg-sky-600', disabled: !lecture.notes, onSelect: () => void copyNotes() },
+    { key: 'pdf', label: t.lectures.actions.pdf, name: t.lectures.share.savePdf, icon: <FileDown />, tone: 'bg-amber-500', disabled: !lecture.notes, onSelect: () => navigate(`/lectures/${id}/print`) },
+    { key: 'more', label: t.lectures.actions.more, icon: <MoreHorizontal />, tone: 'bg-fg/70 dark:bg-fg/25', items: [
+      ...(lecture.notes ? [
+        { label: t.lectures.download, icon: <Download />, onSelect: () => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, labels)) },
+        { label: t.lectures.regenerate, icon: <RefreshCw />, onSelect: () => void generate('notes') },
+      ] : []),
+      ...(lecture.audio_path && recordingUrl ? [{ label: tk.download, icon: <Download />, onSelect: () => {
+        Object.assign(document.createElement('a'), { href: recordingUrl, download: `${title}.${recordingExtension(lecture.audio_type)}` }).click();
+      } }] : []),
+      ...(lecture.audio_path ? [{ label: tk.deleteRecording, icon: <Trash2 />, danger: true, onSelect: () => void removeRecording() }] : []),
+      { label: t.lectures.delete, icon: <Trash2 />, danger: true, onSelect: () => void remove() },
+    ] },
+  ];
+
   const copyNotes = async () => {
     if (!lecture.notes) return;
     await navigator.clipboard.writeText(notesToMarkdown(title, lecture.notes, labels)).catch(() => {});
@@ -196,8 +247,8 @@ export default function LecturePage() {
   };
 
   return (
-    // Room at the bottom so the floating Ask button never covers the last buttons.
-    <div className={cn('mx-auto max-w-3xl space-y-6', tab !== 'ask' && 'pb-20')}>
+    // Room at the bottom so the dock never covers the end of the page.
+    <div className={cn('mx-auto max-w-3xl space-y-6', lecture.audio_path ? 'pb-64' : 'pb-32')}>
       <BackLink to="/lectures" label={t.lectures.title} />
 
       <header className="space-y-2">
@@ -246,12 +297,12 @@ export default function LecturePage() {
       {!transcript && lecture.status === 'ready' ? <Alert>{t.lectures.emptyTranscript}</Alert> : (
         <>
           <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-            <Segmented label={title} value={tab} onChange={setTab}
-              options={(['notes', 'transcript', 'quiz', 'cards', 'ask'] as const).map((v) => ({ value: v, label: t.lectures.tabsView[v] }))} />
+            <Segmented scroll label={title} value={tab} onChange={setTab}
+              options={(['notes', 'transcript', 'quiz', 'cards', 'ask'] as const).map((v) => ({ value: v, label: t.lectures.tabsView[v], icon: TAB_ICONS[v] }))} />
           </div>
 
           {error && <Alert tone="error">{error}</Alert>}
-          <AskPanel sessionKey={`bw.lectureChat.${id}`} context={chatContext} within={content} hidden={tab === 'ask'} />
+          <AskPanel sessionKey={`bw.lectureChat.${id}`} context={chatContext} within={content} hidden={tab === 'ask'} handle={ask} />
 
           {stale && (
             <Alert>
@@ -278,19 +329,6 @@ export default function LecturePage() {
                     options={SUMMARY_MODES.map((m) => ({ value: m, label: t.lectures.summaryModes[m] }))} />
                 </div>
                 <NotesView notes={lecture.notes} />
-                {/* Three actions instead of six: the rest live in short menus. */}
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="secondary" size="sm" icon={<Copy className="size-4" />} onClick={copyNotes}>{copied ? t.lectures.copied : t.lectures.copy}</Button>
-                  <Menu label={t.lectures.share.share} icon={<Share2 className="size-4" />} items={[
-                    { label: t.lectures.actions.link, icon: <Link2 />, onSelect: () => { setSharing(true); setGroupSharing(false); setShareNote(''); } },
-                    { label: t.lectures.shareGroup.button, icon: <Users />, onSelect: () => { setGroupSharing(true); setSharing(false); } },
-                  ]} />
-                  <Menu label={t.lectures.actions.more} align="end" icon={<MoreHorizontal className="size-4" />} items={[
-                    { label: t.lectures.download, icon: <Download />, onSelect: () => download(`${title}.md`, notesToMarkdown(title, lecture.notes!, labels)) },
-                    { label: t.lectures.share.savePdf, icon: <FileDown />, onSelect: () => navigate(`/lectures/${id}/print`) },
-                    { label: t.lectures.regenerate, icon: <RefreshCw />, onSelect: () => void generate('notes') },
-                  ]} />
-                </div>
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
                 {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
                   onChange={(token, note) => { setLecture((l) => (l ? { ...l, share_token: token } : l)); setShareNote(note); }} />}
@@ -313,10 +351,6 @@ export default function LecturePage() {
 
           {tab === 'transcript' && (
             <TranscriptPanel segments={lecture.segments} timed={lecture.source === 'record' || lecture.source === 'upload'} fileName={title}
-              player={lecture.audio_path ? (
-                <RecordingPlayer lecture={lecture} fileName={title} audioRef={audio}
-                  onDeleted={() => setLecture((l) => (l ? { ...l, audio_path: null, audio_type: null, audio_bytes: null } : l))} />
-              ) : undefined}
               onPlay={lecture.audio_path ? (start) => {
                 const a = audio.current;
                 if (!a) return;
@@ -368,6 +402,9 @@ export default function LecturePage() {
           )}
         </>
       )}
+
+      <LectureDock actions={dockActions}
+        player={lecture.audio_path ? <RecordingPlayer url={recordingUrl} audioRef={audio} fallbackDuration={lecture.duration_sec} /> : undefined} />
     </div>
   );
 }

@@ -29,7 +29,7 @@ export const AccountMenu = () => {
         aria-expanded={open}
         aria-label={t.nav.account}
         onClick={() => setOpen(o => !o)}
-        className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-accent-500 font-semibold text-white"
+        className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 font-semibold text-white"
       >
         {initial}
       </button>

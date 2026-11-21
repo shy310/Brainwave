@@ -4,5 +4,5 @@ import { MediaStudio } from '@/features/media/MediaStudio';
 
 export default function PodcastsPage() {
   const t = useT();
-  return <MediaStudio kind="podcast" op="podcastScript" strings={t.podcasts} icon={Headphones} tint="from-emerald-500 to-teal-600" />;
+  return <MediaStudio kind="podcast" op="podcastScript" strings={t.podcasts} icon={Headphones} tint="from-amber-400 to-amber-600" />;
 }

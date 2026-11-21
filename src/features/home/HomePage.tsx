@@ -32,15 +32,15 @@ export default function HomePage() {
     { to: '/lectures/new?tab=pdf', icon: FileText, label: tq.pdf, tint: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
     { to: '/lectures/review', icon: Layers, label: tq.review, tint: 'bg-brand-500/12 text-brand-600 dark:text-brand-300', badge: due },
     { to: '/play', icon: Mountain, label: tq.summit, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },
-    { to: '/tutor', icon: MessageCircle, label: tq.tutor, tint: 'bg-violet-500/12 text-violet-700 dark:text-violet-300' },
-    { to: '/grader', icon: ClipboardCheck, label: tq.grade, tint: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' },
-    { to: '/groups', icon: Users, label: tq.groups, tint: 'bg-teal-500/12 text-teal-700 dark:text-teal-300' },
+    { to: '/tutor', icon: MessageCircle, label: tq.tutor, tint: 'bg-brand-500/12 text-brand-700 dark:text-brand-300' },
+    { to: '/grader', icon: ClipboardCheck, label: tq.grade, tint: 'bg-amber-500/14 text-amber-700 dark:text-amber-300' },
+    { to: '/groups', icon: Users, label: tq.groups, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
   ];
   const pillars = [
     { to: '/learn', icon: BookOpen, title: t.home.learnTitle, body: t.home.short.learn, tint: 'from-brand-500 to-brand-700' },
     { to: '/lectures', icon: Mic, title: t.home.lecturesTitle, body: t.home.short.lectures, tint: 'from-accent-400 to-accent-600' },
-    { to: '/videos', icon: Clapperboard, title: t.home.videosTitle, body: t.home.short.videos, tint: 'from-sky-500 to-indigo-600' },
-    { to: '/podcasts', icon: Headphones, title: t.home.podcastsTitle, body: t.home.short.podcasts, tint: 'from-emerald-500 to-teal-600' },
+    { to: '/videos', icon: Clapperboard, title: t.home.videosTitle, body: t.home.short.videos, tint: 'from-sky-500 to-blue-700' },
+    { to: '/podcasts', icon: Headphones, title: t.home.podcastsTitle, body: t.home.short.podcasts, tint: 'from-amber-400 to-amber-600' },
   ];
 
   return (

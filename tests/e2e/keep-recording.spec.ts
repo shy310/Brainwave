@@ -57,9 +57,19 @@ for (const lang of ['en', 'he'] as const) {
     await expect.poll(() => audio.evaluate((a: HTMLAudioElement) => a.currentTime)).toBeGreaterThanOrEqual(m * 60 + s - 0.2);
     expect(await audio.evaluate((a: HTMLAudioElement) => a.paused)).toBe(false);
 
-    // Delete only the recording; the transcript stays.
+    // The player has its own controls too.
+    await player.getByRole('button', { name: tk.pause }).click();
+    await expect.poll(() => audio.evaluate((a: HTMLAudioElement) => a.paused)).toBe(true);
+    const before = await audio.evaluate((a: HTMLAudioElement) => a.currentTime);
+    await player.getByRole('button', { name: tk.back(15) }).click();
+    expect(await audio.evaluate((a: HTMLAudioElement) => a.currentTime)).toBeLessThan(Math.max(0.01, before));
+    await player.getByRole('button', { name: tk.speed(1) }).click();
+    expect(await audio.evaluate((a: HTMLAudioElement) => a.playbackRate)).toBe(1.25);
+
+    // Delete only the recording (from More); the transcript stays.
     page.once('dialog', (d) => void d.accept());
-    await player.getByRole('button', { name: tk.deleteRecording }).click();
+    await page.getByRole('toolbar', { name: t.lectures.actions.toolbar }).getByRole('button', { name: t.lectures.actions.more }).click();
+    await page.getByRole('menuitem', { name: tk.deleteRecording }).click();
     await expect(player).toHaveCount(0);
     await expect(page.getByText(t.lectures.transcriptTools.tapToPlay)).toHaveCount(0);
     await expect(page.getByText('Part 1 of the lecture.')).toBeVisible();

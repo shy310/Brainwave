@@ -1,6 +1,7 @@
+import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
-interface Option<T extends string> { value: T; label: string }
+interface Option<T extends string> { value: T; label: string; icon?: LucideIcon }
 
 /** Accessible single-choice toggle group (radio semantics). */
 export const Segmented = <T extends string>({ value, options, onChange, label, scroll }: {
@@ -17,10 +18,11 @@ export const Segmented = <T extends string>({ value, options, onChange, label, s
         aria-checked={value === o.value}
         onClick={() => onChange(o.value)}
         className={cn(
-          'min-h-9 rounded-lg px-3 text-sm font-medium transition-colors',
-          value === o.value ? 'bg-surface text-fg shadow-sm' : 'text-muted hover:text-fg',
+          'inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-[color,background-color,box-shadow] duration-200',
+          value === o.value ? (o.icon ? 'bg-surface text-brand-700 shadow-sm dark:text-brand-300' : 'bg-surface text-fg shadow-sm') : 'text-muted hover:text-fg',
         )}
       >
+        {o.icon && <o.icon className="size-4 shrink-0" aria-hidden="true" />}
         {o.label}
       </button>
     ))}

@@ -71,7 +71,7 @@ export const PodcastPlayer = ({ script, locale, title, onAsk }: Props) => {
     <div className="space-y-5">
       <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex items-center gap-4">
-          <span className="icon-tile relative flex size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+          <span className="icon-tile relative flex size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white">
             <Headphones className="relative size-8" fill="currentColor" fillOpacity={0.2} aria-hidden="true" />
           </span>
           <div className="min-w-0">

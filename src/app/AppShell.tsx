@@ -1,4 +1,5 @@
-import { NavLink, Outlet, Link } from 'react-router';
+import type { CSSProperties } from 'react';
+import { NavLink, Outlet, Link, useLocation } from 'react-router';
 import { useT } from '@/i18n';
 import { Logo } from '@/ui/Logo';
 import { cn } from '@/lib/cn';
@@ -10,14 +11,22 @@ import { useStudyTimer } from '@/features/stats/activity';
 import { ClassReminders } from '@/features/schedule/UpNext';
 import { FocusBar, FocusButton } from '@/features/focus/FocusBar';
 import { useFocus } from '@/features/focus/focus';
+import { useTabBarHidden } from './chrome';
 
 export const AppShell = () => {
   const t = useT();
   useStudyTimer();
   // While focusing, the navigation is hidden so the page has nothing else to offer.
   const focusing = useFocus()?.phase === 'focus';
+  const noTabs = useTabBarHidden();
+  const { pathname } = useLocation();
+  /** The tab the page belongs to (deepest match), for the sliding highlight. */
+  const active = NAV.reduce((best, item, i) => {
+    const match = item.to === '/' ? pathname === '/' : pathname === item.to || pathname.startsWith(`${item.to}/`);
+    return match && (best < 0 || item.to.length > NAV[best].to.length) ? i : best;
+  }, -1);
   return (
-    <div className={cn('min-h-dvh md:pb-0', focusing ? 'pb-[env(safe-area-inset-bottom)]' : 'pb-[calc(4.5rem+env(safe-area-inset-bottom))]')}>
+    <div className={cn('min-h-dvh md:pb-0', focusing || noTabs ? 'pb-[env(safe-area-inset-bottom)]' : 'pb-[calc(6rem+env(safe-area-inset-bottom))]')}>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2">
         Skip to content
       </a>
@@ -47,27 +56,30 @@ export const AppShell = () => {
       <main id="main" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
         <ClassReminders />
         <RecoveryBanner />
-        <Outlet />
+        {/* Each page eases in when you move between them. */}
+        <div key={pathname} className="animate-rise">
+          <Outlet />
+        </div>
       </main>
 
-      {/* Mobile bottom tabs */}
-      <nav aria-label="Main" className={cn('fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden', focusing && 'hidden')}>
-        <ul className="grid grid-cols-5">
+      {/* Mobile tabs: a floating bar; the highlight slides to the open tab. */}
+      <nav aria-label="Main" className={cn('fixed inset-x-3 bottom-[calc(0.625rem+env(safe-area-inset-bottom))] z-40 md:hidden print:hidden', (focusing || noTabs) && 'hidden')}>
+        <ul className="relative grid grid-cols-5 rounded-[1.75rem] border border-line/80 bg-surface/90 p-1.5 shadow-[var(--shadow-lift)] backdrop-blur-xl">
+          {active >= 0 && (
+            <li aria-hidden="true" style={{ '--i': active } as CSSProperties}
+              className="pointer-events-none absolute inset-y-1.5 start-1.5 w-[calc((100%-0.75rem)/5)] translate-x-[calc(var(--i)*100%)] rounded-[1.375rem] bg-brand-500/12 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] rtl:-translate-x-[calc(var(--i)*100%)] dark:bg-brand-400/15" />
+          )}
           {NAV.map(item => (
-            <li key={item.to}>
+            <li key={item.to} className="relative">
               <NavLink to={item.to} end={item.to === '/'}
                 className={({ isActive }) => cn(
-                  'flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium',
-                  isActive ? 'text-brand-600 dark:text-brand-300' : 'text-muted',
+                  'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[1.375rem] text-[11px] font-medium transition-colors duration-200',
+                  isActive ? 'text-brand-700 dark:text-brand-300' : 'text-muted active:text-fg',
                 )}>
-                {/* The active tab: a pill behind a filled icon, so it doesn't rely on colour alone. */}
                 {({ isActive }) => (
                   <>
-                    <span className={cn('flex h-8 w-14 items-center justify-center rounded-full transition-colors',
-                      isActive && 'bg-brand-100 dark:bg-brand-900/60')}>
-                      <item.icon className="size-5" fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.2 : 0}
-                        strokeWidth={isActive ? 2.25 : 1.75} aria-hidden="true" />
-                    </span>
+                    <item.icon className={cn('size-[22px] transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]', isActive && '-translate-y-px scale-110')}
+                      fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.2 : 0} strokeWidth={isActive ? 2.25 : 1.75} aria-hidden="true" />
                     <span className="line-clamp-2 px-1 text-center leading-tight">{item.label(t)}</span>
                   </>
                 )}
