@@ -2,7 +2,7 @@
 // something that matters ("this will be on the test"). A mark is a time in
 // seconds; it covers what was said a little before the tap and just after it.
 
-import type { Segment } from './lectures';
+import type { Segment } from './lectures.js';
 
 /** Seconds before / after a mark that count as the marked moment. */
 export const MARK_BEFORE = 30;
