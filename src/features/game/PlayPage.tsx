@@ -19,6 +19,7 @@ import { recoverRush, startRush, steer, stepRush, CAR_Y, type Rush } from './rus
 import { drawGlide, drawRush, drawShield, type Look } from './draw';
 import { QuestionCard } from './QuestionCard';
 import { useDeck } from './useDeck';
+import { submitGameScore } from '@/features/groups/challenges';
 
 export type GameId = 'glide' | 'rush';
 export const GAMES: GameId[] = ['glide', 'rush'];
@@ -150,6 +151,7 @@ const Game = ({ id, folder, lectures, back }: { id: GameId; folder: string; lect
   const finish = (r: Run) => {
     setPhase('over');
     if (r.asked > 0) track({ quizzes: 1 });
+    void submitGameScore(id, score(r));
     const total = score(r);
     if (total > best) { setBest(total); setNewBest(true); storage.set(bestKey(id), String(total)); }
   };

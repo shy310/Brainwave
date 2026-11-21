@@ -3,6 +3,8 @@ import { audioStore } from './audioStore';
 import { storage } from '@/lib/storage';
 import { track } from '@/features/stats/activity';
 import type { SavedNotes } from './notesVersions';
+import type { SearchableLecture } from '@shared/search';
+import type { NoteHighlight } from '@shared/highlights';
 import type { ConceptMap } from '@shared/conceptMap';
 import type { Quiz } from '@shared/learn';
 import type { Flashcards, LectureLanguage, LectureSource, Notes, Segment } from '@shared/lectures';
@@ -27,6 +29,8 @@ export interface Lecture {
   audio_path?: string | null;
   audio_type?: string | null;
   audio_bytes?: number | null;
+  /** Highlights and comments in the notes (needs migration 0023). */
+  highlights?: NoteHighlight[] | null;
   /** Moments marked as important while recording, in seconds (needs migration 0021). */
   marks?: number[] | null;
   /** A map of the lecture's ideas (needs migration 0025). */
@@ -75,6 +79,14 @@ export const lectureRepo = {
       return data as unknown as LectureSummary[];
     }
     return [];
+  },
+
+  /** Every lecture's transcript and notes, for searching across all of them. */
+  async searchable(): Promise<SearchableLecture[]> {
+    if (!supabase) return readDemo().map((l) => ({ id: l.id, title: l.title, segments: l.segments, notes: l.notes, created_at: l.created_at }));
+    const { data, error } = await supabase.from('lectures').select('id, title, segments, notes, created_at').order('created_at', { ascending: false });
+    if (error) throw error;
+    return data as SearchableLecture[];
   },
 
   /** Lectures in a folder ('all', 'none' or a folder id) with what's needed to study them. */

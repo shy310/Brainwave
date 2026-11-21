@@ -11,7 +11,7 @@ const apply = (theme: Theme) => {
   const root = document.documentElement;
   if (root.classList.contains('dark') === dark) return;
   // Ease between light and dark instead of a sudden flash (only when it actually changes after load).
-  if (root.dataset.themed) {
+  if (root.dataset.themed && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     root.classList.add('theme-fade');
     window.setTimeout(() => root.classList.remove('theme-fade'), 320);
   }

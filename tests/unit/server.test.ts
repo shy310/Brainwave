@@ -201,6 +201,17 @@ describe('lecture operations', () => {
     expect((await res.json()).data.mode).toBe('exam');
   });
 
+  it('answers a question from the lectures, keeping only real citations', async () => {
+    const { askLecturesOp } = await import('../../server/ai/ops/search');
+    const ctx = { userId: 'u', demo: true, locale: 'he' as const, grade: 'college' as const };
+    const msgs = askLecturesOp.build({ question: 'What is a derivative?', passages: [{ n: 1, lecture: 'Calculus', text: 'The derivative is a slope.' }] }, ctx);
+    expect(String(msgs[0].content)).toContain('Answer in Hebrew');
+    expect(String(msgs[1].content)).toContain('[1] (Calculus) The derivative is a slope.');
+    mockModel([JSON.stringify({ answer: 'It is the slope [1].', cited: [1, 1, 7], found: true })]);
+    const res = await post('/api/ai/askLectures', { input: { question: 'What is a derivative?', passages: [{ n: 1, lecture: 'Calculus', text: 'The derivative is a slope.' }] } });
+    expect((await res.json()).data).toEqual({ answer: 'It is the slope [1].', cited: [1], found: true });
+  });
+
   it('tells the AI to give extra weight to the parts marked important while recording', async () => {
     const { lectureNotesOp, lectureQuizOp, flashcardsOp } = await import('../../server/ai/ops/lectures');
     const ctx = { userId: 'u', demo: true, locale: 'en' as const, grade: 'college' as const };
