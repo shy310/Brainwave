@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
-import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal, Network } from 'lucide-react';
+import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal, Network, ScrollText } from 'lucide-react';
 import { Sheet } from '@/ui/Sheet';
 import { ListRow, ListSection } from '@/ui/List';
 import { publicUrl } from '@/lib/platform';
@@ -422,6 +422,9 @@ export default function LecturePage() {
                   <Link to={`/podcasts?lecture=${id}`} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 font-medium text-fg hover:bg-surface-2">
                     <Headphones className="size-4" aria-hidden="true" />{t.lectures.podcast}
                   </Link>
+                  <Link to={`/lectures/${id}/cheatsheet`} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 font-medium text-fg hover:bg-surface-2">
+                    <ScrollText className="size-4" aria-hidden="true" />{t.lectures.cheat.short}
+                  </Link>
                 </div>
               </article>
             ) : (
@@ -504,6 +507,7 @@ export default function LecturePage() {
           </div>
           <ListSection>
             <ListRow icon={Network} label={t.lectures.map.open} onClick={then(() => navigate(`/lectures/${id}/map`))} />
+            <ListRow icon={ScrollText} label={t.lectures.cheat.title} onClick={then(() => navigate(`/lectures/${id}/cheatsheet`))} />
             {lecture.notes && <ListRow icon={FileDown} label={t.lectures.share.savePdf} onClick={then(() => navigate(`/lectures/${id}/print`))} chevron={false} />}
             {(lecture.notes || lecture.flashcards) && <ListRow icon={Download} label={t.lectures.export.open} onClick={() => setSheet('export')} />}
             {lecture.notes && <ListRow icon={RefreshCw} label={t.lectures.regenerate} onClick={then(() => void generate('notes'))} chevron={false} />}

@@ -32,7 +32,7 @@ export const AppShell = () => {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2">
         Skip to content
       </a>
-      <header className="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-xl print:hidden">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:gap-4 sm:px-6">
           <Link to="/" aria-label={t.nav.home}><Logo /></Link>
           <nav aria-label="Main" className={cn('ms-4 hidden items-center gap-1', !focusing && 'md:flex')}>
@@ -55,7 +55,7 @@ export const AppShell = () => {
       </header>
       <FocusBar />
 
-      <main id="main" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10 print:max-w-none print:p-0">
         <ClassReminders />
         <RecoveryBanner />
         {/* Each page eases in when you move between them. */}
