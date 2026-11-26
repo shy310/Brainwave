@@ -5,6 +5,7 @@ import { track } from '@/features/stats/activity';
 import type { SavedNotes } from './notesVersions';
 import type { SearchableLecture } from '@shared/search';
 import type { NoteHighlight } from '@shared/highlights';
+import type { CheatSheet } from '@shared/cheatSheet';
 import type { ConceptMap } from '@shared/conceptMap';
 import type { Quiz } from '@shared/learn';
 import type { Flashcards, LectureLanguage, LectureSource, Notes, Segment } from '@shared/lectures';
@@ -35,6 +36,8 @@ export interface Lecture {
   marks?: number[] | null;
   /** Where it came from, e.g. the YouTube video (needs migration 0026). */
   source_url?: string | null;
+  /** An exam cheat sheet (needs migration 0027). */
+  cheat_sheet?: CheatSheet | null;
   /** A map of the lecture's ideas (needs migration 0025). */
   concept_map?: ConceptMap | null;
   /** Starred in the library (needs migration 0019). */
@@ -58,6 +61,13 @@ export type StudyLecture = Pick<Lecture, 'id' | 'title' | 'created_at' | 'status
 export type LecturePatch = Partial<Omit<Lecture, 'id' | 'created_at' | 'updated_at'>>;
 
 export const transcriptOf = (l: Pick<Lecture, 'segments'>) => l.segments.map((s) => s.text.trim()).filter(Boolean).join('\n\n');
+
+/** The lecture's notes (or, without notes, its transcript) as plain text for the AI. */
+export const studyText = (l: Pick<Lecture, 'segments' | 'notes'>) => {
+  const n = l.notes;
+  if (n) return [n.summary, ...n.sections.flatMap((s) => [s.heading, ...s.points.map((p) => `- ${p}`)]), ...n.keyTerms.map((k) => `${k.term}: ${k.definition}`)].join('\n');
+  return transcriptOf(l);
+};
 
 const DEMO_KEY = 'bw.lectures';
 const readDemo = (): Lecture[] => {

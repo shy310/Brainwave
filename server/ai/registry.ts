@@ -8,3 +8,4 @@ import './ops/grader.js';
 import './ops/youtube.js';
 import './ops/search.js';
 import './ops/conceptMap.js';
+import './ops/cheatSheet.js';

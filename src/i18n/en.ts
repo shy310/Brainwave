@@ -420,6 +420,12 @@ export const en = {
       title: 'Important moments', body: 'You marked these while recording. They get extra attention in the notes, quiz and flashcards.',
       play: (time: string) => `Play from ${time}`, showInTranscript: 'Show in the transcript', badge: 'Marked as important',
     },
+    cheat: {
+      title: 'Cheat sheet', short: 'Cheat sheet', body: 'Everything that matters from this lecture on one or two pages, for the night before the exam.',
+      format: 'Format', formats: { bullets: 'Dense bullets', columns: 'Two columns', tables: 'Tables' },
+      make: 'Make a cheat sheet', making: 'Squeezing the lecture onto a page…', redo: 'Make it again', remake: (f: string) => `Remake as ${f.toLocaleLowerCase()}`,
+      print: 'Print or save PDF', formulas: 'To memorise',
+    },
     map: {
       title: 'Concept map', open: 'Concept map', make: 'Draw a concept map', making: 'Drawing the map…', redo: 'Draw again',
       body: 'See how the ideas of this lecture fit together. Tap an idea to see what it links to.',

@@ -15,7 +15,7 @@ import { Shimmer } from '@/ui/Feedback';
 import { Spinner } from '@/ui/Spinner';
 import { BackLink } from '@/features/learn/CoursePage';
 import { layoutMap, type ConceptMap } from '@shared/conceptMap';
-import { lectureRepo, transcriptOf, type Lecture } from './repo';
+import { lectureRepo, studyText, type Lecture } from './repo';
 import { lectureTitle } from './LecturesPage';
 
 const PAD = 120;
@@ -25,12 +25,7 @@ const size = (kind: string, label: string) => {
   return { w, h: kind === 'main' ? 64 : kind === 'detail' ? 44 : 52 };
 };
 
-/** The lecture's notes (or transcript) as plain text for the AI. */
-const sourceText = (l: Lecture) => {
-  const n = l.notes;
-  if (n) return [n.summary, ...n.sections.flatMap((s) => [s.heading, ...s.points.map((p) => `- ${p}`)]), ...n.keyTerms.map((k) => `${k.term}: ${k.definition}`)].join('\n');
-  return transcriptOf(l);
-};
+const sourceText = studyText;
 
 /** A drawn map of a lecture's ideas: pan, zoom, tap an idea to see its links; or read it as a list. */
 export default function ConceptMapPage() {

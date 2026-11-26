@@ -246,3 +246,9 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Cheat sheets print edge to edge on 1–2 pages. */
+@media print {
+  @page { margin: 10mm; }
+  .cheat-sheet { color: #000; }
+}
