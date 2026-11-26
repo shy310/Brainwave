@@ -2,7 +2,7 @@ import { defineOp } from '../ops.js';
 import { audience } from '../prompts.js';
 import { AiError } from '../openrouter.js';
 import { LOCALE_NAME } from '../../../shared/locales.js';
-import { PodcastInputSchema, PodcastScriptSchema, sanitizePodcast } from '../../../shared/media.js';
+import { PodcastAnswerInputSchema, PodcastAnswerSchema, PodcastInputSchema, PodcastScriptSchema, cleanSpoken, sanitizePodcast } from '../../../shared/media.js';
 import { describeSource } from './media.js';
 
 export const podcastScriptOp = defineOp({
@@ -35,4 +35,44 @@ Write a ${length === 'long' ? 'deep-dive episode of about 8–10 minutes (50–8
     if (clean.lines.length < 8) throw new AiError('The episode came back too short. Please try again.', 502);
     return clean;
   },
+});
+
+/** The hosts answer a listener's raised-hand question, live, in a few spoken lines. */
+export const podcastAnswerOp = defineOp({
+  name: 'podcastAnswer',
+  input: PodcastAnswerInputSchema,
+  output: PodcastAnswerSchema,
+  cost: 1,
+  maxTokens: 1500,
+  temperature: 0.6,
+  build: (input, ctx) => [
+    {
+      role: 'system',
+      content: `You voice the two hosts of an educational podcast. A listener just raised their hand mid-episode and asked a question; the hosts answer it live, on air, then the episode carries on.
+
+${audience(ctx)}
+Exception to the language rule: the episode is in ${LOCALE_NAME[input.locale]}, so write every line in ${LOCALE_NAME[input.locale]}.
+
+Hosts: 0 = ${input.hosts[0].name} (${input.hosts[0].role}), 1 = ${input.hosts[1].name} (${input.hosts[1].role}).
+
+Rules:
+- 2–4 short lines, alternating hosts naturally. Each line is 1–3 spoken sentences.
+- First line: acknowledge the question warmly${input.listener ? ` and address the listener as ${input.listener}` : ''} (vary it — not always "Great question").
+- Answer it directly and correctly, connected to what the episode was just discussing; use a quick analogy or example when it helps.
+- If the question is off-topic, answer briefly and kindly steer back to the episode.
+- Last line: a short bridge back into the episode ("Okay, back to where we were…").
+- Read aloud by text-to-speech: numbers and maths in words, no Markdown, no LaTeX, no emoji, no stage directions.`,
+    },
+    {
+      role: 'user',
+      content: [
+        `Episode: ${input.title}`,
+        `Script so far, for context:\n"""\n${input.script}\n"""`,
+        `They paused right after:\n"""\n${input.focus}\n"""`,
+        ...input.earlier.map((e) => `Earlier question: ${e.question}\nHow the hosts answered: ${e.answer}`),
+        `The listener asks: ${input.question}`,
+      ].join('\n\n'),
+    },
+  ],
+  post: (out) => ({ lines: out.lines.map((l) => ({ speaker: l.speaker, text: cleanSpoken(l.text) })).filter((l) => l.text) }),
 });

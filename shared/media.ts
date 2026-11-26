@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { compilePlot } from './math/plot.js';
+import { LOCALES } from './locales.js';
 
 // ── Video lessons ──────────────────────────────────────────────────────────
 // A video is a list of animated scenes. Every scene has narration (spoken and
@@ -95,3 +96,28 @@ export const sanitizePodcast = (p: PodcastScript): PodcastScript => {
   if (lines[0] && !lines[0].chapter) lines[0].chapter = p.title;
   return { ...p, lines };
 };
+
+// ── Raise your hand ────────────────────────────────────────────────────────
+// A listener pauses the podcast and asks a question; the two hosts answer it
+// in a few spoken lines, then the episode carries on.
+
+export const PodcastAnswerInputSchema = z.object({
+  title: z.string().max(200),
+  hosts: z.array(z.object({ name: z.string().max(40), role: z.string().max(80) })).length(2),
+  /** The language the episode is in. */
+  locale: z.enum(LOCALES),
+  /** The whole script, and the last few lines before the pause. */
+  script: z.string().max(80_000),
+  focus: z.string().max(3000),
+  question: z.string().min(1).max(600),
+  /** The listener's first name, so the hosts can greet them. */
+  listener: z.string().max(40).optional(),
+  /** Earlier questions and answers in this episode, for follow-ups. */
+  earlier: z.array(z.object({ question: z.string().max(600), answer: z.string().max(3000) })).max(5).default([]),
+});
+export type PodcastAnswerInput = z.input<typeof PodcastAnswerInputSchema>;
+
+export const PodcastAnswerSchema = z.object({
+  lines: z.array(z.object({ speaker: z.number().int().min(0).max(1), text: z.string().min(1).max(600) })).min(1).max(6),
+});
+export type PodcastAnswer = z.infer<typeof PodcastAnswerSchema>;
