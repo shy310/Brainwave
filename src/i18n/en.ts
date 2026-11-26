@@ -89,6 +89,13 @@ export const en = {
     podcastsTitle: 'Podcasts',
   },
   exams: {
+    predict: {
+      title: 'Predicted exam', make: 'Predict my exam', again: 'Predict again', reading: 'Reading your lectures for what the lecturer stressed…',
+      body: 'AI reads these lectures for what your lecturer stressed — marked moments, “this will be on the exam”, repeats and worked examples — and predicts the likely topics, with a mock exam.',
+      noText: 'These lectures need a transcript or notes first.', likelihood: { high: 'Likely', medium: 'Possible', low: 'Less likely' },
+      mock: 'Take the predicted exam', mockTitle: 'Predicted exam', mockInfo: (n: number, min: number) => `${n} questions · ${min} min`,
+      timeLeft: 'Time left', timeUp: 'Time’s up — finish when you’re ready', disclaimer: 'A prediction from your lectures, not the real exam. Study everything, but start with what’s likely.',
+    },
     title: 'Exams', subtitle: 'Get ready step by step: a plan for each day, and practice exams from your own lectures.',
     add: 'Add an exam', edit: 'Edit exam', name: 'Exam name', namePlaceholder: 'e.g. Calculus final', date: 'Exam date',
     covers: 'What it covers', allLectures: 'All lectures', pickLectures: 'Choose lectures', pickOne: 'Pick at least one lecture.',
