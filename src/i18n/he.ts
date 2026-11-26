@@ -257,6 +257,7 @@ export const he: Dict = {
     backToLearn: 'כל המקצועות',
   },
   quiz: {
+    whyWrong: { ask: 'למה התשובה שלי לא נכונה?', title: 'למה זה לא נכון', thinking: 'בודק את התשובה שלך…', followUp: 'לשאול שאלת המשך…' },
     title: 'בוחן', setupTitle: 'הגדרת הבוחן', count: 'מספר שאלות', difficulty: 'רמת קושי',
     levels: { easier: 'קל יותר', normal: 'רגיל', harder: 'קשה יותר' },
     start: 'מתחילים', writing: 'כותבים לכם בוחן…',
@@ -449,6 +450,12 @@ export const he: Dict = {
       marked: (time: string) => `סומן ב־${time}`, count: (n: number) => (n === 1 ? 'סימון אחד' : `${n} סימונים`),
       title: 'רגעים חשובים', body: 'סימנת את אלה בזמן ההקלטה. הם מקבלים תשומת לב מיוחדת בסיכום, בבוחן ובכרטיסיות.',
       play: (time: string) => `לנגן מ־${time}`, showInTranscript: 'להציג בתמלול', badge: 'סומן כחשוב',
+    },
+    cheat: {
+      title: 'דף סיכום למבחן', short: 'דף סיכום', body: 'כל מה שחשוב מההרצאה בעמוד או שניים, ללילה שלפני המבחן.',
+      format: 'פורמט', formats: { bullets: 'נקודות צפופות', columns: 'שני טורים', tables: 'טבלאות' },
+      make: 'ליצור דף סיכום', making: 'דוחסים את ההרצאה לעמוד…', redo: 'ליצור מחדש', remake: (f: string) => `ליצור מחדש כ${f}`,
+      print: 'להדפיס או לשמור PDF', formulas: 'לזכור בעל פה',
     },
     map: {
       title: 'מפת מושגים', open: 'מפת מושגים', make: 'לשרטט מפת מושגים', making: 'משרטטים את המפה…', redo: 'לשרטט מחדש',

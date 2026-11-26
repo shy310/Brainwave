@@ -261,6 +261,7 @@ export const ar: Dict = {
     backToLearn: 'كل المواد',
   },
   quiz: {
+    whyWrong: { ask: 'لماذا إجابتي خاطئة؟', title: 'لماذا هي خاطئة', thinking: 'ننظر في إجابتك…', followUp: 'اطرح سؤال متابعة…' },
     title: 'اختبار', setupTitle: 'جهّز اختبارك', count: 'الأسئلة', difficulty: 'الصعوبة',
     levels: { easier: 'أسهل', normal: 'عادي', harder: 'أصعب' },
     start: 'ابدأ الاختبار', writing: 'جارٍ كتابة اختبارك…',
@@ -428,6 +429,12 @@ export const ar: Dict = {
       marked: (time: string) => `عُلّم عند ${time}`, count: (n: number) => count(n, 'علامة واحدة', 'علامتان', 'علامات', 'علامة'),
       title: 'لحظات مهمة', body: 'علّمت هذه أثناء التسجيل. تحظى باهتمام خاص في الملاحظات والاختبار والبطاقات.',
       play: (time: string) => `شغّل من ${time}`, showInTranscript: 'اعرض في النص', badge: 'معلّم كمهم',
+    },
+    cheat: {
+      title: 'ورقة مراجعة', short: 'ورقة مراجعة', body: 'كل ما يهم من المحاضرة في صفحة أو صفحتين، لليلة ما قبل الامتحان.',
+      format: 'الشكل', formats: { bullets: 'نقاط مكثّفة', columns: 'عمودان', tables: 'جداول' },
+      make: 'أنشئ ورقة مراجعة', making: 'نختصر المحاضرة في صفحة…', redo: 'أنشئها من جديد', remake: (f: string) => `أعد إنشاءها: ${f}`,
+      print: 'اطبع أو احفظ PDF', formulas: 'للحفظ',
     },
     map: {
       title: 'خريطة المفاهيم', open: 'خريطة المفاهيم', make: 'ارسم خريطة مفاهيم', making: 'نرسم الخريطة…', redo: 'ارسم من جديد',

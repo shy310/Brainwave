@@ -256,6 +256,7 @@ export const en = {
     backToLearn: 'All subjects',
   },
   quiz: {
+    whyWrong: { ask: 'Why is my answer wrong?', title: 'Why it’s wrong', thinking: 'Looking at your answer…', followUp: 'Ask a follow-up…' },
     title: 'Quiz', setupTitle: 'Set up your quiz', count: 'Questions', difficulty: 'Difficulty',
     levels: { easier: 'Easier', normal: 'Normal', harder: 'Harder' },
     start: 'Start quiz', writing: 'Writing your quiz…',
@@ -425,6 +426,12 @@ export const en = {
       marked: (time: string) => `Marked at ${time}`, count: (n: number) => (n === 1 ? '1 marked' : `${n} marked`),
       title: 'Important moments', body: 'You marked these while recording. They get extra attention in the notes, quiz and flashcards.',
       play: (time: string) => `Play from ${time}`, showInTranscript: 'Show in the transcript', badge: 'Marked as important',
+    },
+    cheat: {
+      title: 'Cheat sheet', short: 'Cheat sheet', body: 'Everything that matters from this lecture on one or two pages, for the night before the exam.',
+      format: 'Format', formats: { bullets: 'Dense bullets', columns: 'Two columns', tables: 'Tables' },
+      make: 'Make a cheat sheet', making: 'Squeezing the lecture onto a page…', redo: 'Make it again', remake: (f: string) => `Remake as ${f.toLocaleLowerCase()}`,
+      print: 'Print or save PDF', formulas: 'To memorise',
     },
     map: {
       title: 'Concept map', open: 'Concept map', make: 'Draw a concept map', making: 'Drawing the map…', redo: 'Draw again',

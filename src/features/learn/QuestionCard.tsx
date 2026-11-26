@@ -12,6 +12,7 @@ import type { GradeResult, Question, Steps } from '@shared/learn';
 import type { GradeAnswer } from '@shared/grading';
 import { useAiTask } from './useAiTask';
 import { DrawCheck } from '@/ui/Feedback';
+import { WhyWrong } from './WhyWrong';
 
 interface Verdict { correct: boolean; feedback?: string; grade?: GradeAnswer }
 
@@ -191,6 +192,17 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
               <Rich text={question.explanation} />
             </div>
           </div>
+
+          {!verdict.correct && (question.kind === 'choice' ? choice !== null : typed.trim()) && (
+            <WhyWrong facts={{
+              question: question.prompt.slice(0, 4000),
+              options: question.kind === 'choice' ? question.options.slice(0, 8).map((o) => o.slice(0, 1000)) : undefined,
+              correct: (question.kind === 'choice' ? question.options[question.correctIndex] ?? question.answer : question.answer).slice(0, 4000),
+              given: (question.kind === 'choice' ? question.options[choice!] : typed.trim()).slice(0, 4000),
+              explanation: question.explanation?.slice(0, 4000) || undefined,
+              context: context?.slice(0, 20_000) || undefined,
+            }} />
+          )}
 
           {extras && (
             <div className="flex flex-wrap gap-2">
