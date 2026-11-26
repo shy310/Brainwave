@@ -57,7 +57,7 @@ export const LandingHero = () => {
           <Mascot mood="waving" size={250} />
         </div>
 
-        <Piece x={14} y={36} rot={-6} delay={250} float={6.2}>
+        <Piece x={14} y={36} rot={-6} delay={250} float={4.2}>
           <div className="w-[150px]">
             <Tag tone="bg-brand-100 text-brand-700">{ta.notes}</Tag>
             <p className="font-display text-[15px] font-bold">🧬 {ta.cell}</p>
@@ -67,7 +67,7 @@ export const LandingHero = () => {
           </div>
         </Piece>
 
-        <Piece x={360} y={10} rot={5} delay={340} float={7}>
+        <Piece x={360} y={10} rot={5} delay={340} float={4.6}>
           <div className="w-[176px]">
             <Tag tone="bg-violet-100 text-violet-700">{ta.quiz}</Tag>
             <p className="font-semibold">{ta.q}</p>
@@ -78,7 +78,7 @@ export const LandingHero = () => {
           </div>
         </Piece>
 
-        <Piece x={402} y={262} rot={-4} delay={430} float={6.6}>
+        <Piece x={402} y={262} rot={-4} delay={430} float={4.4}>
           <div className="w-[136px] text-center">
             <Tag tone="bg-accent-200 text-accent-600">{ta.cards}</Tag>
             <p className="font-display text-lg font-bold">{ta.front}</p>
@@ -86,7 +86,7 @@ export const LandingHero = () => {
           </div>
         </Piece>
 
-        <Piece x={0} y={306} rot={4} delay={520} float={7.4}>
+        <Piece x={0} y={306} rot={4} delay={520} float={4.8}>
           <div className="w-[168px]">
             <Tag tone="bg-coral-100 text-coral-700">{ta.podcast}</Tag>
             <div className="flex items-center gap-2">
@@ -98,7 +98,7 @@ export const LandingHero = () => {
           </div>
         </Piece>
 
-        <Piece x={206} y={380} rot={-3} delay={610} float={6.8}>
+        <Piece x={206} y={380} rot={-3} delay={610} float={4.5}>
           <div className="w-[150px] text-center">
             <Tag tone="bg-emerald-100 text-emerald-700">{ta.formula}</Tag>
             {/* The quadratic formula as a real stacked fraction. */}

@@ -6,6 +6,8 @@ import {
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Menu } from '@/ui/Menu';
+import { Mascot } from '@/ui/Mascot';
+import { WaveLine } from '@/ui/Wave';
 import { TodayCard } from './TodayCard';
 import { ExamBanner } from '@/features/exams/ExamBanner';
 import { WeakSpotsBanner } from '@/features/weak/WeakSpotsBanner';
@@ -28,20 +30,19 @@ const NextUp = ({ due, latest }: { due: number; latest: LectureSummary | undefin
       ? { icon: NotebookText, title: lectureTitle(latest, t.lectures.untitled, locale), body: th.continueTitle, cta: th.continueCta, to: `/lectures/${latest.id}` }
       : { icon: Mic, title: th.recordTitle, body: th.recordBody, cta: th.recordCta, to: '/lectures/new' };
   return (
-    <section aria-labelledby="next-title" className="relative overflow-hidden rounded-[var(--radius-card)] bg-gradient-to-br from-brand-600 to-brand-800 p-5 text-white shadow-[var(--shadow-lift)]">
-      {/* A soft wave in the corner, from the logo's sound-wave bars. */}
-      <div className="pointer-events-none absolute -end-4 -top-2 flex items-center gap-1.5 opacity-15" aria-hidden="true">
-        {[28, 52, 76, 48, 24].map((h, i) => <span key={i} className="w-2.5 rounded-full bg-white" style={{ height: h }} />)}
-      </div>
-      <p className="text-sm font-medium text-white/85" id="next-title">{t.home.nextUp}</p>
-      <div className="mt-2 flex items-start gap-3">
+    <section aria-labelledby="next-title" className="relative overflow-hidden rounded-[var(--radius-card)] bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 p-5 text-white shadow-[var(--shadow-lift)] sm:p-6">
+      {/* The brainwave runs across the field, behind the words. */}
+      <div className="pointer-events-none absolute -end-10 top-3 w-64 text-accent-400 opacity-90" aria-hidden="true"><WaveLine width={256} waves={3} amp={10} stroke={5} draw /></div>
+      <div className="pointer-events-none absolute -bottom-16 -start-10 size-48 rounded-full bg-brand-400/40 blur-2xl" aria-hidden="true" />
+      <p className="relative text-sm font-semibold text-white" id="next-title">{t.home.nextUp}</p>
+      <div className="relative mt-2 flex items-start gap-3">
         <card.icon className="mt-1 size-6 shrink-0" aria-hidden="true" />
         <div className="min-w-0">
-          <h3 className="text-xl font-semibold leading-snug" dir="auto">{card.title}</h3>
-          <p className="mt-1 text-sm text-white/85">{card.body}</p>
+          <h3 className="font-display text-2xl font-bold leading-tight" dir="auto">{card.title}</h3>
+          <p className="mt-1 text-sm text-white">{card.body}</p>
         </div>
       </div>
-      <Link to={card.to} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-brand-800 transition-transform active:scale-[0.97]">
+      <Link to={card.to} className="btn-lip relative mt-5 inline-flex h-12 items-center gap-2 rounded-[var(--radius-control)] bg-white px-5 font-semibold text-brand-800 [--lip:var(--color-brand-900)]">
         {card.cta}<ArrowRight className="size-4 rtl:rotate-180" aria-hidden="true" />
       </Link>
     </section>
@@ -54,6 +55,8 @@ export default function HomePage() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const due = useDueCount();
+  const hour = new Date().getHours();
+  const lateNight = hour < 5;
   const [recent, setRecent] = useState<LectureSummary[] | null>(null);
   const [days, setDays] = useState<DayActivity[] | null>(null);
   useEffect(() => { lectureRepo.list().then((l) => setRecent(l.slice(0, 6))).catch(() => setRecent([])); }, []);
@@ -61,9 +64,13 @@ export default function HomePage() {
 
   return (
     <div className="stagger space-y-6 sm:space-y-8">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t.home.greeting(profile?.display_name ?? '')}</h1>
-        <p className="mt-1 text-muted">{t.home.subtitle}</p>
+      <header className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-3xl font-bold sm:text-4xl" dir="auto">{t.home.greeting(profile?.display_name ?? '')}</h1>
+          <p className="mt-1 text-muted">{t.home.subtitle}</p>
+        </div>
+        {/* Wave says hello; after midnight it's asleep, gently suggesting the same. */}
+        <Mascot mood={lateNight ? 'sleeping' : 'happy'} size={76} className="-my-2 shrink-0" />
       </header>
       <UpNextBanner />
 
@@ -71,7 +78,7 @@ export default function HomePage() {
 
       {/* Start something: one primary action, two common ones, the rest in a menu. */}
       <nav aria-label={tq.title} className="space-y-2">
-        <Link to="/lectures/new" className="flex h-12 items-center justify-center gap-2 rounded-full bg-brand-600 px-5 font-semibold text-white shadow-sm transition-[background-color,transform] hover:bg-brand-700 active:scale-[0.98]">
+        <Link to="/lectures/new" className="btn-lip relative flex h-13 items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand-600 px-5 font-semibold text-white [--lip:var(--color-brand-800)] hover:bg-brand-500">
           <Mic className="size-5" aria-hidden="true" />{t.home.record}
         </Link>
         <div className="grid grid-cols-3 gap-2">
@@ -80,7 +87,7 @@ export default function HomePage() {
             { to: '/lectures/new?tab=pdf', icon: FileText, label: tq.pdf },
             { to: '/tutor', icon: MessageCircle, label: tq.tutor },
           ].map((a) => (
-            <Link key={a.to} to={a.to} className="flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border border-line bg-surface px-3 text-sm font-medium hover:bg-surface-2">
+            <Link key={a.to} to={a.to} className="btn-lip relative flex h-12 min-w-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)] border border-line bg-surface px-3 text-sm font-semibold [--lip:var(--line)] hover:bg-surface-2">
               <a.icon className="size-4 shrink-0 text-brand-700 dark:text-brand-300" aria-hidden="true" /><span className="truncate">{a.label}</span>
             </Link>
           ))}
@@ -114,7 +121,7 @@ export default function HomePage() {
         </div>
         {recent && !recent.length && (
           <div className="flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-700 dark:text-brand-300"><Mic className="size-5" aria-hidden="true" /></span>
+            <Mascot mood="curious" size={56} className="shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{t.home.noRecent}</p>
               <p className="text-sm text-muted">{t.home.noRecentBody}</p>

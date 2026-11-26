@@ -11,7 +11,7 @@ import { SUBJECT_META } from './subjects';
 import { useProgress } from './ProgressProvider';
 import { topicStatus } from './progress';
 import { StatusIcon } from './StatusBadge';
-import { IconTile } from '@/ui/IconTile';
+import { SubjectArt } from './SubjectArt';
 
 const BAND_KEY = 'bw.learnBand';
 
@@ -33,7 +33,7 @@ export default function LearnPage() {
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">{t.learn.title}</h1>
+        <h1 className="text-3xl font-bold sm:text-4xl">{t.learn.title}</h1>
         <p className="text-muted">{t.learn.subtitle}</p>
       </header>
 
@@ -62,11 +62,11 @@ export default function LearnPage() {
       <section aria-labelledby="subjects" className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 id="subjects" className="text-lg font-semibold">{t.bands[band]}</h2>
-          <div role="radiogroup" aria-label={t.learn.level} className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+          <div role="radiogroup" aria-label={t.learn.level} className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-1 sm:mx-0 sm:rounded-full sm:bg-surface-2 sm:p-1">
             {BANDS.map((b) => (
               <button key={b} type="button" role="radio" aria-checked={band === b} onClick={() => setBand(b)}
-                className={cn('h-9 shrink-0 rounded-full border px-3.5 text-sm font-medium transition-colors',
-                  band === b ? 'border-brand-600 bg-brand-600 text-white' : 'border-line bg-surface text-muted hover:text-fg')}>
+                className={cn('h-9 shrink-0 rounded-full px-4 text-sm font-semibold transition-[background-color,color,box-shadow] duration-200',
+                  band === b ? 'bg-brand-600 text-white shadow-[var(--shadow-soft)]' : 'bg-surface-2 text-muted hover:text-fg sm:bg-transparent')}>
                 {t.bands[b]}
               </button>
             ))}
@@ -80,23 +80,28 @@ export default function LearnPage() {
             const done = topics.filter((tp) => topicStatus(progress[tp.id]) === 'mastered').length;
             return (
               <Link key={course.id} to={`/learn/course/${course.id}`} className="group rounded-[var(--radius-card)]">
-                <Card className="flex h-full flex-col gap-4 p-5 transition-shadow group-hover:shadow-[var(--shadow-lift)]">
-                  <div className="flex items-center gap-3">
-                    <IconTile icon={meta.icon} tint={meta.tint} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold">{t.subjects[course.subject]}</h3>
-                      <p className="text-sm text-muted">{t.learn.topics(topics.length)}</p>
-                    </div>
-                    <ArrowRight className="size-5 text-muted transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" aria-hidden="true" />
+                <Card className="flex h-full flex-col overflow-hidden transition-[box-shadow,transform] duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lift)]">
+                  {/* The subject's own field and scene; it comes alive on hover. */}
+                  <div className={cn('relative h-32 px-4 pt-3', meta.field)}>
+                    <SubjectArt subject={course.subject} className="mx-auto h-full w-full max-w-[240px]" />
                   </div>
-                  <ul className="flex-1 space-y-1 text-sm text-muted">
-                    {course.units.map((u) => <li key={u.id} className="truncate">{u.title[locale]}</li>)}
-                  </ul>
-                  <div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
-                      <div className="h-full rounded-full bg-emerald-500 transition-[width]" style={{ width: `${(done / topics.length) * 100}%` }} />
+                  <div className="flex flex-1 flex-col gap-3 p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-display text-xl font-bold">{t.subjects[course.subject]}</h3>
+                        <p className="text-sm text-muted">{t.learn.topics(topics.length)}</p>
+                      </div>
+                      <ArrowRight className="size-5 text-muted transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" aria-hidden="true" />
                     </div>
-                    <p className="mt-1.5 text-xs text-muted">{t.learn.mastered(done, topics.length)}</p>
+                    <ul className="flex-1 space-y-1 text-sm text-muted">
+                      {course.units.map((u) => <li key={u.id} className="truncate">{u.title[locale]}</li>)}
+                    </ul>
+                    <div>
+                      <div className="h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+                        <div className="h-full rounded-full bg-emerald-400 transition-[width] duration-500" style={{ width: `${(done / topics.length) * 100}%` }} />
+                      </div>
+                      <p className="mt-1.5 text-xs text-muted">{t.learn.mastered(done, topics.length)}</p>
+                    </div>
                   </div>
                 </Card>
               </Link>

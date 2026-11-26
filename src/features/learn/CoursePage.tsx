@@ -8,7 +8,8 @@ import { SUBJECT_META } from './subjects';
 import { useProgress } from './ProgressProvider';
 import { topicStatus } from './progress';
 import { StatusIcon } from './StatusBadge';
-import { IconTile } from '@/ui/IconTile';
+import { SubjectArt } from './SubjectArt';
+import { cn } from '@/lib/cn';
 
 export const BackLink = ({ to, label }: { to: string; label: string }) => (
   <Link to={to} className="inline-flex max-w-full items-center gap-1 text-sm font-medium text-muted hover:text-fg">
@@ -33,20 +34,21 @@ export default function CoursePage() {
   return (
     <div className="space-y-6">
       <BackLink to="/learn" label={t.learn.backToLearn} />
-      <header className="flex items-center gap-4">
-        <IconTile icon={meta.icon} tint={meta.tint} size="lg" />
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t.subjects[course.subject]}</h1>
-          <p className="text-muted">{t.bands[course.band]}</p>
+      {/* The subject's field: the same colour and scene as its card on Learn. */}
+      <header className={cn('group relative flex items-end overflow-hidden rounded-[var(--radius-card)] p-5 text-white shadow-[var(--shadow-lift)] sm:min-h-44 sm:p-7', meta.field)}>
+        <div className="relative z-10 min-w-0 flex-1">
+          <h1 className="text-3xl font-bold sm:text-4xl">{t.subjects[course.subject]}</h1>
+          <p className="mt-1 font-medium text-white">{t.bands[course.band]}</p>
         </div>
+        <SubjectArt subject={course.subject} className="pointer-events-none -my-3 -me-3 h-24 w-40 shrink-0 sm:h-36 sm:w-60" />
       </header>
 
       {course.units.map((unit, ui) => (
         <section key={unit.id} aria-labelledby={unit.id} className="space-y-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.learn.unit(ui + 1)}</p>
-            <h2 id={unit.id} className="text-lg font-semibold">{unit.title[locale]}</h2>
-          </div>
+          <h2 id={unit.id} className="flex items-center gap-2.5 text-lg font-semibold">
+            <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-full font-display text-sm font-bold', meta.soft)} aria-hidden="true">{ui + 1}</span>
+            <span className="sr-only">{t.learn.unit(ui + 1)} · </span><span className="min-w-0">{unit.title[locale]}</span>
+          </h2>
           <Card className="divide-y divide-line overflow-hidden">
             {unit.topics.map((topic) => {
               const status = topicStatus(progress[topic.id]);

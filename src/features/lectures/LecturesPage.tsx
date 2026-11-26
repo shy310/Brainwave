@@ -164,7 +164,7 @@ export default function LecturesPage() {
             className={cn(linkButton, 'border border-line bg-surface px-3 hover:bg-surface-2')}>
             <Search className="size-4" aria-hidden="true" /><span className="max-sm:sr-only">{t.home.quick.search}</span>
           </Link>
-          <Link to="/lectures/new" className={cn(linkButton, 'bg-brand-600 text-white hover:bg-brand-700')}>
+          <Link to="/lectures/new" className={cn(linkButton, 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-500')}>
             <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
           </Link>
         </div>
@@ -182,7 +182,7 @@ export default function LecturesPage() {
             <h2 className="text-lg font-semibold">{t.lectures.empty}</h2>
             <p className="mt-1 max-w-md text-muted">{t.lectures.emptyBody}</p>
           </div>
-          <Link to="/lectures/new" className={cn(linkButton, 'bg-brand-600 text-white hover:bg-brand-700')}>
+          <Link to="/lectures/new" className={cn(linkButton, 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-500')}>
             <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
           </Link>
         </Card>

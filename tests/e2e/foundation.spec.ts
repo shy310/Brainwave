@@ -5,7 +5,7 @@ test('signed-out visitors are sent to sign-in', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.goto('/learn');
   await expect(page).toHaveURL(/\/signin/);
-  await expect(page.getByRole('heading', { name: 'Learn anything, your way.' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'From lecture to exam-ready.' })).toBeVisible();
 });
 
 test('onboarding → home with what to do next, and the four pillars one tap away', async ({ page }) => {

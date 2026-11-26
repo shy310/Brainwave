@@ -103,7 +103,7 @@ export default function SignInPage() {
     <div className="min-h-dvh bg-bg">
       {/* The hero: Signature Blue owns the first viewport and ends in a brainwave. */}
       <div className="relative overflow-hidden bg-brand-600 text-white">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_28rem_at_85%_30%,rgb(81_140_255/0.55),transparent_70%),radial-gradient(30rem_22rem_at_5%_100%,rgb(149_96_236/0.35),transparent_70%)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_28rem_at_85%_30%,rgb(81_140_255/0.4),transparent_70%),radial-gradient(30rem_22rem_at_5%_100%,rgb(149_96_236/0.18),transparent_70%)]" />
         <div className="relative mx-auto max-w-6xl px-4 pt-5 sm:px-6">
           <header className="flex items-center gap-3">
             <Logo className="[&_span]:text-white" />
@@ -114,7 +114,7 @@ export default function SignInPage() {
           <main className="grid items-center gap-6 pb-6 pt-6 lg:grid-cols-[1fr_1.05fr] lg:gap-10 lg:pb-10 lg:pt-10">
             <div className="order-2 lg:order-1">
               <h1 className="max-w-[14ch] text-[2.6rem] font-extrabold leading-[1.02] sm:text-6xl lg:text-[4.25rem]">{t.landing.title}</h1>
-              <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-brand-50 sm:text-xl">{t.landing.body}</p>
+              <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-white sm:text-xl">{t.landing.body}</p>
               <div className="mt-7 flex flex-wrap gap-3">
                 {auth.demo ? (
                   <Button variant="sun" size="xl" onClick={auth.startDemo}>{t.auth.demoStart}</Button>
@@ -125,7 +125,7 @@ export default function SignInPage() {
                   </>
                 )}
               </div>
-              {auth.demo && <p className="mt-4 max-w-[46ch] text-sm text-brand-100">{t.auth.demoBody}</p>}
+              {auth.demo && <p className="mt-4 max-w-[46ch] text-sm text-white">{t.auth.demoBody}</p>}
             </div>
             <div className="order-1 lg:order-2"><LandingHero /></div>
           </main>
@@ -214,7 +214,7 @@ const HowItWorks = () => {
   const t = useT();
   const th = t.landing.how;
   const icons = [Mic, BookOpenText, ClipboardCheck, GraduationCap];
-  const tones = ['bg-coral-400 text-white', 'bg-brand-600 text-white', 'bg-violet-500 text-white', 'bg-emerald-400 text-brand-950'];
+  const tones = ['bg-coral-500 text-white', 'bg-brand-600 text-white', 'bg-violet-500 text-white', 'bg-emerald-400 text-brand-950'];
   return (
     <section aria-labelledby="how" className="space-y-10">
       <h2 id="how" className="max-w-2xl font-display text-4xl font-extrabold tracking-tight sm:text-5xl">{th.title}</h2>
@@ -259,7 +259,7 @@ const Showcase = () => {
           <p className="flex items-center gap-2 text-xs font-semibold text-violet-700 dark:text-violet-300"><Mic className="size-3.5" aria-hidden="true" />{tl.tutor.talk}</p>
         </div>
       </Feature>
-      <Feature icon={FileAudio} tone="bg-coral-400" title={tl.podcast.title} body={tl.podcast.body}>
+      <Feature icon={FileAudio} tone="bg-coral-500" title={tl.podcast.title} body={tl.podcast.body}>
         <div className="rounded-[1.5rem] bg-surface p-4 shadow-[var(--shadow-soft)]" aria-hidden="true">
           <div className="flex items-center gap-3">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-400 to-coral-400 text-brand-950"><FileAudio className="size-6" /></span>
@@ -277,13 +277,13 @@ const Showcase = () => {
 };
 
 const Feature = ({ icon: Icon, tone, title, body, children }: { icon: typeof Mic; tone: string; title: string; body: string; children: ReactNode }) => (
-  <section className="flex flex-col gap-5 rounded-[var(--radius-field)] bg-brand-50/70 p-6 sm:p-8 dark:bg-white/[0.03]">
+  <section className="flex min-w-0 flex-col gap-5 rounded-[var(--radius-field)] bg-brand-50/70 p-5 sm:p-8 dark:bg-white/[0.03]">
     <span className={cn('flex size-11 items-center justify-center rounded-2xl text-white', tone)}><Icon className="size-5" aria-hidden="true" /></span>
     <div>
       <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
       <p className="mt-2 max-w-[48ch] text-muted">{body}</p>
     </div>
-    <div className="mt-auto">{children}</div>
+    <div className="mt-auto min-w-0">{children}</div>
   </section>
 );
 
@@ -311,7 +311,7 @@ const Subjects = () => {
 /** Four languages, both directions: said in each language's own words. */
 const Languages = () => {
   const { t } = useI18n();
-  const hello = [['Hello', 'ltr', 'bg-brand-600 text-white'], ['שלום', 'rtl', 'bg-accent-400 text-brand-950'], ['مرحبا', 'rtl', 'bg-emerald-400 text-brand-950'], ['Привет', 'ltr', 'bg-coral-400 text-white']] as const;
+  const hello = [['Hello', 'ltr', 'bg-brand-600 text-white'], ['שלום', 'rtl', 'bg-accent-400 text-brand-950'], ['مرحبا', 'rtl', 'bg-emerald-400 text-brand-950'], ['Привет', 'ltr', 'bg-coral-400 text-brand-950']] as const;
   return (
     <section aria-labelledby="langs" className="grid items-center gap-8 lg:grid-cols-2">
       <div>
