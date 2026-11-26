@@ -52,6 +52,7 @@ export const router = createBrowserRouter([{
         { path: 'search', lazy: page(() => import('@/features/search/SearchPage')) },
         { path: 'exams', lazy: page(() => import('@/features/exams/ExamsPage')) },
         { path: 'exams/:id', lazy: page(() => import('@/features/exams/ExamPage')) },
+        { path: 'calendar', lazy: page(() => import('@/features/calendar/CalendarPage')) },
         { path: 'play', lazy: page(() => import('@/features/game/GamesPage')) },
         { path: 'play/:game', lazy: page(() => import('@/features/game/PlayPage')) },
         { path: 'groups', lazy: page(() => import('@/features/groups/GroupsPage')) },

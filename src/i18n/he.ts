@@ -89,6 +89,22 @@ export const he: Dict = {
     videosTitle: 'שיעורי וידאו',
     podcastsTitle: 'פודקאסטים',
   },
+  calendar: {
+    title: 'לוח שנה', subtitle: 'שיעורים, מבחנים, הגשות ומה ללמוד בכל יום.', addDeadline: 'להוסיף הגשה', classTimes: 'שעות השיעורים',
+    prev: 'החודש הקודם', next: 'החודש הבא', today: 'היום', free: 'אין כלום ביום הזה.', empty: 'אפשר לייבא סילבוס או להוסיף הגשה כדי למלא את הלוח.',
+    kinds: { class: 'שיעור', exam: 'מבחן', deadline: 'הגשה', plan: 'תוכנית למידה' },
+    kindsOf: { assignment: 'מטלה', quiz: 'בוחן', project: 'פרויקט', other: 'הגשה' },
+    learn: (what: string) => `ללמוד: ${what}`, review: 'לחזור על כרטיסיות', practice: 'מבחן תרגול', for: (exam: string) => `לקראת ${exam}`,
+    done: (title: string) => `בוצע: ${title}`, remove: (title: string) => `להסיר את ${title}`,
+    what: 'מה להגיש', whatPlaceholder: 'למשל: תרגיל 4', due: 'תאריך הגשה', kind: 'סוג', save: 'להוסיף הגשה',
+    syllabus: {
+      open: 'לייבא סילבוס', title: 'ייבוא סילבוס', body: 'בחרו את הסילבוס של הקורס (PDF, Word או טקסט) או הדביקו אותו. נמצא בשבילכם את שעות השיעורים, המבחנים וההגשות לבדיקה.',
+      choose: 'לבחור את הסילבוס', pastePlaceholder: 'הדביקו כאן את הסילבוס…', read: 'למצוא את התאריכים', reading: 'קוראים את הסילבוס…', adding: 'מוסיפים ללוח…',
+      review: 'זה מה שמצאנו. אפשר להוריד את הסימון ממה שלא צריך.', course: 'קורס', classes: 'שיעורים כל שבוע', exams: 'מבחנים', deadlines: 'הגשות',
+      remind: 'להזכיר לי 15 דקות לפני כל שיעור', add: (n: number) => (n === 1 ? 'להוסיף פריט אחד' : `להוסיף ${n} פריטים`), untitled: 'קורס',
+      tooShort: 'זה קצר מדי בשביל סילבוס.', nothing: 'לא נמצאו בסילבוס שעות שיעור או תאריכים.', noPhotos: 'עדיין אי אפשר לקרוא תמונה של סילבוס. בחרו את ה-PDF או הדביקו את הטקסט.', unreadable: 'לא הצלחנו לקרוא את הקובץ.',
+    },
+  },
   exams: {
     predict: {
       title: 'מבחן חזוי', make: 'לחזות את המבחן', again: 'לחזות שוב', reading: 'קוראים את ההרצאות ומחפשים על מה המרצה שם דגש…',
@@ -506,6 +522,7 @@ export const he: Dict = {
     },
     mastery: { title: 'התקדמות', new: 'חדשות', learning: 'עדיין לומדים', almost: 'כמעט שם', mastered: 'שולטים' },
     tools: {
+      calendar: 'לוח שנה', calendarBody: 'שיעורים, מבחנים, הגשות', 
       title: 'כלי לימוד', review: 'חזרה על כרטיסיות', weak: 'נקודות חולשה', weakBody: 'מה שחוזרים לטעות בו', exams: 'מבחנים', examsBody: 'תוכנית עד יום המבחן', games: 'משחקים', gamesBody: 'גלישה ומרוץ נתיבים, עם השאלות שלכם',
       groups: 'קבוצות לימוד', groupsBody: 'שיתוף סיכומים עם חברים לכיתה', schedule: 'מערכת שעות', scheduleBody: 'תזכורות להקלטה',
       reviewBody: 'כמה דקות ביום',
