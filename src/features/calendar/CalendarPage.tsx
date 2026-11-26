@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { ToolHero, heroAction } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
 import { Link } from 'react-router';
 import { BookOpen, CalendarClock, ChevronLeft, ChevronRight, ClipboardList, FileUp, GraduationCap, Layers, Plus, Trash2 } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -7,8 +9,6 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Input, Select } from '@/ui/Field';
 import { Sheet } from '@/ui/Sheet';
-import { Spinner } from '@/ui/Spinner';
-import { BackLink } from '@/features/learn/CoursePage';
 import { localDay } from '@shared/activity';
 import { dateLocale } from '@shared/locales';
 import { daysUntil, examPlan, type Exam, type PlanTask } from '@shared/exam';
@@ -55,7 +55,7 @@ export default function CalendarPage() {
     return ids.length ? examPlan(ids, today, exam.date).flatMap((d) => d.tasks.map((task) => ({ date: d.date, exam, task }))) : [];
   }) : []), [exams, pool, today]);
 
-  if (!classes || !exams || !deadlines) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (!classes || !exams || !deadlines) return <Loading label={t.common.loading} />;
 
   const all = { classes, exams, deadlines, plan };
   const first = weekStart(locale);
@@ -84,18 +84,13 @@ export default function CalendarPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <BackLink to="/lectures" label={t.lectures.title} />
-      <header className="flex flex-wrap items-end gap-3">
-        <div className="min-w-[min(100%,16rem)] flex-1 space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">{tc.title}</h1>
-          <p className="text-muted">{tc.subtitle}</p>
-        </div>
-        <Link to="/lectures/schedule" className="inline-flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-medium text-brand-700 hover:bg-surface-2 dark:text-brand-300">
-          <CalendarClock className="size-4" aria-hidden="true" />{tc.classTimes}
-        </Link>
-        <Button variant="secondary" icon={<Plus className="size-4" />} onClick={() => setSheet('deadline')}>{tc.addDeadline}</Button>
-        <Button icon={<FileUp className="size-4" />} onClick={() => setSheet('import')}>{tc.syllabus.open}</Button>
-      </header>
+      <ToolHero tool="calendar" back={{ to: '/lectures', label: t.lectures.title }} title={tc.title} subtitle={tc.subtitle} actions={(
+        <>
+          <button type="button" className={heroAction('calendar')} onClick={() => setSheet('import')}><FileUp className="size-4" aria-hidden="true" />{tc.syllabus.open}</button>
+          <button type="button" className={heroAction('calendar', 'secondary')} onClick={() => setSheet('deadline')}><Plus className="size-4" aria-hidden="true" />{tc.addDeadline}</button>
+          <Link to="/lectures/schedule" className={heroAction('calendar', 'secondary')}><CalendarClock className="size-4" aria-hidden="true" />{tc.classTimes}</Link>
+        </>
+      )} />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Card className="p-3 sm:p-4">

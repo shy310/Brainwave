@@ -6,10 +6,10 @@ import { useHideTabBar } from '@/app/chrome';
 import { cn } from '@/lib/cn';
 import { storage } from '@/lib/storage';
 import { Alert } from '@/ui/Alert';
+import { Loading } from '@/ui/Wave';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { RichInline } from '@/ui/Rich';
-import { Spinner } from '@/ui/Spinner';
 import { BackLink } from '@/features/learn/CoursePage';
 import { rate, reviewRepo } from '@/features/lectures/reviews';
 import { track } from '@/features/stats/activity';
@@ -203,7 +203,7 @@ const Game = ({ id, folder, lectures, back }: { id: GameId; folder: string; lect
     act(id === 'glide' ? 0 : e.clientX - r.left < r.width / 2 ? -1 : 1);
   };
 
-  if (loading) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (loading) return <Loading label={t.common.loading} />;
   if (!deck.length) {
     return (
       <div className="mx-auto max-w-md space-y-4">
@@ -224,7 +224,7 @@ const Game = ({ id, folder, lectures, back }: { id: GameId; folder: string; lect
       {/* Kept mounted after the game ends so the canvas and its loop carry on into the next game. */}
       <div className={cn('space-y-3', phase === 'over' && 'hidden')}>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold tracking-tight">{name}</h1>
+            <h1 className="text-xl font-bold">{name}</h1>
             <span className="ms-auto text-sm font-semibold tabular-nums" aria-live="off">{tg.score}: <span key={total} className={total ? 'animate-digit' : undefined}>{total}</span></span>
             {run.shield && <ShieldCheck className="size-5 text-accent-600 dark:text-accent-300" role="img" aria-label={tg.shield} />}
             <span className="flex items-center gap-0.5" role="img" aria-label={tg.lives(run.lives)}>
@@ -283,7 +283,7 @@ const Game = ({ id, folder, lectures, back }: { id: GameId; folder: string; lect
         <Card className="space-y-5 p-6 text-center animate-pop-in" aria-live="polite">
           <Trophy className="mx-auto size-12 text-accent-500" aria-hidden="true" />
           <div>
-            <h1 className="text-2xl font-semibold">{tg.over}</h1>
+            <h1 className="text-2xl font-bold">{tg.over}</h1>
             <p className="mt-1 text-4xl font-bold tabular-nums">{total}</p>
             <p className="text-muted">{newBest ? <strong className="text-accent-600 dark:text-accent-300">{tg.newBest}</strong> : tg.best(best)}</p>
             {run.asked > 0 && <p className="mt-1 text-sm text-muted">{tg.answered(run.right, run.asked)}</p>}

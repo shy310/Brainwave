@@ -73,7 +73,7 @@ export default function TopicPage() {
         <p className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold', meta.soft)}>
           <meta.icon className="size-3.5" aria-hidden="true" />{unit.title[locale]}
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight">{topic.title[locale]}</h1>
+        <h1 className="text-3xl font-bold">{topic.title[locale]}</h1>
         <p className="text-lg text-muted">{topic.description[locale]}</p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <StatusText status={status} />

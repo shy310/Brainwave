@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
+import { ToolHero, heroAction } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
 import { Link } from 'react-router';
 import { CalendarClock, ChevronRight, Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
-import { Button } from '@/ui/Button';
 import { EmptyState } from '@/ui/EmptyState';
-import { Spinner } from '@/ui/Spinner';
-import { BackLink } from '@/features/learn/CoursePage';
 import { dateLocale } from '@shared/locales';
 import type { Exam } from '@shared/exam';
 import { examRepo } from './examRepo';
@@ -29,16 +28,10 @@ export default function ExamsPage() {
 
   return (
     <div className="stagger mx-auto max-w-2xl space-y-6">
-      <BackLink to="/lectures" label={t.lectures.title} />
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">{te.title}</h1>
-          <p className="text-muted">{te.subtitle}</p>
-        </div>
-        <Button icon={<Plus className="size-4" />} onClick={() => setAdding(true)}>{te.add}</Button>
-      </header>
+      <ToolHero tool="exams" back={{ to: '/lectures', label: t.lectures.title }} title={te.title} subtitle={te.subtitle}
+        actions={<button type="button" className={heroAction('exams')} onClick={() => setAdding(true)}><Plus className="size-4" aria-hidden="true" />{te.add}</button>} />
 
-      {!rows && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>}
+      {!rows && <Loading label={t.common.loading} />}
       {rows && rows.length === 0 && <EmptyState icon={CalendarClock} body={te.empty} />}
 
       {[upcoming, past].map((list, i) => list.length > 0 && (
@@ -47,19 +40,25 @@ export default function ExamsPage() {
             <li key={e.id}>
               <Link to={`/exams/${e.id}`}
                 className="pressable lift flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
-                <ReadinessRing value={s.ready} label={te.ready(s.ready)} />
+                {/* A tear-off calendar leaf with the exam's day. */}
+                <span className="flex w-14 shrink-0 flex-col overflow-hidden rounded-xl border border-accent-300 bg-surface text-center shadow-[var(--shadow-soft)] dark:border-accent-600/40" aria-hidden="true">
+                  <span className="bg-accent-400 py-0.5 text-[11px] font-bold text-brand-950">{new Date(`${e.date}T12:00:00`).toLocaleDateString(dateLocale(locale), { month: 'short' })}</span>
+                  <span className="py-1 font-display text-2xl font-bold leading-none tabular-nums">{new Date(`${e.date}T12:00:00`).getDate()}</span>
+                </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-lg font-semibold" dir="auto">{e.title}</span>
+                  <span className="block truncate font-display text-lg font-bold" dir="auto">{e.title}</span>
                   <span className="block text-sm text-muted">
                     {new Date(`${e.date}T12:00:00`).toLocaleDateString(dateLocale(locale), { weekday: 'short', day: 'numeric', month: 'short' })}
                     {' · '}{te.lectures(s.lectures.length)}
+                    <span className="sm:hidden">{' · '}{s.days < 0 ? te.done : te.inDays(s.days)}</span>
                   </span>
                 </span>
-                <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold',
-                  s.days < 0 ? 'bg-surface-2 text-muted' : s.days <= 3 ? 'bg-accent-400 text-slate-950' : 'bg-brand-500/12 text-brand-700 dark:text-brand-300')}>
+                <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold max-sm:hidden',
+                  s.days < 0 ? 'bg-surface-2 text-muted' : s.days <= 3 ? 'bg-accent-400 text-brand-950' : 'bg-brand-500/12 text-brand-700 dark:text-brand-300')}>
                   {s.days < 0 ? te.done : te.inDays(s.days)}
                 </span>
-                <ChevronRight className="size-5 shrink-0 text-muted rtl:rotate-180" aria-hidden="true" />
+                <ReadinessRing value={s.ready} label={te.ready(s.ready)} />
+                <ChevronRight className="size-5 shrink-0 text-muted max-sm:hidden rtl:rotate-180" aria-hidden="true" />
               </Link>
             </li>
           ))}

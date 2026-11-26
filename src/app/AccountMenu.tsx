@@ -34,7 +34,7 @@ export const AccountMenu = () => {
         {initial}
       </button>
       {open && (
-        <div role="menu" className="absolute end-0 top-12 z-50 w-56 rounded-2xl border border-line bg-surface p-1.5 shadow-[var(--shadow-lift)] animate-fade-in">
+        <div role="menu" className="absolute end-0 top-12 z-50 w-56 rounded-2xl border border-line bg-surface p-1.5 shadow-[var(--shadow-lift)] animate-pop-in ltr:origin-top-right rtl:origin-top-left">
           <div className="px-3 py-2 text-sm">
             <p className="truncate font-medium">{profile?.display_name}</p>
           </div>

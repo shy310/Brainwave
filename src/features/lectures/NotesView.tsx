@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, Sparkles } from 'lucide-react';
 import { useI18n, useT } from '@/i18n';
 import { findTopic } from '@shared/curriculum';
 import { Alert } from '@/ui/Alert';
@@ -19,19 +19,22 @@ export const NotesView = ({ notes }: { notes: Notes }) => {
     <>
       <article className="notes-doc min-w-0 px-1 py-2 [overflow-wrap:anywhere] sm:rounded-[var(--radius-card)] sm:border sm:border-line sm:bg-surface sm:px-10 sm:py-10 sm:shadow-[var(--shadow-soft)] print:border-0 print:p-0 print:shadow-none">
         <div className="mx-auto max-w-[68ch] space-y-9 stagger">
-          <section className="break-inside-avoid">
-            <h2 className="sr-only">{t.lectures.summary}</h2>
-            <div data-block="summary" className="border-s-[3px] border-brand-400 ps-4 text-[1.0625rem] leading-8 text-fg/85 dark:border-brand-500"><Rich text={notes.summary} /></div>
+          {/* The summary leads on a soft sky panel: the one coloured block in the notes. */}
+          <section className="break-inside-avoid rounded-2xl bg-brand-50 px-5 py-4 dark:bg-brand-900/30 print:bg-transparent print:p-0">
+            <h2 className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-200">
+              <Sparkles className="size-4" aria-hidden="true" />{t.lectures.summary}
+            </h2>
+            <div data-block="summary" className="text-[1.0625rem] leading-8 text-fg"><Rich text={notes.summary} /></div>
           </section>
           {notes.sections.map((s, i) => (
             <section key={i} className="break-inside-avoid">
-              <h2 className="mb-3 text-xl font-semibold tracking-tight" dir="auto">{s.heading}</h2>
+              <h2 className="mb-3 font-display text-xl font-bold" dir="auto">{s.heading}</h2>
               <ul className="notes-points space-y-2.5 leading-7">{s.points.map((p, j) => <li key={j} dir="auto" data-block={`s${i}.${j}`}><RichInline text={p} /></li>)}</ul>
             </section>
           ))}
           {notes.keyTerms.length > 0 && (
             <section className="break-inside-avoid border-t border-line pt-7">
-              <h2 className="mb-4 text-xl font-semibold tracking-tight">{t.lectures.keyTerms}</h2>
+              <h2 className="mb-4 font-display text-xl font-bold">{t.lectures.keyTerms}</h2>
               <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 {notes.keyTerms.map((k, i) => (
                   <div key={i} className="min-w-0 break-inside-avoid">
@@ -44,7 +47,7 @@ export const NotesView = ({ notes }: { notes: Notes }) => {
           )}
           {!!notes.practice?.length && (
             <section className="border-t border-line pt-7">
-              <h2 className="mb-1 text-xl font-semibold tracking-tight">{t.lectures.practice}</h2>
+              <h2 className="mb-1 font-display text-xl font-bold">{t.lectures.practice}</h2>
               <p className="mb-4 text-sm text-muted print:hidden">{t.lectures.practiceHint}</p>
               <ol className="list-decimal space-y-4 ps-6 marker:font-semibold marker:text-muted">
                 {notes.practice.map((p, i) => <PracticeItem key={i} question={p.question} answer={p.answer} />)}
@@ -53,7 +56,7 @@ export const NotesView = ({ notes }: { notes: Notes }) => {
           )}
           {!!notes.mistakes?.length && (
             <section className="break-inside-avoid border-t border-line pt-7">
-              <h2 className="mb-3 text-xl font-semibold tracking-tight">{t.lectures.mistakes}</h2>
+              <h2 className="mb-3 font-display text-xl font-bold">{t.lectures.mistakes}</h2>
               <ul className="notes-points notes-points-warn space-y-2.5 leading-7">{notes.mistakes.map((m, i) => <li key={i} dir="auto"><RichInline text={m} /></li>)}</ul>
             </section>
           )}

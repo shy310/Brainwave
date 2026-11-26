@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { PageHeader } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
 import { useParams } from 'react-router';
 import { Copy, Printer, RefreshCw, ScrollText } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -12,8 +14,6 @@ import { Card } from '@/ui/Card';
 import { RichInline } from '@/ui/Rich';
 import { Segmented } from '@/ui/Segmented';
 import { Shimmer } from '@/ui/Feedback';
-import { Spinner } from '@/ui/Spinner';
-import { BackLink } from '@/features/learn/CoursePage';
 import { CHEAT_FORMATS, type CheatFormat, type CheatSheet } from '@shared/cheatSheet';
 import { lectureRepo, studyText, type Lecture } from './repo';
 import { lectureTitle } from './LecturesPage';
@@ -61,7 +61,7 @@ export default function CheatSheetPage() {
     } finally { setBusy(false); }
   };
 
-  if (lecture === undefined) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (lecture === undefined) return <Loading label={t.common.loading} />;
   if (!lecture) return <Alert tone="error">{t.lectures.notFound}</Alert>;
   const title = lectureTitle(lecture, t.lectures.untitled, locale);
   const sheet = lecture.cheat_sheet;
@@ -77,12 +77,8 @@ export default function CheatSheetPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-4 print:max-w-none print:space-y-2">
       <div className="space-y-4 print:hidden">
-        <BackLink to={`/lectures/${id}`} label={title} />
-        <header className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[min(100%,18rem)] flex-1 space-y-1">
-            <h1 className="text-3xl font-semibold tracking-tight">{tc.title}</h1>
-            <p className="text-muted">{tc.body}</p>
-          </div>
+        <PageHeader tool="cheatSheet" back={{ to: `/lectures/${id}`, label: title }} title={tc.title} subtitle={tc.body} actions={(
+          <>
           {sheet && (
             <div className="flex flex-wrap gap-2">
               <Button variant="secondary" size="sm" icon={<Copy className="size-4" />}
@@ -92,7 +88,8 @@ export default function CheatSheetPage() {
               <Button variant="secondary" size="sm" icon={<Printer className="size-4" />} onClick={() => window.print()}>{tc.print}</Button>
             </div>
           )}
-        </header>
+          </>
+        )} />
         <Segmented fill label={tc.format} value={format} onChange={pick}
           options={CHEAT_FORMATS.map((f) => ({ value: f, label: tc.formats[f] }))} />
         {error && <Alert tone="error">{error}</Alert>}
@@ -133,7 +130,7 @@ const SheetView = ({ sheet, title, formulasLabel }: { sheet: CheatSheet; title: 
       <div className={cn(columns ? 'gap-6 sm:columns-2 print:columns-2' : 'grid grid-flow-row-dense gap-x-6 gap-y-4 sm:grid-cols-2 print:grid-cols-2')}>
         {sheet.blocks.map((b, i) => (
           <section key={i} className={cn('break-inside-avoid', columns ? 'mb-3' : '', b.table && !columns && 'sm:col-span-2 print:col-span-2')}>
-            <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-brand-700 dark:text-brand-300 print:text-black" dir="auto">{b.heading}</h3>
+            <h3 className="mb-1 text-[13px] font-bold text-brand-700 dark:text-brand-300 print:text-black" dir="auto">{b.heading}</h3>
             {b.items.length > 0 && (
               <ul className="space-y-0.5 ps-3.5 [list-style:'–_'] marker:text-muted">
                 {b.items.map((it, j) => <li key={j} dir="auto" className="ps-0.5"><RichInline text={it} /></li>)}
@@ -160,7 +157,7 @@ const SheetView = ({ sheet, title, formulasLabel }: { sheet: CheatSheet; title: 
       </div>
       {sheet.formulas.length > 0 && (
         <section className="mt-4 break-inside-avoid rounded-xl bg-brand-500/8 p-3 print:bg-transparent print:p-0 print:pt-2">
-          <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-brand-700 dark:text-brand-300 print:text-black">{formulasLabel}</h3>
+          <h3 className="mb-1 text-[13px] font-bold text-brand-700 dark:text-brand-300 print:text-black">{formulasLabel}</h3>
           <ul className="grid gap-x-6 gap-y-0.5 sm:grid-cols-2">
             {sheet.formulas.map((f, i) => <li key={i} dir="auto"><RichInline text={f} /></li>)}
           </ul>

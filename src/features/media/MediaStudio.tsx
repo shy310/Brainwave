@@ -9,12 +9,16 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Textarea } from '@/ui/Field';
 import { Segmented } from '@/ui/Segmented';
-import { Spinner } from '@/ui/Spinner';
 import { LENGTHS, type MediaKind, type MediaLength } from '@shared/media';
 import { LOCALES, NATIVE_NAME, type Locale } from '@shared/locales';
 import { mediaRepo, type Media } from './repo';
 import { useMediaSource } from './useMediaSource';
-import { IconTile } from '@/ui/IconTile';
+import { ToolHero } from '@/ui/PageHeader';
+import { TOOL_META } from '@/ui/tools';
+import { WaveLoader } from '@/ui/Wave';
+import { Mascot } from '@/ui/Mascot';
+import { cn } from '@/lib/cn';
+import { Cover } from './Cover';
 
 export interface StudioStrings {
   title: string; subtitle: string; createTitle: string; promptLabel: string; promptPlaceholder: string;
@@ -28,7 +32,8 @@ interface Props {
   op: 'videoScript' | 'podcastScript';
   strings: StudioStrings;
   icon: LucideIcon;
-  tint: string;
+  /** Unused: the tool's colours come from TOOL_META. */
+  tint?: string;
 }
 
 const LANGUAGE_KEY = 'bw.mediaLanguage';
@@ -36,7 +41,7 @@ const LANGUAGE_KEY = 'bw.mediaLanguage';
 const LANGUAGE_NAMES: Record<Locale, string> = NATIVE_NAME;
 
 /** Shared "make a video / podcast" page: pick a source, make it, list saved ones. */
-export const MediaStudio = ({ kind, op, strings: s, icon: Icon, tint }: Props) => {
+export const MediaStudio = ({ kind, op, strings: s, icon: Icon }: Props) => {
   const { t, locale } = useI18n();
   const navigate = useNavigate();
   const toMessage = useAiError();
@@ -75,69 +80,84 @@ export const MediaStudio = ({ kind, op, strings: s, icon: Icon, tint }: Props) =
     }
   };
 
+  const tool = kind === 'video' ? 'videos' : 'podcasts';
+  const meta = TOOL_META[tool];
+
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">{s.title}</h1>
-        <p className="text-muted">{s.subtitle}</p>
-      </header>
+    <div className="space-y-8">
+      <ToolHero tool={tool} title={s.title} subtitle={s.subtitle} />
 
-      <Card className="space-y-5 p-6">
-        <h2 className="text-lg font-semibold">{s.createTitle}</h2>
-        {sourceLoading ? <p className="flex items-center gap-2 text-muted"><Spinner className="size-4" />{s.loadingSource}</p>
-          : resolved ? (
-            <p className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-muted">{s.from}:</span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-700 dark:bg-brand-900/40 dark:text-brand-200" dir="auto">
-                {resolved.origin.label}
-                <button type="button" aria-label={t.tutor.remove} onClick={clear} className="rounded-full p-0.5 hover:bg-brand-100 dark:hover:bg-brand-800"><X className="size-3.5" aria-hidden="true" /></button>
-              </span>
-            </p>
+      {/* The composer: what it's about (or the source it came from), then language and length. */}
+      <section aria-labelledby="media-create" className="mx-auto max-w-3xl">
+        <Card className="overflow-hidden">
+          <div className="space-y-4 p-5 sm:p-6">
+            <h2 id="media-create" className="font-display text-xl font-bold">{s.createTitle}</h2>
+            {sourceLoading ? <p className="flex items-center gap-2 text-muted"><WaveLoader />{s.loadingSource}</p>
+              : resolved ? (
+                <p className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-muted">{s.from}:</span>
+                  <span className={cn('inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold', meta.soft)} dir="auto">
+                    <Icon className="size-4" aria-hidden="true" />{resolved.origin.label}
+                    <button type="button" aria-label={t.tutor.remove} onClick={clear} className="-me-1 rounded-full p-1 hover:bg-black/5 dark:hover:bg-white/10"><X className="size-3.5" aria-hidden="true" /></button>
+                  </span>
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <label htmlFor="media-prompt" className="text-sm font-semibold">{s.promptLabel}</label>
+                  <Textarea id="media-prompt" rows={2} maxLength={500} dir="auto" value={prompt} placeholder={s.promptPlaceholder}
+                    onChange={(e) => setPrompt(e.target.value)} disabled={working} className="text-base" />
+                  <div className="flex flex-wrap gap-2">
+                    {s.suggestions.map((sug) => (
+                      <button key={sug} type="button" disabled={working} onClick={() => { setPrompt(sug); void create(sug); }}
+                        className="pressable inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-medium hover:border-brand-200 hover:bg-surface-2 disabled:opacity-50 dark:hover:border-brand-800">
+                        <Sparkles className="size-3.5 text-accent-600 dark:text-accent-300" aria-hidden="true" />{sug}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </div>
+          <div className="grid gap-4 border-t border-line bg-surface-2/60 p-5 sm:grid-cols-[auto_1fr] sm:gap-x-6 sm:p-6">
+            <div className="space-y-1.5">
+              <p className="text-sm font-semibold">{s.language}</p>
+              <Segmented<Locale> label={s.language} value={language} onChange={pickLanguage}
+                options={LOCALES.map((l) => ({ value: l, label: LANGUAGE_NAMES[l] }))} />
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-sm font-semibold">{s.length}</p>
+              <Segmented label={s.length} value={length} onChange={setLength} options={LENGTHS.map((l) => ({ value: l, label: s.lengths[l] }))} />
+            </div>
+            {error && <Alert tone="error" className="sm:col-span-2">{error}</Alert>}
+            <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
+              <Button size="lg" icon={<Sparkles className="size-5" />} loading={working} disabled={!resolved && prompt.trim().length < 3}
+                onClick={() => create()}>{working ? s.writing : s.create}</Button>
+              {/* While the AI writes, Wave thinks beside the button. */}
+              {working && <Mascot mood="thinking" size={56} className="-my-3" />}
+            </div>
+          </div>
+        </Card>
+      </section>
+
+      <section className="space-y-4" aria-labelledby="saved-media">
+        <h2 id="saved-media" className="font-display text-xl font-bold">{s.saved}</h2>
+        {saved === null ? <WaveLoader label={t.common.loading} />
+          : saved.length === 0 ? (
+            <div className="flex items-center gap-4 rounded-[var(--radius-card)] border border-dashed border-line p-5">
+              <Mascot mood="curious" size={56} className="shrink-0" />
+              <p className="text-muted">{s.none}</p>
+            </div>
           ) : (
-            <div className="space-y-2">
-              <label htmlFor="media-prompt" className="text-sm font-medium">{s.promptLabel}</label>
-              <Textarea id="media-prompt" rows={2} maxLength={500} dir="auto" value={prompt} placeholder={s.promptPlaceholder}
-                onChange={(e) => setPrompt(e.target.value)} disabled={working} />
-              <div className="flex flex-wrap gap-2">
-                {s.suggestions.map((sug) => (
-                  <button key={sug} type="button" disabled={working} onClick={() => { setPrompt(sug); void create(sug); }}
-                    className="rounded-full border border-line px-3 py-1.5 text-sm hover:bg-surface-2 disabled:opacity-50">{sug}</button>
-                ))}
-              </div>
-            </div>
-          )}
-        <div className="space-y-1.5">
-          <p className="text-sm font-medium">{s.language}</p>
-          <Segmented<Locale> label={s.language} value={language} onChange={pickLanguage}
-            options={LOCALES.map((l) => ({ value: l, label: LANGUAGE_NAMES[l] }))} />
-        </div>
-        <div className="space-y-1.5">
-          <p className="text-sm font-medium">{s.length}</p>
-          <Segmented label={s.length} value={length} onChange={setLength} options={LENGTHS.map((l) => ({ value: l, label: s.lengths[l] }))} />
-        </div>
-        {error && <Alert tone="error">{error}</Alert>}
-        <Button size="lg" icon={<Sparkles className="size-5" />} loading={working} disabled={!resolved && prompt.trim().length < 3}
-          onClick={() => create()}>{working ? s.writing : s.create}</Button>
-      </Card>
-
-      <section className="space-y-3" aria-labelledby="saved-media">
-        <h2 id="saved-media" className="text-lg font-semibold">{s.saved}</h2>
-        {saved === null ? <Spinner className="size-5 text-muted" />
-          : saved.length === 0 ? <p className="text-muted">{s.none}</p>
-          : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <ul className={cn('grid gap-x-4 gap-y-6', kind === 'video' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4')}>
               {saved.map((m) => (
-                <Link key={m.id} to={`${base}/${m.id}`} className="min-w-0 rounded-[var(--radius-card)]">
-                  <Card className="flex items-center gap-3 p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
-                    <IconTile icon={Icon} tint={tint} size="sm" />
-                    <div className="min-w-0">
-                      <p className="truncate font-medium" dir="auto">{m.title}</p>
-                      <p className="truncate text-sm text-muted" dir="auto">{m.origin.label}</p>
-                    </div>
-                  </Card>
-                </Link>
+                <li key={m.id} className="min-w-0">
+                  <Link to={`${base}/${m.id}`} className="group block rounded-[var(--radius-card)] focus-visible:outline-offset-4">
+                    <Cover kind={kind} seed={m.id} className="rounded-[var(--radius-card)] shadow-[var(--shadow-soft)] transition-[transform,box-shadow] duration-200 ease-[var(--ease-out)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lift)] group-active:translate-y-0 group-active:scale-[0.99] motion-reduce:transform-none" />
+                    <p className="mt-2.5 line-clamp-2 font-semibold leading-snug group-hover:text-brand-700 dark:group-hover:text-brand-300" dir="auto">{m.title}</p>
+                    <p className="mt-0.5 truncate text-sm text-muted" dir="auto">{m.origin.label}</p>
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
       </section>
     </div>

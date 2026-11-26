@@ -3,6 +3,7 @@ import { Check, RotateCcw, Shuffle } from 'lucide-react';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
+import { FlipCard } from '@/ui/FlipCard';
 import { Rich } from '@/ui/Rich';
 import type { Flashcards } from '@shared/lectures';
 import { MASTERY_LEVELS, type MasteryLevel } from '@shared/srs';
@@ -82,18 +83,15 @@ export const FlashcardDeck = ({ deck, labels, onFinish, onAnswer }: DeckProps) =
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between text-sm text-muted">
-        <span>{t.lectures.cardOf(seen + 1, round.length)}</span>
+        <span className="rounded-full bg-violet-50 px-3 py-1 font-semibold tabular-nums text-violet-700 dark:bg-violet-900/40 dark:text-violet-200">{t.lectures.cardOf(seen + 1, round.length)}</span>
         <Button variant="ghost" size="sm" icon={<Shuffle className="size-4" />} onClick={() => start(shuffled(deck.cards.length))}>
           {t.lectures.shuffle}
         </Button>
       </div>
-      <button type="button" onClick={() => setFlipped((f) => !f)} aria-pressed={flipped}
-        className={cn('flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-[var(--radius-card)] border p-6 text-center transition-colors',
-          flipped ? 'border-brand-300 bg-brand-50 dark:border-brand-700 dark:bg-brand-900/30' : 'border-line bg-surface hover:bg-surface-2')}>
-        <Rich text={flipped ? card.back : card.front} className={cn('max-w-full [overflow-wrap:anywhere]', flipped ? 'text-base' : 'text-xl font-medium')} />
-        {!flipped && <span className="text-xs text-muted">{t.lectures.flip}</span>}
-        {labels?.[current] && <span className="max-w-full truncate text-xs text-muted" dir="auto">{t.lectures.study.from(labels[current])}</span>}
-      </button>
+      <FlipCard flipped={flipped} onFlip={() => setFlipped((f) => !f)} hint={!flipped && t.lectures.flip}
+        meta={labels?.[current] && t.lectures.study.from(labels[current])}>
+        <Rich text={flipped ? card.back : card.front} className={cn('max-w-full [overflow-wrap:anywhere]', flipped ? 'text-lg' : 'font-display text-2xl font-bold')} />
+      </FlipCard>
       {flipped && (
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" icon={<RotateCcw className="size-4" />} onClick={() => answer(false)}>{t.lectures.again}</Button>

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ToolHero } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
 import { Link } from 'react-router';
 import { Target } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -6,8 +8,6 @@ import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { EmptyState } from '@/ui/EmptyState';
-import { Spinner } from '@/ui/Spinner';
-import { BackLink } from '@/features/learn/CoursePage';
 import { QuizRunner } from '@/features/learn/QuizRunner';
 import { linkButton } from '@/features/learn/TopicPage';
 import { lectureTitle } from '@/features/lectures/LecturesPage';
@@ -69,16 +69,12 @@ export default function WeakSpotsPage() {
     else if (it.g.card) void rate(data.states, it.g.card, ok ? 'good' : 'again');
   };
 
-  if (!data) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (!data) return <Loading label={t.common.loading} />;
   const total = data.mistakes.length + data.cards.length;
 
   return (
     <div className="stagger mx-auto max-w-2xl space-y-6">
-      <BackLink to="/lectures" label={t.lectures.title} />
-      <header className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">{tw.title}</h1>
-        <p className="text-muted">{tw.subtitle}</p>
-      </header>
+      <ToolHero tool="practice" back={{ to: '/lectures', label: t.lectures.title }} title={tw.title} subtitle={tw.subtitle} />
 
       {round ? (
         <QuizRunner key={n} questions={round.map((it) => it.q)} onQuestion={answered}

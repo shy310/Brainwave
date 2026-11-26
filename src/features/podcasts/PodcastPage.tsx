@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Download, FileAudio, Trash2, X } from 'lucide-react';
+import { Cover } from '@/features/media/Cover';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
+import { Loading } from '@/ui/Wave';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
-import { Spinner } from '@/ui/Spinner';
 import { BackLink } from '@/features/learn/CoursePage';
 import { ChatPanel } from '@/features/tutor/ChatPanel';
 import { mediaRepo, type Media } from '@/features/media/repo';
@@ -48,7 +49,7 @@ export default function PodcastPage() {
     };
   }, [episode, askLine]);
 
-  if (episode === undefined) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (episode === undefined) return <Loading label={t.common.loading} />;
   if (episode === null) return <Alert tone="error">{t.podcasts.notFound}</Alert>;
 
   const remove = async () => {
@@ -90,22 +91,26 @@ export default function PodcastPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <BackLink to="/podcasts" label={t.podcasts.title} />
-      <header className="flex items-start gap-2">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl" dir="auto">{episode.title}</h1>
+      {/* The episode's cover beside its title, the way a podcast app opens one. */}
+      <header className="flex items-start gap-4 sm:gap-5">
+        <Cover kind="podcast" seed={episode.id} className="w-20 shrink-0 rounded-2xl shadow-[var(--shadow-lift)] sm:w-28" />
+        <div className="min-w-0 flex-1 space-y-1 sm:pt-1">
+          <h1 className="text-2xl font-bold leading-tight sm:text-3xl" dir="auto">{episode.title}</h1>
           <p className="text-sm text-muted" dir="auto">{episode.origin.label}</p>
+          <div className="flex flex-wrap items-center gap-1 pt-1">
+            {cloud && (
+              <Button variant="secondary" size="sm" icon={<FileAudio className="size-4" />} loading={mp3 !== null} onClick={downloadMp3}>
+                {mp3 ? t.podcasts.preparingMp3(mp3.done, mp3.total) : t.podcasts.downloadMp3}
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={t.podcasts.downloadScript} title={t.podcasts.downloadScript} onClick={download}>
+              <Download className="size-4" aria-hidden="true" />
+            </Button>
+            <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={t.podcasts.delete} onClick={remove}>
+              <Trash2 className="size-4" aria-hidden="true" />
+            </Button>
+          </div>
         </div>
-        {cloud && (
-          <Button variant="secondary" size="sm" icon={<FileAudio className="size-4" />} loading={mp3 !== null} onClick={downloadMp3}>
-            {mp3 ? t.podcasts.preparingMp3(mp3.done, mp3.total) : t.podcasts.downloadMp3}
-          </Button>
-        )}
-        <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={t.podcasts.downloadScript} title={t.podcasts.downloadScript} onClick={download}>
-          <Download className="size-4" aria-hidden="true" />
-        </Button>
-        <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={t.podcasts.delete} onClick={remove}>
-          <Trash2 className="size-4" aria-hidden="true" />
-        </Button>
       </header>
 
       {mp3Error && <Alert tone="error">{t.podcasts.mp3Failed}</Alert>}

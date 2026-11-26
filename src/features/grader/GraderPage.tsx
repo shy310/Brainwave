@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { ToolHero } from '@/ui/PageHeader';
 import { History, PenLine, RotateCcw, Sparkles } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
@@ -97,10 +98,7 @@ export default function GraderPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">{tg.title}</h1>
-        <p className="text-muted">{tg.subtitle}</p>
-      </header>
+      <ToolHero tool="grader" title={tg.title} subtitle={tg.subtitle} />
 
       <Card className="p-6">
         <form onSubmit={grade} className="space-y-4">

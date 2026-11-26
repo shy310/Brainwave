@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { CalendarClock } from 'lucide-react';
+import { ToolHero } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
+
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { FlipCard } from '@/ui/FlipCard';
+import { Mascot } from '@/ui/Mascot';
 import { Rich } from '@/ui/Rich';
-import { Spinner } from '@/ui/Spinner';
-import { BackLink } from '@/features/learn/CoursePage';
 import { buildQueue, preview, type CardState, type Rating } from '@shared/srs';
 import { lectureTitle } from './LecturesPage';
 import { lectureRepo } from './repo';
@@ -66,37 +68,29 @@ export default function ReviewPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <BackLink to="/lectures" label={t.lectures.title} />
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">{tr.title}</h1>
-        <p className="text-muted">{tr.explain}</p>
-      </header>
+      <ToolHero tool="review" back={{ to: '/lectures', label: t.lectures.title }} title={tr.title} subtitle={tr.explain} />
 
       {error && <Alert tone="error">{t.auth.errors.generic}</Alert>}
-      {!queue && !error && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>}
+      {!queue && !error && <Loading label={t.common.loading} />}
 
       {queue && !card && (
-        <Card className="space-y-3 p-8 text-center" aria-live="polite">
-          <CalendarClock className="mx-auto size-10 text-brand-700" aria-hidden="true" />
-          <p className="text-lg font-semibold">{reviewed ? tr.done : total ? tr.none : tr.noCards}</p>
+        <Card className="flex flex-col items-center gap-3 p-8 text-center" aria-live="polite">
+          <Mascot mood={reviewed ? 'celebrating' : total ? 'happy' : 'curious'} size={104} />
+          <p className="font-display text-2xl font-bold">{reviewed ? tr.done : total ? tr.none : tr.noCards}</p>
           {reviewed > 0 && <p className="text-muted">{tr.doneBody(reviewed)}</p>}
           {total > 0 && nextDue() && <p className="text-sm text-muted">{tr.next(nextDue())}</p>}
         </Card>
       )}
 
       {card && (
-        <Card className="space-y-4 p-6">
+        <div className="space-y-4">
           <div className="flex items-center justify-between gap-2 text-sm text-muted">
-            <span>{tr.left(queue!.length)}</span>
+            <span className="rounded-full bg-violet-50 px-3 py-1 font-semibold tabular-nums text-violet-700 dark:bg-violet-900/40 dark:text-violet-200">{tr.left(queue!.length)}</span>
             {!states?.has(card.key) && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/40 dark:text-brand-200">{tr.isNew}</span>}
           </div>
-          <button type="button" onClick={() => setFlipped((f) => !f)} aria-pressed={flipped}
-            className={cn('flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-[var(--radius-card)] border p-6 text-center transition-colors',
-              flipped ? 'border-brand-300 bg-brand-50 dark:border-brand-700 dark:bg-brand-900/30' : 'border-line bg-surface hover:bg-surface-2')}>
-            <Rich text={flipped ? card.back : card.front} className={cn('max-w-full [overflow-wrap:anywhere]', flipped ? 'text-base' : 'text-xl font-medium')} />
-            {!flipped && <span className="text-xs text-muted">{t.lectures.flip}</span>}
-            <span className="max-w-full truncate text-xs text-muted" dir="auto">{t.lectures.study.from(card.lectureTitle)}</span>
-          </button>
+          <FlipCard flipped={flipped} onFlip={() => setFlipped((f) => !f)} hint={!flipped && t.lectures.flip} meta={t.lectures.study.from(card.lectureTitle)}>
+            <Rich text={flipped ? card.back : card.front} className={cn('max-w-full [overflow-wrap:anywhere]', flipped ? 'text-lg' : 'font-display text-2xl font-bold')} />
+          </FlipCard>
           {flipped && (
             <div className="grid grid-cols-3 gap-2">
               {RATINGS.map(({ rating, variant }) => (
@@ -104,7 +98,7 @@ export default function ReviewPage() {
               ))}
             </div>
           )}
-        </Card>
+        </div>
       )}
     </div>
   );

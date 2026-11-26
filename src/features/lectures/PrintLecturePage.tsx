@@ -44,7 +44,7 @@ export default function PrintLecturePage() {
         <p className="w-full text-sm text-muted">{t.lectures.share.printHint}</p>
       </div>
       <header className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight" dir="auto">{title}</h1>
+        <h1 className="text-3xl font-bold" dir="auto">{title}</h1>
         <p className="text-sm text-muted">{new Date(lecture.created_at).toLocaleDateString(dateLocale(locale))} · BrainWave</p>
       </header>
       <NotesView notes={lecture.notes} />

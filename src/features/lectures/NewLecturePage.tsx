@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { PageHeader } from '@/ui/PageHeader';
+import { LectureThumb } from './LectureThumb';
 import { useBlocker, useNavigate, useSearchParams } from 'react-router';
-import { Ear, Mic, Pause, Play, RefreshCw, Square, Star, Trash2, Upload } from 'lucide-react';
+import { Check, Ear, Mic, Pause, Play, RefreshCw, Square, Star, Trash2, Upload } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAiError } from '@/lib/useAiError';
 import { cn } from '@/lib/cn';
@@ -10,10 +12,8 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Field, Input, Select } from '@/ui/Field';
 import { Rich } from '@/ui/Rich';
-import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { BackLink } from '@/features/learn/CoursePage';
 import {
   BYTES_PER_MINUTE, LECTURE_LANGUAGES, type LectureLanguage, type Segment,
 } from '@shared/lectures';
@@ -37,6 +37,8 @@ import { askConfirm } from '@/ui/Confirm';
 
 const MODES = ['audio', 'youtube', 'document'] as const;
 type Mode = (typeof MODES)[number];
+/** The source each choice stands for, for its tile. */
+const MODE_SOURCE = { audio: 'record', youtube: 'youtube', document: 'document' } as const;
 const modeFor = (tab: string | null): Mode => (tab === 'youtube' ? 'youtube' : tab && ['pdf', 'image', 'text', 'document'].includes(tab) ? 'document' : 'audio');
 
 type Phase = 'setup' | 'checking' | 'preflight' | 'recording' | 'paused' | 'decoding' | 'transcribing' | 'finishing' | 'recovering';
@@ -452,13 +454,24 @@ export default function NewLecturePage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <BackLink to="/lectures" label={t.lectures.title} />
-      <h1 className="text-3xl font-semibold tracking-tight">{t.lectures.newTitle}</h1>
+      <PageHeader tool="lectures" back={{ to: '/lectures', label: t.lectures.title }} title={t.lectures.newTitle} />
 
       <Card className="space-y-5 p-6">
-        <div className="-mx-6 overflow-x-auto px-6">
-          <Segmented fill label={t.lectures.newTitle} value={mode} onChange={(v) => { if (!busy) { setMode(v); setError(''); } }}
-            options={MODES.map((v) => ({ value: v, label: t.lectures.modes[v] }))} />
+        {/* Where the lecture comes from: three big choices, each with its source's tile. */}
+        <div role="radiogroup" aria-label={t.lectures.newTitle} className="grid grid-cols-3 gap-2 sm:gap-3">
+          {MODES.map((v) => {
+            const on = mode === v;
+            return (
+              <button key={v} type="button" role="radio" aria-checked={on} disabled={busy && !on}
+                onClick={() => { if (!busy) { setMode(v); setError(''); } }}
+                className={cn('group relative flex min-w-0 flex-col items-center gap-2 rounded-2xl border-2 px-2 py-3.5 text-sm font-semibold transition-[border-color,background-color,box-shadow,transform] duration-200 ease-[var(--ease-out)] active:scale-[0.98] disabled:opacity-50 sm:flex-row sm:gap-3 sm:px-4 sm:text-base',
+                  on ? 'border-brand-500 bg-brand-50 shadow-[var(--shadow-soft)] dark:bg-brand-900/30' : 'border-line bg-surface hover:border-brand-200 dark:hover:border-brand-800')}>
+                <LectureThumb source={MODE_SOURCE[v]} className="tool-tile-hover" />
+                <span className="min-w-0 truncate">{t.lectures.modes[v]}</span>
+                {on && <Check className="absolute end-2 top-2 size-4 text-brand-700 animate-tick dark:text-brand-300" aria-hidden="true" />}
+              </button>
+            );
+          })}
         </div>
 
         <Field label={t.lectures.titleLabel}>

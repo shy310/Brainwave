@@ -22,14 +22,15 @@ export const ExamBanner = () => {
   const status = useExamStatus(exam);
   if (!exam || !status) return null;
   return (
-    <Link to={`/exams/${exam.id}`} className="pressable lift flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
+    // The exam's sunshine: a warm card that reads as "the big day" without shouting.
+    <Link to={`/exams/${exam.id}`} className="pressable lift flex items-center gap-4 rounded-[var(--radius-card)] border border-accent-300 bg-accent-200/70 p-4 shadow-[var(--shadow-soft)] dark:border-accent-600/40 dark:bg-accent-600/15">
       <ReadinessRing value={status.ready} label={te.ready(status.ready)} />
       <span className="min-w-0 flex-1">
-        <span className="block text-xs font-semibold uppercase tracking-wide text-muted">{te.title}</span>
-        <span className="block truncate font-semibold" dir="auto">{te.banner(exam.title, te.inDays(status.days))}</span>
-        <span className="block text-sm text-muted">{status.days === 0 ? te.goodLuck : te.plan}</span>
+        <span className="sr-only">{te.title}: </span>
+        <span className="block truncate font-display text-lg font-bold leading-tight" dir="auto">{te.banner(exam.title, te.inDays(status.days))}</span>
+        <span className="mt-0.5 block text-sm font-medium text-accent-600 dark:text-accent-300">{status.days === 0 ? te.goodLuck : te.plan}</span>
       </span>
-      <ChevronRight className="size-5 shrink-0 text-muted rtl:rotate-180" aria-hidden="true" />
+      <ChevronRight className="size-5 shrink-0 text-accent-600 rtl:rotate-180 dark:text-accent-300" aria-hidden="true" />
     </Link>
   );
 };
