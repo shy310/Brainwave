@@ -12,7 +12,7 @@ import type { Locale } from '@shared/locales';
 import type { PodcastAnswer, PodcastScript } from '@shared/media';
 import { usePlayback, type Unit } from '@/features/media/usePlayback';
 import { primeAudio } from '@/features/media/cloudVoice';
-import { useDictation } from './useDictation';
+import { useDictation } from '@/features/media/useDictation';
 
 export interface AskedQuestion { question: string; lines: PodcastAnswer['lines'] }
 

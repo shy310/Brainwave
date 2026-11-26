@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { Plus, X } from 'lucide-react';
+import { AudioLines, Plus, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Button } from '@/ui/Button';
@@ -9,6 +9,7 @@ import { Segmented } from '@/ui/Segmented';
 import { findTopic } from '@shared/curriculum';
 import { TUTOR_MODES, type TutorMode } from '@shared/learn';
 import { ChatPanel, type ChatPanelHandle } from './ChatPanel';
+import { TalkMode } from './TalkMode';
 
 export default function TutorPage() {
   const { t, locale } = useI18n();
@@ -21,6 +22,7 @@ export default function TutorPage() {
   const [count, setCount] = useState(0);
   const chat = useRef<ChatPanelHandle>(null);
 
+  const [talking, setTalking] = useState(false);
   const context = useCallback(() => ({
     mode,
     custom: mode === 'custom' ? custom : undefined,
@@ -34,7 +36,10 @@ export default function TutorPage() {
           <h1 className="text-2xl font-semibold tracking-tight">{t.tutor.title}</h1>
           <p className="text-muted">{t.tutor.subtitle}</p>
         </div>
-        {count > 0 && <Button variant="secondary" size="sm" icon={<Plus className="size-4" />} onClick={() => chat.current?.reset()}>{t.tutor.newChat}</Button>}
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" icon={<AudioLines className="size-4" />} onClick={() => setTalking(true)}>{t.tutor.talk.open}</Button>
+          {count > 0 && <Button variant="secondary" size="sm" icon={<Plus className="size-4" />} onClick={() => chat.current?.reset()}>{t.tutor.newChat}</Button>}
+        </div>
       </header>
 
       <div className="space-y-3 rounded-[var(--radius-card)] border border-line bg-surface p-4">
@@ -61,6 +66,7 @@ export default function TutorPage() {
 
       <ChatPanel ref={chat} sessionKey={`bw.tutorChat.${topicId}`} context={context}
         emptyTitle={t.tutor.emptyTitle} starters={t.tutor.starters} onMessagesChange={setCount} />
+      <TalkMode open={talking} onClose={() => setTalking(false)} context={context} title={topic ? topic.topic.title[locale] : t.tutor.title} />
     </div>
   );
 }
