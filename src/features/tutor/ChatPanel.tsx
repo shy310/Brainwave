@@ -57,6 +57,8 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
   const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  const composer = useRef<HTMLFormElement>(null);
 
   useImperativeHandle(ref, () => ({
     reset: () => { abort.current?.abort(); setMessages([]); setError(''); setAttachment(null); },
@@ -79,6 +81,15 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
     try { sessionStorage.setItem(sessionKey, JSON.stringify(messages)); } catch { /* ignore */ }
     onMessagesChange?.(messages.length);
   }, [messages, sessionKey, onMessagesChange]);
+  // The composer's height (it grows with the text and the attachment row) sets how far the last
+  // message stays above it when scrolled into view.
+  useEffect(() => {
+    const form = composer.current;
+    if (!form || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => root.current?.style.setProperty('--composer-h', `${form.offsetHeight}px`));
+    ro.observe(form);
+    return () => ro.disconnect();
+  }, []);
   useEffect(() => { bottom.current?.scrollIntoView({ block: 'end', behavior: 'smooth' }); }, [messages.length, streaming]);
 
   const send = async (text: string) => {
@@ -139,17 +150,24 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
     else { setError(''); setAttachment(result); }
   };
 
+  // Scroll margin that keeps an element above the pinned composer (and the phone tab bar) when
+  // it is scrolled into view; --composer-h is measured below.
+  const clearOfComposer = inPanel
+    ? 'scroll-mb-[calc(var(--composer-h,4rem)+1rem)]'
+    : 'scroll-mb-[calc(var(--composer-h,4rem)+7rem+env(safe-area-inset-bottom))] md:scroll-mb-[calc(var(--composer-h,4rem)+2rem)]';
+
   return (
-    <div className="flex flex-col gap-4">
+    <div ref={root} className="flex flex-col gap-4">
       <section aria-live="polite" aria-busy={streaming} className="min-h-[40vh] space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center gap-4 py-10 text-center">
-            <Mascot mood="waving" size={48} />
+            <Mascot mood="waving" size={80} />
             <h2 className="font-display text-lg font-bold">{emptyTitle}</h2>
             <div className="flex flex-wrap justify-center gap-2">
               {starters.map((s) => (
                 <button key={s} type="button" onClick={() => void send(s)}
-                  className="rounded-full border border-line bg-surface px-3.5 py-2 text-sm hover:bg-surface-2">{s}</button>
+                  className={cn('rounded-full border border-line bg-surface px-3.5 py-2 text-sm hover:bg-surface-2',
+                    clearOfComposer)}>{s}</button>
               ))}
             </div>
           </div>
@@ -171,12 +189,15 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
             </div>
           </div>
         ))}
-        <div ref={bottom} />
+        <div ref={bottom} className={clearOfComposer} />
       </section>
 
       {error && <Alert tone="error">{error}</Alert>}
 
-      <form onSubmit={onSubmit} className={cn(messages.length ? 'sticky z-10' : 'relative', 'space-y-2 rounded-2xl border border-line bg-surface p-2 shadow-[var(--shadow-lift)] transition-shadow focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/15', inPanel ? 'bottom-0' : 'bottom-[calc(6rem+env(safe-area-inset-bottom))] md:bottom-4')}>
+      {/* Pinned above the tab bar (or the panel's bottom). It can float over the messages while
+          scrolling, so starters and the last message carry a scroll margin to land clear of it. */}
+      <form ref={composer} onSubmit={onSubmit} className={cn('sticky z-10 space-y-2 rounded-2xl border border-line bg-surface p-2 shadow-[var(--shadow-lift)] transition-shadow focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/15',
+        inPanel ? 'bottom-0' : 'bottom-[calc(6rem+env(safe-area-inset-bottom))] md:bottom-4')}>
         {readingFile && <p className="flex items-center gap-2 px-2 pt-1 text-sm text-muted" aria-live="polite"><Spinner className="size-4" />{t.tutor.readingFile}</p>}
         {attachment && (
           <p className="flex items-center gap-2 px-2 pt-1 text-sm">
