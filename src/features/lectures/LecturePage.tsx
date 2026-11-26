@@ -46,6 +46,10 @@ import { youtubeId, youtubeUrl } from '@shared/youtube';
 import { Highlighter } from './Highlighter';
 import { HighlightsList } from './HighlightsList';
 import { ExportSheet } from './ExportSheet';
+import { EditWithAi, type NoteSelection, type NotesEdited } from './EditWithAi';
+import { shiftBlocks } from '@shared/notesEdit';
+import type { NoteHighlight } from '@shared/highlights';
+import { writeIn } from '@/ui/writeIn';
 
 const TABS = ['notes', 'transcript', 'quiz', 'cards'] as const;
 type Tab = (typeof TABS)[number];
@@ -89,6 +93,9 @@ export default function LecturePage() {
   /** The transcript was edited after notes, a quiz or flashcards were made. */
   const [stale, setStale] = useState(false);
   const [updating, setUpdating] = useState(false);
+  /** Edit with AI: the part of the notes being edited, and the last edit (shown being written, with Undo). */
+  const [editing, setEditing] = useState<NoteSelection | null>(null);
+  const [written, setWritten] = useState<{ n: number; changed: string[]; from?: string; undo: { notes: Notes; highlights: NoteHighlight[] } } | null>(null);
 
   const [folders, setFolders] = useState<Folder[]>([]);
   const reviewStates = useRef<Promise<Map<string, CardState>> | null>(null);
@@ -123,6 +130,33 @@ export default function LecturePage() {
     setLecture((l) => (l ? { ...l, ...p } : l));
     await lectureRepo.update(id, p).catch((err) => console.error('Could not save lecture', err));
   }, [id]);
+
+  const onEdited = (sel: NoteSelection, edit: NotesEdited) => {
+    if (!lecture?.notes) return;
+    const before = { notes: lecture.notes, highlights: lecture.highlights ?? [] };
+    const section = /^s(\d+)\./.exec(sel.block)?.[1];
+    const highlights = shiftBlocks(before.highlights, sel.block, edit.place, edit.added, section ? lecture.notes.sections[Number(section)]?.points.length ?? 0 : 0);
+    void patch({ notes: edit.notes, highlights });
+    setEditing(null);
+    setWritten({ n: (written?.n ?? 0) + 1, changed: edit.changed, from: edit.from, undo: before });
+  };
+
+  // The new text writes itself in, and the Undo bar goes away after a while.
+  useEffect(() => {
+    if (!written) return;
+    const els = written.changed.map((b) => content.current?.querySelector(`[data-block="${CSS.escape(b)}"]`)).filter((e): e is Element => !!e);
+    els[0]?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    for (const el of els) {
+      el.classList.remove('animate-flash');
+      void (el as HTMLElement).offsetWidth;
+      el.classList.add('animate-flash');
+      el.addEventListener('animationend', () => el.classList.remove('animate-flash'), { once: true });
+    }
+    const stop = writeIn(els, { from: written.from });
+    const hide = setTimeout(() => setWritten((w) => (w?.n === written.n ? null : w)), 10_000);
+    return () => { stop(); clearTimeout(hide); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [written?.n]);
 
   const playFrom = useCallback((start: number) => {
     const a = audio.current;
@@ -345,10 +379,22 @@ export default function LecturePage() {
                 </div>
                 <ImportantMoments marks={lecture.marks ?? []} segments={lecture.segments} onPlay={lecture.audio_path ? playFrom : openVideoAt}
                   onShow={(start) => { setTab('transcript'); requestAnimationFrame(() => document.getElementById(`seg-${start}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })); }} />
-                <Highlighter highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })}>
+                <Highlighter highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })}
+                  onAsk={(q) => ask.current?.explain(q)} onEdit={setEditing}>
                   <NotesView notes={lecture.notes} />
                 </Highlighter>
                 <HighlightsList highlights={lecture.highlights ?? []} onChange={(highlights) => void patch({ highlights })} />
+                <EditWithAi selection={editing} notes={lecture.notes} title={lecture.title} onClose={() => setEditing(null)}
+                  onDone={(edit) => editing && onEdited(editing, edit)} />
+                {written && (
+                  <div role="status" className="fixed inset-x-0 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-4 print:hidden">
+                    <div className="flex items-center gap-3 rounded-full bg-fg py-1.5 pe-1.5 ps-4 text-sm text-bg shadow-[var(--shadow-lift)] animate-pop-in">
+                      <span>{t.lectures.edit.done}</span>
+                      <button type="button" onClick={() => { void patch(written.undo); setWritten(null); }}
+                        className="rounded-full bg-bg/15 px-3 py-1 font-medium hover:bg-bg/25">{t.lectures.edit.undo}</button>
+                    </div>
+                  </div>
+                )}
                 {groupSharing && <ShareToGroupPanel lecture={lecture} />}
                 {sharing && <SharePanel lectureId={id} token={lecture.share_token ?? null} demo={demo} note={shareNote}
                   onChange={(token, note) => { setLecture((l) => (l ? { ...l, share_token: token } : l)); setShareNote(note); }} />}

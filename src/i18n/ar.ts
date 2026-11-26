@@ -411,8 +411,14 @@ export const ar: Dict = {
     rename: 'إعادة تسمية', save: 'حفظ',
     turnInto: 'حوّلها إلى', video: 'درس فيديو', podcast: 'بودكاست',
     emptyTranscript: 'لم يُعثر على كلام في هذا التسجيل.',
+    edit: {
+      title: 'التحرير بالذكاء الاصطناعي', what: 'ماذا تريد', actions: { expand: 'توسيع', simplify: 'تبسيط', example: 'إضافة مثال' },
+      custom: 'أو اكتب ما تريد تغييره…', where: 'أين', places: { after: 'بعد هذه النقطة', end: 'آخر القسم', replace: 'بدل التحديد', append: 'أضف إلى هذا الجزء' },
+      howMuch: 'كم', depths: { brief: 'باختصار', detailed: 'بالتفصيل', deep: 'تعمّق' },
+      write: 'اكتبه', writing: 'نكتب في ملاحظاتك…', done: 'أُضيف إلى ملاحظاتك', undo: 'تراجع', gone: 'هذا الجزء لم يعد في الملاحظات.',
+    },
     highlights: {
-      toolbar: 'تظليل', colors: { yellow: 'أصفر', green: 'أخضر', blue: 'أزرق', pink: 'وردي' }, color: (c: string) => `ظلّل بالـ${c}`,
+      ask: 'اسأل الذكاء الاصطناعي', edit: 'حرّر بالذكاء الاصطناعي', toolbar: 'تظليل', colors: { yellow: 'أصفر', green: 'أخضر', blue: 'أزرق', pink: 'وردي' }, color: (c: string) => `ظلّل بالـ${c}`,
       comment: 'تعليق', addComment: 'أضف تعليقًا', editComment: 'عدّل التعليق', placeholder: 'ملاحظتك عن هذا…', save: 'حفظ', remove: 'أزل التظليل',
       title: 'تظليلاتك', hint: 'حدّد نصًا في ملاحظاتك لتظليله أو إضافة تعليق.', missing: 'لم يعد في هذه الملاحظات',
       count: (n: number) => count(n, 'تظليل واحد', 'تظليلان', 'تظليلات', 'تظليلًا'), show: 'اعرض في الملاحظات',
@@ -484,7 +490,7 @@ export const ar: Dict = {
     },
     askPanel: {
       open: 'اسأل', title: 'اسأل عن هذه المحاضرة', close: 'إغلاق',
-      aboutSelection: 'اسأل عن هذا', quote: (q: string) => `بخصوص «${q}»: `,
+      explain: (q: string) => `اشرح «${q}» في جملتين أو ثلاث قصيرة، كما ورد في هذه المحاضرة.`, aboutSelection: 'اسأل عن هذا', quote: (q: string) => `بخصوص «${q}»: `,
     },
     relatedTopics: 'مواضيع ذات صلة في «تعلّم»', relatedTopicsHint: 'تدرّب عليها بالدروس والاختبارات والمعلّم.',
     notesStyle: 'أسلوب الملخص', notesStyleHint: 'كيف تُكتب ملخصات المحاضرات الجديدة. يمكنك التبديل في أي محاضرة.',

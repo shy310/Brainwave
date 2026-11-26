@@ -1,6 +1,7 @@
 import { useEffect, useImperativeHandle, useRef, useState, type RefObject } from 'react';
 import { MessageCircleQuestion, X } from 'lucide-react';
 import { useT } from '@/i18n';
+import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
 import { ChatPanel, type ChatPanelHandle } from '@/features/tutor/ChatPanel';
 import type { TutorInput } from '@shared/learn';
@@ -16,9 +17,26 @@ interface Props {
   handle?: RefObject<AskPanelHandle | null>;
 }
 
-export interface AskPanelHandle { open: (opener?: HTMLElement | null) => void }
+export interface AskPanelHandle {
+  open: (opener?: HTMLElement | null) => void;
+  /** Open and ask the tutor to explain these words from the lecture. */
+  explain: (quote: string) => void;
+}
 
 const MAX_QUOTE = 400;
+const WIDE = '(min-width: 1024px)';
+
+/** A wide screen, where the panel sits beside the page. */
+const useWide = () => {
+  const [wide, setWide] = useState(() => typeof matchMedia !== 'undefined' && matchMedia(WIDE).matches);
+  useEffect(() => {
+    const m = matchMedia(WIDE);
+    const on = () => setWide(m.matches);
+    m.addEventListener('change', on);
+    return () => m.removeEventListener('change', on);
+  }, []);
+  return wide;
+};
 
 /**
  * "Ask about this lecture" from anywhere on the lecture page: a floating
@@ -32,9 +50,24 @@ export const AskPanel = ({ sessionKey, context, within, hidden, handle }: Props)
   const [chip, setChip] = useState<{ text: string; x: number; y: number } | null>(null);
   const chat = useRef<ChatPanelHandle>(null);
   const pending = useRef('');
+  const pendingAsk = useRef('');
   const opener = useRef<HTMLElement | null>(null);
-  useImperativeHandle(handle, () => ({ open: (from) => { if (from) opener.current = from; setOpen(true); } }), []);
+  useImperativeHandle(handle, () => ({
+    open: (from) => { if (from) opener.current = from; setOpen(true); },
+    explain: (quote) => {
+      const q = ta.explain(quote.replace(/\s+/g, ' ').trim().slice(0, MAX_QUOTE));
+      if (chat.current) chat.current.ask(q); else { pendingAsk.current = q; setOpen(true); }
+    },
+  }), [ta]);
   const panel = useRef<HTMLDivElement>(null);
+  const docked = useWide();
+
+  // Docked: the page makes room for the panel instead of going under it.
+  useEffect(() => {
+    if (!open || !docked) return;
+    document.documentElement.classList.add('ask-docked');
+    return () => document.documentElement.classList.remove('ask-docked');
+  }, [open, docked]);
 
   // Offer "Ask about this" when text inside the lecture is selected.
   useEffect(() => {
@@ -42,6 +75,9 @@ export const AskPanel = ({ sessionKey, context, within, hidden, handle }: Props)
       const sel = document.getSelection();
       const text = sel?.toString().trim() ?? '';
       if (!sel || sel.rangeCount === 0 || text.length < 3 || !within.current?.contains(sel.anchorNode)) { setChip(null); return; }
+      // The notes have their own toolbar (highlight, Ask AI, Edit with AI).
+      const at = sel.anchorNode?.nodeType === 1 ? sel.anchorNode as Element : sel.anchorNode?.parentElement;
+      if (at?.closest('.bw-highlighter')) { setChip(null); return; }
       const rect = sel.getRangeAt(0).getBoundingClientRect();
       setChip({ text: text.slice(0, MAX_QUOTE), x: Math.min(window.innerWidth - 16, Math.max(16, rect.left + rect.width / 2)), y: rect.bottom + 8 });
     };
@@ -57,7 +93,8 @@ export const AskPanel = ({ sessionKey, context, within, hidden, handle }: Props)
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('keydown', onKey);
     requestAnimationFrame(() => {
-      if (pending.current) { chat.current?.prefill(pending.current); pending.current = ''; }
+      if (pendingAsk.current) { chat.current?.ask(pendingAsk.current); pendingAsk.current = ''; }
+      else if (pending.current) { chat.current?.prefill(pending.current); pending.current = ''; }
       else panel.current?.querySelector<HTMLElement>('textarea')?.focus();
     });
     return () => { document.removeEventListener('keydown', onKey); opener.current?.focus(); };
@@ -88,9 +125,11 @@ export const AskPanel = ({ sessionKey, context, within, hidden, handle }: Props)
       )}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/30 print:hidden" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
-          <div ref={panel} role="dialog" aria-modal="true" aria-label={ta.title}
-            className="flex h-full w-full flex-col bg-bg shadow-2xl sm:max-w-md sm:border-s sm:border-line">
+        // On a phone it covers the page; on a wide screen it docks beside the notes, which stay readable and selectable.
+        <div className={cn('fixed inset-0 z-50 flex justify-end print:hidden', docked ? 'pointer-events-none' : 'bg-black/30')}
+          onClick={(e) => { if (!docked && e.target === e.currentTarget) setOpen(false); }}>
+          <div ref={panel} role="dialog" aria-modal={!docked} aria-label={ta.title}
+            className="pointer-events-auto flex h-full w-full flex-col bg-bg shadow-2xl animate-panel-in sm:max-w-md sm:border-s sm:border-line">
             <div className="flex items-center gap-2 border-b border-line px-4 py-3">
               <h2 className="flex-1 font-semibold">{ta.title}</h2>
               <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={ta.close} onClick={() => setOpen(false)}>

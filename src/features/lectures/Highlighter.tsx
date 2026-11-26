@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { MessageSquarePlus, Trash2 } from 'lucide-react';
+import { MessageSquarePlus, PenLine, Sparkles, Trash2 } from 'lucide-react';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
@@ -56,7 +56,14 @@ type Editing = { id: string; x: number; y: number; below: boolean; writing: bool
  * are painted with the CSS Custom Highlight API, so the notes' own markup
  * (formatting, maths) is never touched.
  */
-export const Highlighter = ({ highlights, onChange, children }: { highlights: NoteHighlight[]; onChange: (next: NoteHighlight[]) => void; children: ReactNode }) => {
+export const Highlighter = ({ highlights, onChange, onAsk, onEdit, children }: {
+  highlights: NoteHighlight[]; onChange: (next: NoteHighlight[]) => void;
+  /** "Ask AI" about the selected words. */
+  onAsk?: (quote: string) => void;
+  /** "Edit with AI": expand, simplify or add to the selected part. */
+  onEdit?: (selection: { block: string; quote: string; offset: number }) => void;
+  children: ReactNode;
+}) => {
   const t = useT();
   const th = t.lectures.highlights;
   const root = useRef<HTMLDivElement>(null);
@@ -85,7 +92,9 @@ export const Highlighter = ({ highlights, onChange, children }: { highlights: No
 
   const place = (rect: DOMRect) => {
     const below = rect.top < 120 || window.matchMedia('(pointer: coarse)').matches; // phones show their own menu above
-    return { x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120), y: below ? rect.bottom + 10 : rect.top - 10, below };
+    // Keep the whole toolbar on screen (it's up to ~300px wide).
+    const half = Math.min(156, window.innerWidth / 2);
+    return { x: Math.min(Math.max(rect.left + rect.width / 2, half), window.innerWidth - half), y: below ? rect.bottom + 10 : rect.top - 10, below };
   };
 
   // A new selection inside one part of the notes: offer the toolbar.
@@ -172,12 +181,34 @@ export const Highlighter = ({ highlights, onChange, children }: { highlights: No
     <div ref={root} onClick={onClick} className="bw-highlighter">
       {children}
       {pending && floating(pending.x, pending.y, pending.below, (
-        <div className="flex items-center gap-1">
-          {swatches((c) => add(c))}
-          <span className="mx-1 h-6 w-px bg-line" aria-hidden="true" />
-          <button type="button" onClick={() => add('yellow', true)} className="inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-sm font-medium hover:bg-surface-2">
-            <MessageSquarePlus className="size-4" aria-hidden="true" />{th.comment}
-          </button>
+        // Phones: the AI actions on top, colours below. Wider screens: one row.
+        <div className="flex flex-col items-center gap-1 sm:flex-row">
+          {(onAsk || onEdit) && (
+            <>
+              <div className="flex items-center gap-1">
+              {onAsk && (
+                <button type="button" onClick={() => { const q = pending.quote; window.getSelection()?.removeAllRanges(); setPending(null); onAsk(q); }}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-brand-600 px-3 text-sm font-medium text-white transition-transform hover:bg-brand-700 active:scale-95">
+                  <Sparkles className="size-4" aria-hidden="true" />{th.ask}
+                </button>
+              )}
+              {onEdit && (
+                <button type="button" onClick={() => { const { block, quote, offset } = pending; window.getSelection()?.removeAllRanges(); setPending(null); onEdit({ block, quote, offset }); }}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-sm font-medium text-brand-700 transition-transform hover:bg-brand-500/10 active:scale-95 dark:text-brand-300">
+                  <PenLine className="size-4" aria-hidden="true" />{th.edit}
+                </button>
+              )}
+              </div>
+              <span className="h-px w-full bg-line sm:mx-1 sm:h-6 sm:w-px" aria-hidden="true" />
+            </>
+          )}
+          <div className="flex items-center gap-1">
+            {swatches((c) => add(c))}
+            <span className="mx-1 h-6 w-px bg-line" aria-hidden="true" />
+            <button type="button" onClick={() => add('yellow', true)} className="inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-sm font-medium hover:bg-surface-2">
+              <MessageSquarePlus className="size-4" aria-hidden="true" />{th.comment}
+            </button>
+          </div>
         </div>
       ), th.toolbar)}
       {current && editing && floating(editing.x, editing.y, editing.below, (
