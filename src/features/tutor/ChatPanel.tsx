@@ -25,6 +25,8 @@ export interface ChatPanelHandle {
   hasMessages: () => boolean;
   /** Put text in the message box (e.g. a quote to ask about) and focus it. */
   prefill: (text: string) => void;
+  /** Send a question straight away. */
+  ask: (text: string) => void;
 }
 
 interface Props {
@@ -67,6 +69,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
         el.setSelectionRange(el.value.length, el.value.length);
       });
     },
+    ask: (text: string) => { void sendRef.current(text); },
   }), [messages.length]);
 
   useEffect(() => () => abort.current?.abort(), []);
@@ -115,6 +118,9 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
       setStreaming(false);
     }
   };
+
+  const sendRef = useRef(send);
+  sendRef.current = send;
 
   const onSubmit = (e: FormEvent) => { e.preventDefault(); void send(draft); };
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {

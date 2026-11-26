@@ -235,7 +235,8 @@ insert into public.study_days (user_id, day, minutes) values ('aaaaaaaa-0000-000
 select pg_temp.ok((select count(*) from public.claim_due_reminders('2026-11-24 17:02:00+00') where kind = 'study') = 0, 'no study reminder after studying that day');
 -- Late at night in Jerusalem the date is already tomorrow.
 update public.reminder_settings set study_time = '00:30';
-select pg_temp.ok((select count(*) from public.claim_due_reminders('2026-11-25 22:35:00+00') where kind = 'study') = 1, 'the local date counts, not UTC');
+-- (A date far from today: the steps above record study activity for the real current date.)
+select pg_temp.ok((select count(*) from public.claim_due_reminders('2031-01-15 22:35:00+00') where kind = 'study') = 1, 'the local date counts, not UTC');
 delete from public.push_sent;
 
 -- ── Arabic and Russian ────────────────────────────────────────────────────

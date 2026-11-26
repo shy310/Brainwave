@@ -408,8 +408,14 @@ export const en = {
     rename: 'Rename', save: 'Save',
     turnInto: 'Turn into', video: 'Video lesson', podcast: 'Podcast',
     emptyTranscript: 'No speech was found in this recording.',
+    edit: {
+      title: 'Edit with AI', what: 'What to do', actions: { expand: 'Expand', simplify: 'Simplify', example: 'Add an example' },
+      custom: 'Or say what to change…', where: 'Where', places: { after: 'After this point', end: 'End of section', replace: 'Replace selection', append: 'Add to this part' },
+      howMuch: 'How much', depths: { brief: 'Brief', detailed: 'Detailed', deep: 'Deep dive' },
+      write: 'Write it', writing: 'Writing into your notes…', done: 'Added to your notes', undo: 'Undo', gone: 'That part isn’t in the notes any more.',
+    },
     highlights: {
-      toolbar: 'Highlight', colors: { yellow: 'Yellow', green: 'Green', blue: 'Blue', pink: 'Pink' }, color: (c: string) => `Highlight in ${c}`,
+      ask: 'Ask AI', edit: 'Edit with AI', toolbar: 'Highlight', colors: { yellow: 'Yellow', green: 'Green', blue: 'Blue', pink: 'Pink' }, color: (c: string) => `Highlight in ${c}`,
       comment: 'Comment', addComment: 'Add a comment', editComment: 'Edit comment', placeholder: 'Your note about this…', save: 'Save', remove: 'Remove highlight',
       title: 'Your highlights', hint: 'Select text in your notes to highlight it or add a comment.', missing: 'Not in these notes any more',
       count: (n: number) => (n === 1 ? '1 highlight' : `${n} highlights`), show: 'Show in the notes',
@@ -462,6 +468,10 @@ export const en = {
     actions: { pdf: 'PDF', toolbar: 'Lecture actions', showActions: 'Show actions', hideActions: 'Hide actions', link: 'Share a link', more: 'More' },
     options: { title: 'Lecture options', customize: 'Customize', move: 'Move to folder', apply: 'Apply', customizeTitle: 'Customize notes',
       styleHelp: { short: 'The key ideas on one screen.', detailed: 'Everything important, section by section.', exam: 'Adds practice questions and common mistakes.' } },
+    cardEdit: {
+      study: 'Study', all: (n: number) => `All cards (${n})`, add: 'Add a card', own: 'Or write your own cards', edit: 'Edit card', delete: 'Delete card',
+      front: 'Front: a question or term', back: 'Back: the answer', save: 'Save card', confirmDelete: 'Delete this card?', empty: 'No cards yet. Add your own in All cards.',
+    },
     mastery: { title: 'Progress', new: 'New', learning: 'Still learning', almost: 'Almost done', mastered: 'Mastered' },
     tools: {
       title: 'Study tools', review: 'Review flashcards', weak: 'Weak spots', weakBody: 'What you keep missing', exams: 'Exams', examsBody: 'A plan up to exam day', games: 'Games', gamesBody: 'Glide and Lane Rush, with your questions',
@@ -487,7 +497,7 @@ export const en = {
     },
     askPanel: {
       open: 'Ask', title: 'Ask about this lecture', close: 'Close',
-      aboutSelection: 'Ask about this', quote: (q: string) => `About “${q}”: `,
+      explain: (q: string) => `Explain “${q}” in 2–3 short sentences, as used in this lecture.`, aboutSelection: 'Ask about this', quote: (q: string) => `About “${q}”: `,
     },
     relatedTopics: 'Related Learn topics', relatedTopicsHint: 'Practise these with lessons, quizzes and the tutor.',
     notesStyle: 'Notes style', notesStyleHint: 'How new lecture notes are written. You can switch on any lecture.',
