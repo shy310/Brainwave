@@ -8,4 +8,5 @@ import './ops/grader.js';
 import './ops/youtube.js';
 import './ops/search.js';
 import './ops/conceptMap.js';
+import './ops/notesEdit.js';
 import './ops/whyWrong.js';

@@ -433,8 +433,14 @@ export const he: Dict = {
       stale: 'ערכת את התמלול. הסיכום, הבוחן והכרטיסיות נוצרו מהגרסה הקודמת.',
       updateAll: 'לעדכן אותם לפי הגרסה שלי', updating: 'מעדכנים…',
     },
+    edit: {
+      title: 'עריכה עם AI', what: 'מה לעשות', actions: { expand: 'להרחיב', simplify: 'לפשט', example: 'להוסיף דוגמה' },
+      custom: 'או לכתוב מה לשנות…', where: 'איפה', places: { after: 'אחרי הנקודה הזו', end: 'בסוף הפרק', replace: 'במקום הקטע', append: 'להוסיף לחלק הזה' },
+      howMuch: 'כמה', depths: { brief: 'בקצרה', detailed: 'מפורט', deep: 'לעומק' },
+      write: 'לכתוב', writing: 'כותב לתוך הסיכום…', done: 'נוסף לסיכום', undo: 'ביטול', gone: 'החלק הזה כבר לא נמצא בסיכום.',
+    },
     highlights: {
-      toolbar: 'סימון', colors: { yellow: 'צהוב', green: 'ירוק', blue: 'כחול', pink: 'ורוד' }, color: (c: string) => `לסמן ב${c}`,
+      ask: 'לשאול את ה-AI', edit: 'לערוך עם AI', toolbar: 'סימון', colors: { yellow: 'צהוב', green: 'ירוק', blue: 'כחול', pink: 'ורוד' }, color: (c: string) => `לסמן ב${c}`,
       comment: 'הערה', addComment: 'הוספת הערה', editComment: 'עריכת הערה', placeholder: 'ההערה שלך על זה…', save: 'שמירה', remove: 'הסרת הסימון',
       title: 'הסימונים שלך', hint: 'מסמנים טקסט בסיכום כדי להדגיש אותו או להוסיף הערה.', missing: 'כבר לא מופיע בסיכום הזה',
       count: (n: number) => (n === 1 ? 'סימון אחד' : `${n} סימונים`), show: 'להציג בסיכום',
@@ -481,6 +487,10 @@ export const he: Dict = {
     actions: { pdf: 'PDF', toolbar: 'פעולות להרצאה', showActions: 'הצגת הפעולות', hideActions: 'הסתרת הפעולות', link: 'שיתוף בקישור', more: 'עוד' },
     options: { title: 'אפשרויות להרצאה', customize: 'התאמה', move: 'העברה לתיקייה', apply: 'החלה', customizeTitle: 'התאמת הסיכום',
       styleHelp: { short: 'הרעיונות המרכזיים במסך אחד.', detailed: 'כל מה שחשוב, חלק אחר חלק.', exam: 'עם שאלות תרגול וטעויות נפוצות.' } },
+    cardEdit: {
+      study: 'תרגול', all: (n: number) => `כל הכרטיסיות (${n})`, add: 'להוסיף כרטיסייה', own: 'או לכתוב כרטיסיות בעצמך', edit: 'לערוך כרטיסייה', delete: 'למחוק כרטיסייה',
+      front: 'צד קדמי: שאלה או מושג', back: 'צד אחורי: התשובה', save: 'לשמור', confirmDelete: 'למחוק את הכרטיסייה?', empty: 'אין עדיין כרטיסיות. אפשר להוסיף ב„כל הכרטיסיות”.',
+    },
     mastery: { title: 'התקדמות', new: 'חדשות', learning: 'עדיין לומדים', almost: 'כמעט שם', mastered: 'שולטים' },
     tools: {
       title: 'כלי לימוד', review: 'חזרה על כרטיסיות', weak: 'נקודות חולשה', weakBody: 'מה שחוזרים לטעות בו', exams: 'מבחנים', examsBody: 'תוכנית עד יום המבחן', games: 'משחקים', gamesBody: 'גלישה ומרוץ נתיבים, עם השאלות שלכם',
@@ -506,7 +516,7 @@ export const he: Dict = {
     },
     askPanel: {
       open: 'שאלה', title: 'שאלות על ההרצאה', close: 'סגירה',
-      aboutSelection: 'לשאול על זה', quote: (q: string) => `לגבי „${q}”: `,
+      explain: (q: string) => `תסביר את „${q}” ב-2–3 משפטים קצרים, כמו שזה מופיע בהרצאה.`, aboutSelection: 'לשאול על זה', quote: (q: string) => `לגבי „${q}”: `,
     },
     relatedTopics: 'נושאים קשורים בלימוד', relatedTopicsHint: 'תרגלו אותם עם שיעורים, בחנים והמורה הפרטי.',
     notesStyle: 'סגנון הסיכום', notesStyleHint: 'איך ייכתבו סיכומי הרצאות חדשים. אפשר להחליף בכל הרצאה.',
