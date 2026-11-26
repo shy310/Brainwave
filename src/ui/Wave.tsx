@@ -33,7 +33,7 @@ export const WaveLine = ({ width = 320, waves = 4, amp = 8, stroke = 4, draw, cl
 
 /** A small loader: a brainwave travelling along. Use where something is being prepared. */
 export const WaveLoader = ({ className, label }: { className?: string; label?: string }) => (
-  <span role={label ? 'status' : undefined} aria-label={label} className={cn('inline-block h-4 w-12 overflow-hidden text-brand-600 dark:text-brand-300', className)}>
+  <span role={label ? 'status' : undefined} aria-label={label} className={cn('inline-block h-4 w-12 overflow-hidden text-brand-700 dark:text-brand-300', className)}>
     <svg viewBox="0 0 96 16" className="wave-loader h-full w-[200%]" aria-hidden="true">
       <path d={sinePath(96, 4, 5, 8)} fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" />
     </svg>

@@ -32,7 +32,7 @@ export default function JoinGroupPage() {
   if (!preview) return <div className="mx-auto max-w-md"><Alert tone="error">{tg.badInvite}</Alert></div>;
   return (
     <Card className="mx-auto max-w-md space-y-4 p-8 text-center">
-      <Users className="mx-auto size-10 text-brand-600 dark:text-brand-300" aria-hidden="true" />
+      <Users className="mx-auto size-10 text-brand-700 dark:text-brand-300" aria-hidden="true" />
       <h1 className="text-2xl font-semibold" dir="auto">{tg.joinTitle(preview.name)}</h1>
       <p className="text-muted">{tg.joinBody(preview.members)}</p>
       <Button size="lg" loading={busy} onClick={() => void join()}>{tg.joinButton}</Button>

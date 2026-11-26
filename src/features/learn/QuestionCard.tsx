@@ -249,7 +249,7 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
           {practice.error && <Alert tone="error">{practice.error}</Alert>}
           {practice.data && (
             <section className="rounded-xl border border-dashed border-brand-300 p-4 dark:border-brand-700" aria-label={t.quiz.practiceTitle}>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">{t.quiz.practiceTitle}</p>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t.quiz.practiceTitle}</p>
               <QuestionCard key={practice.data.prompt} question={practice.data} topicId={topicId} extras={false}
                 onAnswered={() => onPractice?.()} />
             </section>

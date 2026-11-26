@@ -7,13 +7,13 @@ type Size = 'sm' | 'md' | 'lg' | 'xl';
 
 // Primary and danger buttons are tactile: a darker lip underneath that the press squashes (see .btn-lip).
 const VARIANTS: Record<Variant, string> = {
-  primary: 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-500',
+  primary: 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-700',
   secondary: 'btn-lip bg-surface text-fg border border-line [--lip:var(--line)] hover:bg-surface-2 hover:border-brand-200 dark:hover:border-brand-800',
   ghost: 'text-fg hover:bg-surface-2 active:scale-[0.97]',
   danger: 'btn-lip bg-rose-600 text-white [--lip:var(--color-rose-800)] hover:bg-rose-500',
   // On a Signature Blue field: Sunshine for the main action, an outlined white one beside it.
   sun: 'btn-lip bg-accent-400 text-brand-950 [--lip:#c9961a] hover:bg-accent-300',
-  onColor: 'text-white ring-1 ring-inset ring-white/50 hover:bg-white/15 active:scale-[0.97]',
+  onColor: 'text-white ring-1 ring-inset ring-white/50 hover:bg-brand-700 active:scale-[0.97]',
 };
 const SIZES: Record<Size, string> = {
   sm: 'h-9 px-3 text-sm gap-1.5',

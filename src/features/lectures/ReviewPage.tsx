@@ -77,7 +77,7 @@ export default function ReviewPage() {
 
       {queue && !card && (
         <Card className="space-y-3 p-8 text-center" aria-live="polite">
-          <CalendarClock className="mx-auto size-10 text-brand-500" aria-hidden="true" />
+          <CalendarClock className="mx-auto size-10 text-brand-700" aria-hidden="true" />
           <p className="text-lg font-semibold">{reviewed ? tr.done : total ? tr.none : tr.noCards}</p>
           {reviewed > 0 && <p className="text-muted">{tr.doneBody(reviewed)}</p>}
           {total > 0 && nextDue() && <p className="text-sm text-muted">{tr.next(nextDue())}</p>}

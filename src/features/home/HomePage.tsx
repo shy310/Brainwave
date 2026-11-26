@@ -78,7 +78,7 @@ export default function HomePage() {
 
       {/* Start something: one primary action, two common ones, the rest in a menu. */}
       <nav aria-label={tq.title} className="space-y-2">
-        <Link to="/lectures/new" className="btn-lip relative flex h-13 items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand-600 px-5 font-semibold text-white [--lip:var(--color-brand-800)] hover:bg-brand-500">
+        <Link to="/lectures/new" className="btn-lip relative flex h-13 items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand-600 px-5 font-semibold text-white [--lip:var(--color-brand-800)] hover:bg-brand-700">
           <Mic className="size-5" aria-hidden="true" />{t.home.record}
         </Link>
         <div className="grid grid-cols-3 gap-2">

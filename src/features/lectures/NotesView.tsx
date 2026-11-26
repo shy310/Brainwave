@@ -93,7 +93,7 @@ const PracticeItem = ({ question, answer }: { question: string; answer: string }
       <RichInline text={question} />
       <div className="mt-1 print:hidden">
         <button type="button" aria-expanded={open} onClick={() => setOpen(!open)}
-          className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-300">
+          className="text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">
           {open ? t.lectures.hideAnswer : t.lectures.showAnswer}
         </button>
       </div>

@@ -150,7 +150,7 @@ export default function GamesPage() {
 
           <ol className="space-y-2 rounded-[var(--radius-card)] border border-line bg-surface p-4 text-sm shadow-[var(--shadow-soft)]">
             {tg.how.map((h, i) => (
-              <li key={i} className="flex gap-2"><span className="font-semibold text-brand-600 dark:text-brand-300">{i + 1}.</span>{h}</li>
+              <li key={i} className="flex gap-2"><span className="font-semibold text-brand-700 dark:text-brand-300">{i + 1}.</span>{h}</li>
             ))}
           </ol>
         </>

@@ -108,8 +108,8 @@ export default function SignInPage() {
           <header className="flex items-center gap-3">
             <Logo className="[&_span]:text-white" />
             <span className="flex-1" />
-            <LanguageToggle className="text-white! hover:bg-white/15!" />
-            {!auth.demo && <button type="button" onClick={() => goTo('signin')} className="hidden h-10 rounded-full px-4 text-sm font-semibold text-white ring-1 ring-white/40 transition-colors hover:bg-white/15 sm:block">{t.landing.signIn}</button>}
+            <LanguageToggle className="text-white! hover:bg-brand-700!" />
+            {!auth.demo && <button type="button" onClick={() => goTo('signin')} className="hidden h-10 rounded-full px-4 text-sm font-semibold text-white ring-1 ring-white/40 transition-colors hover:bg-brand-700 sm:block">{t.landing.signIn}</button>}
           </header>
           <main className="grid items-center gap-6 pb-6 pt-6 lg:grid-cols-[1fr_1.05fr] lg:gap-10 lg:pb-10 lg:pt-10">
             <div className="order-2 lg:order-1">
@@ -181,12 +181,12 @@ export default function SignInPage() {
                         autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} value={password} onChange={e => setPassword(e.target.value)} />}
                     </Field>
                     {mode === 'signin' && (
-                      <button type="button" onClick={forgot} className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-300">{t.auth.forgot}</button>
+                      <button type="button" onClick={forgot} className="text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">{t.auth.forgot}</button>
                     )}
                     <Button type="submit" block size="lg" loading={busy}>{mode === 'signin' ? t.auth.signIn : t.auth.signUp}</Button>
                     <p className="text-center text-sm text-muted">
                       {mode === 'signin' ? t.auth.noAccount : t.auth.haveAccount}{' '}
-                      <button type="button" className="font-medium text-brand-600 hover:underline dark:text-brand-300"
+                      <button type="button" className="font-medium text-brand-700 hover:underline dark:text-brand-300"
                         onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(null); }}>
                         {mode === 'signin' ? t.auth.switchToSignUp : t.auth.switchToSignIn}
                       </button>

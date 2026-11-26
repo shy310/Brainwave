@@ -5,7 +5,7 @@ export const Spinner = ({ className, label }: { className?: string; label?: stri
 );
 
 export const FullPageSpinner = ({ label }: { label: string }) => (
-  <div className="flex min-h-dvh items-center justify-center text-brand-600 dark:text-brand-300">
+  <div className="flex min-h-dvh items-center justify-center text-brand-700 dark:text-brand-300">
     <Spinner className="size-8" label={label} />
   </div>
 );

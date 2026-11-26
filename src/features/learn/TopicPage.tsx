@@ -85,7 +85,7 @@ export default function TopicPage() {
             {topic.prerequisites.map((id, i) => {
               const pre = findTopic(id);
               return pre ? (
-                <span key={id}>{i > 0 && ', '}<Link to={`/learn/topic/${id}`} className="font-medium text-brand-600 hover:underline dark:text-brand-300">{pre.topic.title[locale]}</Link></span>
+                <span key={id}>{i > 0 && ', '}<Link to={`/learn/topic/${id}`} className="font-medium text-brand-700 hover:underline dark:text-brand-300">{pre.topic.title[locale]}</Link></span>
               ) : null;
             })}
           </p>
@@ -93,7 +93,7 @@ export default function TopicPage() {
       </header>
 
       <nav className="flex flex-wrap gap-2" aria-label={topic.title[locale]}>
-        <Link to={`/learn/topic/${topicId}/quiz`} className={cn(linkButton, 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-500')}>
+        <Link to={`/learn/topic/${topicId}/quiz`} className={cn(linkButton, 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-700')}>
           <Target className="size-4" aria-hidden="true" />{t.learn.takeQuiz}
         </Link>
         <Link to={`/tutor?topic=${topicId}`} className={cn(linkButton, 'border border-line bg-surface hover:bg-surface-2')}>
@@ -183,7 +183,7 @@ export default function TopicPage() {
             ) : (
               <Button variant="secondary" onClick={() => markLesson(topicId)}>{t.learn.markDone}</Button>
             )}
-            <Link to={`/learn/topic/${topicId}/quiz`} className={cn(linkButton, 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-500')}>
+            <Link to={`/learn/topic/${topicId}/quiz`} className={cn(linkButton, 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-700')}>
               <Target className="size-4" aria-hidden="true" />{t.learn.takeQuiz}
             </Link>
             <Button variant="ghost" icon={<RefreshCw className="size-4" />} onClick={generate}>{t.learn.rewrite}</Button>

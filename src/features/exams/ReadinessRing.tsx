@@ -5,7 +5,7 @@ export const ReadinessRing = ({ value, size = 56, label, className }: { value: n
   const stroke = size >= 80 ? 8 : 6;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
-  const tone = value >= 75 ? 'text-emerald-500' : value >= 40 ? 'text-accent-500' : 'text-brand-500';
+  const tone = value >= 75 ? 'text-emerald-500' : value >= 40 ? 'text-accent-500' : 'text-brand-700';
   return (
     <span className={cn('relative inline-flex shrink-0 items-center justify-center', className)} style={{ width: size, height: size }}
       role="img" aria-label={label}>
