@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Mascot, type Mood } from '@/ui/Mascot';
 import { createPortal } from 'react-dom';
 import { Mic, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -13,6 +14,7 @@ import { VOICE_PAIRS } from '@shared/tts';
 import type { ChatTurn, TutorInput } from '@shared/learn';
 
 type Phase = 'idle' | 'listening' | 'thinking' | 'speaking';
+const MOOD: Record<Phase, Mood> = { idle: 'waving', listening: 'curious', thinking: 'thinking', speaking: 'excited' };
 
 /** Turn spoken-style text into what a voice should read (no Markdown or LaTeX symbols). */
 const speakable = (s: string) => s.replace(/\$+/g, '').replace(/\*\*?|__|`|#+\s/g, '').replace(/\\[a-zA-Z]+/g, '').trim();
@@ -159,6 +161,8 @@ export const TalkMode = ({ open, onClose, context, title }: {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-8 px-6">
+        {/* Wave follows the conversation: listening, thinking, answering. */}
+        <Mascot mood={MOOD[phase]} size={88} className="-mb-4" />
         <button type="button" onClick={tap} aria-label={phase === 'listening' ? tt.send : phase === 'speaking' || phase === 'thinking' ? tt.interrupt : tt.tap}
           className={cn('talk-orb relative flex size-44 items-center justify-center rounded-full text-white sm:size-52', `talk-orb-${phase}`)}>
           <span className="talk-orb-glow absolute inset-0 rounded-full" aria-hidden="true" />

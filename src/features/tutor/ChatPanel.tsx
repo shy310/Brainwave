@@ -8,7 +8,8 @@ import { useAiError } from '@/lib/useAiError';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
-import { LogoMark } from '@/ui/Logo';
+import { Mascot } from '@/ui/Mascot';
+import { WaveLoader } from '@/ui/Wave';
 import { Rich } from '@/ui/Rich';
 import { Spinner } from '@/ui/Spinner';
 import type { Attachment, ChatTurn, TutorInput } from '@shared/learn';
@@ -143,8 +144,8 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
       <section aria-live="polite" aria-busy={streaming} className="min-h-[40vh] space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center gap-4 py-10 text-center">
-            <LogoMark className="size-12" />
-            <h2 className="text-lg font-semibold">{emptyTitle}</h2>
+            <Mascot mood="waving" size={48} />
+            <h2 className="font-display text-lg font-bold">{emptyTitle}</h2>
             <div className="flex flex-wrap justify-center gap-2">
               {starters.map((s) => (
                 <button key={s} type="button" onClick={() => void send(s)}
@@ -165,9 +166,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
               {m.role === 'user'
                 ? <p className="whitespace-pre-wrap" dir="auto">{m.content}</p>
                 : m.content ? <div className={cn(streaming && i === messages.length - 1 && 'ai-streaming')}><Rich text={m.content} /></div> : (
-                  <span className="inline-flex gap-1 py-2" aria-label={t.common.loading}>
-                    {[0, 1, 2].map((d) => <span key={d} className="size-2 animate-bounce rounded-full bg-muted" style={{ animationDelay: `${d * 120}ms` }} />)}
-                  </span>
+                  <WaveLoader className="my-2" label={t.common.loading} />
                 )}
             </div>
           </div>
