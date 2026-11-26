@@ -32,7 +32,7 @@ for (const lang of ['en', 'he'] as const) {
     const inAWeek = await page.evaluate(() => { const d = new Date(); d.setDate(d.getDate() + 7); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; });
 
     await page.goto('/lectures');
-    await page.getByRole('region', { name: t.lectures.tools.title }).getByRole('link', { name: new RegExp(t.lectures.tools.exams) }).click();
+    await page.getByRole('region', { name: t.lectures.tools.title }).getByRole('link', { name: new RegExp(`^${t.lectures.tools.exams}`) }).click();
     await expect(page.getByRole('heading', { level: 1, name: te.title })).toBeVisible();
     await expect(page.getByText(te.empty)).toBeVisible();
 

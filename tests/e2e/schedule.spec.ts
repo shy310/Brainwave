@@ -22,8 +22,10 @@ for (const lang of ['en', 'he'] as const) {
     await onboard(page, { hebrew: lang === 'he' });
     await page.evaluate(() => localStorage.setItem('bw.lectureFolders', JSON.stringify([{ id: 'calc', name: 'Calculus', position: 0, created_at: '1' }])));
 
+    // The timetable lives under the calendar (Calendar → Class times).
     await page.goto('/lectures');
-    await page.getByRole('link', { name: ts.open }).click();
+    await page.getByRole('link', { name: new RegExp(`^${t.lectures.tools.calendar}`) }).click();
+    await page.getByRole('link', { name: t.calendar.classTimes }).click();
     await expect(page.getByText(ts.empty)).toBeVisible();
     await page.getByRole('button', { name: ts.add }).click();
     await page.getByLabel(ts.name).fill('Calculus 1');
