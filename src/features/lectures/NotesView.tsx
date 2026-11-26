@@ -17,7 +17,7 @@ export const NotesView = ({ notes }: { notes: Notes }) => {
   const topics = (notes.topics ?? []).map(findTopic).filter((x) => !!x);
   return (
     <>
-      <article className="notes-doc px-1 py-2 sm:rounded-[var(--radius-card)] sm:border sm:border-line sm:bg-surface sm:px-10 sm:py-10 sm:shadow-[var(--shadow-soft)] print:border-0 print:p-0 print:shadow-none">
+      <article className="notes-doc min-w-0 px-1 py-2 [overflow-wrap:anywhere] sm:rounded-[var(--radius-card)] sm:border sm:border-line sm:bg-surface sm:px-10 sm:py-10 sm:shadow-[var(--shadow-soft)] print:border-0 print:p-0 print:shadow-none">
         <div className="mx-auto max-w-[68ch] space-y-9 stagger">
           <section className="break-inside-avoid">
             <h2 className="sr-only">{t.lectures.summary}</h2>
@@ -34,7 +34,7 @@ export const NotesView = ({ notes }: { notes: Notes }) => {
               <h2 className="mb-4 text-xl font-semibold tracking-tight">{t.lectures.keyTerms}</h2>
               <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 {notes.keyTerms.map((k, i) => (
-                  <div key={i} className="break-inside-avoid">
+                  <div key={i} className="min-w-0 break-inside-avoid">
                     <dt className="font-semibold text-brand-700 dark:text-brand-300" dir="auto"><RichInline text={k.term} /></dt>
                     <dd className="mt-0.5 text-[0.9375rem] leading-6 text-muted" dir="auto" data-block={`k${i}`}><RichInline text={k.definition} /></dd>
                   </div>
