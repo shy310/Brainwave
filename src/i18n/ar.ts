@@ -288,6 +288,11 @@ export const ar: Dict = {
     retry: 'اختبار جديد', backToTopic: 'العودة إلى الموضوع', review: 'مراجعة',
   },
   tutor: {
+    talk: {
+      open: 'تحدّث', title: 'وضع المحادثة', listening: 'نستمع…', thinking: 'نفكّر…', speaking: 'اضغط للمقاطعة',
+      tap: 'اضغط وتحدّث', send: 'انتهيت من الكلام', interrupt: 'قاطع', end: 'أنهِ المحادثة',
+      noMic: 'لا يستطيع هذا المتصفح سماعك. جرّب Chrome أو Edge أو Safari.', hint: 'اسأل أي شيء بصوتك. بعد كل إجابة يستمع من جديد.',
+    },
     title: 'المعلّم الذكي', subtitle: 'اسأل عن أي شيء، ويمكنك إرفاق صورة أو ملف PDF لعملك.',
     mode: 'الأسلوب', modes: { tutor: 'علّمني', explain: 'اشرح', custom: 'مخصّص' },
     modeHelp: {

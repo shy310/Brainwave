@@ -1,9 +1,10 @@
 import { useEffect, useImperativeHandle, useRef, useState, type RefObject } from 'react';
-import { MessageCircleQuestion, X } from 'lucide-react';
+import { AudioLines, MessageCircleQuestion, X } from 'lucide-react';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
 import { ChatPanel, type ChatPanelHandle } from '@/features/tutor/ChatPanel';
+import { TalkMode } from '@/features/tutor/TalkMode';
 import type { TutorInput } from '@shared/learn';
 
 interface Props {
@@ -47,6 +48,7 @@ export const AskPanel = ({ sessionKey, context, within, hidden, handle }: Props)
   const t = useT();
   const ta = t.lectures.askPanel;
   const [open, setOpen] = useState(false);
+  const [talking, setTalking] = useState(false);
   const [chip, setChip] = useState<{ text: string; x: number; y: number } | null>(null);
   const chat = useRef<ChatPanelHandle>(null);
   const pending = useRef('');
@@ -132,6 +134,7 @@ export const AskPanel = ({ sessionKey, context, within, hidden, handle }: Props)
             className="pointer-events-auto flex h-full w-full flex-col bg-bg shadow-2xl animate-panel-in sm:max-w-md sm:border-s sm:border-line">
             <div className="flex items-center gap-2 border-b border-line px-4 py-3">
               <h2 className="flex-1 font-semibold">{ta.title}</h2>
+              <Button variant="secondary" size="sm" icon={<AudioLines className="size-4" />} onClick={() => setTalking(true)}>{t.tutor.talk.open}</Button>
               <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={ta.close} onClick={() => setOpen(false)}>
                 <X className="size-5" aria-hidden="true" />
               </Button>
@@ -142,6 +145,7 @@ export const AskPanel = ({ sessionKey, context, within, hidden, handle }: Props)
           </div>
         </div>
       )}
+      <TalkMode open={talking} onClose={() => setTalking(false)} context={context} title={(talking && context().lecture?.title) || ta.title} />
     </>
   );
 };

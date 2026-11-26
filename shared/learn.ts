@@ -100,6 +100,8 @@ export type ChatTurn = z.infer<typeof ChatTurnSchema>;
 export const TutorInputSchema = z.object({
   messages: z.array(ChatTurnSchema).min(1).max(40),
   mode: z.enum(TUTOR_MODES).default('tutor'),
+  /** Talk mode: the answer is read aloud, so short, spoken sentences only. */
+  spoken: z.boolean().optional(),
   custom: z.string().max(500).optional(),
   topicId: z.string().max(60).optional(),
   /** Topics the student is struggling with (from their progress). */

@@ -283,6 +283,11 @@ export const en = {
     retry: 'New quiz', backToTopic: 'Back to topic', review: 'Review',
   },
   tutor: {
+    talk: {
+      open: 'Talk', title: 'Talk mode', listening: 'Listening…', thinking: 'Thinking…', speaking: 'Tap to interrupt',
+      tap: 'Tap and talk', send: 'Done talking', interrupt: 'Interrupt', end: 'End talk mode',
+      noMic: 'This browser can’t hear you. Try Chrome, Edge or Safari.', hint: 'Ask anything out loud. After each answer it listens again.',
+    },
     title: 'AI tutor', subtitle: 'Ask anything — you can attach a photo or PDF of your work.',
     mode: 'Mode', modes: { tutor: 'Tutor me', explain: 'Explain', custom: 'Custom' },
     modeHelp: {
