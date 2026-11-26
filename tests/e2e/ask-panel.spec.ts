@@ -32,7 +32,8 @@ for (const lang of ['en', 'he'] as const) {
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
 
-    // Select a phrase in the notes: "Ask about this" quotes it in the message box.
+    // Select a phrase in the notes: Ask AI explains it beside the notes, straight away.
+    const quote = 'A derivative measures the instantaneous rate of change.';
     await page.evaluate(() => {
       const el = [...document.querySelectorAll('li')].find((n) => n.textContent?.includes('instantaneous rate of change'))!;
       const range = document.createRange();
@@ -41,13 +42,16 @@ for (const lang of ['en', 'he'] as const) {
       sel.removeAllRanges();
       sel.addRange(range);
     });
-    await page.getByRole('button', { name: ta.aboutSelection }).click();
+    await expect(page.getByRole('button', { name: ta.aboutSelection })).toBeHidden(); // the notes' own toolbar instead
+    await page.getByRole('toolbar', { name: t.lectures.highlights.toolbar }).getByRole('button', { name: t.lectures.highlights.ask }).click();
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole('textbox')).toHaveValue(ta.quote('A derivative measures the instantaneous rate of change.'));
-    await dialog.getByRole('textbox').pressSequentially('why instantaneous?');
-    await dialog.getByRole('textbox').press('Enter');
     await expect.poll(() => asked.length).toBe(2);
-    expect(asked[1].messages.at(-1)!.content).toBe(`${ta.quote('A derivative measures the instantaneous rate of change.')}why instantaneous?`);
+    expect(asked[1].messages.at(-1)!.content).toBe(ta.explain(quote));
+    await expect(dialog.getByText('It is the limit of secant slopes.').last()).toBeVisible();
+    await dialog.getByRole('textbox').fill('why instantaneous?');
+    await dialog.getByRole('textbox').press('Enter');
+    await expect.poll(() => asked.length).toBe(3);
+    expect(asked[2].messages.at(-1)!.content).toBe('why instantaneous?');
 
     // Closing and opening Ask again keeps the same conversation.
     await page.getByRole('button', { name: ta.close }).click();

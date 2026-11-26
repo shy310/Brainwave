@@ -411,8 +411,14 @@ export const ar: Dict = {
     rename: 'إعادة تسمية', save: 'حفظ',
     turnInto: 'حوّلها إلى', video: 'درس فيديو', podcast: 'بودكاست',
     emptyTranscript: 'لم يُعثر على كلام في هذا التسجيل.',
+    edit: {
+      title: 'التحرير بالذكاء الاصطناعي', what: 'ماذا تريد', actions: { expand: 'توسيع', simplify: 'تبسيط', example: 'إضافة مثال' },
+      custom: 'أو اكتب ما تريد تغييره…', where: 'أين', places: { after: 'بعد هذه النقطة', end: 'آخر القسم', replace: 'بدل التحديد', append: 'أضف إلى هذا الجزء' },
+      howMuch: 'كم', depths: { brief: 'باختصار', detailed: 'بالتفصيل', deep: 'تعمّق' },
+      write: 'اكتبه', writing: 'نكتب في ملاحظاتك…', done: 'أُضيف إلى ملاحظاتك', undo: 'تراجع', gone: 'هذا الجزء لم يعد في الملاحظات.',
+    },
     highlights: {
-      toolbar: 'تظليل', colors: { yellow: 'أصفر', green: 'أخضر', blue: 'أزرق', pink: 'وردي' }, color: (c: string) => `ظلّل بالـ${c}`,
+      ask: 'اسأل الذكاء الاصطناعي', edit: 'حرّر بالذكاء الاصطناعي', toolbar: 'تظليل', colors: { yellow: 'أصفر', green: 'أخضر', blue: 'أزرق', pink: 'وردي' }, color: (c: string) => `ظلّل بالـ${c}`,
       comment: 'تعليق', addComment: 'أضف تعليقًا', editComment: 'عدّل التعليق', placeholder: 'ملاحظتك عن هذا…', save: 'حفظ', remove: 'أزل التظليل',
       title: 'تظليلاتك', hint: 'حدّد نصًا في ملاحظاتك لتظليله أو إضافة تعليق.', missing: 'لم يعد في هذه الملاحظات',
       count: (n: number) => count(n, 'تظليل واحد', 'تظليلان', 'تظليلات', 'تظليلًا'), show: 'اعرض في الملاحظات',
@@ -459,6 +465,10 @@ export const ar: Dict = {
     actions: { pdf: 'PDF', toolbar: 'إجراءات المحاضرة', showActions: 'إظهار الإجراءات', hideActions: 'إخفاء الإجراءات', link: 'مشاركة رابط', more: 'المزيد' },
     options: { title: 'خيارات المحاضرة', customize: 'تخصيص', move: 'نقل إلى مجلد', apply: 'تطبيق', customizeTitle: 'تخصيص الملخص',
       styleHelp: { short: 'الأفكار الرئيسية في شاشة واحدة.', detailed: 'كل ما هو مهم، قسمًا بعد قسم.', exam: 'مع أسئلة تدريبية وأخطاء شائعة.' } },
+    cardEdit: {
+      study: 'دراسة', all: (n: number) => `كل البطاقات (${n})`, add: 'أضف بطاقة', own: 'أو اكتب بطاقاتك بنفسك', edit: 'عدّل البطاقة', delete: 'احذف البطاقة',
+      front: 'الوجه: سؤال أو مصطلح', back: 'الظهر: الإجابة', save: 'احفظ البطاقة', confirmDelete: 'أتحذف هذه البطاقة؟', empty: 'لا بطاقات بعد. أضف بطاقاتك في «كل البطاقات».',
+    },
     mastery: { title: 'التقدّم', new: 'جديدة', learning: 'قيد التعلّم', almost: 'على وشك', mastered: 'متقَنة' },
     tools: {
       title: 'أدوات الدراسة', review: 'مراجعة البطاقات', weak: 'نقاط الضعف', weakBody: 'ما تخطئ فيه مرارًا', exams: 'الامتحانات', examsBody: 'خطة حتى يوم الامتحان', games: 'الألعاب', gamesBody: 'تحليق وسباق المسارات بأسئلتك',
@@ -484,7 +494,7 @@ export const ar: Dict = {
     },
     askPanel: {
       open: 'اسأل', title: 'اسأل عن هذه المحاضرة', close: 'إغلاق',
-      aboutSelection: 'اسأل عن هذا', quote: (q: string) => `بخصوص «${q}»: `,
+      explain: (q: string) => `اشرح «${q}» في جملتين أو ثلاث قصيرة، كما ورد في هذه المحاضرة.`, aboutSelection: 'اسأل عن هذا', quote: (q: string) => `بخصوص «${q}»: `,
     },
     relatedTopics: 'مواضيع ذات صلة في «تعلّم»', relatedTopicsHint: 'تدرّب عليها بالدروس والاختبارات والمعلّم.',
     notesStyle: 'أسلوب الملخص', notesStyleHint: 'كيف تُكتب ملخصات المحاضرات الجديدة. يمكنك التبديل في أي محاضرة.',
