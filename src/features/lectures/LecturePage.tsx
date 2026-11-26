@@ -97,6 +97,8 @@ export default function LecturePage() {
   /** The transcript was edited after notes, a quiz or flashcards were made. */
   const [stale, setStale] = useState(false);
   const [updating, setUpdating] = useState(false);
+  /** New notes from the AI write themselves in (counts each time). */
+  const [wrote, setWrote] = useState(0);
   /** Edit with AI: the part of the notes being edited, and the last edit (shown being written, with Undo). */
   const [editing, setEditing] = useState<NoteSelection | null>(null);
   const [written, setWritten] = useState<{ n: number; changed: string[]; from?: string; undo: { notes: Notes; highlights: NoteHighlight[] } } | null>(null);
@@ -157,6 +159,12 @@ export default function LecturePage() {
     setWritten({ n: (written?.n ?? 0) + 1, changed: edit.changed, from: edit.from, undo: before });
   };
 
+  // Freshly written notes appear word by word, top to bottom.
+  useEffect(() => {
+    if (!wrote || !content.current) return;
+    return writeIn([...content.current.querySelectorAll('.notes-doc [data-block], .notes-doc h2:not(.sr-only)')], { msPerWord: 14, maxMs: 2600 });
+  }, [wrote]);
+
   // The new text writes itself in, and the Undo bar goes away after a while.
   useEffect(() => {
     if (!written) return;
@@ -203,6 +211,7 @@ export default function LecturePage() {
         const notes = await callAi<Notes>('lectureNotes', { ...input, mode: mode ?? current?.mode ?? profile?.summary_mode ?? 'detailed' });
         // Titles get the notes' emoji too (🧬 Cell division), so lectures are easy to tell apart.
         await patch({ notes: withNewNotes(current, notes, !fresh), title: lecture?.title ? withEmoji(lecture.title, notes.title) : notes.title.slice(0, 200) });
+        setWrote((n) => n + 1);
         void notifyIfAway(t.notify.notesReady, lecture?.title || notes.title, `/lectures/${id}`, (p) => navigate(p));
       } else if (kind === 'quiz') {
         const quiz = await callAi<Quiz>('lectureQuiz', { ...input, count: 6 });
@@ -380,7 +389,8 @@ export default function LecturePage() {
             </Alert>
           )}
 
-          <div ref={content} className="space-y-6">
+          {/* Keyed by tab, so each tab's content settles in when you switch. */}
+          <div ref={content} key={tab} className="space-y-6 animate-tab-in">
           {tab === 'notes' && (
             busy === 'notes' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" /><Shimmer text={t.lectures.writingNotes} /></Card>
             : lecture.notes ? (

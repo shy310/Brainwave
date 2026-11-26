@@ -46,7 +46,7 @@ export default function ExamsPage() {
           {list.map(({ e, s }) => (
             <li key={e.id}>
               <Link to={`/exams/${e.id}`}
-                className="pressable flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-lift)]">
+                className="pressable lift flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
                 <ReadinessRing value={s.ready} label={te.ready(s.ready)} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-lg font-semibold" dir="auto">{e.title}</span>

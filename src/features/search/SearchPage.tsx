@@ -144,7 +144,7 @@ export default function SearchPage() {
           <ul className="space-y-2">
             {hits.map((h, i) => (
               <li key={`${h.lectureId}-${h.kind}-${h.start ?? i}-${i}`}>
-                <Link to={hitLink(h)} className="pressable block rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-lift)]">
+                <Link to={hitLink(h)} className="pressable lift block rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
                   <span className="flex items-center gap-2 text-xs font-medium text-muted">
                     <span className="truncate font-semibold text-fg" dir="auto">{titles.get(h.lectureId)}</span>
                     <span aria-hidden="true">·</span>

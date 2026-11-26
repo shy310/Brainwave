@@ -164,7 +164,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
               )}
               {m.role === 'user'
                 ? <p className="whitespace-pre-wrap" dir="auto">{m.content}</p>
-                : m.content ? <Rich text={m.content} /> : (
+                : m.content ? <div className={cn(streaming && i === messages.length - 1 && 'ai-streaming')}><Rich text={m.content} /></div> : (
                   <span className="inline-flex gap-1 py-2" aria-label={t.common.loading}>
                     {[0, 1, 2].map((d) => <span key={d} className="size-2 animate-bounce rounded-full bg-muted" style={{ animationDelay: `${d * 120}ms` }} />)}
                   </span>
