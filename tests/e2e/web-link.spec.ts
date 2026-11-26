@@ -30,6 +30,8 @@ for (const lang of ['en', 'he'] as const) {
     await page.getByRole('textbox', { name: td.link }).fill('https://example.edu/cells');
     await page.getByRole('button', { name: td.read }).click();
     await expect(page).toHaveURL(/\/lectures\/[\w-]+$/);
+    // The lecture is saved as the page opens; wait for the write rather than racing it.
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('bw.lectures'))).not.toBeNull();
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('bw.lectures')!)[0]);
     expect(saved).toMatchObject({ source: 'document', source_url: 'https://example.edu/cells' });
     expect(saved.segments[0].text).toBe(TEXT);

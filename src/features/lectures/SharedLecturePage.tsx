@@ -35,7 +35,7 @@ export default function SharedLecturePage() {
         {lecture && (
           <>
             <header className="space-y-1">
-              <p className="text-sm font-medium text-brand-600 dark:text-brand-300">{t.lectures.share.madeWith}</p>
+              <p className="text-sm font-medium text-brand-700 dark:text-brand-300">{t.lectures.share.madeWith}</p>
               <h1 className="text-3xl font-semibold tracking-tight" dir="auto">{lectureTitle(lecture, t.lectures.untitled, locale)}</h1>
             </header>
             <NotesView notes={lecture.notes} />

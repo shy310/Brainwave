@@ -114,7 +114,7 @@ export default function SearchPage() {
       {asking && <Card className="p-5 text-muted"><Shimmer text={ts.asking} /></Card>}
       {answer && !asking && (
         <Card className="space-y-3 border-brand-200 p-5 animate-pop-in dark:border-brand-800" aria-live="polite">
-          <h2 className="flex items-center gap-2 font-semibold"><Sparkles className="size-4 text-brand-600 dark:text-brand-300" aria-hidden="true" />{ts.answer}</h2>
+          <h2 className="flex items-center gap-2 font-semibold"><Sparkles className="size-4 text-brand-700 dark:text-brand-300" aria-hidden="true" />{ts.answer}</h2>
           {!answer.out.found && <p className="text-sm font-medium text-muted">{ts.notFound}</p>}
           <p className="whitespace-pre-wrap leading-relaxed" dir="auto">{withCitations(answer.out.answer, answer.sources)}</p>
           {answer.out.cited.length > 0 && (

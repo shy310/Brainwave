@@ -58,7 +58,7 @@ export default function GroupsPage() {
             <li key={g.id} className="min-w-0">
               <Link to={`/groups/${g.id}`} className="block rounded-[var(--radius-card)]">
                 <Card className="flex items-center gap-3 p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-200"><Users className="size-5" aria-hidden="true" /></span>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200"><Users className="size-5" aria-hidden="true" /></span>
                   <div className="min-w-0">
                     <p className="truncate font-medium" dir="auto">{g.name}</p>
                     <p className="text-sm text-muted">{tg.members(g.members)}{g.owner_id === user?.id ? ` · ${tg.owner}` : ''}</p>

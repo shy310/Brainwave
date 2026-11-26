@@ -65,7 +65,7 @@ export const ShareToGroupPanel = ({ lecture }: { lecture: Lecture }) => {
       {done && (
         <p className="flex flex-wrap items-center gap-2 text-sm" role="status">
           {ts.done(done.name)}
-          <Link to={`/groups/${done.id}`} className="font-medium text-brand-600 hover:underline dark:text-brand-300">{ts.open}</Link>
+          <Link to={`/groups/${done.id}`} className="font-medium text-brand-700 hover:underline dark:text-brand-300">{ts.open}</Link>
         </p>
       )}
       {error && <p className="text-sm text-rose-600 dark:text-rose-400" role="alert">{ts.failed}</p>}

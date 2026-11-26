@@ -13,6 +13,7 @@ import type { GradeAnswer } from '@shared/grading';
 import { useAiTask } from './useAiTask';
 import { DrawCheck } from '@/ui/Feedback';
 import { WhyWrong } from './WhyWrong';
+import { Mascot } from '@/ui/Mascot';
 
 interface Verdict { correct: boolean; feedback?: string; grade?: GradeAnswer }
 
@@ -107,18 +108,19 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
                 <button key={i} type="button" role="radio" aria-checked={choice === i} disabled={answered}
                   onClick={() => setChoice(i)}
                   className={cn(
-                    'flex min-h-12 items-center gap-3 rounded-xl border px-4 py-2.5 text-start transition-colors',
-                    !answered && (choice === i ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20 dark:bg-brand-900/30' : 'border-line hover:bg-surface-2'),
-                    isAnswer && 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40',
-                    isWrongPick && 'animate-shake border-rose-400 bg-rose-50 dark:bg-rose-950/40',
+                    'flex min-h-13 items-center gap-3 rounded-2xl border-2 px-4 py-2.5 text-start font-medium transition-[background-color,border-color,transform] duration-200',
+                    !answered && (choice === i ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/30' : 'border-line bg-surface hover:border-brand-200 hover:bg-surface-2 active:scale-[0.99]'),
+                    // Right answer: mint (dashed when it wasn't the one picked). Wrong pick: coral. Each also has its mark, never colour alone.
+                    isAnswer && (verdict.correct ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40' : 'border-dashed border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/30'),
+                    isWrongPick && 'animate-shake border-coral-400 bg-coral-50 dark:bg-coral-700/20',
                     answered && !isAnswer && !isWrongPick && 'border-line opacity-60',
                   )}>
                   <span className={cn('flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-semibold',
                     // Once checked, the marker takes the result's colour (green right, red wrong), not the selection colour.
-                    isAnswer ? 'border-emerald-500 bg-white dark:bg-emerald-950' : isWrongPick ? 'border-rose-400 bg-white dark:bg-rose-950'
-                      : choice === i ? 'border-brand-500 text-brand-600 dark:text-brand-300' : 'border-line text-muted')}>
-                    {isAnswer ? <DrawCheck className="size-4 text-emerald-600" />
-                      : isWrongPick ? <X className="size-4 text-rose-600" aria-hidden="true" /> : String.fromCharCode(65 + i)}
+                    isAnswer ? 'border-emerald-600 bg-emerald-600 text-white' : isWrongPick ? 'border-coral-500 bg-coral-500 text-white'
+                      : choice === i ? 'border-brand-500 bg-brand-500 text-white' : 'border-line text-muted')}>
+                    {isAnswer ? <DrawCheck className="size-4" />
+                      : isWrongPick ? <X className="size-4" strokeWidth={3} aria-hidden="true" /> : String.fromCharCode(65 + i)}
                   </span>
                   <span className="min-w-0 flex-1"><RichInline text={opt} /></span>
                 </button>
@@ -166,12 +168,14 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
 
       {answered && (
         <div className="space-y-4 animate-fade-up" aria-live="polite">
-          <div className={cn('rounded-xl border p-4',
+          <div className={cn('rounded-2xl border-2 p-4',
             verdict.correct ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/40'
-              : verdict.grade?.verdict === 'partial' ? 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40'
-                : 'border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40')}>
-            <p className="flex items-center gap-2 font-semibold">
-              {verdict.correct ? <DrawCheck className="size-5 text-emerald-600" /> : <X className="size-5 text-rose-600" aria-hidden="true" />}
+              : verdict.grade?.verdict === 'partial' ? 'border-accent-300 bg-accent-200/50 dark:border-accent-600/50 dark:bg-accent-600/15'
+                : 'border-coral-200 bg-coral-50 dark:border-coral-700/50 dark:bg-coral-700/15')}>
+            <p className="flex items-center gap-2 font-display text-lg font-bold">
+              {/* Wave reacts: pleased when right, encouraging when not. Mistakes are part of learning. */}
+              <Mascot mood={verdict.correct ? 'excited' : 'encouraging'} size={44} className="-my-1 shrink-0" />
+              {verdict.correct ? <DrawCheck className="size-5 text-emerald-600" /> : <X className="size-5 text-coral-600" aria-hidden="true" />}
               {verdict.correct ? t.quiz.correct : verdict.grade?.verdict === 'partial' ? t.quiz.partial : t.quiz.incorrect}
               {verdict.grade && <span className="ms-auto tabular-nums">{t.quiz.outOf100(verdict.grade.score)}</span>}
             </p>
@@ -245,7 +249,7 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
           {practice.error && <Alert tone="error">{practice.error}</Alert>}
           {practice.data && (
             <section className="rounded-xl border border-dashed border-brand-300 p-4 dark:border-brand-700" aria-label={t.quiz.practiceTitle}>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">{t.quiz.practiceTitle}</p>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t.quiz.practiceTitle}</p>
               <QuestionCard key={practice.data.prompt} question={practice.data} topicId={topicId} extras={false}
                 onAnswered={() => onPractice?.()} />
             </section>

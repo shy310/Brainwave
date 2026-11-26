@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-26T12:00:00Z",
+  "title": "Design System: BrainWave",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "BrainWave Blue",
+        "canonical": "#3268f5",
+        "tonalRamp": [
+          "#eef4ff",
+          "#dceaff",
+          "#bfd5ff",
+          "#93b6ff",
+          "#518cff",
+          "#437bfa",
+          "#3268f5",
+          "#2552d8",
+          "#1f43ad",
+          "#1b3786",
+          "#172344"
+        ]
+      },
+      "sunshine": {
+        "role": "secondary",
+        "displayName": "Sunshine",
+        "canonical": "#ffd35a",
+        "tonalRamp": [
+          "#fff0c2",
+          "#ffe49a",
+          "#ffd35a",
+          "#ffc52e",
+          "#8a5a00"
+        ]
+      },
+      "mint": {
+        "role": "tertiary",
+        "displayName": "Mint",
+        "canonical": "#32cba0",
+        "tonalRamp": [
+          "#32cba0",
+          "#128a69"
+        ]
+      },
+      "coral": {
+        "role": "tertiary",
+        "displayName": "Coral",
+        "canonical": "#ff826f",
+        "tonalRamp": [
+          "#fff2ef",
+          "#ffe1db",
+          "#ffc5ba",
+          "#ffa696",
+          "#ff826f",
+          "#f2614c",
+          "#c2412d",
+          "#9c3222"
+        ]
+      },
+      "purple": {
+        "role": "tertiary",
+        "displayName": "Purple",
+        "canonical": "#9560ec"
+      },
+      "navy-ink": {
+        "role": "neutral",
+        "displayName": "Navy Ink",
+        "canonical": "#172344"
+      },
+      "periwinkle-ground": {
+        "role": "neutral",
+        "displayName": "Periwinkle Ground",
+        "canonical": "#f6f8ff"
+      },
+      "primary-pressed": {
+        "role": "primary",
+        "displayName": "Pressed Blue",
+        "canonical": "#2552d8"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles, landing headline, scores, card titles on fields."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Lessons, notes, UI copy."
+      }
+    },
+    "shadows": [
+      {
+        "name": "soft",
+        "value": "0 1px 2px rgb(23 35 68 / 0.05), 0 10px 28px -14px rgb(23 35 68 / 0.2)",
+        "purpose": "Resting cards."
+      },
+      {
+        "name": "lift",
+        "value": "0 2px 6px rgb(23 35 68 / 0.07), 0 22px 44px -18px rgb(23 35 68 / 0.3)",
+        "purpose": "Colour fields, hovered cards, tab bar."
+      },
+      {
+        "name": "float",
+        "value": "0 4px 10px rgb(23 35 68 / 0.08), 0 30px 60px -24px rgb(50 104 245 / 0.45)",
+        "purpose": "Sign-in panel, overlays."
+      },
+      {
+        "name": "lip",
+        "value": "0 3px 0 var(--lip)",
+        "purpose": "Tactile buttons; removed on press."
+      }
+    ],
+    "motion": [
+      {
+        "name": "dur-press",
+        "value": "140ms",
+        "purpose": "Button press."
+      },
+      {
+        "name": "dur-hover",
+        "value": "200ms",
+        "purpose": "Hover and state colour changes."
+      },
+      {
+        "name": "dur-enter",
+        "value": "320ms",
+        "purpose": "Elements entering."
+      },
+      {
+        "name": "dur-expressive",
+        "value": "520ms",
+        "purpose": "One-off expressive moments."
+      },
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Default."
+      },
+      {
+        "name": "ease-spring",
+        "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "purpose": "One-off playful moments only (mascot pop, hero pieces, star)."
+      },
+      {
+        "name": "ease-drawer",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Sheets."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Tactile blue button with a lip the press absorbs.",
+      "html": "<button class=\"ds-btn\">Start the lesson</button>",
+      "css": ".ds-btn{height:44px;padding:0 16px;border:0;border-radius:14px;background:#3268f5;color:#fff;font:600 15px Rubik,system-ui;box-shadow:0 3px 0 #1f43ad;transition:transform 140ms cubic-bezier(.23,1,.32,1),box-shadow 140ms}.ds-btn:hover{background:#2552d8}.ds-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #1f43ad}"
+    },
+    {
+      "name": "Sun Button",
+      "kind": "button",
+      "refersTo": "button-sun",
+      "description": "The single hero call to action on a blue field.",
+      "html": "<button class=\"ds-sun\">Try BrainWave</button>",
+      "css": ".ds-sun{height:56px;padding:0 28px;border:0;border-radius:14px;background:#ffd35a;color:#172344;font:700 18px Rubik,system-ui;box-shadow:0 3px 0 #c9961a}"
+    },
+    {
+      "name": "Selected Chip",
+      "kind": "chip",
+      "refersTo": "chip-selected",
+      "description": "Band picker and segmented choices.",
+      "html": "<span class=\"ds-chip\">Grades 9–10</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:9999px;background:#3268f5;color:#fff;font:600 14px Rubik,system-ui}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Playful Intelligence",
+    "overview": "Playful but not childish, colourful but not chaotic, animated but not distracting, professional but not boring. Personality lives around the content (a blue field, tactile buttons, Wave the mascot, the brainwave line, subject fields); lessons and notes stay calm.",
+    "keyCharacteristics": [
+      "Blue brand with a sunshine highlight",
+      "Tactile lip buttons",
+      "Wave the brain mascot in ten moods",
+      "The brainwave line motif",
+      "A colour field and scene per subject"
+    ],
+    "rules": [
+      {
+        "name": "The Right-and-Wrong-Never-By-Colour Rule",
+        "body": "Mint and coral always come with a mark (check, X, letter).",
+        "section": "colors"
+      },
+      {
+        "name": "The One Sun Rule",
+        "body": "Sunshine fills at most one control per screen.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Eyebrow Rule",
+        "body": "No uppercase micro-labels above headings.",
+        "section": "typography"
+      },
+      {
+        "name": "The Fields-Carry-White Rule",
+        "body": "Every coloured field that carries text passes 4.5:1 with full-opacity white; hovers on blue darken to #2552d8; brand text uses #2552d8.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do keep one primary action per screen.",
+      "Do pair right/wrong colours with a mark.",
+      "Do animate transform and opacity only, 140–520ms, with a reduced-motion state.",
+      "Do use Wave once per view at most, at moments that carry a feeling."
+    ],
+    "donts": [
+      "Don't use eyebrow labels, gradient headings, or emoji as icons in chrome.",
+      "Don't spring-animate frequent controls.",
+      "Don't invent users, ratings, testimonials or outcomes.",
+      "Don't add anxiety mechanics."
+    ]
+  }
+}

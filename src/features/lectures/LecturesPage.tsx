@@ -164,7 +164,7 @@ export default function LecturesPage() {
             className={cn(linkButton, 'border border-line bg-surface px-3 hover:bg-surface-2')}>
             <Search className="size-4" aria-hidden="true" /><span className="max-sm:sr-only">{t.home.quick.search}</span>
           </Link>
-          <Link to="/lectures/new" className={cn(linkButton, 'bg-brand-600 text-white hover:bg-brand-700')}>
+          <Link to="/lectures/new" className={cn(linkButton, 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-700')}>
             <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
           </Link>
         </div>
@@ -182,7 +182,7 @@ export default function LecturesPage() {
             <h2 className="text-lg font-semibold">{t.lectures.empty}</h2>
             <p className="mt-1 max-w-md text-muted">{t.lectures.emptyBody}</p>
           </div>
-          <Link to="/lectures/new" className={cn(linkButton, 'bg-brand-600 text-white hover:bg-brand-700')}>
+          <Link to="/lectures/new" className={cn(linkButton, 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-700')}>
             <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
           </Link>
         </Card>
@@ -361,7 +361,7 @@ const StudyTools = ({ due }: { due: number }) => {
   const { t } = useI18n();
   const tt = t.lectures.tools;
   const tools = [
-    { to: '/lectures/review', icon: Layers, title: tt.review, body: due > 0 ? t.lectures.review.due(due) : tt.reviewBody, tint: 'bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-200', highlight: due > 0 },
+    { to: '/lectures/review', icon: Layers, title: tt.review, body: due > 0 ? t.lectures.review.due(due) : tt.reviewBody, tint: 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200', highlight: due > 0 },
     { to: '/practice', icon: Target, title: tt.weak, body: tt.weakBody, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
     { to: '/exams', icon: CalendarClock, title: tt.exams, body: tt.examsBody, tint: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' },
     { to: '/play', icon: Gamepad2, title: tt.games, body: tt.gamesBody, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },

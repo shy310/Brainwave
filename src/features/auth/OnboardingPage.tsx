@@ -9,6 +9,7 @@ import { Field, Input, Select } from '@/ui/Field';
 import { Segmented } from '@/ui/Segmented';
 import { Alert } from '@/ui/Alert';
 import { Logo } from '@/ui/Logo';
+import { Mascot } from '@/ui/Mascot';
 import { GRADES, type Grade } from '@shared/grades';
 import { NATIVE_NAME, LOCALES, type Locale } from '@shared/locales';
 import { STUDY_GOALS, summaryModeForGoal, type StudyGoal } from '@shared/profile';
@@ -43,11 +44,13 @@ export default function OnboardingPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4 py-10">
-      <Logo className="mb-8 self-center" />
-      <Card className="p-6 sm:p-8 animate-fade-up">
+      <Logo className="mb-4 self-center" />
+      {/* Wave waves hello from just above the card. */}
+      <Mascot mood="waving" size={120} className="relative z-10 -mb-5 self-center" />
+      <Card className="p-6 pt-8 shadow-[var(--shadow-lift)] sm:p-8 sm:pt-10 animate-fade-up">
         <form onSubmit={submit} className="space-y-5">
           <div>
-            <h1 className="text-2xl font-semibold">{t.onboarding.title}</h1>
+            <h1 className="text-3xl font-bold">{t.onboarding.title}</h1>
             <p className="mt-1 text-muted">{t.onboarding.subtitle}</p>
           </div>
           {error && <Alert tone="error">{t.auth.errors.generic}</Alert>}

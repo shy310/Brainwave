@@ -1,7 +1,7 @@
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
-const control = 'w-full rounded-xl border border-line bg-surface px-3.5 text-fg placeholder:text-muted/70 transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 disabled:opacity-60';
+const control = 'w-full rounded-[var(--radius-control)] border border-line bg-surface px-3.5 text-fg placeholder:text-muted/70 transition-[border-color,box-shadow] duration-200 hover:border-brand-200 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 disabled:opacity-60 dark:hover:border-brand-800';
 
 interface FieldProps { label: string; hint?: string; error?: string; children: (id: string, describedBy?: string) => ReactNode }
 

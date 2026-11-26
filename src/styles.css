@@ -4,32 +4,82 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Rubik covers Latin, Hebrew and Cyrillic; Arabic letters come from IBM Plex Sans Arabic. */
+  /* Text: Rubik covers Latin, Hebrew and Cyrillic; Arabic letters come from IBM Plex Sans Arabic.
+     Display: Bricolage Grotesque (Latin) — confident, a little quirky; other scripts fall back to Rubik. */
   --font-sans: "Rubik", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Bricolage Grotesque", "Rubik", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
 
-  /* Ocean: a bright, friendly blue, with sun yellow for highlights. */
-  --color-brand-50: #eef3fe;
-  --color-brand-100: #dce6fd;
-  --color-brand-200: #bccffb;
-  --color-brand-300: #8eaef8;
-  --color-brand-400: #5b86f2;
-  --color-brand-500: #3a69ec;
-  --color-brand-600: #2356e8;
-  --color-brand-700: #1a43c4;
-  --color-brand-800: #183a9c;
-  --color-brand-900: #17327a;
+  /* Playful Intelligence. Signature Brainwave Blue owns primary actions and brand fields. */
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dceaff;   /* Soft Sky */
+  --color-brand-200: #bfd5ff;
+  --color-brand-300: #93b6ff;
+  --color-brand-400: #518cff;   /* Electric Blue */
+  --color-brand-500: #437bfa;
+  --color-brand-600: #3268f5;   /* Signature Blue: white text 4.7:1 */
+  --color-brand-700: #2552d8;   /* links on light grounds */
+  --color-brand-800: #1f43ad;
+  --color-brand-900: #1b3786;
+  --color-brand-950: #172344;   /* Midnight Navy */
 
-  /* Sun: fills (300-500) always carry dark ink; 600 is dark enough to be text on white. */
-  --color-accent-300: #ffe08a;
-  --color-accent-400: #ffcf4d;
-  --color-accent-500: #ffc23d;
-  --color-accent-600: #8f5f00;
+  /* Sunshine: achievements and highlights. Fills (300-500) carry dark ink; 600 is text on white. */
+  --color-accent-200: #fff0c2;
+  --color-accent-300: #ffe49a;
+  --color-accent-400: #ffd35a;
+  --color-accent-500: #ffc52e;
+  --color-accent-600: #8a5a00;
 
+  /* Creative Purple: discovery and AI moments (replaces Tailwind's violet). */
+  --color-violet-50: #f5f0fe;
+  --color-violet-100: #ebe0fd;
+  --color-violet-200: #d8c3fb;
+  --color-violet-300: #bd9cf6;
+  --color-violet-400: #a77cf1;
+  --color-violet-500: #9560ec;
+  --color-violet-600: #7c45db;
+  --color-violet-700: #6533b8;
+  --color-violet-800: #522b93;
+  --color-violet-900: #3f2470;
+
+  /* Mint: success, mastery and progress (replaces Tailwind's emerald everywhere). */
+  --color-emerald-50: #e9faf4;
+  --color-emerald-100: #cbf3e5;
+  --color-emerald-200: #9de8cf;
+  --color-emerald-300: #6bdab8;
+  --color-emerald-400: #32cba0;
+  --color-emerald-500: #1fb68b;
+  --color-emerald-600: #128a69;
+  --color-emerald-700: #0e6f55;
+  --color-emerald-800: #0d5845;
+  --color-emerald-900: #0b4637;
+  --color-emerald-950: #062a21;
+
+  /* Playful Coral: selected accents, gentle "not quite" moments. Errors stay rose. */
+  --color-coral-50: #fff2ef;
+  --color-coral-100: #ffe1db;
+  --color-coral-200: #ffc5ba;
+  --color-coral-300: #ffa696;
+  --color-coral-400: #ff826f;
+  --color-coral-500: #f2614c;
+  --color-coral-600: #c2412d;
+  --color-coral-700: #9c3222;
+
+  /* Radii follow hierarchy: controls, cards, brand fields. */
+  --radius-control: 0.875rem;
   --radius-card: 1.25rem;
-  --shadow-soft: 0 1px 2px rgb(20 26 46 / 0.04), 0 8px 24px -8px rgb(20 26 46 / 0.12);
-  --shadow-lift: 0 2px 4px rgb(20 26 46 / 0.06), 0 16px 40px -12px rgb(20 26 46 / 0.22);
+  --radius-field: 2rem;
+  /* Shadows are tinted with the navy ink, never grey. */
+  --shadow-soft: 0 1px 2px rgb(23 35 68 / 0.05), 0 10px 28px -14px rgb(23 35 68 / 0.2);
+  --shadow-lift: 0 2px 6px rgb(23 35 68 / 0.07), 0 22px 44px -18px rgb(23 35 68 / 0.3);
+  --shadow-float: 0 4px 10px rgb(23 35 68 / 0.08), 0 30px 60px -24px rgb(50 104 245 / 0.45);
 
+  /* Motion tokens. */
+  --dur-press: 140ms;
+  --dur-hover: 200ms;
+  --dur-enter: 320ms;
+  --dur-expressive: 520ms;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --animate-fade-up: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-tick: tick 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -41,24 +91,24 @@
 
 /* Semantic surface colours that flip with the theme. */
 :root {
-  --bg: #f5f7fc;
+  --bg: #f6f8ff;
   --surface: #ffffff;
-  --surface-2: #edf0f7;
-  --line: #e0e5ef;
-  --fg: #141a2e;
-  --muted: #586178;
-  --scroll-thumb: #c4ccdc;
-  --scroll-thumb-hover: #8fa6e6;
+  --surface-2: #edf1fd;
+  --line: #dde4f5;
+  --fg: #172344;
+  --muted: #56607e;
+  --scroll-thumb: #c3cde6;
+  --scroll-thumb-hover: #8fadf5;
 }
 .dark {
-  --bg: #0a0e19;
-  --surface: #121826;
-  --surface-2: #1a2233;
-  --line: #273046;
-  --fg: #eef1f8;
-  --muted: #9ba4ba;
-  --scroll-thumb: #34405a;
-  --scroll-thumb-hover: #4b5f8f;
+  --bg: #0b1022;
+  --surface: #131a31;
+  --surface-2: #1b2442;
+  --line: #2a345a;
+  --fg: #eef2ff;
+  --muted: #a3acc9;
+  --scroll-thumb: #34405f;
+  --scroll-thumb-hover: #4c63a3;
   color-scheme: dark;
 }
 
@@ -110,6 +160,9 @@
     min-height: 100dvh;
   }
   :focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; }
+  /* Display type: headings carry the brand voice. */
+  h1, .font-display { font-family: var(--font-display); font-optical-sizing: auto; letter-spacing: -0.02em; }
+  input, textarea { caret-color: var(--color-brand-600); }
   /* Controls draw their own pressed state: no grey tap flash on phones, no double-tap delay. */
   a, button, [role="button"], [role="radio"], summary, label {
     -webkit-tap-highlight-color: transparent;
@@ -312,3 +365,118 @@
 .talk-orb-thinking .talk-orb-glow { opacity: 1; animation: orb-spin 1.2s linear infinite; }
 .talk-orb-speaking { animation: orb-talk 0.9s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .talk-orb-listening, .talk-orb-speaking, .talk-orb-thinking .talk-orb-glow { animation: none; } }
+
+/* Tactile buttons: a 3px lip in a darker shade of the button sits under it; pressing
+   moves the button down onto it, like a real key. Hover lifts it a pixel. */
+@layer components {
+  .btn-lip { box-shadow: 0 3px 0 0 var(--lip); transform: translateY(0); }
+  .btn-lip:active { box-shadow: 0 1px 0 0 var(--lip); transform: translateY(2px); }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-lip:hover:not(:active) { box-shadow: 0 4px 0 0 var(--lip); transform: translateY(-1px); }
+  }
+  .btn-lip:disabled { box-shadow: 0 3px 0 0 var(--lip); transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-lip, .btn-lip:hover, .btn-lip:active { transform: none !important; }
+}
+
+/* ── Wave, the mascot (src/ui/Mascot.tsx) ───────────────────────────────────
+   Idle life: a slow bob with its shadow, a blink every few seconds, and the
+   mood's gesture. All of it stops for reduced motion. */
+.mascot g, .mascot path, .mascot circle, .mascot ellipse, .mascot text { transform-box: view-box; }
+@keyframes mascot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes mascot-shadow { 0%, 100% { transform: scaleX(1); opacity: 0.12; } 50% { transform: scaleX(0.9); opacity: 0.08; } }
+@keyframes mascot-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+@keyframes mascot-wave-arm { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-16deg); } 60% { transform: rotate(10deg); } }
+@keyframes mascot-cheer { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-5px) rotate(-6deg); } }
+@keyframes mascot-float-up { 0% { transform: translateY(4px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
+@keyframes mascot-twinkle { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.7); opacity: 0.6; } }
+/* Idle motion plays for about five seconds, then Wave settles (WCAG 2.2.2: no endless decorative motion). */
+.mascot-live .mascot-body { animation: mascot-bob 2.4s ease-in-out 2; transform-origin: 80px 140px; }
+.mascot-live .mascot-shadow { animation: mascot-shadow 2.4s ease-in-out 2; transform-origin: 80px 150px; }
+.mascot-live .mascot-blink { animation: mascot-blink 4.8s ease-in-out 1; transform-origin: 80px 85px; }
+.mascot-live .mascot-wave-arm { animation: mascot-wave-arm 1.5s ease-in-out 3; transform-origin: 126px 100px; }
+.mascot-live .mascot-cheer-l { animation: mascot-cheer 0.9s ease-in-out 5; transform-origin: 34px 98px; }
+.mascot-live .mascot-cheer-r { animation: mascot-cheer 0.9s ease-in-out 5 reverse; transform-origin: 126px 98px; }
+.mascot-live .mascot-thumb { animation: mascot-cheer 1.6s ease-in-out 3; transform-origin: 126px 98px; }
+.mascot-live .mascot-think circle { animation: mascot-twinkle 1.4s ease-in-out 3; transform-origin: center; transform-box: fill-box; }
+.mascot-live .mascot-think circle:nth-child(2) { animation-delay: 0.2s; }
+.mascot-live .mascot-think circle:nth-child(3) { animation-delay: 0.4s; }
+.mascot-live .mascot-z text { animation: mascot-float-up 2.4s ease-in-out 2; }
+.mascot-live .mascot-z text:nth-child(2) { animation-delay: 0.5s; }
+.mascot-live .mascot-z text:nth-child(3) { animation-delay: 1s; }
+.mascot-live .mascot-confetti > * { animation: mascot-twinkle 1.6s ease-in-out 3; transform-origin: center; transform-box: fill-box; }
+.mascot-live .mascot-confetti > :nth-child(even) { animation-delay: 0.4s; }
+.mascot-live .mascot-spark, .mascot-live .mascot-q { animation: mascot-twinkle 1.6s ease-in-out 3; transform-origin: center; transform-box: fill-box; }
+@media (prefers-reduced-motion: reduce) {
+  .mascot-live *, .mascot-live { animation: none !important; }
+}
+
+/* A pressed primary button sends out one brainwave pulse (Button.tsx sets data-pulse). */
+@keyframes bw-pulse { from { opacity: 0.55; transform: scale(1); } to { opacity: 0; transform: scale(1.18, 1.5); } }
+.btn-lip[data-pulse]::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 3px var(--color-brand-400);
+  animation: bw-pulse 520ms var(--ease-out) forwards;
+}
+@media (prefers-reduced-motion: reduce) { .btn-lip[data-pulse]::after { animation: none; display: none; } }
+
+/* Subject illustrations come alive when their card is hovered or focused. */
+@keyframes art-draw { from { stroke-dashoffset: 340; } to { stroke-dashoffset: 0; } }
+@keyframes art-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes art-spin { to { transform: rotate(360deg); } }
+@keyframes art-rise { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-22px); opacity: 0; } }
+@keyframes art-blink { 50% { opacity: 0; } }
+@keyframes art-flip { 0%, 30% { transform: translate(150px, 58px) rotate(0); } 60%, 100% { transform: translate(150px, 58px) rotate(180deg); } }
+@keyframes art-grow { from { transform: scaleY(0.6); } to { transform: scaleY(1); } }
+.subject-art .art-draw { stroke-dasharray: 340; }
+.subject-art .art-spin, .subject-art .art-spin-slow { transform-origin: 150px 56px; transform-box: view-box; }
+.subject-art .art-spin-slow { transform-origin: 156px 52px; }
+.subject-art .art-grow { transform-origin: 0 106px; transform-box: view-box; }
+@media (prefers-reduced-motion: no-preference) {
+  :where(.group:hover, .group:focus-visible) .subject-art .art-draw { animation: art-draw 900ms var(--ease-out); }
+  :where(.group:hover, .group:focus-visible) .subject-art .art-bob { animation: art-bob 900ms var(--ease-spring) 2; }
+  :where(.group:hover, .group:focus-visible) .subject-art .art-spin { animation: art-spin 2.4s linear infinite; }
+  :where(.group:hover, .group:focus-visible) .subject-art .art-spin-slow { animation: art-spin 6s linear infinite; }
+  :where(.group:hover, .group:focus-visible) .subject-art .art-bubbles circle { animation: art-rise 1.2s ease-out infinite; }
+  :where(.group:hover, .group:focus-visible) .subject-art .art-bubbles circle:nth-child(2) { animation-delay: 0.3s; }
+  :where(.group:hover, .group:focus-visible) .subject-art .art-bubbles circle:nth-child(3) { animation-delay: 0.6s; }
+  :where(.group:hover, .group:focus-visible) .subject-art .art-blink { animation: art-blink 0.9s steps(1) infinite; }
+  :where(.group:hover, .group:focus-visible) .subject-art .art-flip { animation: art-flip 1.4s var(--ease-out) forwards; }
+  :where(.group:hover, .group:focus-visible) .subject-art .art-grow { animation: art-grow 600ms var(--ease-spring); }
+}
+
+/* The brainwave line draws itself in once; the loader's wave travels. */
+@keyframes wave-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes wave-travel { to { transform: translateX(-50%); } }
+.wave-draw { stroke-dasharray: 1; animation: wave-draw 1.4s var(--ease-out) 0.2s both; }
+.wave-loader { animation: wave-travel 1.1s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .wave-draw, .wave-loader { animation: none; } }
+
+/* ── Landing hero (src/features/auth/LandingHero.tsx) ──────────────────────
+   One orchestrated moment: Wave pops in, the five study artifacts fly out of
+   it to their places along the brainwave, then everything drifts gently. */
+@keyframes hero-out {
+  from { opacity: 0; transform: translate(var(--from-x), var(--from-y)) scale(0.4); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hero-drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes hero-pop { from { opacity: 0; transform: scale(0.6) translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes hero-eq { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.45); } }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-mascot { animation: hero-pop 600ms var(--ease-spring) both; }
+  .hero-piece { animation: hero-out 750ms var(--ease-spring) var(--delay) both; }
+  .hero-float { animation: hero-drift var(--float) ease-in-out calc(var(--delay) + 750ms) 1; }
+  .hero-bar { animation: hero-eq 1.1s ease-in-out 4; transform-origin: center; }
+}
+
+/* Quiz results: one confetti burst, falling and spinning out. Off under reduced motion. */
+.confetti span { position: absolute; top: -8px; width: 8px; height: 12px; border-radius: 2px; opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .confetti span { animation: confetti-fall 1400ms cubic-bezier(0.2, 0.6, 0.4, 1) both; }
+}
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), 320px) rotate(var(--r)); }
+}
