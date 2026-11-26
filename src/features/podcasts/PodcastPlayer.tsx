@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronsLeft, ChevronsRight, Hand, Headphones, MessageCircleQuestion, Pause, Play, RotateCcw, SkipBack, SkipForward } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, Hand, MessageCircleQuestion, Pause, Play, RotateCcw, SkipBack, SkipForward } from 'lucide-react';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
@@ -12,8 +12,11 @@ import { usePlayback } from '@/features/media/usePlayback';
 import { RaiseHand, type AskedQuestion } from './RaiseHand';
 
 const RATES = [0.75, 1, 1.25, 1.5, 2];
+/** A control on the purple player: white icon, a soft white wash on hover. */
+const PLAYER_BTN = 'flex size-10 items-center justify-center rounded-full text-white transition-[background-color,transform] duration-150 hover:bg-white/15 active:scale-95';
+
 const HOST_STYLE = [
-  'bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-200',
+  'bg-violet-100 text-violet-700 dark:bg-violet-900/60 dark:text-violet-200',
   'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200',
 ];
 
@@ -79,54 +82,70 @@ export const PodcastPlayer = ({ script, locale, title, onAsk, listener }: Props)
 
   return (
     <div className="space-y-5">
-      <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-[var(--shadow-soft)] sm:p-6">
-        <div className="flex items-center gap-4">
-          <span className="icon-tile relative flex size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white">
-            <Headphones className="relative size-8" fill="currentColor" fillOpacity={0.2} aria-hidden="true" />
+      {/* The player on the podcast's purple field, the way a listening app shows "now playing". */}
+      <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-[linear-gradient(150deg,#7c45db,#3f2470)] p-5 text-white shadow-[var(--shadow-lift)] sm:p-6">
+        <div className="pointer-events-none absolute -end-16 -top-16 size-56 rounded-full bg-white/8" aria-hidden="true" />
+        <div className="relative flex items-center gap-4">
+          {/* The two hosts, side by side. */}
+          <span className="flex shrink-0 -space-x-3 rtl:space-x-reverse" aria-hidden="true">
+            {script.hosts.slice(0, 2).map((h, n) => (
+              <span key={n} className={cn('flex size-12 items-center justify-center rounded-full font-display text-lg font-bold ring-[3px] ring-[#5b2aa8]', n ? 'bg-emerald-300 text-emerald-950' : 'bg-white text-violet-700')}>
+                {h.name.charAt(0)}
+              </span>
+            ))}
           </span>
-          <div className="min-w-0">
-            <p className="text-sm text-muted">{script.hosts.map((h) => h.name).join(' · ')}</p>
-            <p className="truncate font-semibold" dir="auto">{script.lines[currentChapter]?.chapter}</p>
-            <p className="text-xs text-muted">{ended ? t.podcasts.finished : t.podcasts.left(minutesLeft)}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-white">{script.hosts.map((h) => h.name).join(' · ')}</p>
+            <p className="truncate font-display text-lg font-bold" dir="auto">{script.lines[currentChapter]?.chapter}</p>
+            <p className="flex items-center gap-2 text-xs font-medium text-white">
+              {playing && (
+                <span className="flex h-3 items-end gap-0.5" aria-hidden="true">
+                  {[0, 1, 2, 3].map((b) => <span key={b} className="podcast-eq w-0.5 rounded-full bg-accent-400" style={{ animationDelay: `${b * 120}ms` }} />)}
+                </span>
+              )}
+              {ended ? t.podcasts.finished : t.podcasts.left(minutesLeft)}
+            </p>
           </div>
         </div>
 
         <input type="range" min={0} max={script.lines.length - 1} value={index} onChange={(e) => jump(Number(e.target.value))}
-          aria-label={t.podcasts.transcript} className="mt-5 w-full accent-brand-600" />
+          aria-label={t.podcasts.transcript} className="relative mt-5 w-full accent-accent-400" />
 
-        <div className="mt-3 flex items-center justify-center gap-1 sm:gap-2">
-          <Button variant="ghost" size="sm" className="size-10 px-0" aria-label={t.podcasts.prevChapter}
+        <div className="relative mt-3 flex items-center justify-center gap-1 sm:gap-2">
+          <button type="button" className={PLAYER_BTN} aria-label={t.podcasts.prevChapter}
             onClick={() => jump(chapters.filter((c) => c < currentChapter).pop() ?? 0)}>
             <ChevronsLeft className="size-5 rtl:rotate-180" aria-hidden="true" />
-          </Button>
-          <Button variant="ghost" size="sm" className="size-10 px-0" aria-label={t.podcasts.back} onClick={() => jump(index - 1)}>
+          </button>
+          <button type="button" className={PLAYER_BTN} aria-label={t.podcasts.back} onClick={() => jump(index - 1)}>
             <SkipBack className="size-5 rtl:rotate-180" aria-hidden="true" />
-          </Button>
-          <Button className="size-14 rounded-full px-0" aria-label={ended ? t.podcasts.replay : playing ? t.podcasts.pause : t.podcasts.play} onClick={() => { primeAudio(); toggle(); }}>
-            {ended ? <RotateCcw className="size-6" aria-hidden="true" /> : playing ? <Pause className="size-6" aria-hidden="true" /> : <Play className="size-6" aria-hidden="true" />}
-          </Button>
-          <Button variant="ghost" size="sm" className="size-10 px-0" aria-label={t.podcasts.forward} onClick={() => jump(index + 1)}>
+          </button>
+          <button type="button" aria-label={ended ? t.podcasts.replay : playing ? t.podcasts.pause : t.podcasts.play} onClick={() => { primeAudio(); toggle(); }}
+            className="mx-1 flex size-16 items-center justify-center rounded-full bg-white text-violet-700 shadow-[0_10px_24px_-10px_rgb(11_16_34/0.6)] transition-transform duration-150 ease-out active:scale-95">
+            {ended ? <RotateCcw className="size-7" aria-hidden="true" /> : playing ? <Pause className="size-7" fill="currentColor" aria-hidden="true" /> : <Play className="ms-1 size-7" fill="currentColor" aria-hidden="true" />}
+          </button>
+          <button type="button" className={PLAYER_BTN} aria-label={t.podcasts.forward} onClick={() => jump(index + 1)}>
             <SkipForward className="size-5 rtl:rotate-180" aria-hidden="true" />
-          </Button>
-          <Button variant="ghost" size="sm" className="size-10 px-0" aria-label={t.podcasts.nextChapter}
+          </button>
+          <button type="button" className={PLAYER_BTN} aria-label={t.podcasts.nextChapter}
             onClick={() => { const next = chapters.find((c) => c > index); if (next !== undefined) jump(next); }}>
             <ChevronsRight className="size-5 rtl:rotate-180" aria-hidden="true" />
-          </Button>
+          </button>
           <label className="sr-only" htmlFor="podcast-rate">{t.podcasts.speed}</label>
           <select id="podcast-rate" value={rate} onChange={(e) => setRate(Number(e.target.value))} title={t.podcasts.speed}
-            className="ms-2 h-9 rounded-lg border border-line bg-surface px-2 text-sm">
+            className="ms-1 h-9 rounded-full bg-white/15 px-2.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/30 [&>option]:bg-surface [&>option]:text-fg">
             {RATES.map((r) => <option key={r} value={r}>{r}×</option>)}
           </select>
         </div>
-        <div className="mt-4 flex justify-center">
-          <Button variant={hand ? 'primary' : 'secondary'} icon={<Hand className={cn('size-4', hand && 'animate-wave')} />} aria-pressed={hand}
-            onClick={() => (hand ? setHand(false) : raise())}
-            className={cn(!hand && 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200')}>
+        <div className="relative mt-4 flex justify-center">
+          <button type="button" aria-pressed={hand} onClick={() => (hand ? setHand(false) : raise())}
+            className={cn('inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition-[background-color,transform] duration-150 active:scale-[0.97]',
+              hand ? 'bg-accent-400 text-brand-950' : 'bg-white/15 text-white ring-1 ring-inset ring-white/35 hover:bg-white/25')}>
+            <Hand className={cn('size-4', hand && 'animate-wave')} aria-hidden="true" />
             {hand ? t.podcasts.hand.lower : t.podcasts.hand.raise}
-          </Button>
+          </button>
         </div>
-        {voicesChecked && !cloud && voices.length === 0 && <p className="mt-3 text-center text-sm text-muted">{t.podcasts.noVoice}</p>}
-        {voicesChecked && voices.length > 0 && samePitch && <p className="mt-3 text-center text-xs text-muted">{t.podcasts.oneVoice}</p>}
+        {voicesChecked && !cloud && voices.length === 0 && <p className="relative mt-3 text-center text-sm text-white">{t.podcasts.noVoice}</p>}
+        {voicesChecked && voices.length > 0 && samePitch && <p className="relative mt-3 text-center text-xs text-white">{t.podcasts.oneVoice}</p>}
       </div>
 
       {hand && (
@@ -152,8 +171,8 @@ export const PodcastPlayer = ({ script, locale, title, onAsk, listener }: Props)
         <nav aria-label={t.podcasts.chapters} className="flex flex-wrap gap-2">
           {chapters.map((c, n) => (
             <button key={c} type="button" onClick={() => playFrom(c)} aria-current={c === currentChapter} dir="auto"
-              className={cn('rounded-full border px-3 py-1 text-sm transition-colors',
-                c === currentChapter ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200' : 'border-line hover:bg-surface-2')}>
+              className={cn('min-h-9 rounded-full border px-3.5 py-1 text-sm transition-colors',
+                c === currentChapter ? 'border-violet-500 bg-violet-50 font-semibold text-violet-800 dark:bg-violet-900/40 dark:text-violet-100' : 'border-line bg-surface hover:bg-surface-2')}>
               <span className="tabular-nums text-muted">{n + 1}.</span> {script.lines[c].chapter}
             </button>
           ))}
@@ -164,12 +183,12 @@ export const PodcastPlayer = ({ script, locale, title, onAsk, listener }: Props)
         <ol className="space-y-1">
           {script.lines.map((l, i) => (
             <li key={i} ref={(el) => { lineRefs.current[i] = el; }}
-              className={cn('group flex gap-3 rounded-xl p-2.5 transition-colors', i === index ? 'bg-brand-50 dark:bg-brand-900/30' : 'hover:bg-surface-2')}>
+              className={cn('group flex gap-3 rounded-xl p-2.5 transition-colors', i === index ? 'bg-violet-50 ring-1 ring-inset ring-violet-200 dark:bg-violet-900/30 dark:ring-violet-800' : 'hover:bg-surface-2')}>
               <span className={cn('mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold', HOST_STYLE[l.speaker])} aria-hidden="true">
                 {script.hosts[l.speaker]?.name.charAt(0)}
               </span>
               <button type="button" onClick={() => playFrom(i)} className="min-w-0 flex-1 text-start" aria-label={`${t.podcasts.playFrom}: ${l.text}`}>
-                {l.chapter && i > 0 && <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted" dir="auto">{l.chapter}</span>}
+                {l.chapter && i > 0 && <span className="mb-1.5 inline-flex rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-200" dir="auto">{l.chapter}</span>}
                 <span className="block text-sm font-medium text-muted">{script.hosts[l.speaker]?.name}</span>
                 <span className={cn('block', i === index && 'font-medium')} dir="auto">{l.text}</span>
               </button>

@@ -144,6 +144,23 @@ A saturated blue world on a cool periwinkle ground, with four friendly accents t
 
 **The Fields-Carry-White Rule.** Every coloured field that carries text (the hero, Next up, course headers) passes 4.5:1 with full-opacity white. No translucent white text on colour.
 
+### Tool Identities
+Every tool owns a hue, the way every subject does (`src/ui/tools.ts`, `TOOL_META`): an icon, a header `field`, a `soft` chip tint, a `tile` gradient for icon tiles, a `spark` for its scene and a `hue` for its ink on white. Tools that appear side by side (the study tools grid, Home's quick actions) never share a hue.
+
+| Tool | Hue | Field |
+|---|---|---|
+| Learn, Lectures, Search | BrainWave Blue | #3268f5 → #1f43ad |
+| Tutor, Settings | Deep blue / navy | #2552d8 → #172344 |
+| Videos, Weak spots | Coral (deep) | #c2412d → #9c3222 |
+| Podcasts, Concept maps | Purple | #7c45db → #522b93 |
+| Review flashcards | Deep purple | #6533b8 → #3f2470 |
+| Exams, Cheat sheets | Sunshine (navy ink) | #ffd35a → #ffc52e |
+| Calendar, Class schedule, Grader | Mint (deep) | #0e6f55 → #0b4637 |
+| Games | Orange | #c2410c → #9a3412 |
+| Study groups | Teal | #0f766e → #115e59 |
+
+Every field passes 4.5:1 with white (sunshine fields carry navy, 9.8:1). Lecture thumbnails follow the same logic by source: recordings blue, uploads purple, documents mint, photos teal, YouTube coral.
+
 ## Typography
 
 **Display Font:** Bricolage Grotesque (with Rubik, IBM Plex Sans Arabic)
@@ -202,7 +219,27 @@ Friendly and rounded, without becoming bubbly. Controls use 14px corners, cards 
 
 ### Navigation
 - **Mobile:** a floating, blurred tab bar. A tinted pill slides to the active tab, whose icon is filled and slightly scaled.
-- **Desktop:** header pills, with the active one in sky and blue text.
+- **Desktop:** header links with their icons (from `lg`); a sky highlight slides to the open page (one full-width layer clipped to the link). Between `md` and `lg`, Focus and the language button show icons only so the row fits.
+
+### Tool header (`ToolHero`)
+Every tool's main page opens on its field: the title (display, 3xl–4xl), one line about the tool, and the page's actions; its scene sits on the end side. The scene (`ToolArt`) is the tool's icon on a raised white tile tilted −6°, a small motif from the tool's world (sound bars, a film frame, a target, a calendar grid, linked nodes), and the brainwave in the tool's spark colour. The words keep clear of the scene; actions may run under it. The first time a tool is opened in a visit the tile settles in and the wave draws; after that the header simply appears. On the field, the main action is a raised white key (`heroAction`) and others are translucent pills; on sunshine fields the main action is navy.
+
+### Page header (`PageHeader`)
+Item pages (a lecture, an episode, an exam, a group) use a back pill, the tool's tile, the title in the display face and chips or a line of detail. No field: the item's own content is the colour.
+
+### Covers, thumbnails and cartridges
+- **Media covers** (`Cover`): generated from the item's id. Videos are 16:9 coral with a white play disc and a sunshine brainwave; podcasts are square purple with sound bars, one of them sunshine. Three shades per kind, so a library never looks like one card repeated.
+- **Lecture thumbnails** (`LectureThumb`): the source's icon tile; in lists it leans in (−6°, 1.06) when its row is hovered.
+- **Game cartridges** (`GameArt`): Glide is a paper plane on a blue sky with a dashed sunshine flight path; Lane Rush is a three-lane road with a white car and coins. On hover the plane bobs and the road rolls.
+
+### Flashcards (`FlipCard`)
+A card on top of its deck (two cards peek out underneath). The front is surface with a faint purple dot grid and the question in the display face; the back is a soft purple. Turning the card plays a 260ms turn-in from the edge (a fade under reduced motion). Only the side showing is rendered.
+
+### Players
+The podcast player sits on the purple field: the two hosts' initials, the chapter in the display face, a small sunshine equaliser while it plays, a white play disc and white controls. The line being read is lit purple in the transcript.
+
+### Loading
+`Loading` / `WaveLoader`: the brainwave travelling beside the words, never a bare spinner. Where the AI is writing something big (a quiz, a video, an episode), Wave thinks beside the button.
 
 ### Wave (signature)
 An SVG brain with wavy arms and the brainwave across its forehead, in ten moods: happy, excited, curious, thinking, celebrating, encouraging, confused, reading, sleeping, waving. Idle motion (bob, blink, a gesture) runs only with `prefers-reduced-motion: no-preference`. It is `aria-hidden` unless it carries a label. Where it appears:
@@ -223,6 +260,24 @@ An SVG brain with wavy arms and the brainwave across its forehead, in ten moods:
 
 The feedback panel slides up, with Wave and kind copy.
 
+## Motion
+
+Tokens live in `src/styles.css`: `--dur-press` 140ms, `--dur-hover` 200ms, `--dur-enter` 320ms, `--dur-expressive` 520ms; `--ease-out` cubic-bezier(0.23, 1, 0.32, 1) for almost everything, `--ease-drawer` for sheets, `--ease-spring` only for one-off moments.
+
+| Moment | Motion | Frequency |
+|---|---|---|
+| Press a tactile button | sinks 2px onto its lip, one brainwave pulse ring | every tap, 140ms |
+| Hover a card / row | lifts 2px, its tile leans in | fine pointers only, 200–240ms |
+| Move between pages | content rises 8px and fades in | every navigation, 400ms, no spring |
+| Desktop navigation | a clipped highlight slides to the open page | every navigation, 300ms clip-path |
+| Open a tool | its tile settles in, the brainwave draws | first visit per session only |
+| Turn a flashcard | the new side turns in | 260ms |
+| Pick an answer | check draws in / X shakes | per answer |
+| Finish a quiz | Wave celebrates, one confetti burst | rare |
+| Podcast playing | sunshine equaliser | while playing; still under reduced motion |
+
+Everything is transform, opacity or clip-path. Under `prefers-reduced-motion` movement stops and only fades remain.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -231,9 +286,13 @@ The feedback panel slides up, with Wave and kind copy.
 - **Do** keep motion to transform and opacity, 140–520ms, and give every animation a reduced-motion state.
 - **Do** use Wave only at moments that carry a feeling (arrival, waiting, mistake, success, empty, lost), at most once per view.
 - **Do** keep lesson and note text calm: no animation once content is showing.
+- **Do** open every tool's main page with its `ToolHero`, and every item page with a `PageHeader` and the tool's tile.
+- **Do** use the tool's own hue from `TOOL_META` for its tiles, chips and fields; never pick a colour ad hoc.
 
 ### Don't:
 - **Don't** use uppercase eyebrow labels, gradient text on headings, or emoji as icons in UI chrome.
 - **Don't** use spring overshoot on frequent controls; it is reserved for one-off moments (the mascot popping in, a star, the hero pieces).
 - **Don't** invent users, ratings, testimonials or outcome numbers anywhere.
 - **Don't** add streak pressure, countdowns or other anxiety mechanics.
+- **Don't** put a coloured bar down one side of a box (summary, quote, marked line); use a tint, a ring or a leading icon.
+- **Don't** show a bare spinner; use the brainwave loader.

@@ -39,3 +39,10 @@ export const WaveLoader = ({ className, label }: { className?: string; label?: s
     </svg>
   </span>
 );
+
+/** A page or section that is still loading: the brainwave travels beside the words. */
+export const Loading = ({ label, className }: { label: string; className?: string }) => (
+  <p role="status" className={cn('flex items-center gap-3 py-2 text-sm font-medium text-muted', className)}>
+    <WaveLoader />{label}
+  </p>
+);

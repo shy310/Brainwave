@@ -34,7 +34,7 @@ export const KeepRecordingDialog = ({ seconds, bytes, onChoose }: Props) => {
       <div className="mx-auto mt-3 h-1.5 w-10 rounded-full bg-line sm:hidden" aria-hidden="true" />
       <div className="space-y-4 p-6 max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-3">
-          <IconTile icon={Mic} tint="from-rose-500 to-rose-700" size="sm" />
+          <IconTile icon={Mic} tint="from-brand-500 to-brand-700" size="sm" />
           <h2 id="keep-recording-title" className="text-lg font-semibold">{tk.title}</h2>
         </div>
         <div id="keep-recording-body" className="space-y-2 text-sm text-muted">

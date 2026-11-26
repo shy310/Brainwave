@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowLeft, ArrowRight, BookOpen, BookOpenCheck, FileType, MonitorPlay, CalendarClock, Target, CalendarDays, Camera, FileText, Gamepad2, Layers, Folder as FolderIcon, FolderInput, FolderPlus, Mic, MoreHorizontal, Pencil, Star, StarOff, Check, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpenCheck, Gamepad2, Folder as FolderIcon, FolderInput, FolderPlus, Mic, MoreHorizontal, Pencil, Star, StarOff, Check, Plus, Search, Trash2 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
+import { ToolHero, heroAction } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
+import { LectureThumb } from './LectureThumb';
+import { TOOL_META, type Tool } from '@/ui/tools';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Input, Select } from '@/ui/Field';
-import { Spinner } from '@/ui/Spinner';
 import { linkButton } from '@/features/learn/TopicPage';
 import { storage } from '@/lib/storage';
 import { lectureRepo, type LectureSummary } from './repo';
@@ -24,7 +27,6 @@ import { Sheet } from '@/ui/Sheet';
 import { ListSection } from '@/ui/List';
 import { askConfirm } from '@/ui/Confirm';
 
-const SOURCE_ICON = { record: Mic, upload: Upload, text: FileText, pdf: BookOpen, image: Camera, youtube: MonitorPlay, document: FileType } as const;
 const VIEW_KEY = 'bw.lectures.view';
 
 export const lectureTitle = (l: Pick<LectureSummary, 'title' | 'created_at'>, untitled: string, locale: string) =>
@@ -154,30 +156,25 @@ export default function LecturesPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">{t.lectures.title}</h1>
-          <p className="text-muted">{t.lectures.subtitle}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link to="/search" aria-label={t.search.open} title={t.search.open}
-            className={cn(linkButton, 'border border-line bg-surface px-3 hover:bg-surface-2')}>
-            <Search className="size-4" aria-hidden="true" /><span className="max-sm:sr-only">{t.home.quick.search}</span>
-          </Link>
-          <Link to="/lectures/new" className={cn(linkButton, 'btn-lip bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-700')}>
+      <ToolHero tool="lectures" title={t.lectures.title} subtitle={t.lectures.subtitle} actions={(
+        <>
+          <Link to="/lectures/new" className={heroAction('lectures')}>
             <Plus className="size-4" aria-hidden="true" />{t.lectures.newLecture}
           </Link>
-        </div>
-      </header>
+          <Link to="/search" aria-label={t.search.open} title={t.search.open} className={heroAction('lectures', 'secondary')}>
+            <Search className="size-4" aria-hidden="true" /><span className="max-sm:sr-only">{t.home.quick.search}</span>
+          </Link>
+        </>
+      )} />
 
       <UpNextBanner />
 
       {error && <Alert tone="error">{t.auth.errors.generic}</Alert>}
-      {!items && !error && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>}
+      {!items && !error && <Loading label={t.common.loading} />}
 
       {items?.length === 0 && (
         <Card className="flex flex-col items-center gap-4 p-10 text-center">
-          <IconTile icon={Mic} tint="from-rose-500 to-rose-700" size="lg" />
+          <IconTile icon={Mic} tint="from-brand-500 to-brand-700" size="lg" />
           <div>
             <h2 className="text-lg font-semibold">{t.lectures.empty}</h2>
             <p className="mt-1 max-w-md text-muted">{t.lectures.emptyBody}</p>
@@ -283,18 +280,15 @@ export default function LecturesPage() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             {shown.map((l) => {
-              const Icon = SOURCE_ICON[l.source];
               const inFolder = folders.find((f) => f.id === l.folder_id);
               return (
                 // Right-click, long-press or the ⋯ button for Rename, Favorite, Move and Delete.
                 <div key={l.id} className="relative min-w-0 select-none [-webkit-touch-callout:none]" {...triggers(openMenu(l))}>
-                <Link to={`/lectures/${l.id}`} className="block min-w-0 rounded-[var(--radius-card)]">
-                  <Card className="flex items-start gap-3 p-4 pe-12 transition-shadow hover:shadow-[var(--shadow-lift)]">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-muted">
-                      <Icon className="size-5" aria-hidden="true" />
-                    </span>
+                <Link to={`/lectures/${l.id}`} className="group block min-w-0 rounded-[var(--radius-card)]">
+                  <Card className="lift flex items-center gap-3.5 p-4 pe-12">
+                    <LectureThumb source={l.source} className="tool-tile-hover" />
                     <div className="min-w-0 flex-1">
-                      <p className="flex min-w-0 items-center gap-1.5 font-medium">
+                      <p className="flex min-w-0 items-center gap-1.5 font-semibold">
                         <span className="truncate" dir="auto">{untitled(l)}</span>
                         {l.favorite && <StarBurst label={tl.starred} />}
                       </p>
@@ -360,13 +354,13 @@ export default function LecturesPage() {
 const StudyTools = ({ due }: { due: number }) => {
   const { t } = useI18n();
   const tt = t.lectures.tools;
-  const tools = [
-    { to: '/lectures/review', icon: Layers, title: tt.review, body: due > 0 ? t.lectures.review.due(due) : tt.reviewBody, tint: 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200', highlight: due > 0 },
-    { to: '/practice', icon: Target, title: tt.weak, body: tt.weakBody, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
-    { to: '/exams', icon: CalendarClock, title: tt.exams, body: tt.examsBody, tint: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' },
-    { to: '/play', icon: Gamepad2, title: tt.games, body: tt.gamesBody, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },
-    { to: '/groups', icon: Users, title: tt.groups, body: tt.groupsBody, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
-    { to: '/calendar', icon: CalendarDays, title: tt.calendar, body: tt.calendarBody, tint: 'bg-sky-500/12 text-sky-700 dark:text-sky-300' },
+  const tools: { to: string; tool: Tool; title: string; body: string; highlight?: boolean }[] = [
+    { to: '/lectures/review', tool: 'review', title: tt.review, body: due > 0 ? t.lectures.review.due(due) : tt.reviewBody, highlight: due > 0 },
+    { to: '/practice', tool: 'practice', title: tt.weak, body: tt.weakBody },
+    { to: '/exams', tool: 'exams', title: tt.exams, body: tt.examsBody },
+    { to: '/play', tool: 'games', title: tt.games, body: tt.gamesBody },
+    { to: '/groups', tool: 'groups', title: tt.groups, body: tt.groupsBody },
+    { to: '/calendar', tool: 'calendar', title: tt.calendar, body: tt.calendarBody },
   ];
   return (
     <section aria-label={tt.title}>
@@ -376,9 +370,9 @@ const StudyTools = ({ due }: { due: number }) => {
           <Link key={x.to} to={x.to}
             className={cn('group flex min-w-0 flex-col gap-2.5 p-4 transition-colors focus-visible:-outline-offset-2 sm:flex-row sm:items-center sm:gap-3',
               x.highlight ? 'bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:hover:bg-brand-900/50' : 'bg-surface hover:bg-surface-2')}>
-            <span className={cn('relative flex size-10 shrink-0 items-center justify-center rounded-xl', x.tint)}>
-              <x.icon className="size-5" aria-hidden="true" />
-              {x.highlight && <span className="absolute -end-0.5 -top-0.5 size-2.5 rounded-full bg-accent-500 ring-2 ring-brand-50 dark:ring-brand-900" aria-hidden="true" />}
+            <span className="relative shrink-0">
+              <IconTile icon={TOOL_META[x.tool].icon} tint={TOOL_META[x.tool].tile} size="sm" className="tool-tile-hover" />
+              {x.highlight && <span className="absolute -end-1 -top-1 size-3 rounded-full bg-accent-400 ring-2 ring-brand-50 dark:ring-brand-900" aria-hidden="true" />}
             </span>
             <span className="min-w-0">
               <span className="block font-semibold leading-tight">{x.title}</span>

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { PageHeader } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
 import { useParams } from 'react-router';
 import { Maximize, Minus, Network, Plus, RefreshCw } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -12,8 +14,6 @@ import { Card } from '@/ui/Card';
 import { RichInline } from '@/ui/Rich';
 import { Segmented } from '@/ui/Segmented';
 import { Shimmer } from '@/ui/Feedback';
-import { Spinner } from '@/ui/Spinner';
-import { BackLink } from '@/features/learn/CoursePage';
 import { layoutMap, type ConceptMap } from '@shared/conceptMap';
 import { lectureRepo, studyText, type Lecture } from './repo';
 import { lectureTitle } from './LecturesPage';
@@ -55,7 +55,7 @@ export default function ConceptMapPage() {
     } finally { setBusy(false); }
   };
 
-  if (lecture === undefined) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (lecture === undefined) return <Loading label={t.common.loading} />;
   if (!lecture) return <Alert tone="error">{t.lectures.notFound}</Alert>;
   const title = lectureTitle(lecture, t.lectures.untitled, locale);
   const map = lecture.concept_map;
@@ -63,14 +63,8 @@ export default function ConceptMapPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
-      <BackLink to={`/lectures/${id}`} label={title} />
-      <header className="flex flex-wrap items-end gap-3">
-        <div className="min-w-0 flex-1 space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">{tm.title}</h1>
-          <p className="text-muted">{tm.body}</p>
-        </div>
-        {map && <Button variant="secondary" size="sm" icon={<RefreshCw className="size-4" />} loading={busy} onClick={() => void make()}>{tm.redo}</Button>}
-      </header>
+      <PageHeader tool="conceptMap" back={{ to: `/lectures/${id}`, label: title }} title={tm.title} subtitle={tm.body}
+        actions={map && <Button variant="secondary" size="sm" icon={<RefreshCw className="size-4" />} loading={busy} onClick={() => void make()}>{tm.redo}</Button>} />
       {error && <Alert tone="error">{error}</Alert>}
 
       {!map && (

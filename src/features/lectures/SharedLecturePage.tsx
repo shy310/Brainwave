@@ -3,10 +3,10 @@ import { Link, useParams } from 'react-router';
 import { Printer } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
+import { Loading } from '@/ui/Wave';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Logo } from '@/ui/Logo';
-import { Spinner } from '@/ui/Spinner';
 import { LanguageToggle } from '@/app/LanguageToggle';
 import { FlashcardDeck } from './Flashcards';
 import { NotesView } from './NotesView';
@@ -30,13 +30,13 @@ export default function SharedLecturePage() {
         </div>
       </header>
       <main id="main" className="mx-auto max-w-3xl space-y-6 px-4 py-6 print:p-0">
-        {lecture === undefined && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>}
+        {lecture === undefined && <Loading label={t.common.loading} />}
         {lecture === null && <Alert tone="error">{t.lectures.share.notFound}</Alert>}
         {lecture && (
           <>
             <header className="space-y-1">
               <p className="text-sm font-medium text-brand-700 dark:text-brand-300">{t.lectures.share.madeWith}</p>
-              <h1 className="text-3xl font-semibold tracking-tight" dir="auto">{lectureTitle(lecture, t.lectures.untitled, locale)}</h1>
+              <h1 className="text-3xl font-bold" dir="auto">{lectureTitle(lecture, t.lectures.untitled, locale)}</h1>
             </header>
             <NotesView notes={lecture.notes} />
             {lecture.flashcards && lecture.flashcards.cards.length > 0 && (

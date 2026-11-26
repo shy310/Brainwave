@@ -1,4 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { ToolHero } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
+import { IconTile } from '@/ui/IconTile';
+import { TOOL_META } from '@/ui/tools';
 import { Link, useNavigate } from 'react-router';
 import { Plus, Users } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -6,7 +10,6 @@ import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Input } from '@/ui/Field';
-import { Spinner } from '@/ui/Spinner';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { groupsRepo, type Group } from './groupsRepo';
 import { EmptyState } from '@/ui/EmptyState';
@@ -45,20 +48,17 @@ export default function GroupsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">{tg.title}</h1>
-        <p className="text-muted">{tg.subtitle}</p>
-      </header>
+      <ToolHero tool="groups" back={{ to: '/lectures', label: t.lectures.title }} title={tg.title} subtitle={tg.subtitle} />
       {error && <Alert tone="error">{error}</Alert>}
-      {!groups && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>}
+      {!groups && <Loading label={t.common.loading} />}
       {groups?.length === 0 && <EmptyState icon={Users} body={tg.empty} />}
       {groups && groups.length > 0 && (
         <ul className="grid gap-3 sm:grid-cols-2">
           {groups.map((g) => (
             <li key={g.id} className="min-w-0">
-              <Link to={`/groups/${g.id}`} className="block rounded-[var(--radius-card)]">
-                <Card className="flex items-center gap-3 p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200"><Users className="size-5" aria-hidden="true" /></span>
+              <Link to={`/groups/${g.id}`} className="group block rounded-[var(--radius-card)]">
+                <Card className="lift flex items-center gap-3.5 p-4">
+                  <IconTile icon={Users} tint={TOOL_META.groups.tile} className="tool-tile-hover" />
                   <div className="min-w-0">
                     <p className="truncate font-medium" dir="auto">{g.name}</p>
                     <p className="text-sm text-muted">{tg.members(g.members)}{g.owner_id === user?.id ? ` · ${tg.owner}` : ''}</p>

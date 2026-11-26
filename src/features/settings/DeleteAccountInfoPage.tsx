@@ -19,7 +19,7 @@ export default function DeleteAccountInfoPage() {
         </div>
       </header>
       <main id="main" className="mx-auto max-w-2xl space-y-6 px-4 py-8">
-        <h1 className="text-3xl font-semibold tracking-tight">{ta.publicTitle}</h1>
+        <h1 className="text-3xl font-bold">{ta.publicTitle}</h1>
         <Card className="space-y-4 p-6">
           <ol className="list-decimal space-y-2 ps-6">{ta.publicSteps.map((s, i) => <li key={i}>{s}</li>)}</ol>
           <p className="text-muted">{ta.publicWhat}</p>

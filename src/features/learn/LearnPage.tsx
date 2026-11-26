@@ -6,11 +6,12 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { Card } from '@/ui/Card';
 import { storage } from '@/lib/storage';
 import { cn } from '@/lib/cn';
+import { ToolHero } from '@/ui/PageHeader';
+import { IconTile } from '@/ui/IconTile';
 import { BANDS, bandForGrade, courseTopics, coursesForBand, findTopic, isBand, type Band } from '@shared/curriculum';
 import { SUBJECT_META } from './subjects';
 import { useProgress } from './ProgressProvider';
 import { topicStatus } from './progress';
-import { StatusIcon } from './StatusBadge';
 import { SubjectArt } from './SubjectArt';
 
 const BAND_KEY = 'bw.learnBand';
@@ -32,10 +33,7 @@ export default function LearnPage() {
 
   return (
     <div className="space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-bold sm:text-4xl">{t.learn.title}</h1>
-        <p className="text-muted">{t.learn.subtitle}</p>
-      </header>
+      <ToolHero tool="learn" title={t.learn.title} subtitle={t.learn.subtitle} />
 
       {recent.length > 0 && (
         <section aria-labelledby="continue" className="space-y-3">
@@ -44,9 +42,9 @@ export default function LearnPage() {
             {recent.map((p) => {
               const ref = findTopic(p.topic_id)!;
               return (
-                <Link key={p.topic_id} to={`/learn/topic/${p.topic_id}`} className="rounded-[var(--radius-card)]">
-                  <Card className="flex items-center gap-3 p-4 transition-shadow hover:shadow-[var(--shadow-lift)]">
-                    <StatusIcon status="learning" />
+                <Link key={p.topic_id} to={`/learn/topic/${p.topic_id}`} className="group rounded-[var(--radius-card)]">
+                  <Card className="lift flex items-center gap-3 p-4">
+                    <IconTile icon={SUBJECT_META[ref.course.subject].icon} tint={SUBJECT_META[ref.course.subject].tint} size="sm" className="tool-tile-hover" />
                     <div className="min-w-0">
                       <p className="truncate font-medium">{ref.topic.title[locale]}</p>
                       <p className="truncate text-sm text-muted">{t.subjects[ref.course.subject]}</p>

@@ -166,7 +166,7 @@ export default function SignInPage() {
                         <Button variant="secondary" block icon={<GoogleIcon />} onClick={() => auth.signInWithGoogle().catch(err => setError(friendly(err)))}>
                           {t.auth.google}
                         </Button>
-                        <div className="flex items-center gap-3 text-xs uppercase text-muted">
+                        <div className="flex items-center gap-3 text-sm text-muted">
                           <span className="h-px flex-1 bg-line" />{t.common.or}<span className="h-px flex-1 bg-line" />
                         </div>
                       </>

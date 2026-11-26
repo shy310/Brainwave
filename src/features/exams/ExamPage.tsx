@@ -5,9 +5,9 @@ import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
-import { Spinner } from '@/ui/Spinner';
 import { askConfirm } from '@/ui/Confirm';
+import { heroAction } from '@/ui/PageHeader';
+import { WaveLine, Loading } from '@/ui/Wave';
 import { BackLink } from '@/features/learn/CoursePage';
 import { QuizRunner } from '@/features/learn/QuizRunner';
 import { localDay } from '@shared/activity';
@@ -50,7 +50,7 @@ export default function ExamPage() {
   }, [exam, status, today]);
   const byId = useMemo(() => new Map(status?.lectures.map((l) => [l.id, l]) ?? []), [status]);
 
-  if (exam === undefined || (exam && !status)) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (exam === undefined || (exam && !status)) return <Loading label={t.common.loading} />;
   if (!exam || !status) return <Alert tone="error">{t.lectures.notFound}</Alert>;
 
   const fmt = (d: string, long = false) => new Date(`${d}T12:00:00`).toLocaleDateString(dateLocale(locale),
@@ -114,7 +114,7 @@ export default function ExamPage() {
     return (
       <div className="mx-auto max-w-2xl space-y-5">
         <button type="button" onClick={() => setPractice(null)} className="text-sm font-medium text-muted hover:text-fg">‹ {te.back}</button>
-        <h1 className="text-2xl font-semibold tracking-tight">{mock ? te.predict.mockTitle : te.practiceTitle} · <span dir="auto">{exam.title}</span></h1>
+        <h1 className="text-2xl font-bold">{mock ? te.predict.mockTitle : te.practiceTitle} · <span dir="auto">{exam.title}</span></h1>
         {mock && <MockTimer key={round} minutes={mockMinutes(practice)} />}
         <QuizRunner key={round} questions={practice} onFinish={(s) => void finished(s)}
           onQuestion={(q, ok) => void recordQuizAnswer(q, null, ok)}
@@ -132,22 +132,28 @@ export default function ExamPage() {
       <BackLink to="/exams" label={te.title} />
       <header className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="text-3xl font-semibold tracking-tight" dir="auto">{exam.title}</h1>
+          <h1 className="text-3xl font-bold" dir="auto">{exam.title}</h1>
           <p className="mt-1 text-muted">{fmt(exam.date, true)} · {te.lectures(status.lectures.length)}</p>
         </div>
         <Button variant="secondary" size="sm" icon={<Pencil className="size-4" />} onClick={() => setEditing(true)}>{te.edit}</Button>
         <Button variant="ghost" size="sm" aria-label={te.delete} onClick={() => void remove()}><Trash2 className="size-4" aria-hidden="true" /></Button>
       </header>
 
-      <Card className="flex flex-col items-center gap-5 p-6 text-center sm:flex-row sm:text-start">
-        <ReadinessRing value={status.ready} size={104} label={te.ready(status.ready)} />
-        <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-3xl font-bold tracking-tight">{status.days < 0 ? te.done : te.inDays(status.days)}</p>
-          <p className="text-sm text-muted"><span className="font-medium text-fg">{te.readiness}:</span> {te.readinessHint}</p>
-          {exam.attempts > 0 && <p className="text-sm text-muted">{te.best(exam.bestScore ?? 0)} · {te.attempts(exam.attempts)}</p>}
+      {/* The countdown on the exam's sunshine field: how long is left, how ready you are, and practice. */}
+      <section aria-label={te.readiness} className="relative overflow-hidden rounded-[var(--radius-card)] bg-[linear-gradient(135deg,#ffd35a,#ffc52e)] p-5 text-brand-950 shadow-[var(--shadow-lift)] sm:p-6">
+        <div className="pointer-events-none absolute -end-6 -top-4 w-56 text-brand-600 opacity-70" aria-hidden="true"><WaveLine width={224} waves={3} amp={8} stroke={4} /></div>
+        <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:text-start">
+          <span className="rounded-full bg-white p-1.5 shadow-[var(--shadow-soft)]"><ReadinessRing value={status.ready} size={96} label={te.ready(status.ready)} /></span>
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="font-display text-4xl font-extrabold leading-none tracking-tight">{status.days < 0 ? te.done : te.inDays(status.days)}</p>
+            <p className="text-sm"><span className="font-semibold">{te.readiness}:</span> {te.readinessHint}</p>
+            {exam.attempts > 0 && <p className="text-sm font-medium">{te.best(exam.bestScore ?? 0)} · {te.attempts(exam.attempts)}</p>}
+          </div>
+          {status.days >= 0 && (
+            <button type="button" onClick={startPractice} disabled={!canPractice} className={cn(heroAction('exams'), 'h-12 px-6 text-base disabled:opacity-50')}>{te.start}</button>
+          )}
         </div>
-        {status.days >= 0 && <Button size="lg" onClick={startPractice} disabled={!canPractice}>{te.start}</Button>}
-      </Card>
+      </section>
 
       {!canPractice && <Alert>{te.noQuestions}</Alert>}
 

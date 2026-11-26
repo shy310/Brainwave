@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { Gamepad2, Sparkles } from 'lucide-react';
+import { Gamepad2, Layers, Sparkles } from 'lucide-react';
+import { IconTile } from '@/ui/IconTile';
+import { TOOL_META } from '@/ui/tools';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { storage } from '@/lib/storage';
 import { useAiError } from '@/lib/useAiError';
 import { Alert } from '@/ui/Alert';
+import { Loading } from '@/ui/Wave';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Segmented } from '@/ui/Segmented';
@@ -116,14 +119,15 @@ export default function StudyFolderPage() {
     setMaking(null);
   };
 
-  if (!lectures) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (!lectures) return <Loading label={t.common.loading} />;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <BackLink to="/lectures" label={t.lectures.title} />
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="flex-1 text-3xl font-semibold tracking-tight" dir="auto">{ts.title(name)}</h1>
+          <IconTile icon={Layers} tint={TOOL_META.review.tile} size="md" />
+          <h1 className="min-w-0 flex-1 text-3xl font-bold leading-tight sm:text-4xl" dir="auto">{ts.title(name)}</h1>
           <Link to={`/play?folder=${folder}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-sm font-medium hover:bg-surface-2">
             <Gamepad2 className="size-4" aria-hidden="true" />{t.game.play}
           </Link>

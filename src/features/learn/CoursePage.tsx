@@ -1,5 +1,4 @@
 import { Link, useParams } from 'react-router';
-import { ChevronLeft } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { Card } from '@/ui/Card';
 import { Alert } from '@/ui/Alert';
@@ -10,12 +9,10 @@ import { topicStatus } from './progress';
 import { StatusIcon } from './StatusBadge';
 import { SubjectArt } from './SubjectArt';
 import { cn } from '@/lib/cn';
+import { BackLink } from '@/ui/PageHeader';
 
-export const BackLink = ({ to, label }: { to: string; label: string }) => (
-  <Link to={to} className="inline-flex max-w-full items-center gap-1 text-sm font-medium text-muted hover:text-fg">
-    <ChevronLeft className="size-4 shrink-0 rtl:rotate-180" aria-hidden="true" /><span className="truncate" dir="auto">{label}</span>
-  </Link>
-);
+// The back link lives in the shared UI now; re-exported for the pages that import it from here.
+export { BackLink };
 
 export default function CoursePage() {
   const { courseId = '' } = useParams();

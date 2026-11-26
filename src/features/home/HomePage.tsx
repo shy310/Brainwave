@@ -17,6 +17,8 @@ import { activityRepo } from '@/features/stats/activity';
 import { lectureRepo, type LectureSummary } from '@/features/lectures/repo';
 import { useDueCount } from '@/features/lectures/reviews';
 import { lectureTitle } from '@/features/lectures/LecturesPage';
+import { LectureThumb } from '@/features/lectures/LectureThumb';
+import { IconTile } from '@/ui/IconTile';
 import { dateLocale } from '@shared/locales';
 import type { DayActivity } from '@shared/activity';
 
@@ -32,7 +34,7 @@ const NextUp = ({ due, latest }: { due: number; latest: LectureSummary | undefin
   return (
     <section aria-labelledby="next-title" className="relative overflow-hidden rounded-[var(--radius-card)] bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 p-5 text-white shadow-[var(--shadow-lift)] sm:p-6">
       {/* The brainwave runs across the field, behind the words. */}
-      <div className="pointer-events-none absolute -end-10 top-3 w-64 text-accent-400 opacity-90" aria-hidden="true"><WaveLine width={256} waves={3} amp={10} stroke={5} draw /></div>
+      <div className="pointer-events-none absolute -end-24 top-3 w-64 text-accent-400 opacity-90 min-[400px]:-end-10" aria-hidden="true"><WaveLine width={256} waves={3} amp={10} stroke={5} draw /></div>
       <div className="pointer-events-none absolute -bottom-16 -start-10 size-48 rounded-full bg-brand-400/40 blur-2xl" aria-hidden="true" />
       <p className="relative text-sm font-semibold text-white" id="next-title">{t.home.nextUp}</p>
       <div className="relative mt-2 flex items-start gap-3">
@@ -74,6 +76,8 @@ export default function HomePage() {
       </header>
       <UpNextBanner />
 
+      <div className="grid gap-6 sm:gap-8 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-start">
+      <div className="min-w-0 space-y-6 sm:space-y-8">
       {recent && <NextUp due={due} latest={recent[0]} />}
 
       {/* Start something: one primary action, two common ones, the rest in a menu. */}
@@ -83,12 +87,12 @@ export default function HomePage() {
         </Link>
         <div className="grid grid-cols-3 gap-2">
           {[
-            { to: '/lectures/new?tab=upload', icon: Upload, label: tq.upload },
-            { to: '/lectures/new?tab=pdf', icon: FileText, label: tq.pdf },
-            { to: '/tutor', icon: MessageCircle, label: tq.tutor },
+            { to: '/lectures/new?tab=upload', icon: Upload, label: tq.upload, tint: 'from-violet-500 to-violet-700' },
+            { to: '/lectures/new?tab=pdf', icon: FileText, label: tq.pdf, tint: 'from-emerald-400 to-emerald-600' },
+            { to: '/tutor', icon: MessageCircle, label: tq.tutor, tint: 'from-brand-600 to-brand-900' },
           ].map((a) => (
-            <Link key={a.to} to={a.to} className="btn-lip relative flex h-12 min-w-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)] border border-line bg-surface px-3 text-sm font-semibold [--lip:var(--line)] hover:bg-surface-2">
-              <a.icon className="size-4 shrink-0 text-brand-700 dark:text-brand-300" aria-hidden="true" /><span className="truncate">{a.label}</span>
+            <Link key={a.to} to={a.to} className="btn-lip group relative flex min-h-12 min-w-0 flex-col items-center justify-center gap-1.5 rounded-[var(--radius-control)] border border-line bg-surface px-2 py-2.5 text-sm font-semibold [--lip:var(--line)] hover:bg-surface-2 sm:flex-row sm:gap-2.5 sm:py-2">
+              <IconTile icon={a.icon} tint={a.tint} size="sm" className="tool-tile-hover size-8 rounded-[10px] [&>svg]:size-4" /><span className="max-w-full truncate">{a.label}</span>
             </Link>
           ))}
         </div>
@@ -109,10 +113,6 @@ export default function HomePage() {
         </div>
       </nav>
 
-      <ExamBanner />
-      <WeakSpotsBanner />
-
-      {days && <TodayCard days={days} due={due} />}
 
       <section aria-labelledby="recent-title" className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
@@ -133,10 +133,8 @@ export default function HomePage() {
           <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
             {recent.slice(0, 6).map((l) => (
               <li key={l.id} className="w-[70%] shrink-0 snap-start sm:w-auto">
-                <Link to={`/lectures/${l.id}`} className="pressable lift flex h-full flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
-                  <span className="flex size-9 items-center justify-center rounded-xl bg-brand-500/10 text-brand-700 dark:text-brand-300">
-                    {l.source === 'record' ? <Mic className="size-4" aria-hidden="true" /> : <FileText className="size-4" aria-hidden="true" />}
-                  </span>
+                <Link to={`/lectures/${l.id}`} className="group pressable lift flex h-full flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
+                  <LectureThumb source={l.source} className="tool-tile-hover" />
                   <span className="line-clamp-2 font-semibold" dir="auto">{lectureTitle(l, t.lectures.untitled, locale)}</span>
                   <span className="mt-auto text-xs text-muted">
                     {new Date(l.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short' })}
@@ -149,7 +147,16 @@ export default function HomePage() {
         )}
       </section>
 
-      <WeekCard bare />
+      </div>
+
+      {/* The side column: what's coming up and how the week is going. */}
+      <aside className="min-w-0 space-y-6 sm:space-y-8">
+        <ExamBanner />
+        <WeakSpotsBanner />
+        {days && <TodayCard days={days} due={due} />}
+        <WeekCard bare />
+      </aside>
+      </div>
     </div>
   );
 }

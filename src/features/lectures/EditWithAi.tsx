@@ -89,7 +89,7 @@ export const EditWithAi = ({ selection, notes, title, onClose, onDone }: {
     <Sheet open={!!selection} onClose={() => { if (!busy) onClose(); }} title={te.title}>
       {selection && (
         <form onSubmit={(e) => void run(e)} className="space-y-4">
-          <blockquote className="line-clamp-3 border-s-4 border-brand-400 ps-3 text-sm text-muted" dir="auto">{selection.quote}</blockquote>
+          <blockquote className="line-clamp-3 rounded-xl bg-brand-50 px-3.5 py-2 text-sm text-fg dark:bg-brand-900/30" dir="auto">{selection.quote}</blockquote>
           {error && <Alert tone="error">{error}</Alert>}
           {busy ? (
             <p className="py-6 text-center text-muted" aria-live="polite"><Shimmer text={te.writing} /></p>

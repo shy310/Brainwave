@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { ToolHero } from '@/ui/PageHeader';
 import { Bell, BookOpenText, Languages, LifeBuoy, LogOut, Mail, Mic, Palette, Trash2 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -89,7 +90,7 @@ export default function SettingsPage() {
 
   return (
     <div className="stagger mx-auto max-w-2xl space-y-7">
-      <h1 className="text-3xl font-semibold tracking-tight">{ts.title}</h1>
+      <ToolHero tool="settings" title={ts.title} />
 
       {/* Who you are: tap Edit to change it. */}
       <div className="flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">

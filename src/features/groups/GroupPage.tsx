@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { Link2, LogOut, Pencil, RefreshCw, Share2, Trash2, UserMinus } from 'lucide-react';
+import { Link2, LogOut, Pencil, RefreshCw, Share2, Trash2, UserMinus, Users } from 'lucide-react';
+import { IconTile } from '@/ui/IconTile';
+import { Loading } from '@/ui/Wave';
+import { TOOL_META } from '@/ui/tools';
 import { useI18n } from '@/i18n';
 import { publicUrl } from '@/lib/platform';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Input, Select } from '@/ui/Field';
-import { Spinner } from '@/ui/Spinner';
 import { BackLink } from '@/features/learn/CoursePage';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { lectureRepo, type Lecture, type LectureSummary } from '@/features/lectures/repo';
@@ -40,7 +42,7 @@ export default function GroupPage() {
   const myName = data?.members.find((m) => m.user_id === user?.id)?.display_name || profile?.display_name || '';
   const me = useMemo(() => (user ? { id: user.id, name: myName } : null), [user, myName]);
 
-  if (data === undefined) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (data === undefined) return <Loading label={t.common.loading} />;
   if (!data) return <div className="mx-auto max-w-2xl space-y-4"><BackLink to="/groups" label={tg.title} /><Alert tone="error">{tg.notFound}</Alert></div>;
 
   const { group, members, shares } = data;
@@ -71,12 +73,13 @@ export default function GroupPage() {
             <Button type="submit">{t.common.save}</Button>
           </form>
         ) : (
-          <div className="flex items-start gap-2">
-            <h1 className="flex-1 text-3xl font-semibold tracking-tight" dir="auto">{group.name}</h1>
+          <div className="flex items-start gap-3">
+            <IconTile icon={Users} tint={TOOL_META.groups.tile} size="md" className="mt-0.5" />
+            <h1 className="min-w-0 flex-1 text-3xl font-bold leading-tight sm:text-4xl" dir="auto">{group.name}</h1>
             {isOwner && <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={tg.rename} onClick={() => { setName(group.name); setRenaming(true); }}><Pencil className="size-4" aria-hidden="true" /></Button>}
           </div>
         )}
-        <p className="text-sm text-muted">{tg.members(members.length)}</p>
+        <p className="ps-[3.75rem] text-sm font-medium text-teal-700 dark:text-teal-300">{tg.members(members.length)}</p>
       </header>
       {error && <Alert tone="error">{error}</Alert>}
 

@@ -1,12 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { ToolHero } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
 import { Bell, CalendarDays, CalendarPlus, Pencil, Trash2 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Field, Input, Select } from '@/ui/Field';
-import { Spinner } from '@/ui/Spinner';
-import { BackLink } from '@/features/learn/CoursePage';
 import { folderRepo, type Folder } from '@/features/lectures/folders';
 import { REMIND_OPTIONS, type ClassSlot } from '@shared/schedule';
 import { scheduleRepo } from './scheduleRepo';
@@ -70,15 +70,11 @@ export default function SchedulePage() {
     if (ok) resync(slots ?? []);
   };
 
-  if (!slots) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (!slots) return <Loading label={t.common.loading} />;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <BackLink to="/lectures" label={t.lectures.title} />
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">{ts.title}</h1>
-        <p className="text-muted">{ts.subtitle}</p>
-      </header>
+      <ToolHero tool="schedule" back={{ to: '/lectures', label: t.lectures.title }} title={ts.title} subtitle={ts.subtitle} />
 
       {notificationsSupported() && (
         <Card className="space-y-3 p-4">

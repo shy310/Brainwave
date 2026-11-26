@@ -41,7 +41,7 @@ const block = (b: Block, i: number): ReactNode => {
       </pre>
     );
     case 'math': return <Math key={i} tex={b.v} display />;
-    case 'quote': return <blockquote key={i} className="border-s-4 border-brand-300 ps-3 text-muted">{inline(b.c)}</blockquote>;
+    case 'quote': return <blockquote key={i} className="rounded-xl bg-surface-2 px-4 py-2.5 text-muted">{inline(b.c)}</blockquote>;
   }
 };
 

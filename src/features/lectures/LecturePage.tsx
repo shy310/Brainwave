@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal, Network, ScrollText } from 'lucide-react';
 import { Sheet } from '@/ui/Sheet';
+import { Loading } from '@/ui/Wave';
 import { ListRow, ListSection } from '@/ui/List';
 import { publicUrl } from '@/lib/platform';
 import { useI18n, useT } from '@/i18n';
@@ -14,6 +15,7 @@ import { Card } from '@/ui/Card';
 import { Input } from '@/ui/Field';
 import { Segmented } from '@/ui/Segmented';
 import { Spinner } from '@/ui/Spinner';
+import { LectureThumb } from './LectureThumb';
 import { BackLink } from '@/features/learn/CoursePage';
 import { QuizRunner } from '@/features/learn/QuizRunner';
 import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, SUMMARY_MODES, withEmoji, type Flashcards, type Notes, type Segment, type SummaryMode } from '@shared/lectures';
@@ -272,7 +274,7 @@ export default function LecturePage() {
   const videoId = lecture?.source === 'youtube' && lecture.source_url ? youtubeId(lecture.source_url) : null;
   const openVideoAt = videoId ? (start: number) => { window.open(youtubeUrl(videoId, start), '_blank', 'noopener'); } : undefined;
 
-  if (lecture === undefined) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (lecture === undefined) return <Loading label={t.common.loading} />;
   if (lecture === null) return <Alert tone="error">{t.lectures.notFound}</Alert>;
 
   const title = lectureTitle(lecture, t.lectures.untitled, locale);
@@ -345,22 +347,26 @@ export default function LecturePage() {
             <Button type="submit">{t.lectures.save}</Button>
           </form>
         ) : (
-          <div className="flex items-start gap-2">
-            <h1 className="min-w-0 flex-1 text-3xl font-semibold tracking-tight" dir="auto">{title}</h1>
+          <div className="flex items-start gap-4">
+            <LectureThumb source={lecture.source} size="md" className="mt-1 max-sm:hidden" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <h1 className="text-3xl font-bold leading-tight sm:text-4xl" dir="auto">{title}</h1>
+              {/* Where it came from, how long, when, and its folder: small chips under the title. */}
+              <p className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
+                {videoId ? (
+                  <a href={youtubeUrl(videoId)} target="_blank" rel="noopener noreferrer" className="inline-flex h-7 items-center rounded-full bg-coral-50 px-2.5 font-semibold text-coral-700 hover:underline dark:bg-coral-700/25 dark:text-coral-200">{t.lectures.yt.watch}</a>
+                ) : <span className="inline-flex h-7 items-center rounded-full bg-surface-2 px-2.5 font-medium text-fg">{t.lectures.sources[lecture.source]}</span>}
+                {lecture.duration_sec > 0 && <span className="inline-flex h-7 items-center rounded-full bg-surface-2 px-2.5 tabular-nums">{t.lectures.minutes(Math.max(1, Math.round(lecture.duration_sec / 60)))}</span>}
+                <span className="inline-flex h-7 items-center rounded-full bg-surface-2 px-2.5 tabular-nums">{new Date(lecture.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                {folder && (
+                  <button type="button" onClick={() => setSheet('move')} className="inline-flex h-7 max-w-[12rem] items-center gap-1 rounded-full bg-brand-50 px-2.5 font-medium text-brand-800 hover:bg-brand-100 dark:bg-brand-900/40 dark:text-brand-100">
+                    <FolderIcon className="size-3.5 shrink-0" aria-hidden="true" /><span className="truncate">{folder.name}</span>
+                  </button>
+                )}
+              </p>
+            </div>
           </div>
         )}
-        <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted">
-          {videoId ? (
-            <a href={youtubeUrl(videoId)} target="_blank" rel="noopener noreferrer" className="font-medium text-brand-700 hover:underline dark:text-brand-300">{t.lectures.yt.watch}</a>
-          ) : <span>{t.lectures.sources[lecture.source]}</span>}
-          {lecture.duration_sec > 0 && <><span aria-hidden="true">·</span><span>{t.lectures.minutes(Math.max(1, Math.round(lecture.duration_sec / 60)))}</span></>}
-          <span aria-hidden="true">·</span><span>{new Date(lecture.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-          {folder && (
-            <button type="button" onClick={() => setSheet('move')} className="ms-1 inline-flex h-7 max-w-[12rem] items-center gap-1 rounded-full bg-surface-2 px-2.5 text-xs font-medium text-fg hover:bg-line">
-              <FolderIcon className="size-3.5 shrink-0" aria-hidden="true" /><span className="truncate">{folder.name}</span>
-            </button>
-          )}
-        </p>
       </header>
 
       {recordingProblem && <Alert tone="error">{t.lectures.keepRecording.problems[recordingProblem]}</Alert>}

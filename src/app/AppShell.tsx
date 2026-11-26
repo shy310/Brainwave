@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { NavLink, Outlet, Link, useLocation } from 'react-router';
 import { useT } from '@/i18n';
 import { Logo } from '@/ui/Logo';
@@ -13,6 +13,47 @@ import { FocusBar, FocusButton } from '@/features/focus/FocusBar';
 import { useFocus } from '@/features/focus/focus';
 import { useTabBarHidden } from './chrome';
 import { useEnsurePush } from '@/features/schedule/useEnsurePush';
+
+/**
+ * The header's page links: each with its icon, and a soft pill that slides to
+ * the open page (measured, so it fits every language's label widths).
+ */
+const DesktopNav = ({ active, hidden }: { active: number; hidden: boolean }) => {
+  const t = useT();
+  const list = useRef<HTMLDivElement>(null);
+  const [pill, setPill] = useState<{ start: number; end: number } | null>(null);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = list.current?.querySelector<HTMLElement>('[aria-current="page"]') ?? (active >= 0 ? list.current?.children[active + 1] as HTMLElement | undefined : undefined);
+      const box = list.current;
+      setPill(el && box ? { start: el.offsetLeft, end: box.offsetWidth - el.offsetLeft - el.offsetWidth } : null);
+    };
+    measure();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    if (list.current) ro?.observe(list.current);
+    void document.fonts?.ready.then(measure);
+    return () => ro?.disconnect();
+  }, [active, t]);
+  return (
+    <nav aria-label="Main" className={cn('ms-4 hidden', !hidden && 'md:block')}>
+      <div ref={list} className="relative flex items-center gap-0.5">
+        {/* The highlight is one full-width layer clipped to the open link: clip-path moves on the GPU. */}
+        <span aria-hidden="true" className={cn('pointer-events-none absolute inset-0 bg-brand-100 transition-[clip-path,opacity] duration-300 ease-[var(--ease-out)] motion-reduce:transition-none dark:bg-brand-900/50', !pill && 'opacity-0')}
+          style={{ clipPath: pill ? `inset(0 ${pill.end}px 0 ${pill.start}px round 9999px)` : undefined }} />
+        {NAV.map((item, i) => (
+          <NavLink key={item.to} to={item.to} end={item.to === '/'} aria-current={i === active ? 'page' : undefined}
+            className={cn(
+              'relative inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition-colors duration-200',
+              i === active ? 'text-brand-700 dark:text-brand-200' : 'text-muted hover:text-fg',
+            )}>
+            <item.icon className="size-4 shrink-0 max-lg:hidden" fill={i === active ? 'currentColor' : 'none'} fillOpacity={0.2} strokeWidth={i === active ? 2.25 : 2} aria-hidden="true" />
+            {item.label(t)}
+          </NavLink>
+        ))}
+      </div>
+    </nav>
+  );
+};
 
 export const AppShell = () => {
   const t = useT();
@@ -35,17 +76,7 @@ export const AppShell = () => {
       <header className="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-xl print:hidden">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:gap-4 sm:px-6">
           <Link to="/" aria-label={t.nav.home}><Logo /></Link>
-          <nav aria-label="Main" className={cn('ms-4 hidden items-center gap-1', !focusing && 'md:flex')}>
-            {NAV.map(item => (
-              <NavLink key={item.to} to={item.to} end={item.to === '/'}
-                className={({ isActive }) => cn(
-                  'rounded-full px-3.5 py-2 text-sm font-semibold transition-colors duration-200',
-                  isActive ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-200' : 'text-muted hover:bg-surface-2 hover:text-fg',
-                )}>
-                {item.label(t)}
-              </NavLink>
-            ))}
-          </nav>
+          <DesktopNav active={active} hidden={focusing} />
           <div className="ms-auto flex items-center gap-1 sm:gap-2">
             <FocusButton />
             <LanguageToggle />

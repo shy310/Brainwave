@@ -135,7 +135,7 @@ export const FocusButton = () => {
     <div className="relative">
       <button ref={button} type="button" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen((v) => !v)}
         className="flex h-10 items-center gap-1.5 rounded-xl px-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg">
-        <Timer className="size-5" aria-hidden="true" /><span className="hidden sm:inline">{tf.button}</span><span className="sr-only sm:hidden">{tf.title}</span>
+        <Timer className="size-5" aria-hidden="true" /><span className="hidden sm:max-md:inline lg:inline">{tf.button}</span><span className="sr-only sm:max-md:hidden lg:hidden">{tf.title}</span>
       </button>
       {open && (
         <div ref={panel} role="dialog" aria-label={tf.title}

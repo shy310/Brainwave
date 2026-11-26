@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { PageHeader } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
 import { useNavigate, useParams } from 'react-router';
 import { Trash2, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
-import { Spinner } from '@/ui/Spinner';
-import { BackLink } from '@/features/learn/CoursePage';
 import { ChatPanel } from '@/features/tutor/ChatPanel';
 import { mediaRepo, type Media } from '@/features/media/repo';
 import type { VideoScript } from '@shared/media';
@@ -37,7 +37,7 @@ export default function VideoPage() {
     };
   }, [video, askScene]);
 
-  if (video === undefined) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
+  if (video === undefined) return <Loading label={t.common.loading} />;
   if (video === null) return <Alert tone="error">{t.videos.notFound}</Alert>;
 
   const remove = async () => {
@@ -48,16 +48,9 @@ export default function VideoPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <BackLink to="/videos" label={t.videos.title} />
-      <header className="flex items-start gap-2">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl" dir="auto">{video.title}</h1>
-          <p className="text-sm text-muted" dir="auto">{video.origin.label}</p>
-        </div>
-        <Button variant="ghost" size="sm" className="size-9 px-0" aria-label={t.videos.delete} onClick={remove}>
-          <Trash2 className="size-4" aria-hidden="true" />
-        </Button>
-      </header>
+      <PageHeader tool="videos" back={{ to: '/videos', label: t.videos.title }} title={video.title} titleClassName="text-2xl sm:text-3xl"
+        subtitle={<span className="text-sm" dir="auto">{video.origin.label}</span>}
+        actions={<Button variant="ghost" size="sm" className="size-9 px-0" aria-label={t.videos.delete} onClick={remove}><Trash2 className="size-4" aria-hidden="true" /></Button>} />
 
       <VideoPlayer script={video.script} locale={video.locale}
         onAsk={(i) => { setAskScene(i); requestAnimationFrame(() => askRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }} />

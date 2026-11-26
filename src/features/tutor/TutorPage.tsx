@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { PageHeader } from '@/ui/PageHeader';
 import { useSearchParams } from 'react-router';
 import { AudioLines, Plus, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -31,16 +32,12 @@ export default function TutorPage() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t.tutor.title}</h1>
-          <p className="text-muted">{t.tutor.subtitle}</p>
-        </div>
-        <div className="flex gap-2">
+      <PageHeader tool="tutor" title={t.tutor.title} subtitle={t.tutor.subtitle} titleClassName="text-2xl sm:text-3xl" actions={(
+        <>
           <Button variant="secondary" size="sm" icon={<AudioLines className="size-4" />} onClick={() => setTalking(true)}>{t.tutor.talk.open}</Button>
           {count > 0 && <Button variant="secondary" size="sm" icon={<Plus className="size-4" />} onClick={() => chat.current?.reset()}>{t.tutor.newChat}</Button>}
-        </div>
-      </header>
+        </>
+      )} />
 
       <div className="space-y-3 rounded-[var(--radius-card)] border border-line bg-surface p-4">
         <div className="flex flex-wrap items-center gap-3">

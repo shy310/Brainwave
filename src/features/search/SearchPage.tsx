@@ -1,4 +1,6 @@
 import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { ToolHero } from '@/ui/PageHeader';
+import { Loading } from '@/ui/Wave';
 import { Link, useSearchParams } from 'react-router';
 import { FileText, Search, Sparkles } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -8,9 +10,7 @@ import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Input } from '@/ui/Field';
-import { Spinner } from '@/ui/Spinner';
 import { Shimmer } from '@/ui/Feedback';
-import { BackLink } from '@/features/learn/CoursePage';
 import { lectureRepo } from '@/features/lectures/repo';
 import { formatTime } from '@/features/lectures/audio';
 import { highlights, search, type AskLecturesOutput, type Hit, type SearchableLecture } from '@shared/search';
@@ -89,11 +89,7 @@ export default function SearchPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <BackLink to="/lectures" label={t.lectures.title} />
-      <header className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">{ts.title}</h1>
-        <p className="text-muted">{ts.subtitle}</p>
-      </header>
+      <ToolHero tool="search" back={{ to: '/lectures', label: t.lectures.title }} title={ts.title} subtitle={ts.subtitle} />
 
       <form onSubmit={ask} role="search" className="space-y-2">
         <div className="relative">
@@ -107,7 +103,7 @@ export default function SearchPage() {
         )}
       </form>
 
-      {!lectures && <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>}
+      {!lectures && <Loading label={t.common.loading} />}
       {lectures?.length === 0 && <Alert>{ts.empty}</Alert>}
       {error && <Alert tone="error">{error}</Alert>}
 
@@ -119,7 +115,7 @@ export default function SearchPage() {
           <p className="whitespace-pre-wrap leading-relaxed" dir="auto">{withCitations(answer.out.answer, answer.sources)}</p>
           {answer.out.cited.length > 0 && (
             <div className="space-y-1.5 border-t border-line pt-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">{ts.sources}</p>
+              <p className="text-sm font-semibold text-muted">{ts.sources}</p>
               <ol className="space-y-1 text-sm">
                 {answer.out.cited.map((n) => {
                   const h = answer.sources[n - 1];
