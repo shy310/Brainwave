@@ -486,6 +486,10 @@ export const he: Dict = {
     actions: { pdf: 'PDF', toolbar: 'פעולות להרצאה', showActions: 'הצגת הפעולות', hideActions: 'הסתרת הפעולות', link: 'שיתוף בקישור', more: 'עוד' },
     options: { title: 'אפשרויות להרצאה', customize: 'התאמה', move: 'העברה לתיקייה', apply: 'החלה', customizeTitle: 'התאמת הסיכום',
       styleHelp: { short: 'הרעיונות המרכזיים במסך אחד.', detailed: 'כל מה שחשוב, חלק אחר חלק.', exam: 'עם שאלות תרגול וטעויות נפוצות.' } },
+    cardEdit: {
+      study: 'תרגול', all: (n: number) => `כל הכרטיסיות (${n})`, add: 'להוסיף כרטיסייה', own: 'או לכתוב כרטיסיות בעצמך', edit: 'לערוך כרטיסייה', delete: 'למחוק כרטיסייה',
+      front: 'צד קדמי: שאלה או מושג', back: 'צד אחורי: התשובה', save: 'לשמור', confirmDelete: 'למחוק את הכרטיסייה?', empty: 'אין עדיין כרטיסיות. אפשר להוסיף ב„כל הכרטיסיות”.',
+    },
     mastery: { title: 'התקדמות', new: 'חדשות', learning: 'עדיין לומדים', almost: 'כמעט שם', mastered: 'שולטים' },
     tools: {
       title: 'כלי לימוד', review: 'חזרה על כרטיסיות', weak: 'נקודות חולשה', weakBody: 'מה שחוזרים לטעות בו', exams: 'מבחנים', examsBody: 'תוכנית עד יום המבחן', games: 'משחקים', gamesBody: 'גלישה ומרוץ נתיבים, עם השאלות שלכם',

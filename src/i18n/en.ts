@@ -462,6 +462,10 @@ export const en = {
     actions: { pdf: 'PDF', toolbar: 'Lecture actions', showActions: 'Show actions', hideActions: 'Hide actions', link: 'Share a link', more: 'More' },
     options: { title: 'Lecture options', customize: 'Customize', move: 'Move to folder', apply: 'Apply', customizeTitle: 'Customize notes',
       styleHelp: { short: 'The key ideas on one screen.', detailed: 'Everything important, section by section.', exam: 'Adds practice questions and common mistakes.' } },
+    cardEdit: {
+      study: 'Study', all: (n: number) => `All cards (${n})`, add: 'Add a card', own: 'Or write your own cards', edit: 'Edit card', delete: 'Delete card',
+      front: 'Front: a question or term', back: 'Back: the answer', save: 'Save card', confirmDelete: 'Delete this card?', empty: 'No cards yet. Add your own in All cards.',
+    },
     mastery: { title: 'Progress', new: 'New', learning: 'Still learning', almost: 'Almost done', mastered: 'Mastered' },
     tools: {
       title: 'Study tools', review: 'Review flashcards', weak: 'Weak spots', weakBody: 'What you keep missing', exams: 'Exams', examsBody: 'A plan up to exam day', games: 'Games', gamesBody: 'Glide and Lane Rush, with your questions',

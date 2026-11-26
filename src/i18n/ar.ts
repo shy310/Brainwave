@@ -465,6 +465,10 @@ export const ar: Dict = {
     actions: { pdf: 'PDF', toolbar: 'إجراءات المحاضرة', showActions: 'إظهار الإجراءات', hideActions: 'إخفاء الإجراءات', link: 'مشاركة رابط', more: 'المزيد' },
     options: { title: 'خيارات المحاضرة', customize: 'تخصيص', move: 'نقل إلى مجلد', apply: 'تطبيق', customizeTitle: 'تخصيص الملخص',
       styleHelp: { short: 'الأفكار الرئيسية في شاشة واحدة.', detailed: 'كل ما هو مهم، قسمًا بعد قسم.', exam: 'مع أسئلة تدريبية وأخطاء شائعة.' } },
+    cardEdit: {
+      study: 'دراسة', all: (n: number) => `كل البطاقات (${n})`, add: 'أضف بطاقة', own: 'أو اكتب بطاقاتك بنفسك', edit: 'عدّل البطاقة', delete: 'احذف البطاقة',
+      front: 'الوجه: سؤال أو مصطلح', back: 'الظهر: الإجابة', save: 'احفظ البطاقة', confirmDelete: 'أتحذف هذه البطاقة؟', empty: 'لا بطاقات بعد. أضف بطاقاتك في «كل البطاقات».',
+    },
     mastery: { title: 'التقدّم', new: 'جديدة', learning: 'قيد التعلّم', almost: 'على وشك', mastered: 'متقَنة' },
     tools: {
       title: 'أدوات الدراسة', review: 'مراجعة البطاقات', weak: 'نقاط الضعف', weakBody: 'ما تخطئ فيه مرارًا', exams: 'الامتحانات', examsBody: 'خطة حتى يوم الامتحان', games: 'الألعاب', gamesBody: 'تحليق وسباق المسارات بأسئلتك',
