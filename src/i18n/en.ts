@@ -309,6 +309,8 @@ export const en = {
       watch: 'Watch on YouTube', watchAt: (time: string) => `Watch on YouTube at ${time}`,
     },
     doc: {
+      linkErrors: { bad: 'That isn’t a web link.', notPage: 'That link isn’t a web page. For a PDF or document, download it and choose the file.', noText: 'There isn’t enough text on that page. Copy the text and paste it instead.', tooBig: 'That page is too big to read.', unreachable: 'That page couldn’t be opened. Check the link, or copy the text and paste it.' }, 
+      link: 'Link to an article or web page', linkPlaceholder: 'Or paste a link to an article', read: 'Read it', linkFailed: 'That page couldn’t be read.', 
       choose: 'Choose a document', hint: 'PDF, Word, PowerPoint, text files or photos of your notes.', reading: 'Reading the document…',
       legacy: 'Old Word and PowerPoint files (.doc, .ppt) can’t be read here. Save it as .docx, .pptx or PDF and try again.',
       unknown: 'This kind of file can’t be read. Try a PDF, Word, PowerPoint or text file.', empty: 'There’s no text in this file.',
