@@ -20,6 +20,8 @@ import { MAX_SLIDES_CHARS, MAX_TRANSCRIPT_CHARS, SUMMARY_MODES, withEmoji, type 
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { Quiz } from '@shared/learn';
 import { FlashcardDeck, MasteryBar } from './Flashcards';
+import { CardList } from './CardList';
+import type { CardState as SrsState } from '@shared/srs';
 import { TranscriptPanel } from './TranscriptPanel';
 import { RecordingPlayer, recordingExtension, useRecordingUrl } from './RecordingPlayer';
 import { LectureDock, type DockAction } from './LectureDock';
@@ -83,6 +85,8 @@ export default function LecturePage() {
   const [choice, setChoice] = useState<SummaryMode>('detailed');
   const [name, setName] = useState('');
   const [quizRound, setQuizRound] = useState(0);
+  /** Cards tab: study them, or see and edit the whole list. */
+  const [cardView, setCardView] = useState<'study' | 'list'>('study');
   const autoNotes = useRef(false);
   /** Notes and transcript: text here can be selected and asked about. */
   const content = useRef<HTMLDivElement>(null);
@@ -103,6 +107,18 @@ export default function LecturePage() {
   }, [tab, hasCards]);
   const mastery = useMemo(() => lecture?.flashcards && cardStates
     ? masteryCounts(lecture.flashcards.cards.map((c) => cardStates.get(cardKey(id, c.front)))) : null, [lecture?.flashcards, cardStates, id]);
+
+  /** A card's front was edited: its review progress moves to the new key. */
+  const moveProgress = async (from: string, to: string) => {
+    reviewStates.current ??= reviewRepo.list();
+    const st = await reviewStates.current;
+    const old = st.get(cardKey(id, from));
+    if (!old) return;
+    const moved: SrsState = { ...old, key: cardKey(id, to) };
+    st.set(moved.key, moved);
+    setCardStates(new Map(st));
+    await reviewRepo.save(moved);
+  };
 
   const onCardAnswer = (i: number, knew: boolean) => {
     const card = lecture?.flashcards?.cards[i];
@@ -399,10 +415,17 @@ export default function LecturePage() {
 
           {tab === 'cards' && (
             busy === 'cards' ? <Card className="flex items-center gap-3 p-6 text-muted"><Spinner className="size-5" /><Shimmer text={t.lectures.makingCards} /></Card>
-            : lecture.flashcards ? (
+            : lecture.flashcards?.cards.length || cardView === 'list' ? (
               <Card className="space-y-4 p-6">
                 {mastery && <MasteryBar counts={mastery} />}
-                <FlashcardDeck deck={lecture.flashcards} onAnswer={onCardAnswer} />
+                <Segmented fill label={t.lectures.tabsView.cards} value={cardView} onChange={setCardView}
+                  options={[{ value: 'study', label: t.lectures.cardEdit.study }, { value: 'list', label: t.lectures.cardEdit.all(lecture.flashcards?.cards.length ?? 0) }]} />
+                {cardView === 'list' ? (
+                  <CardList deck={lecture.flashcards ?? null} states={cardStates} keyOf={(front) => cardKey(id, front)}
+                    onChange={(flashcards) => void patch({ flashcards })} onRenamed={(from, to) => void moveProgress(from, to)} />
+                ) : lecture.flashcards?.cards.length ? (
+                  <FlashcardDeck deck={lecture.flashcards} onAnswer={onCardAnswer} />
+                ) : <p className="py-6 text-center text-muted">{t.lectures.cardEdit.empty}</p>}
                 <div className="border-t border-line pt-3">
                   <Button variant="ghost" size="sm" icon={<RefreshCw className="size-4" />} onClick={() => generate('cards')}>{t.lectures.newCards}</Button>
                 </div>
@@ -410,6 +433,7 @@ export default function LecturePage() {
             ) : (
               <Card className="flex flex-col items-center gap-3 p-8">
                 <Button size="lg" icon={<Sparkles className="size-5" />} onClick={() => generate('cards')}>{t.lectures.makeCards}</Button>
+                <Button variant="ghost" size="sm" onClick={() => setCardView('list')}>{t.lectures.cardEdit.own}</Button>
               </Card>
             )
           )}
