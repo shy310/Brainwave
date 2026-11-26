@@ -10,3 +10,4 @@ import './ops/search.js';
 import './ops/conceptMap.js';
 import './ops/cheatSheet.js';
 import './ops/notesEdit.js';
+import './ops/whyWrong.js';

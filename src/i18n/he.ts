@@ -257,6 +257,7 @@ export const he: Dict = {
     backToLearn: 'כל המקצועות',
   },
   quiz: {
+    whyWrong: { ask: 'למה התשובה שלי לא נכונה?', title: 'למה זה לא נכון', thinking: 'בודק את התשובה שלך…', followUp: 'לשאול שאלת המשך…' },
     title: 'בוחן', setupTitle: 'הגדרת הבוחן', count: 'מספר שאלות', difficulty: 'רמת קושי',
     levels: { easier: 'קל יותר', normal: 'רגיל', harder: 'קשה יותר' },
     start: 'מתחילים', writing: 'כותבים לכם בוחן…',
