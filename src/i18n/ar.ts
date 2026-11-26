@@ -261,6 +261,7 @@ export const ar: Dict = {
     backToLearn: 'كل المواد',
   },
   quiz: {
+    whyWrong: { ask: 'لماذا إجابتي خاطئة؟', title: 'لماذا هي خاطئة', thinking: 'ننظر في إجابتك…', followUp: 'اطرح سؤال متابعة…' },
     title: 'اختبار', setupTitle: 'جهّز اختبارك', count: 'الأسئلة', difficulty: 'الصعوبة',
     levels: { easier: 'أسهل', normal: 'عادي', harder: 'أصعب' },
     start: 'ابدأ الاختبار', writing: 'جارٍ كتابة اختبارك…',

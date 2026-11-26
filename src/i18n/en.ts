@@ -256,6 +256,7 @@ export const en = {
     backToLearn: 'All subjects',
   },
   quiz: {
+    whyWrong: { ask: 'Why is my answer wrong?', title: 'Why it’s wrong', thinking: 'Looking at your answer…', followUp: 'Ask a follow-up…' },
     title: 'Quiz', setupTitle: 'Set up your quiz', count: 'Questions', difficulty: 'Difficulty',
     levels: { easier: 'Easier', normal: 'Normal', harder: 'Harder' },
     start: 'Start quiz', writing: 'Writing your quiz…',
