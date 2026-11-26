@@ -35,6 +35,26 @@ export const en = {
       emailTaken: 'There’s already an account with this email. Sign in instead — or use “Forgot password?”.',
     },
   },
+  landing: {
+    title: 'From lecture to exam-ready.',
+    body: 'Record a class, or bring a video, a document or a link. BrainWave writes the notes, quizzes you, makes flashcards and podcasts, and plans your studying up to exam day.',
+    start: 'Create a free account', haveAccount: 'I have an account', signIn: 'Sign in', deleteAccount: 'Deleting an account',
+    how: {
+      title: 'How it works',
+      steps: [
+        { t: 'Bring your class', b: 'Record a lecture live, upload audio, or paste a YouTube link, a document or a web page.' },
+        { t: 'Get notes you can read', b: 'A clear summary, sections and key terms. Highlight anything, or ask about any line.' },
+        { t: 'Practise until it sticks', b: 'Quizzes that explain your mistakes, flashcards that come back at the right time, and games.' },
+        { t: 'Walk into the exam ready', b: 'A day-by-day plan, a predicted exam from what your lecturer stressed, and a timed mock.' },
+      ],
+    },
+    tutor: { title: 'A tutor that talks back', body: 'Ask about any sentence in your notes, or switch to Talk mode and study out loud.', q: 'Why does meiosis make four cells?', a: 'Because it divides twice: once to separate the pairs, then again to split the copies. Want a quick example?', talk: 'Talk mode: ask out loud, hear the answer' },
+    podcast: { title: 'Listen, and raise your hand', body: 'Turn a lecture or a topic into a two-host podcast. Pause to ask a question, and the hosts answer you on air.', now: 'Now playing', ep: 'Black holes, explained', hand: 'Raise your hand' },
+    learn: { title: 'Kindergarten to college', body: 'Lessons, quizzes and a tutor for maths, science, geography, history, coding and economics.' },
+    langs: { title: 'Your language, either direction', body: 'English, Hebrew, Arabic and Russian, with right-to-left done properly, even in exported notes.' },
+    join: { title: 'Ready when you are', body: 'Free, with no subscriptions. Start in a minute.' },
+    art: { notes: 'Notes', quiz: 'Quiz', cards: 'Flashcard', podcast: 'Podcast', formula: 'Formula', cell: 'Cell division', q: 'Which division makes four cells?', a1: 'Meiosis', a2: 'Mitosis', front: 'Diploid?', back: 'Two sets of chromosomes' },
+  },
   onboarding: {
     title: "Let's set you up",
     subtitle: 'This helps BrainWave explain things at the right level.',

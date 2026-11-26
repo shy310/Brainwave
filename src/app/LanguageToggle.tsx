@@ -1,11 +1,12 @@
 import { Check, Languages } from 'lucide-react';
 import { useI18n } from '@/i18n';
+import { cn } from '@/lib/cn';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Menu } from '@/ui/Menu';
 import { LOCALES, NATIVE_NAME, type Locale } from '@shared/locales';
 
 /** The app language: English, Hebrew, Arabic or Russian (saved to the profile when signed in). */
-export const LanguageToggle = () => {
+export const LanguageToggle = ({ className }: { className?: string }) => {
   const { locale, setLocale, t } = useI18n();
   const { profile, updateProfile } = useAuth();
   const choose = (l: Locale) => {
@@ -21,7 +22,7 @@ export const LanguageToggle = () => {
       }))}
       trigger={({ ref, props }) => (
         <button ref={ref} type="button" {...props}
-          className="inline-flex h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-medium text-muted hover:bg-surface-2 hover:text-fg sm:px-3">
+          className={cn('inline-flex h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-medium text-muted hover:bg-surface-2 hover:text-fg sm:px-3', className)}>
           <Languages className="size-4" aria-hidden="true" />
           {/* On the narrowest phones only the icon shows; the name stays for screen readers. */}
           <span className="max-[379px]:sr-only" lang={locale}>{NATIVE_NAME[locale]}</span>

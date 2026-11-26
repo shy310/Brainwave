@@ -39,8 +39,8 @@ export const AppShell = () => {
             {NAV.map(item => (
               <NavLink key={item.to} to={item.to} end={item.to === '/'}
                 className={({ isActive }) => cn(
-                  'rounded-xl px-3 py-2 text-sm font-medium transition-colors',
-                  isActive ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200' : 'text-muted hover:bg-surface-2 hover:text-fg',
+                  'rounded-full px-3.5 py-2 text-sm font-semibold transition-colors duration-200',
+                  isActive ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-200' : 'text-muted hover:bg-surface-2 hover:text-fg',
                 )}>
                 {item.label(t)}
               </NavLink>
