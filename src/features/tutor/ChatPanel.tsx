@@ -144,8 +144,8 @@ export const ChatPanel = forwardRef<ChatPanelHandle, Props>(({ sessionKey, conte
       <section aria-live="polite" aria-busy={streaming} className="min-h-[40vh] space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center gap-4 py-10 text-center">
-            <Mascot mood="waving" size={104} />
-            <h2 className="font-display text-xl font-bold">{emptyTitle}</h2>
+            <Mascot mood="waving" size={48} />
+            <h2 className="font-display text-lg font-bold">{emptyTitle}</h2>
             <div className="flex flex-wrap justify-center gap-2">
               {starters.map((s) => (
                 <button key={s} type="button" onClick={() => void send(s)}
