@@ -264,6 +264,7 @@ export const ru: Dict = {
     backToLearn: 'Все предметы',
   },
   quiz: {
+    whyWrong: { ask: 'Почему мой ответ неверный?', title: 'Почему это неверно', thinking: 'Смотрим на ваш ответ…', followUp: 'Задать уточняющий вопрос…' },
     title: 'Тест', setupTitle: 'Настройте тест', count: 'Вопросы', difficulty: 'Сложность',
     levels: { easier: 'Проще', normal: 'Обычный', harder: 'Сложнее' },
     start: 'Начать тест', writing: 'Пишем ваш тест…',
