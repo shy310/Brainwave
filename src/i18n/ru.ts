@@ -414,8 +414,14 @@ export const ru: Dict = {
     rename: 'Переименовать', save: 'Сохранить',
     turnInto: 'Превратить в', video: 'Видеоурок', podcast: 'Подкаст',
     emptyTranscript: 'В этой записи не найдено речи.',
+    edit: {
+      title: 'Изменить с ИИ', what: 'Что сделать', actions: { expand: 'Расширить', simplify: 'Упростить', example: 'Добавить пример' },
+      custom: 'Или напишите, что изменить…', where: 'Куда', places: { after: 'После этого пункта', end: 'В конец раздела', replace: 'Вместо выделенного', append: 'Дописать сюда' },
+      howMuch: 'Сколько', depths: { brief: 'Кратко', detailed: 'Подробно', deep: 'Глубоко' },
+      write: 'Написать', writing: 'Пишем в конспект…', done: 'Добавлено в конспект', undo: 'Отменить', gone: 'Этой части больше нет в конспекте.',
+    },
     highlights: {
-      toolbar: 'Выделить', colors: { yellow: 'Жёлтый', green: 'Зелёный', blue: 'Синий', pink: 'Розовый' }, color: (c: string) => `Выделить: ${c.toLowerCase()}`,
+      ask: 'Спросить ИИ', edit: 'Изменить с ИИ', toolbar: 'Выделить', colors: { yellow: 'Жёлтый', green: 'Зелёный', blue: 'Синий', pink: 'Розовый' }, color: (c: string) => `Выделить: ${c.toLowerCase()}`,
       comment: 'Комментарий', addComment: 'Добавить комментарий', editComment: 'Изменить комментарий', placeholder: 'Ваша заметка об этом…', save: 'Сохранить', remove: 'Убрать выделение',
       title: 'Ваши выделения', hint: 'Выделите текст в конспекте, чтобы отметить его или добавить комментарий.', missing: 'Больше нет в этом конспекте',
       count: (n: number) => count(n, 'выделение', 'выделения', 'выделений'), show: 'Показать в конспекте',
@@ -487,7 +493,7 @@ export const ru: Dict = {
     },
     askPanel: {
       open: 'Вопрос', title: 'Вопрос по лекции', close: 'Закрыть',
-      aboutSelection: 'Спросить об этом', quote: (q: string) => `О «${q}»: `,
+      explain: (q: string) => `Объясни «${q}» в 2–3 коротких предложениях, как в этой лекции.`, aboutSelection: 'Спросить об этом', quote: (q: string) => `О «${q}»: `,
     },
     relatedTopics: 'Похожие темы в «Учёбе»', relatedTopicsHint: 'Закрепите их уроками, тестами и с репетитором.',
     notesStyle: 'Стиль конспекта', notesStyleHint: 'Как пишутся новые конспекты. Для любой лекции можно переключить.',
