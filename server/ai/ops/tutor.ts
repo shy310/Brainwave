@@ -21,6 +21,11 @@ const MODES: Record<TutorMode, string> = {
 - Only push back if it would hurt their learning (e.g. "just give me answers"), and then say why in one line.`,
 };
 
+const SPOKEN = `MODE — spoken conversation. Your reply is read aloud by a voice, and the student answers by talking, like a tutor face to face.
+- Reply in 2–4 short, natural spoken sentences. Go longer only if they ask for more detail, and then still in plain talk.
+- Never use lists, numbering, headings, Markdown, LaTeX, emoji or symbols. Say maths in words ("x to the power of n", "n times x to the n minus one").
+- One idea at a time. Often end with a short question back to keep the conversation going.`;
+
 export const tutorOp = defineOp({
   name: 'tutor',
   input: TutorInputSchema,
@@ -36,7 +41,8 @@ export const tutorOp = defineOp({
     const systemPrompt = [
       'You are BrainWave, a warm, patient and honest AI tutor. You help students understand — you do not do their homework for them.',
       audience(ctx),
-      mode,
+      // Talk mode: the reply is read aloud, so spoken style replaces the mode's formatting.
+      input.spoken ? SPOKEN : mode,
       topic ? `The student is studying: ${topic.topic.title.en} (${topic.unit.title.en}) — ${topic.topic.description.en}` : '',
       weak.length ? `They have recently struggled with: ${weak.join(', ')}. Watch for related gaps, but don't mention this list unless it helps.` : '',
       input.lecture ? `The student is asking about a lecture they attended, "${input.lecture.title}". Answer from the lecture first; quote or point to the part you are using. If the lecture doesn't cover something, say so, then explain it anyway.\n\nLecture:\n"""\n${input.lecture.text}\n"""` : '',
@@ -45,6 +51,7 @@ export const tutorOp = defineOp({
         : '',
       'If a file or image is attached, read it carefully and refer to what it actually shows. If it is unreadable, say so.',
       'Stay on learning topics. If asked for something harmful or unrelated to studying, decline kindly and steer back.',
+
     ].filter(Boolean).join('\n\n');
 
     const history = input.messages.slice(-20);

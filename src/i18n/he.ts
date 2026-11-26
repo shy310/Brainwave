@@ -300,6 +300,11 @@ export const he: Dict = {
     retry: 'בוחן חדש', backToTopic: 'חזרה לנושא', review: 'סקירה',
   },
   tutor: {
+    talk: {
+      open: 'שיחה', title: 'מצב שיחה', listening: 'מקשיבים…', thinking: 'חושבים…', speaking: 'לחצו כדי לקטוע',
+      tap: 'לחצו ודברו', send: 'סיימתי לדבר', interrupt: 'לקטוע', end: 'לסיים את השיחה',
+      noMic: 'הדפדפן הזה לא יכול לשמוע אותך. נסו Chrome, Edge או Safari.', hint: 'שאלו כל דבר בקול. אחרי כל תשובה זה מקשיב שוב.',
+    },
     title: 'מורה פרטי', subtitle: 'שאלו כל דבר — אפשר לצרף תמונה או PDF של העבודה שלכם.',
     mode: 'מצב', modes: { tutor: 'הדריכו אותי', explain: 'הסבירו', custom: 'מותאם אישית' },
     modeHelp: {
@@ -332,6 +337,8 @@ export const he: Dict = {
       watch: 'לצפייה ב־YouTube', watchAt: (time: string) => `לצפייה ב־YouTube מ־${time}`,
     },
     doc: {
+      linkErrors: { bad: 'זה לא קישור לאתר.', notPage: 'הקישור הזה לא מוביל לדף אינטרנט. אם זה PDF או מסמך, הורידו אותו ובחרו את הקובץ.', noText: 'אין מספיק טקסט בדף. אפשר להעתיק את הטקסט ולהדביק.', tooBig: 'הדף גדול מדי.', unreachable: 'לא הצלחנו לפתוח את הדף. בדקו את הקישור, או העתיקו את הטקסט והדביקו.' }, 
+      link: 'קישור למאמר או לדף אינטרנט', linkPlaceholder: 'או להדביק קישור למאמר', read: 'לקרוא', linkFailed: 'לא הצלחנו לקרוא את הדף.', 
       choose: 'בחירת מסמך', hint: 'PDF, Word, PowerPoint, קובצי טקסט או תמונות של הסיכומים שלך.', reading: 'קוראים את המסמך…',
       legacy: 'אי אפשר לקרוא כאן קובצי Word ו־PowerPoint ישנים (.doc, .ppt). שומרים אותם כ־.docx, ‏.pptx או PDF ומנסים שוב.',
       unknown: 'אי אפשר לקרוא סוג קובץ כזה. נסו PDF, Word, PowerPoint או קובץ טקסט.', empty: 'אין טקסט בקובץ הזה.',
