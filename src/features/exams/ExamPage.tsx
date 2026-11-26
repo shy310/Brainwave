@@ -20,6 +20,8 @@ import { ReadinessRing } from './ReadinessRing';
 import { practiceQuestions } from './practice';
 import { useExamStatus } from './useExamData';
 import { recordQuizAnswer } from '@/features/weak/mistakeRepo';
+import { ExamPredictor } from './ExamPredictor';
+import { mockMinutes, rankLectures, type Prediction } from '@shared/examPredict';
 
 const SHOWN_DAYS = 7;
 
@@ -32,13 +34,20 @@ export default function ExamPage() {
   const [exam, setExam] = useState<Exam | null | undefined>(undefined);
   const [editing, setEditing] = useState(false);
   const [practice, setPractice] = useState<Question[] | null>(null);
+  /** The practice under way is the predicted mock exam (timed). */
+  const [mock, setMock] = useState(false);
   const [round, setRound] = useState(0);
   const [allDays, setAllDays] = useState(false);
   useEffect(() => { examRepo.get(id).then(setExam).catch(() => setExam(null)); }, [id]);
   const status = useExamStatus(exam);
 
   const today = localDay();
-  const plan = useMemo(() => (exam && status ? examPlan(status.lectures.map((l) => l.id), today, exam.date) : []), [exam, status, today]);
+  // With a prediction, the lectures behind the likely topics come first in the plan.
+  const plan = useMemo(() => {
+    if (!exam || !status) return [];
+    const ids = status.lectures.map((l) => l.id);
+    return examPlan(exam.prediction ? rankLectures(ids, exam.prediction.topics) : ids, today, exam.date);
+  }, [exam, status, today]);
   const byId = useMemo(() => new Map(status?.lectures.map((l) => [l.id, l]) ?? []), [status]);
 
   if (exam === undefined || (exam && !status)) return <p className="flex items-center gap-2 text-muted"><Spinner className="size-5" />{t.common.loading}</p>;
@@ -47,8 +56,18 @@ export default function ExamPage() {
   const fmt = (d: string, long = false) => new Date(`${d}T12:00:00`).toLocaleDateString(dateLocale(locale),
     long ? { weekday: 'long', day: 'numeric', month: 'long' } : { weekday: 'short', day: 'numeric', month: 'short' });
   const startPractice = () => {
+    setMock(false);
     setPractice(practiceQuestions(status.lectures, status.title, t.game.from));
     setRound((r) => r + 1);
+  };
+  const startMock = (p: Prediction) => {
+    setMock(true);
+    setPractice(p.questions);
+    setRound((r) => r + 1);
+  };
+  const savePrediction = (prediction: Prediction) => {
+    setExam({ ...exam, prediction });
+    void examRepo.update(exam.id, { prediction }).catch(() => {});
   };
   const finished = async (score: number) => {
     const next = { bestScore: Math.max(score, exam.bestScore ?? 0), attempts: exam.attempts + 1 };
@@ -95,11 +114,12 @@ export default function ExamPage() {
     return (
       <div className="mx-auto max-w-2xl space-y-5">
         <button type="button" onClick={() => setPractice(null)} className="text-sm font-medium text-muted hover:text-fg">‹ {te.back}</button>
-        <h1 className="text-2xl font-semibold tracking-tight">{te.practiceTitle} · <span dir="auto">{exam.title}</span></h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{mock ? te.predict.mockTitle : te.practiceTitle} · <span dir="auto">{exam.title}</span></h1>
+        {mock && <MockTimer key={round} minutes={mockMinutes(practice)} />}
         <QuizRunner key={round} questions={practice} onFinish={(s) => void finished(s)}
           onQuestion={(q, ok) => void recordQuizAnswer(q, null, ok)}
           resultActions={<>
-            <Button onClick={startPractice}>{te.again}</Button>
+            <Button onClick={mock && exam.prediction ? () => startMock(exam.prediction!) : startPractice}>{te.again}</Button>
             <Button variant="secondary" onClick={() => setPractice(null)}>{te.back}</Button>
           </>} />
       </div>
@@ -130,6 +150,11 @@ export default function ExamPage() {
       </Card>
 
       {!canPractice && <Alert>{te.noQuestions}</Alert>}
+
+      {status.days >= 0 && (
+        <ExamPredictor examTitle={exam.title} prediction={exam.prediction} lectures={status.lectures} title={status.title}
+          onSave={savePrediction} onStart={startMock} />
+      )}
       {status.days === 0 && <Alert tone="success">{te.goodLuck}</Alert>}
       {status.days < 0 && <Alert>{te.over}</Alert>}
 
@@ -158,3 +183,26 @@ export default function ExamPage() {
     </div>
   );
 }
+
+/** Time left in the mock exam; it turns amber near the end and says when time is up (you can still finish). */
+const MockTimer = ({ minutes }: { minutes: number }) => {
+  const { t } = useI18n();
+  const [left, setLeft] = useState(minutes * 60);
+  useEffect(() => {
+    const id = setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const total = minutes * 60;
+  const low = left <= total * 0.2;
+  return (
+    <div role="timer" aria-label={t.exams.predict.timeLeft} className="sticky top-16 z-10 space-y-1.5 rounded-xl border border-line bg-surface/90 px-3 py-2 backdrop-blur">
+      <p className={cn('flex items-center justify-between text-sm font-medium tabular-nums', low ? 'text-amber-700 dark:text-amber-300' : 'text-muted')}>
+        <span>{left ? t.exams.predict.timeLeft : t.exams.predict.timeUp}</span>
+        <span aria-live={low ? 'polite' : 'off'}>{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}</span>
+      </p>
+      <div className="h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+        <div className={cn('h-full rounded-full transition-[width] duration-1000 ease-linear', low ? 'bg-amber-500' : 'bg-brand-500')} style={{ width: `${(left / total) * 100}%` }} />
+      </div>
+    </div>
+  );
+};

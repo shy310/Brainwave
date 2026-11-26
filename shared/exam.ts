@@ -1,5 +1,6 @@
 // Exam mode: a day-by-day plan up to an exam, and how ready the student is.
 // Pure and tested; the pages only show it. Dates are local days "YYYY-MM-DD".
+import type { Prediction } from './examPredict.js';
 
 export interface Exam {
   id: string;
@@ -13,6 +14,8 @@ export interface Exam {
   /** Best practice-exam score so far, 0–100. */
   bestScore: number | null;
   attempts: number;
+  /** The AI's guess at what the exam will ask, with a mock exam (needs migration 0028). */
+  prediction?: Prediction | null;
 }
 
 const DAY = 86_400_000;
