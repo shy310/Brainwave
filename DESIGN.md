@@ -4,6 +4,7 @@ description: From lecture to exam-ready. Playful Intelligence for students of ev
 colors:
   primary: "#3268f5"
   primary-electric: "#518cff"
+  primary-pressed: "#2552d8"
   primary-deep: "#1f43ad"
   sky: "#dceaff"
   navy-ink: "#172344"
@@ -66,7 +67,7 @@ components:
     height: "44px"
     padding: "0 16px"
   button-primary-hover:
-    backgroundColor: "{colors.primary-electric}"
+    backgroundColor: "{colors.primary-pressed}"
   button-sun:
     backgroundColor: "{colors.sunshine}"
     textColor: "{colors.navy-ink}"
@@ -116,8 +117,10 @@ A saturated blue world on a cool periwinkle ground, with four friendly accents t
 
 ### Primary
 - **BrainWave Blue** (#3268f5): primary buttons, active navigation, the landing hero field, the "Next up" field, selection.
-- **Electric Blue** (#518cff): hover on blue controls; light strokes on blue fields.
+- **Electric Blue** (#518cff): light strokes and glows on blue fields. Never a fill behind white text (3.4:1).
+- **Pressed Blue** (#2552d8): hover on blue controls. Hovers darken, so white text keeps AA (6.4:1).
 - **Deep Blue** (#1f43ad): the button lip and the bottom of blue gradients.
+- Brand-coloured text uses #2552d8, which passes on every surface; #3268f5 passes only on pure white.
 - **Sky** (#dceaff): the active nav pill, info tints, the lesson hook callout.
 
 ### Secondary
@@ -138,6 +141,8 @@ A saturated blue world on a cool periwinkle ground, with four friendly accents t
 **The Right-and-Wrong-Never-By-Colour Rule.** Mint and coral always come with a mark: a check, an X, or a letter. A correct answer the student didn't pick gets a dashed mint outline.
 
 **The One Sun Rule.** Sunshine fills at most one control per screen.
+
+**The Fields-Carry-White Rule.** Every coloured field that carries text (the hero, Next up, course headers) passes 4.5:1 with full-opacity white. No translucent white text on colour.
 
 ## Typography
 
@@ -182,7 +187,7 @@ Friendly and rounded, without becoming bubbly. Controls use 14px corners, cards 
 - **Sun:** sunshine with navy text, for the single hero call to action.
 - **Secondary:** white with a line border and a line-coloured lip.
 - **Ghost / onColor:** text-only buttons, or a white outline on blue fields.
-- **Hover:** fine pointers only, a 1px lift and a lighter fill (200ms).
+- **Hover:** fine pointers only, a 1px lift and a darker fill (200ms). A lighter fill would drop white text below AA.
 
 ### Chips
 - **Style:** full pills, 36px. Unselected chips sit on the sunk surface (or transparent inside a sunk track); the selected chip is blue with white text and a soft shadow.
