@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronsLeft, ChevronsRight, Headphones, MessageCircleQuestion, Pause, Play, RotateCcw, SkipBack, SkipForward } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronsLeft, ChevronsRight, Hand, Headphones, MessageCircleQuestion, Pause, Play, RotateCcw, SkipBack, SkipForward } from 'lucide-react';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
@@ -9,6 +9,7 @@ import { estimateMs, useVoices, type Voice } from '@/features/media/speech';
 import { primeAudio, useCloudVoices } from '@/features/media/cloudVoice';
 import { VOICE_PAIRS } from '@shared/tts';
 import { usePlayback } from '@/features/media/usePlayback';
+import { RaiseHand, type AskedQuestion } from './RaiseHand';
 
 const RATES = [0.75, 1, 1.25, 1.5, 2];
 const HOST_STYLE = [
@@ -21,9 +22,11 @@ interface Props {
   locale: Locale;
   title: string;
   onAsk?: (lineIndex: number) => void;
+  /** The listener's first name, for the hosts to greet them when they raise their hand. */
+  listener?: string;
 }
 
-export const PodcastPlayer = ({ script, locale, title, onAsk }: Props) => {
+export const PodcastPlayer = ({ script, locale, title, onAsk, listener }: Props) => {
   const t = useT();
   const voices = useVoices(locale);
   const cloud = useCloudVoices();
@@ -36,13 +39,20 @@ export const PodcastPlayer = ({ script, locale, title, onAsk }: Props) => {
   const v0: Voice = cloud ? { cloud: VOICE_PAIRS[locale][0] } : voices[0] ?? null;
   const v1: Voice = cloud ? { cloud: VOICE_PAIRS[locale][1] } : voices.find((v) => v !== v0) ?? v0;
   const samePitch = !cloud && v0 === v1;
-  const units = useMemo(() => script.lines.map((l) => ({
+  const unit = useCallback((l: { speaker: number; text: string }) => ({
     text: l.text,
     voice: l.speaker === 1 ? v1 : v0,
     pitch: samePitch ? (l.speaker === 1 ? 0.85 : 1.15) : 1,
     pauseAfter: 250,
-  })), [script, v0, v1, samePitch]);
+  }), [v0, v1, samePitch]);
+  const units = useMemo(() => script.lines.map(unit), [script, unit]);
   const { index, playing, ended, play, pause, seek, toggle } = usePlayback(units, rate);
+
+  // Raise your hand: pause, ask, the hosts answer, then the episode carries on.
+  const [hand, setHand] = useState(false);
+  const [questions, setQuestions] = useState<AskedQuestion[]>([]);
+  const raise = () => { primeAudio(); pause(); setHand(true); };
+  const resume = useCallback(() => { setHand(false); if (!ended) play(); }, [ended, play]);
 
   const chapters = useMemo(() => script.lines.map((l, i) => (l.chapter ? i : -1)).filter((i) => i >= 0), [script]);
   const currentChapter = chapters.filter((c) => c <= index).pop() ?? 0;
@@ -108,9 +118,35 @@ export const PodcastPlayer = ({ script, locale, title, onAsk }: Props) => {
             {RATES.map((r) => <option key={r} value={r}>{r}×</option>)}
           </select>
         </div>
+        <div className="mt-4 flex justify-center">
+          <Button variant={hand ? 'primary' : 'secondary'} icon={<Hand className={cn('size-4', hand && 'animate-wave')} />} aria-pressed={hand}
+            onClick={() => (hand ? setHand(false) : raise())}
+            className={cn(!hand && 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200')}>
+            {hand ? t.podcasts.hand.lower : t.podcasts.hand.raise}
+          </Button>
+        </div>
         {voicesChecked && !cloud && voices.length === 0 && <p className="mt-3 text-center text-sm text-muted">{t.podcasts.noVoice}</p>}
         {voicesChecked && voices.length > 0 && samePitch && <p className="mt-3 text-center text-xs text-muted">{t.podcasts.oneVoice}</p>}
       </div>
+
+      {hand && (
+        <RaiseHand script={script} title={title} locale={locale} at={index} listener={listener} rate={rate} unit={unit}
+          earlier={questions} onAnswered={(q) => setQuestions((all) => [...all, q])} onResume={resume} onClose={() => setHand(false)} />
+      )}
+
+      {questions.length > 0 && !hand && (
+        <details className="rounded-xl border border-line bg-surface px-4 py-2.5">
+          <summary className="cursor-pointer text-sm font-medium">{t.podcasts.hand.yours(questions.length)}</summary>
+          <ul className="mt-2 space-y-3 pb-1">
+            {questions.map((q, i) => (
+              <li key={i} className="space-y-1 text-sm">
+                <p className="font-medium" dir="auto">{q.question}</p>
+                {q.lines.map((l, j) => <p key={j} className="text-muted" dir="auto">{script.hosts[l.speaker]?.name}: {l.text}</p>)}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       {chapters.length > 1 && (
         <nav aria-label={t.podcasts.chapters} className="flex flex-wrap gap-2">

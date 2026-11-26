@@ -548,6 +548,12 @@ export const en = {
     watchVideo: 'Watch a video lesson', loadingSource: 'Loading…',
   },
   podcasts: {
+    hand: {
+      raise: 'Raise your hand', lower: 'Lower your hand', title: 'Your hand is up', body: 'The episode is paused. Ask the hosts anything — they’ll answer on air.',
+      speak: 'Tap and ask out loud', stop: 'Stop and send', listening: 'Listening…', type: 'Or type your question…', micDenied: 'The microphone is blocked — type your question instead.',
+      thinking: (a: string, b: string) => `${a} and ${b} are thinking…`, answering: (a: string, b: string) => `${a} and ${b} answer you`,
+      back: 'Back to the episode', again: 'Ask something else', yours: (n: number) => (n === 1 ? 'Your question' : `Your ${n} questions`),
+    },
     title: 'Podcasts', subtitle: 'Two hosts talk through anything you are learning — great for revision on the go.',
     createTitle: 'Make a podcast episode', promptLabel: 'What should the episode be about?',
     promptPlaceholder: 'e.g. Black holes · How the stock market works · The French Revolution',

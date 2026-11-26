@@ -547,6 +547,12 @@ export const he: Dict = {
     watchVideo: 'לצפייה בשיעור וידאו', loadingSource: 'טוען…',
   },
   podcasts: {
+    hand: {
+      raise: 'להרים יד', lower: 'להוריד את היד', title: 'היד שלך מורמת', body: 'הפרק בהשהיה. אפשר לשאול את המגישים כל דבר — הם יענו בשידור.',
+      speak: 'לחצו ושאלו בקול', stop: 'לעצור ולשלוח', listening: 'מקשיבים…', type: 'או להקליד שאלה…', micDenied: 'המיקרופון חסום — אפשר להקליד את השאלה.',
+      thinking: (a: string, b: string) => `${a} ו${b} חושבים…`, answering: (a: string, b: string) => `${a} ו${b} עונים לך`,
+      back: 'חזרה לפרק', again: 'לשאול משהו אחר', yours: (n: number) => (n === 1 ? 'השאלה שלך' : `${n} השאלות שלך`),
+    },
     title: 'פודקאסטים', subtitle: 'שני מגישים משוחחים על כל מה שאתם לומדים — מעולה לחזרה בדרכים.',
     createTitle: 'יצירת פרק פודקאסט', promptLabel: 'על מה יהיה הפרק?',
     promptPlaceholder: 'למשל: חורים שחורים · איך עובדת הבורסה · המהפכה הצרפתית',

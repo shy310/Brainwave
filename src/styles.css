@@ -262,3 +262,7 @@
   @page { margin: 10mm; }
   .cheat-sheet { color: #000; }
 }
+/* A raised hand waves (podcasts). */
+@keyframes wave { 0%, 60%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(14deg); } 20%, 40% { transform: rotate(-8deg); } }
+.animate-wave { animation: wave 1.6s ease-in-out infinite; transform-origin: 70% 80%; }
+@media (prefers-reduced-motion: reduce) { .animate-wave { animation: none; } }

@@ -14,6 +14,7 @@ import { VOICE_PAIRS } from '@shared/tts';
 import { loadSpeech, useCloudVoices } from '@/features/media/cloudVoice';
 import { PodcastPlayer } from './PodcastPlayer';
 import { askConfirm } from '@/ui/Confirm';
+import { useAuth } from '@/features/auth/AuthProvider';
 
 const scriptText = (p: PodcastScript) =>
   p.lines.map((l) => `${l.chapter ? `\n## ${l.chapter}\n` : ''}${p.hosts[l.speaker]?.name}: ${l.text}`).join('\n').trim();
@@ -22,6 +23,7 @@ export default function PodcastPage() {
   const { id = '' } = useParams();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [episode, setEpisode] = useState<Media<PodcastScript> | null | undefined>(undefined);
   const [askLine, setAskLine] = useState<number | null>(null);
   const askRef = useRef<HTMLDivElement>(null);
@@ -123,7 +125,7 @@ export default function PodcastPage() {
         </Card>
       )}
 
-      <PodcastPlayer script={episode.script} locale={episode.locale} title={episode.title}
+      <PodcastPlayer script={episode.script} locale={episode.locale} title={episode.title} listener={profile?.display_name?.split(' ')[0]}
         onAsk={(i) => { setAskLine(i); requestAnimationFrame(() => askRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }} />
     </div>
   );
