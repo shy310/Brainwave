@@ -22,7 +22,7 @@ export const ExamBanner = () => {
   const status = useExamStatus(exam);
   if (!exam || !status) return null;
   return (
-    <Link to={`/exams/${exam.id}`} className="pressable flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-lift)]">
+    <Link to={`/exams/${exam.id}`} className="pressable lift flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
       <ReadinessRing value={status.ready} label={te.ready(status.ready)} />
       <span className="min-w-0 flex-1">
         <span className="block text-xs font-semibold uppercase tracking-wide text-muted">{te.title}</span>

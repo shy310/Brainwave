@@ -10,7 +10,7 @@ export const WeakSpotsBanner = () => {
   const total = data ? data.mistakes.length + data.cards.length : 0;
   if (!total) return null;
   return (
-    <Link to="/practice" className="pressable flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-lift)]">
+    <Link to="/practice" className="pressable lift flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
       <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-rose-500/12 text-rose-600 dark:text-rose-400"><Target className="size-6" aria-hidden="true" /></span>
       <span className="min-w-0 flex-1">
         <span className="block font-semibold">{t.weak.home}</span>

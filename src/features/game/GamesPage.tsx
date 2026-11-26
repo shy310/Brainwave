@@ -142,7 +142,7 @@ export default function GamesPage() {
                 );
                 const cls = 'flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]';
                 return ready
-                  ? <Link key={g} to={`/play/${g}?${query}`} className={cn(cls, 'pressable transition-shadow hover:shadow-[var(--shadow-lift)]')}>{body}</Link>
+                  ? <Link key={g} to={`/play/${g}?${query}`} className={cn(cls, 'pressable lift transition-shadow')}>{body}</Link>
                   : <div key={g} className={cn(cls, 'opacity-50')}>{body}</div>;
               })}
             </div>

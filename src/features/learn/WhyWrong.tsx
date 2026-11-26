@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowUp, Sparkles } from 'lucide-react';
 import { useT } from '@/i18n';
+import { cn } from '@/lib/cn';
 import { streamAi } from '@/lib/api';
 import { useAiError } from '@/lib/useAiError';
 import { Alert } from '@/ui/Alert';
@@ -77,7 +78,7 @@ export const WhyWrong = ({ facts }: { facts: Omit<WhyWrongInput, 'followUps'> })
         {turns.map((turn, i) => turn.role === 'user' ? (
           <p key={i} className="ms-auto w-fit max-w-[85%] rounded-2xl bg-brand-600 px-3 py-1.5 text-sm text-white" dir="auto">{turn.content}</p>
         ) : turn.content ? (
-          <Rich key={i} text={turn.content} className="text-sm leading-relaxed" />
+          <div key={i} className={cn(streaming && i === turns.length - 1 && 'ai-streaming')}><Rich text={turn.content} className="text-sm leading-relaxed" /></div>
         ) : (
           <p key={i} className="text-sm text-muted"><Shimmer text={tw.thinking} /></p>
         ))}

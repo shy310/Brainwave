@@ -126,7 +126,7 @@ export default function HomePage() {
           <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
             {recent.slice(0, 6).map((l) => (
               <li key={l.id} className="w-[70%] shrink-0 snap-start sm:w-auto">
-                <Link to={`/lectures/${l.id}`} className="pressable flex h-full flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-lift)]">
+                <Link to={`/lectures/${l.id}`} className="pressable lift flex h-full flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
                   <span className="flex size-9 items-center justify-center rounded-xl bg-brand-500/10 text-brand-700 dark:text-brand-300">
                     {l.source === 'record' ? <Mic className="size-4" aria-hidden="true" /> : <FileText className="size-4" aria-hidden="true" />}
                   </span>
