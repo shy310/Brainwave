@@ -320,6 +320,8 @@ export const ar: Dict = {
       watch: 'شاهد على YouTube', watchAt: (time: string) => `شاهد على YouTube من ${time}`,
     },
     doc: {
+      linkErrors: { bad: 'هذا ليس رابط موقع.', notPage: 'هذا الرابط ليس صفحة ويب. إن كان PDF أو مستندًا، نزّله واختر الملف.', noText: 'لا يوجد نص كافٍ في الصفحة. انسخ النص والصقه بدلًا من ذلك.', tooBig: 'الصفحة كبيرة جدًا.', unreachable: 'تعذّر فتح الصفحة. تحقّق من الرابط، أو انسخ النص والصقه.' }, 
+      link: 'رابط مقال أو صفحة ويب', linkPlaceholder: 'أو الصق رابط مقال', read: 'اقرأه', linkFailed: 'تعذّرت قراءة هذه الصفحة.', 
       choose: 'اختر مستندًا', hint: 'PDF أو Word أو PowerPoint أو ملفات نصية أو صور لملاحظاتك.', reading: 'نقرأ المستند…',
       legacy: 'لا يمكن قراءة ملفات Word وPowerPoint القديمة (.doc و.ppt) هنا. احفظها بصيغة .docx أو .pptx أو PDF وحاول مجددًا.',
       unknown: 'لا يمكن قراءة هذا النوع من الملفات. جرّب PDF أو Word أو PowerPoint أو ملفًا نصيًا.', empty: 'لا يوجد نص في هذا الملف.',
