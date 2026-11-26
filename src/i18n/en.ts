@@ -88,6 +88,22 @@ export const en = {
     videosTitle: 'Video lessons',
     podcastsTitle: 'Podcasts',
   },
+  calendar: {
+    title: 'Calendar', subtitle: 'Classes, exams, deadlines and what to study each day.', addDeadline: 'Add a deadline', classTimes: 'Class times',
+    prev: 'Previous month', next: 'Next month', today: 'Today', free: 'Nothing on this day.', empty: 'Import a syllabus or add a deadline to fill in your calendar.',
+    kinds: { class: 'Class', exam: 'Exam', deadline: 'Deadline', plan: 'Study plan' },
+    kindsOf: { assignment: 'Assignment', quiz: 'Quiz', project: 'Project', other: 'Deadline' },
+    learn: (what: string) => `Learn: ${what}`, review: 'Review flashcards', practice: 'Practice exam', for: (exam: string) => `For ${exam}`,
+    done: (title: string) => `Done: ${title}`, remove: (title: string) => `Remove ${title}`,
+    what: 'What’s due', whatPlaceholder: 'e.g. Problem set 4', due: 'Due', kind: 'Kind', save: 'Add deadline',
+    syllabus: {
+      open: 'Import syllabus', title: 'Import a syllabus', body: 'Choose the course syllabus (PDF, Word or text) or paste it. We’ll find the class times, exams and deadlines for you to check.',
+      choose: 'Choose the syllabus', pastePlaceholder: 'Paste the syllabus here…', read: 'Find the dates', reading: 'Reading the syllabus…', adding: 'Adding to your calendar…',
+      review: 'Here’s what we found. Untick anything you don’t want.', course: 'Course', classes: 'Classes every week', exams: 'Exams', deadlines: 'Deadlines',
+      remind: 'Remind me 15 minutes before each class', add: (n: number) => (n === 1 ? 'Add 1 item' : `Add ${n} items`), untitled: 'Course',
+      tooShort: 'That’s too short to be a syllabus.', nothing: 'No class times or dates were found in this syllabus.', noPhotos: 'Photos of a syllabus aren’t supported yet. Choose the PDF or paste the text.', unreadable: 'This file couldn’t be read.',
+    },
+  },
   exams: {
     predict: {
       title: 'Predicted exam', make: 'Predict my exam', again: 'Predict again', reading: 'Reading your lectures for what the lecturer stressed…',
@@ -489,6 +505,7 @@ export const en = {
     },
     mastery: { title: 'Progress', new: 'New', learning: 'Still learning', almost: 'Almost done', mastered: 'Mastered' },
     tools: {
+      calendar: 'Calendar', calendarBody: 'Classes, exams, deadlines', 
       title: 'Study tools', review: 'Review flashcards', weak: 'Weak spots', weakBody: 'What you keep missing', exams: 'Exams', examsBody: 'A plan up to exam day', games: 'Games', gamesBody: 'Glide and Lane Rush, with your questions',
       groups: 'Study groups', groupsBody: 'Share notes with classmates', schedule: 'Class schedule', scheduleBody: 'Reminders to record',
       reviewBody: 'A few minutes a day',

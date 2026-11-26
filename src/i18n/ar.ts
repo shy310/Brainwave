@@ -93,6 +93,22 @@ export const ar: Dict = {
     videosTitle: 'دروس الفيديو',
     podcastsTitle: 'البودكاست',
   },
+  calendar: {
+    title: 'التقويم', subtitle: 'المحاضرات والامتحانات ومواعيد التسليم وما تذاكره كل يوم.', addDeadline: 'أضف موعد تسليم', classTimes: 'مواعيد المحاضرات',
+    prev: 'الشهر السابق', next: 'الشهر التالي', today: 'اليوم', free: 'لا شيء في هذا اليوم.', empty: 'استورد خطة المقرر أو أضف موعد تسليم لملء التقويم.',
+    kinds: { class: 'محاضرة', exam: 'امتحان', deadline: 'تسليم', plan: 'خطة المذاكرة' },
+    kindsOf: { assignment: 'واجب', quiz: 'اختبار قصير', project: 'مشروع', other: 'تسليم' },
+    learn: (what: string) => `ذاكر: ${what}`, review: 'راجع البطاقات', practice: 'امتحان تجريبي', for: (exam: string) => `استعدادًا لـ${exam}`,
+    done: (title: string) => `تم: ${title}`, remove: (title: string) => `احذف ${title}`,
+    what: 'ما المطلوب تسليمه', whatPlaceholder: 'مثلًا: الواجب 4', due: 'موعد التسليم', kind: 'النوع', save: 'أضف موعد التسليم',
+    syllabus: {
+      open: 'استورد خطة المقرر', title: 'استيراد خطة المقرر', body: 'اختر خطة المقرر (PDF أو Word أو نص) أو الصقها. سنجد لك مواعيد المحاضرات والامتحانات والتسليمات لتراجعها.',
+      choose: 'اختر خطة المقرر', pastePlaceholder: 'الصق خطة المقرر هنا…', read: 'جِد التواريخ', reading: 'نقرأ خطة المقرر…', adding: 'نضيف إلى تقويمك…',
+      review: 'هذا ما وجدناه. ألغِ تحديد ما لا تريده.', course: 'المقرر', classes: 'محاضرات كل أسبوع', exams: 'الامتحانات', deadlines: 'مواعيد التسليم',
+      remind: 'ذكّرني قبل كل محاضرة بـ15 دقيقة', add: (n: number) => (n === 1 ? 'أضف عنصرًا واحدًا' : `أضف ${n} عناصر`), untitled: 'مقرر',
+      tooShort: 'هذا أقصر من أن يكون خطة مقرر.', nothing: 'لم نجد مواعيد محاضرات أو تواريخ في خطة المقرر.', noPhotos: 'لا ندعم صور خطة المقرر بعد. اختر ملف PDF أو الصق النص.', unreadable: 'تعذّرت قراءة الملف.',
+    },
+  },
   exams: {
     predict: {
       title: 'الامتحان المتوقَّع', make: 'توقّع امتحاني', again: 'توقّع من جديد', reading: 'نقرأ محاضراتك لنعرف ما ركّز عليه المحاضر…',
@@ -492,6 +508,7 @@ export const ar: Dict = {
     },
     mastery: { title: 'التقدّم', new: 'جديدة', learning: 'قيد التعلّم', almost: 'على وشك', mastered: 'متقَنة' },
     tools: {
+      calendar: 'التقويم', calendarBody: 'محاضرات، امتحانات، مواعيد تسليم', 
       title: 'أدوات الدراسة', review: 'مراجعة البطاقات', weak: 'نقاط الضعف', weakBody: 'ما تخطئ فيه مرارًا', exams: 'الامتحانات', examsBody: 'خطة حتى يوم الامتحان', games: 'الألعاب', gamesBody: 'تحليق وسباق المسارات بأسئلتك',
       groups: 'مجموعات الدراسة', groupsBody: 'شارك الملخصات مع زملائك', schedule: 'جدول الحصص', scheduleBody: 'تذكيرات بالتسجيل',
       reviewBody: 'بضع دقائق يوميًا',

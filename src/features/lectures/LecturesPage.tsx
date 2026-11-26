@@ -356,7 +356,7 @@ export default function LecturesPage() {
   );
 }
 
-/** Everything for studying the lectures, in one place: review, exams, games, study groups and the class schedule. */
+/** Everything for studying the lectures, in one place: review, exams, games, study groups and the calendar. */
 const StudyTools = ({ due }: { due: number }) => {
   const { t } = useI18n();
   const tt = t.lectures.tools;
@@ -366,7 +366,7 @@ const StudyTools = ({ due }: { due: number }) => {
     { to: '/exams', icon: CalendarClock, title: tt.exams, body: tt.examsBody, tint: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' },
     { to: '/play', icon: Gamepad2, title: tt.games, body: tt.gamesBody, tint: 'bg-accent-400/15 text-accent-600 dark:text-accent-300' },
     { to: '/groups', icon: Users, title: tt.groups, body: tt.groupsBody, tint: 'bg-rose-500/12 text-rose-700 dark:text-rose-300' },
-    { to: '/lectures/schedule', icon: CalendarDays, title: tt.schedule, body: tt.scheduleBody, tint: 'bg-sky-500/12 text-sky-700 dark:text-sky-300' },
+    { to: '/calendar', icon: CalendarDays, title: tt.calendar, body: tt.calendarBody, tint: 'bg-sky-500/12 text-sky-700 dark:text-sky-300' },
   ];
   return (
     <section aria-label={tt.title}>
