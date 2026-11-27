@@ -1,7 +1,9 @@
 {
+  "autoContinueAtUsageLimit": false,
   "enabledPlugins": {
     "ponytail@ponytail": true,
-    "caveman@caveman": true
+    "caveman@caveman": true,
+    "auto-pause@k45sle": true
   },
   "extraKnownMarketplaces": {
     "ponytail": {
@@ -16,6 +18,13 @@
         "source": "github",
         "repo": "juliusbrussee/caveman",
         "ref": "e74a11ccdb38b98d15c9f9545787c907dd15f0ab"
+      }
+    },
+    "k45sle": {
+      "source": {
+        "source": "github",
+        "repo": "k45sle/Claude-auto-pause",
+        "ref": "f2beb71f45be1ed4ca1bed4fc47f8597c82ceeac"
       }
     }
   }
