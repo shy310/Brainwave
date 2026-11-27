@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, CalendarClock, Layers, Mic, NotebookText, Target, Timer } from 'lucide-react';
+import { BookOpen, CalendarClock, Layers, Mic, NotebookText, Target, Timer } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { StudyPath, type PathStep } from '@/ui/StudyPath';
 import { TOOL_META } from '@/ui/tools';

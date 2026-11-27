@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Layers, Timer } from 'lucide-react';
+import { Layers, Timer } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Mascot } from '@/ui/Mascot';

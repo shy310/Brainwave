@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Download, FileAudio, Trash2, X } from 'lucide-react';
+import { Download, FileAudio, Trash2, X } from '@/ui/icons';
 import { Cover } from '@/features/media/Cover';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';

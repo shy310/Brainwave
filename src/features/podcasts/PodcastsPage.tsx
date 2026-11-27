@@ -1,4 +1,4 @@
-import { Headphones } from 'lucide-react';
+import { Headphones } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { MediaStudio } from '@/features/media/MediaStudio';
 

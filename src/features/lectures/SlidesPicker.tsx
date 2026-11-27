@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FileText, X } from 'lucide-react';
+import { FileText, X } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { ApiError, callAi } from '@/lib/api';
 import { useAiError } from '@/lib/useAiError';

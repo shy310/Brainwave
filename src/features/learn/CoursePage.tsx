@@ -9,7 +9,7 @@ import { SubjectArt } from './SubjectArt';
 import { cn } from '@/lib/cn';
 import { BackLink } from '@/ui/PageHeader';
 import { StudyPath } from '@/ui/StudyPath';
-import { BookOpenText } from 'lucide-react';
+import { BookOpenText } from '@/ui/icons';
 
 // The back link lives in the shared UI now; re-exported for the pages that import it from here.
 export { BackLink };

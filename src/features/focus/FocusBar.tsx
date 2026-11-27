@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Coffee, Pause, Play, Square, Timer } from 'lucide-react';
+import { Coffee, Pause, Play, Square, Timer } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';

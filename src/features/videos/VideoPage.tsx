@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { PageHeader } from '@/ui/PageHeader';
 import { Loading } from '@/ui/Wave';
 import { useNavigate, useParams } from 'react-router';
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';

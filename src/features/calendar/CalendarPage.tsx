@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { ToolHero, heroAction } from '@/ui/PageHeader';
 import { Loading } from '@/ui/Wave';
 import { Link } from 'react-router';
-import { BookOpen, CalendarClock, ChevronLeft, ChevronRight, ClipboardList, FileUp, GraduationCap, Layers, Plus, Trash2 } from 'lucide-react';
+import { BookOpen, CalendarClock, ChevronLeft, ChevronRight, ClipboardList, FileUp, GraduationCap, Layers, Plus, Trash2 } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';

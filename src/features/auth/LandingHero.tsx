@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { Check, Pause } from 'lucide-react';
+import { Check, Pause } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Mascot } from '@/ui/Mascot';
@@ -90,7 +90,7 @@ export const LandingHero = () => {
           <div className="w-[168px]">
             <Tag tone="bg-coral-100 text-coral-700">{ta.podcast}</Tag>
             <div className="flex items-center gap-2">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white"><Pause className="size-4" fill="currentColor" /></span>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white"><Pause className="size-4" weight="fill" /></span>
               <span className="flex h-8 flex-1 items-center gap-[3px]">
                 {[8, 16, 24, 14, 28, 18, 10, 22, 30, 16, 12, 20].map((h, i) => <span key={i} className="hero-bar w-[3px] rounded-full bg-brand-400" style={{ height: h, animationDelay: `${i * 80}ms` }} />)}
               </span>

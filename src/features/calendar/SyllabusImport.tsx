@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ClipboardPaste, FileUp } from 'lucide-react';
+import { ClipboardPaste, FileUp } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { useAiError } from '@/lib/useAiError';

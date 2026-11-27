@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { IconType } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 import { Mascot, type Mood } from './Mascot';
 
@@ -9,7 +9,7 @@ import { Mascot, type Mood } from './Mascot';
  * the page's subject is still clear at a glance.
  */
 export const EmptyState = ({ icon: Icon, mood = 'curious', title, body, action, className }: {
-  icon?: LucideIcon; mood?: Mood; title?: string; body: ReactNode; action?: ReactNode; className?: string;
+  icon?: IconType; mood?: Mood; title?: string; body: ReactNode; action?: ReactNode; className?: string;
 }) => (
   <div className={cn('flex flex-col items-center gap-3 rounded-[var(--radius-card)] border border-line bg-surface px-6 py-8 text-center', className)}>
     <span className="relative">

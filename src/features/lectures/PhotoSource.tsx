@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, ImagePlus, Sparkles, X } from 'lucide-react';
+import { Camera, ImagePlus, Sparkles, X } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { useAiError } from '@/lib/useAiError';

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router';
-import { CheckCircle2, Clapperboard, Headphones, MessageCircle, RefreshCw, Sparkles, Target } from 'lucide-react';
+import { CheckCircle2, Clapperboard, Headphones, MessageCircle, RefreshCw, Sparkles, Target } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { callAi } from '@/lib/api';

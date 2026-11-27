@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useParams, useSearchParams } from 'react-router';
-import { ChevronLeft, ChevronRight, Heart, Pause, Play, RotateCcw, ShieldCheck, Trophy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, Pause, Play, RotateCcw, ShieldCheck, Trophy } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { useHideTabBar } from '@/app/chrome';
 import { cn } from '@/lib/cn';
@@ -226,10 +226,10 @@ const Game = ({ id, folder, lectures, back }: { id: GameId; folder: string; lect
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-bold">{name}</h1>
             <span className="ms-auto text-sm font-semibold tabular-nums" aria-live="off">{tg.score}: <span key={total} className={total ? 'animate-digit' : undefined}>{total}</span></span>
-            {run.shield && <ShieldCheck className="size-5 text-accent-600 dark:text-accent-300" role="img" aria-label={tg.shield} />}
+            {run.shield && <ShieldCheck className="size-5 text-accent-600 dark:text-accent-300" weight="fill" role="img" aria-hidden={false} aria-label={tg.shield} />}
             <span className="flex items-center gap-0.5" role="img" aria-label={tg.lives(run.lives)}>
               {Array.from({ length: LIVES }, (_, i) => (
-                <Heart key={i} className={cn('size-4', i < run.lives ? 'fill-rose-500 text-rose-500' : 'text-muted')} aria-hidden="true" />
+                <Heart key={i} className={cn('size-4', i < run.lives ? 'text-rose-500' : 'text-muted')} weight={i < run.lives ? 'fill' : 'bold'} />
               ))}
             </span>
             <button type="button" disabled={phase !== 'playing' && phase !== 'paused'} onClick={() => setPhase(phase === 'paused' ? 'playing' : 'paused')}

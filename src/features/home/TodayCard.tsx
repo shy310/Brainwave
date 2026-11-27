@@ -1,4 +1,4 @@
-import { Check, Flame } from 'lucide-react';
+import { Check, Flame } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { dailyGoals, lastWeek, localDay, streaks, type DayActivity } from '@shared/activity';
@@ -42,7 +42,7 @@ export const TodayCard = ({ days, due }: { days: DayActivity[]; due: number }) =
                 <span className={cn('text-xs', isToday ? 'font-semibold text-fg' : 'text-muted')} aria-hidden="true">{letter(d.day)}</span>
                 <span className={cn('flex size-8 items-center justify-center rounded-full border-2 transition-colors',
                   on ? 'border-brand-600 bg-brand-600 text-white' : isToday ? 'border-brand-600' : 'border-line')}>
-                  {on && <Check className="size-4 animate-tick" strokeWidth={3} aria-hidden="true" />}
+                  {on && <Check className="size-4 animate-tick" aria-hidden="true" />}
                 </span>
                 <span className="sr-only">{`${weekdayName(d.day)}: ${on ? t.home.goalDone : t.home.goalTodo}`}</span>
               </li>

@@ -1,4 +1,4 @@
-import { Play } from 'lucide-react';
+import { Play } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 import { sinePath } from '@/ui/Wave';
 import type { MediaKind } from '@shared/media';
@@ -40,7 +40,7 @@ export const Cover = ({ kind, seed, className }: { kind: MediaKind; seed: string
       )}
       {kind === 'video' && (
         <span className="absolute start-1/2 top-[42%] flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-coral-600 shadow-[0_8px_20px_-8px_rgb(23_35_68/0.6)] transition-transform duration-200 ease-[var(--ease-out)] group-hover:scale-110 rtl:translate-x-1/2">
-          <Play className="ms-0.5 size-5" fill="currentColor" />
+          <Play className="ms-0.5 size-5" weight="fill" />
         </span>
       )}
     </div>

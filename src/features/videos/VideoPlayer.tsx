@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Captions, ChevronLeft, ChevronRight, Maximize, MessageCircleQuestion, Pause, Play, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { Captions, ChevronLeft, ChevronRight, Maximize, MessageCircleQuestion, Pause, Play, RotateCcw, Volume2, VolumeX } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';

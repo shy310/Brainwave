@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
-import { Check, Gamepad2, Sparkles, Trophy, X } from 'lucide-react';
+import { Check, Gamepad2, Sparkles, Trophy, X } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Card } from '@/ui/Card';

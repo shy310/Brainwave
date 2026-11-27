@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Users } from 'lucide-react';
+import { Users } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
 import { Loading } from '@/ui/Wave';

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowUp, Hand, Mic, Square, X } from 'lucide-react';
+import { ArrowUp, Hand, Mic, Square, X } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -102,7 +102,7 @@ export const RaiseHand = ({ script, title, locale, at, listener, rate, unit, ear
                 className={cn('relative flex size-16 items-center justify-center rounded-full text-white shadow-[var(--shadow-lift)] transition-transform active:scale-95',
                   mic.listening ? 'bg-rose-500' : 'bg-brand-600 hover:bg-brand-700')}>
                 {mic.listening && <span className="absolute inset-0 animate-ping rounded-full bg-rose-400/50 motion-reduce:hidden" aria-hidden="true" />}
-                {mic.listening ? <Square className="relative size-6" fill="currentColor" aria-hidden="true" /> : <Mic className="size-7" aria-hidden="true" />}
+                {mic.listening ? <Square className="relative size-6" weight="fill" aria-hidden="true" /> : <Mic className="size-7" aria-hidden="true" />}
               </button>
               <p className="min-h-5 text-center text-sm text-muted" aria-live="polite" dir="auto">
                 {mic.listening ? (mic.text || th.listening) : mic.denied ? th.micDenied : th.speak}

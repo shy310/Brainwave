@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { IconType } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 
-interface Option<T extends string> { value: T; label: string; icon?: LucideIcon }
+interface Option<T extends string> { value: T; label: string; icon?: IconType }
 
 /** Accessible single-choice toggle group (radio semantics). The highlight slides to the chosen option. */
 export const Segmented = <T extends string>({ value, options, onChange, label, scroll, fill }: {

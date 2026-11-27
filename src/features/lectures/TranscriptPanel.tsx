@@ -1,5 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
-import { Copy, Download, Pencil, Play, Search, Star, X } from 'lucide-react';
+import { Copy, Download, Pencil, Play, Search, Star, X } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
@@ -135,11 +135,11 @@ export const TranscriptPanel = ({ segments, timed, fileName, onSave, onPlay, mar
           {timed && onPlay ? (
             <button type="button" onClick={() => onPlay(s.start)} aria-label={tt.playFrom(formatTime(s.start))}
               className="group -my-1 inline-flex h-7 w-16 shrink-0 items-center gap-1 rounded-lg px-1.5 text-xs tabular-nums text-brand-700 hover:bg-brand-500/10 dark:text-brand-300">
-              <Play className="size-3 shrink-0 fill-current" aria-hidden="true" />{formatTime(s.start)}
+              <Play className="size-3 shrink-0" weight="fill" />{formatTime(s.start)}
             </button>
           ) : timed && <span className="w-12 shrink-0 pt-0.5 text-xs tabular-nums text-muted">{formatTime(s.start)}</span>}
           {query.trim() ? <Highlighted text={s.text} query={query} /> : <Rich text={s.text} className="min-w-0 flex-1" />}
-          {marked?.[segments.indexOf(s)] && <Star className="mt-1 size-4 shrink-0 fill-accent-400 text-accent-500" role="img" aria-label={t.lectures.marks.badge} />}
+          {marked?.[segments.indexOf(s)] && <Star className="mt-1 size-4 shrink-0 text-accent-500" weight="fill" role="img" aria-hidden={false} aria-label={t.lectures.marks.badge} />}
         </div>
       ))}
     </Card>

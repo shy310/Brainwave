@@ -1,5 +1,5 @@
 import { useEffect, useState, type RefObject } from 'react';
-import { Pause, Play, RotateCcw, RotateCw } from 'lucide-react';
+import { Pause, Play, RotateCcw, RotateCw } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Spinner } from '@/ui/Spinner';
@@ -99,7 +99,7 @@ export const RecordingPlayer = ({ url, audioRef, fallbackDuration }: Props) => {
               </button>
               <button type="button" onClick={toggle} aria-label={playing ? tk.pause : tk.play}
                 className={cn('flex size-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-[0_8px_20px_-8px_var(--color-brand-600)] transition-transform duration-150 hover:bg-brand-700 active:scale-95')}>
-                {playing ? <Pause className="size-6 fill-current" aria-hidden="true" /> : <Play className="size-6 translate-x-0.5 fill-current" aria-hidden="true" />}
+                {playing ? <Pause className="size-6" weight="fill" /> : <Play className="size-6 translate-x-0.5" weight="fill" />}
               </button>
               <button type="button" onClick={() => skip(SKIP)} aria-label={tk.forward(SKIP)} className="relative flex size-11 items-center justify-center rounded-full text-fg hover:bg-surface-2 active:scale-95">
                 <RotateCw className="size-6" aria-hidden="true" /><span className="absolute text-[9px] font-bold" aria-hidden="true">{SKIP}</span>

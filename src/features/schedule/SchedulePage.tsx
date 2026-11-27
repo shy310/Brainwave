@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { ToolHero } from '@/ui/PageHeader';
 import { Loading } from '@/ui/Wave';
-import { Bell, CalendarDays, CalendarPlus, Pencil, Trash2 } from 'lucide-react';
+import { Bell, CalendarDays, CalendarPlus, Pencil, Trash2 } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';

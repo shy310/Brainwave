@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { BookOpen, ClipboardList, Layers, Pencil, Trash2 } from 'lucide-react';
+import { BookOpen, ClipboardList, Layers, Pencil, Trash2 } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/ui/Alert';

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/ui/PageHeader';
 import { Loading } from '@/ui/Wave';
 import { useParams } from 'react-router';
-import { Copy, Printer, RefreshCw, ScrollText } from 'lucide-react';
+import { Copy, Printer, RefreshCw, ScrollText } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';

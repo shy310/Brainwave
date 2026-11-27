@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { Link2, LogOut, Pencil, RefreshCw, Share2, Trash2, UserMinus, Users } from 'lucide-react';
+import { Link2, LogOut, Pencil, RefreshCw, Share2, Trash2, UserMinus, Users } from '@/ui/icons';
 import { IconTile } from '@/ui/IconTile';
 import { Loading } from '@/ui/Wave';
 import { TOOL_META } from '@/ui/tools';

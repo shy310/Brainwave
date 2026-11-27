@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { Gamepad2, Layers, Sparkles } from 'lucide-react';
+import { Gamepad2, Layers, Sparkles } from '@/ui/icons';
 import { IconTile } from '@/ui/IconTile';
 import { TOOL_META } from '@/ui/tools';
 import { useI18n } from '@/i18n';

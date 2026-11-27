@@ -4,7 +4,7 @@ import { Loading } from '@/ui/Wave';
 import { IconTile } from '@/ui/IconTile';
 import { TOOL_META } from '@/ui/tools';
 import { Link, useNavigate } from 'react-router';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';

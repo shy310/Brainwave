@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { PageHeader } from '@/ui/PageHeader';
 import { useSearchParams } from 'react-router';
-import { AudioLines, Plus, X } from 'lucide-react';
+import { AudioLines, Plus, X } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { Button } from '@/ui/Button';

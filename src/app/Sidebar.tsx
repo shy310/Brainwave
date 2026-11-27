@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router';
-import { Flame, Plus } from 'lucide-react';
+import { Flame, Plus } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Logo, LogoMark } from '@/ui/Logo';
@@ -44,7 +44,7 @@ export const Sidebar = ({ active, onCreate }: { active: NavItem | null; onCreate
       <div className="px-3 pb-3 lg:px-4">
         <button type="button" onClick={onCreate} title={t.shell.create}
           className="btn-lip relative flex h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand-600 font-semibold text-white [--lip:var(--color-brand-800)] hover:bg-brand-700">
-          <Plus className="size-5" strokeWidth={2.6} aria-hidden="true" /><span className="max-lg:sr-only">{t.shell.create}</span>
+          <Plus className="size-5" aria-hidden="true" /><span className="max-lg:sr-only">{t.shell.create}</span>
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-6 lg:px-4">
@@ -64,7 +64,7 @@ export const Sidebar = ({ active, onCreate }: { active: NavItem | null; onCreate
                         className={cn('group relative flex h-11 items-center gap-3 rounded-2xl px-1.5 text-[15px] font-semibold transition-colors duration-200 max-lg:justify-center',
                           on ? 'text-brand-800 dark:text-brand-100' : 'text-fg/80 hover:bg-surface-2 hover:text-fg')}>
                         <span className={cn('key-tile relative flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br text-white', meta.tile)} aria-hidden="true">
-                          <meta.icon className="relative size-[18px]" fill="currentColor" fillOpacity={0.22} strokeWidth={2.2} />
+                          <meta.icon className="relative size-[18px]" weight="fill" />
                         </span>
                         <span className="truncate max-lg:sr-only">{it.label(t)}</span>
                       </NavLink>

@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, CircleDashed } from 'lucide-react';
+import { CheckCircle2, Circle, CircleDashed } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import type { TopicStatus } from './progress';

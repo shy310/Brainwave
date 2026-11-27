@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router';
-import { LifeBuoy } from 'lucide-react';
+import { LifeBuoy } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { Button } from '@/ui/Button';
 import { useAuth } from '@/features/auth/AuthProvider';

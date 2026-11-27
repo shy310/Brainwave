@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Mascot, type Mood } from '@/ui/Mascot';
 import { createPortal } from 'react-dom';
-import { Mic, X } from 'lucide-react';
+import { Mic, X } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { streamAi } from '@/lib/api';
 import { cn } from '@/lib/cn';

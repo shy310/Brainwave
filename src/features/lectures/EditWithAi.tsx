@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Lightbulb, Maximize2, Minimize2, Sparkles } from 'lucide-react';
+import { Lightbulb, Maximize2, Minimize2, Sparkles } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';

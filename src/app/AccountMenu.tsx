@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings } from '@/ui/icons';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useT } from '@/i18n';
 

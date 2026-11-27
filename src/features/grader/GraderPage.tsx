@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { ToolHero } from '@/ui/PageHeader';
-import { History, PenLine, RotateCcw, Sparkles } from 'lucide-react';
+import { History, PenLine, RotateCcw, Sparkles } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';

@@ -229,6 +229,14 @@ Friendly and rounded, without becoming bubbly. Controls use 14px corners, cards 
 ### Keycaps (`KeyTile`, `.key-tile`)
 The 2.0 signature object. A chunky tile of colour: a two-stop gradient (the tool's or subject's `tile`), a glossy top, a darker lip along the bottom and a soft cast shadow. Inside a pressed `.group` it sinks 2px onto its lip. `IconTile` renders the same look, so every tile in the app is a keycap.
 
+### Icons (`src/ui/icons.tsx`)
+One family only: **Phosphor**. Every icon comes from `@/ui/icons`, which re-exports Phosphor glyphs under the app's own names (`Mic`, `Layers`, `ChevronRight`…); nothing imports an icon package directly. `IconProvider` (in `main.tsx`) makes every icon `bold`, 24px and `aria-hidden` unless a call site says otherwise; `size-*` classes still set the size. Icons are decoration: the button or link around them carries the accessible name.
+- **Weight by role:** `bold` for everything in the chrome (buttons, menus, carets, chips, players' secondary controls). `fill` on colour: keycaps (`KeyTile`, `IconTile`, sidebar tiles, list-row keys, path steps), stickers, the open phone tab and play/pause. `duotone` only on alerts, where the icon sits on a soft tint with no tile.
+- **Size on keycaps:** the glyph is half the tile (sm 20/40, md 24/48, lg 28/56, xl 36/72). Phosphor glyphs fill more of their box than outline sets, so don't push them larger.
+- **Meaning over literalness:** flashcards are `Cards`, exams `CalendarStar`, grading `Exam`, the concept map `Graph`, computer science `Code`. No brand logos as UI icons (a YouTube source is `MonitorPlay`).
+- **RTL:** directional glyphs (carets, arrows, sign-out, send) keep their `rtl:rotate-180` / `rtl:-scale-x-100` classes.
+- **Bundle:** `icons.tsx` is plain re-exports from per-icon modules, so each page's chunk carries only its icons; a Vite transform (`phosphorWeights` in `vite.config.ts`) drops the thin, light and regular paths the app never draws.
+
 ### Study paths (`StudyPath`)
 Round keycap steps in a gentle zig-zag, joined by a curving line. Finished steps are mint with a check and the line up to them turns mint; the step to do now is lit in its tool's colour, pulses once and has Wave beside it; the rest are quiet outlined keys. Used for Home's "Next up" and for every course unit (topics, mastered = done). Each step is a link; the path is an ordered list.
 

@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Mic, Upload } from 'lucide-react';
+import { Mic, Upload } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { KeyTile } from '@/ui/KeyTile';
 import { TOOL_META, type Tool } from '@/ui/tools';

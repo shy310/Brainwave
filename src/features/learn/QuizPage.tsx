@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { MessageCircle, RotateCcw } from 'lucide-react';
+import { MessageCircle, RotateCcw } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';

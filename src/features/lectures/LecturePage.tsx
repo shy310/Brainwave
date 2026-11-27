@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
-import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal, Network, ScrollText } from 'lucide-react';
+import { AlertTriangle, Check, Clapperboard, Copy, Download, FileDown, Folder as FolderIcon, FolderInput, Headphones, Link2, MessageCircleQuestion, Pencil, RefreshCw, Share2, SlidersHorizontal, Sparkles, Trash2, Users, MoreHorizontal, Network, ScrollText } from '@/ui/icons';
 import { Sheet } from '@/ui/Sheet';
 import { Loading } from '@/ui/Wave';
 import { ListRow, ListSection } from '@/ui/List';

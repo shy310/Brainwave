@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { IconType } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 
 const TONES = {
@@ -16,13 +16,13 @@ const TONES = {
  * real numbers only (streak, minutes today, cards due, days to an exam).
  */
 export const Sticker = ({ icon: Icon, tone = 'plain', children, className, label }: {
-  icon?: LucideIcon; tone?: keyof typeof TONES; children: ReactNode; className?: string;
+  icon?: IconType; tone?: keyof typeof TONES; children: ReactNode; className?: string;
   /** Read out instead of the visible text, when the text alone is too short to understand. */
   label?: string;
 }) => (
   <span aria-label={label} role={label ? 'img' : undefined}
     className={cn('sticker inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-bold tabular-nums', TONES[tone], className)}>
-    {Icon && <Icon className="size-4 shrink-0" strokeWidth={2.4} aria-hidden="true" />}
+    {Icon && <Icon className="size-4 shrink-0" weight="fill" aria-hidden="true" />}
     <span aria-hidden={label ? true : undefined}>{children}</span>
   </span>
 );

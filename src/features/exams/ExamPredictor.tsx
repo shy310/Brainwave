@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { ChevronDown, RefreshCw, Sparkles, Timer } from 'lucide-react';
+import { ChevronDown, RefreshCw, Sparkles, Timer } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';

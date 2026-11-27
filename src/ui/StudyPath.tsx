@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { Check, type LucideIcon } from 'lucide-react';
+import { Check, type IconType } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 import { Mascot } from './Mascot';
 
@@ -9,7 +9,7 @@ export type StepState = 'done' | 'now' | 'todo';
 export interface PathStep {
   key: string;
   to: string;
-  icon: LucideIcon;
+  icon: IconType;
   /** Gradient for the step's key (e.g. TOOL_META.review.tile). */
   tint: string;
   title: ReactNode;
@@ -55,7 +55,7 @@ export const StudyPath = ({ steps, label, showWave = true, className }: {
               s.state === 'now' && cn('bg-gradient-to-br text-white', s.tint),
               s.state === 'todo' && 'border-2 border-line bg-surface text-muted')}
               style={{ width: NODE, height: NODE }} aria-hidden="true">
-              {s.state === 'done' ? <Check className="size-8" strokeWidth={3.2} /> : <s.icon className="size-7" strokeWidth={2.2} fill={s.state === 'now' ? 'currentColor' : 'none'} fillOpacity={0.2} />}
+              {s.state === 'done' ? <Check className="size-8" /> : <s.icon className="size-7" weight={s.state === 'now' ? 'fill' : 'bold'} />}
               {s.state === 'now' && <span className="path-pulse absolute inset-0 rounded-full" />}
             </span>
             <span className="min-w-0 flex-1">

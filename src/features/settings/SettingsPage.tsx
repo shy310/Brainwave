@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { ToolHero } from '@/ui/PageHeader';
-import { Bell, BookOpenText, Languages, LifeBuoy, LogOut, Mail, Mic, Palette, Trash2 } from 'lucide-react';
+import { Bell, BookOpenText, Languages, LifeBuoy, LogOut, Mail, Mic, Palette, Trash2 } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useTheme, type Theme } from '@/app/ThemeProvider';

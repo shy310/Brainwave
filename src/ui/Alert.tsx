@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { CircleAlert, CircleCheck, Info } from 'lucide-react';
+import { CircleAlert, CircleCheck, Info } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 
 const TONES = {
@@ -13,7 +13,7 @@ export const Alert = ({ tone = 'info', children, className }: { tone?: keyof typ
   const { box, icon: Icon, ink } = TONES[tone];
   return (
     <div role={tone === 'error' ? 'alert' : 'status'} className={cn('flex gap-3 rounded-2xl border px-4 py-3 text-sm', box, className)}>
-      <Icon className={cn('mt-px size-[18px] shrink-0', ink)} aria-hidden="true" />
+      <Icon className={cn('mt-px size-[18px] shrink-0', ink)} weight="duotone" aria-hidden="true" />
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );

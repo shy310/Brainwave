@@ -5,6 +5,7 @@ import { router } from './app/router';
 import { I18nProvider } from './i18n';
 import { ConfirmHost } from './ui/Confirm';
 import { ThemeProvider } from './app/ThemeProvider';
+import { IconProvider } from './ui/icons';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { ErrorBoundary } from './app/ErrorBoundary';
 import './styles.css';
@@ -16,6 +17,7 @@ document.addEventListener('touchstart', () => {}, { passive: true });
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <IconProvider>
     <ThemeProvider>
       <I18nProvider>
         <ErrorBoundary>
@@ -26,5 +28,6 @@ createRoot(document.getElementById('root')!).render(
         </ErrorBoundary>
       </I18nProvider>
     </ThemeProvider>
+    </IconProvider>
   </StrictMode>,
 );

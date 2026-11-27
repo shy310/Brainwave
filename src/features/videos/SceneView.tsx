@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import katex from 'katex';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from '@/ui/icons';
 import { RichInline } from '@/ui/Rich';
 import { cn } from '@/lib/cn';
 import { samplePlot } from '@shared/math/plot';

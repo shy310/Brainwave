@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronsLeft, ChevronsRight, Hand, MessageCircleQuestion, Pause, Play, RotateCcw, SkipBack, SkipForward } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, Hand, MessageCircleQuestion, Pause, Play, RotateCcw, SkipBack, SkipForward } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';
@@ -121,7 +121,7 @@ export const PodcastPlayer = ({ script, locale, title, onAsk, listener }: Props)
           </button>
           <button type="button" aria-label={ended ? t.podcasts.replay : playing ? t.podcasts.pause : t.podcasts.play} onClick={() => { primeAudio(); toggle(); }}
             className="mx-1 flex size-16 items-center justify-center rounded-full bg-white text-violet-700 shadow-[0_10px_24px_-10px_rgb(11_16_34/0.6)] transition-transform duration-150 ease-out active:scale-95">
-            {ended ? <RotateCcw className="size-7" aria-hidden="true" /> : playing ? <Pause className="size-7" fill="currentColor" aria-hidden="true" /> : <Play className="ms-1 size-7" fill="currentColor" aria-hidden="true" />}
+            {ended ? <RotateCcw className="size-7" aria-hidden="true" /> : playing ? <Pause className="size-7" weight="fill" aria-hidden="true" /> : <Play className="ms-1 size-7" weight="fill" aria-hidden="true" />}
           </button>
           <button type="button" className={PLAYER_BTN} aria-label={t.podcasts.forward} onClick={() => jump(index + 1)}>
             <SkipForward className="size-5 rtl:rotate-180" aria-hidden="true" />

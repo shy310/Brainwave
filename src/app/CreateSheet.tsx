@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Clapperboard, FileText, Headphones, MessageCircle, Mic, MonitorPlay, Upload, type LucideIcon } from 'lucide-react';
+import { Clapperboard, FileText, Headphones, MessageCircle, Mic, MonitorPlay, Upload, type IconType } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { Sheet } from '@/ui/Sheet';
 import { KeyTile } from '@/ui/KeyTile';
@@ -9,7 +9,7 @@ import { HELP_NAV, STUDY_NAV } from './nav';
 type MakeId = 'record' | 'upload' | 'youtube' | 'document' | 'video' | 'podcast' | 'tutor';
 
 /** Everything you can start from the "+" button, and where it goes. All existing pages. */
-const MAKE: { id: MakeId; to: string; icon: LucideIcon; tint: string }[] = [
+const MAKE: { id: MakeId; to: string; icon: IconType; tint: string }[] = [
   { id: 'record', to: '/lectures/new', icon: Mic, tint: 'from-brand-400 to-brand-700' },
   { id: 'upload', to: '/lectures/new?tab=upload', icon: Upload, tint: 'from-violet-400 to-violet-700' },
   { id: 'youtube', to: '/lectures/new?tab=youtube', icon: MonitorPlay, tint: 'from-coral-400 to-coral-600' },

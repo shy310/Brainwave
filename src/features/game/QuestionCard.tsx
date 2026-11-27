@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ShieldCheck, Siren } from 'lucide-react';
+import { ShieldCheck, Siren } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { RichInline } from '@/ui/Rich';

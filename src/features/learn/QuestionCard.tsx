@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
-import { Lightbulb, ListOrdered, Repeat, TrendingDown, X } from 'lucide-react';
+import { Lightbulb, ListOrdered, Repeat, TrendingDown, X } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -120,7 +120,7 @@ export const QuestionCard = ({ question, topicId, onAnswered, footer, extras = t
                     isAnswer ? 'border-emerald-600 bg-emerald-600 text-white' : isWrongPick ? 'border-coral-500 bg-coral-500 text-white'
                       : choice === i ? 'border-brand-500 bg-brand-500 text-white' : 'border-line text-muted')}>
                     {isAnswer ? <DrawCheck className="size-4" />
-                      : isWrongPick ? <X className="size-4" strokeWidth={3} aria-hidden="true" /> : String.fromCharCode(65 + i)}
+                      : isWrongPick ? <X className="size-4" aria-hidden="true" /> : String.fromCharCode(65 + i)}
                   </span>
                   <span className="min-w-0 flex-1"><RichInline text={opt} /></span>
                 </button>

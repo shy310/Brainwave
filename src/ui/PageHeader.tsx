@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 import { KeyTile } from './KeyTile';
 import { TOOL_META, type Tool } from './tools';

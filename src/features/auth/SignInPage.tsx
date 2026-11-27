@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { BookOpenText, ClipboardCheck, FileAudio, GraduationCap, Hand, Mic, Sparkles } from 'lucide-react';
+import { BookOpenText, ClipboardCheck, FileAudio, GraduationCap, Hand, Mic, Sparkles } from '@/ui/icons';
 import { useAuth } from './AuthProvider';
 import { useI18n, useT } from '@/i18n';
 import { cn } from '@/lib/cn';
@@ -228,7 +228,7 @@ const HowItWorks = () => {
           return (
             <li key={i} className="relative flex gap-4 md:flex-col md:items-start">
               <span className={cn('relative flex size-14 shrink-0 items-center justify-center rounded-[1.25rem] shadow-[var(--shadow-soft)] ring-4 ring-bg', tones[i])}>
-                <Icon className="size-6" strokeWidth={2.2} aria-hidden="true" />
+                <Icon className="size-6" aria-hidden="true" />
                 <span className="absolute -end-2 -top-2 flex size-6 items-center justify-center rounded-full bg-brand-950 font-display text-xs font-bold text-white dark:bg-white dark:text-brand-950">{i + 1}</span>
               </span>
               <div>

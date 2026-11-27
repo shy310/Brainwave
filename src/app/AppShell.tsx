@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet, Link, useLocation } from 'react-router';
-import { LayoutGrid, Plus } from 'lucide-react';
+import { LayoutGrid, Plus } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { Logo, LogoMark } from '@/ui/Logo';
 import { TOOL_META } from '@/ui/tools';
@@ -89,8 +89,8 @@ export const AppShell = () => {
                 <NavLink to={item.to} end={item.to === '/'} aria-current={on ? 'page' : undefined}
                   className={cn('flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[1.375rem] text-[11px] font-semibold transition-colors duration-200',
                     on ? 'text-brand-700 dark:text-brand-300' : 'text-muted active:text-fg')}>
-                  <Icon className={cn('size-[22px] transition-transform duration-200 ease-[var(--ease-out)]', on && '-translate-y-px scale-110')}
-                    fill={on ? 'currentColor' : 'none'} fillOpacity={on ? 0.2 : 0} strokeWidth={on ? 2.25 : 1.85} aria-hidden="true" />
+                  <Icon className="size-[22px]"
+                    weight={on ? 'fill' : 'bold'} aria-hidden="true" />
                   <span className="line-clamp-2 px-0.5 text-center leading-tight max-[379px]:sr-only">{item.label(t)}</span>
                 </NavLink>
               </li>
@@ -99,7 +99,7 @@ export const AppShell = () => {
         </ul>
         <button type="button" onClick={() => setSheet('create')} aria-label={t.shell.create} title={t.shell.create}
           className="key-tile relative flex size-[62px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-700 text-white active:translate-y-0.5">
-          <Plus className="relative size-7" strokeWidth={2.6} aria-hidden="true" />
+          <Plus className="relative size-7" aria-hidden="true" />
         </button>
       </nav>
 

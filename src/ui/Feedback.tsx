@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Star } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 
 /** A check mark that draws itself in, for a right answer. */
@@ -19,7 +19,7 @@ const DOTS = Array.from({ length: 6 }, (_, i) => {
 /** A filled star that pops in with a little burst the moment it appears (when a lecture is starred). */
 export const StarBurst = ({ label, className }: { label: string; className?: string }) => (
   <span className={cn('relative inline-flex shrink-0 text-accent-500', className)} role="img" aria-label={label}>
-    <Star className="star-pop size-4 fill-accent-400" aria-hidden="true" />
+    <Star className="star-pop size-4" weight="fill" />
     <span className="star-burst" aria-hidden="true">
       {DOTS.map((d, i) => <i key={i} style={{ '--px': d.px, '--py': d.py, '--pd': d.pd } as React.CSSProperties} />)}
     </span>

@@ -1,7 +1,7 @@
 import {
   BookOpen, CalendarClock, House, CalendarDays, CalendarRange, Clapperboard, ClipboardCheck, Gamepad2, Headphones, Layers, MessageCircle,
-  Mic, Network, ScrollText, Search, Settings, Target, Users, type LucideIcon,
-} from 'lucide-react';
+  Mic, Network, ScrollText, Search, Settings, Target, Users, type IconType,
+} from '@/ui/icons';
 
 /**
  * Each BrainWave tool's identity, the way each subject has one (learn/subjects.ts):
@@ -22,7 +22,7 @@ export type Tool =
   | 'schedule' | 'games' | 'groups' | 'grader' | 'search' | 'settings' | 'conceptMap' | 'cheatSheet';
 
 export interface ToolMeta {
-  icon: LucideIcon;
+  icon: IconType;
   /** The header field: a gradient that carries `onField` text. */
   field: string;
   /** Text colour on the field. */

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Mic, Trash2 } from 'lucide-react';
+import { Mic, Trash2 } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { Button } from '@/ui/Button';
 import { IconTile } from '@/ui/IconTile';

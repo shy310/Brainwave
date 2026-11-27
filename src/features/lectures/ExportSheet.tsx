@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookMarked, Check, Copy, FileText, Layers } from 'lucide-react';
+import { BookMarked, Check, Copy, FileText, Layers } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { Sheet } from '@/ui/Sheet';
 import { ListRow, ListSection } from '@/ui/List';

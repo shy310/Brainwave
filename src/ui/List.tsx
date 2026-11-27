@@ -1,6 +1,6 @@
 import { useId, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
-import { ChevronDown, ChevronRight, type LucideIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight, type IconType } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 
 /** A group of rows on one rounded card, with an optional small header and a footer note. */
@@ -18,7 +18,7 @@ export const ListSection = ({ title, footer, children, className }: { title?: st
 };
 
 interface RowBase {
-  icon?: LucideIcon;
+  icon?: IconType;
   label: ReactNode;
   /** The current value, shown at the end of the row. */
   value?: ReactNode;
@@ -34,7 +34,7 @@ const RowInner = ({ icon: Icon, label, value, danger, hint, trailing }: RowBase 
       // A small keycap: blue for settings and options, rose for destructive rows.
       <span className={cn('key-tile relative flex size-9 shrink-0 items-center justify-center rounded-[11px] bg-gradient-to-br text-white',
         danger ? 'from-rose-400 to-rose-600' : 'from-brand-400 to-brand-700')} aria-hidden="true">
-        <Icon className="relative size-[18px]" strokeWidth={2.2} />
+        <Icon className="relative size-[18px]" weight="fill" />
       </span>
     )}
     <span className="min-w-0 flex-1">

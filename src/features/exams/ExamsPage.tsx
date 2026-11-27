@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ToolHero, heroAction } from '@/ui/PageHeader';
 import { Loading } from '@/ui/Wave';
 import { Link } from 'react-router';
-import { CalendarClock, ChevronRight, Plus } from 'lucide-react';
+import { CalendarClock, ChevronRight, Plus } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { EmptyState } from '@/ui/EmptyState';

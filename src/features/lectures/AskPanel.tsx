@@ -1,5 +1,5 @@
 import { useEffect, useImperativeHandle, useRef, useState, type RefObject } from 'react';
-import { AudioLines, MessageCircleQuestion, X } from 'lucide-react';
+import { AudioLines, MessageCircleQuestion, X } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';

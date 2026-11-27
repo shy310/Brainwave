@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { localDay } from '@shared/activity';
 import { nextExam, type Exam } from '@shared/exam';

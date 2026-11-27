@@ -2,7 +2,7 @@ import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState, type 
 import { ToolHero } from '@/ui/PageHeader';
 import { Loading } from '@/ui/Wave';
 import { Link, useSearchParams } from 'react-router';
-import { FileText, Search, Sparkles } from 'lucide-react';
+import { FileText, Search, Sparkles } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { useAiError } from '@/lib/useAiError';

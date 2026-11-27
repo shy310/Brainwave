@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ClipboardPaste, FileUp, Link2 } from 'lucide-react';
+import { ClipboardPaste, FileUp, Link2 } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { useAiError } from '@/lib/useAiError';
 import { Alert } from '@/ui/Alert';

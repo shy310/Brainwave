@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useSyncExternalStore } from 'react';
-import { LogOut, Trash2, TriangleAlert } from 'lucide-react';
+import { LogOut, Trash2, TriangleAlert } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from './Button';

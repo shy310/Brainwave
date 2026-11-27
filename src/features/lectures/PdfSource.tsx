@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileUp, Sparkles } from 'lucide-react';
+import { FileUp, Sparkles } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { cn } from '@/lib/cn';

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Highlighter as HighlightIcon, Trash2 } from 'lucide-react';
+import { Highlighter as HighlightIcon, Trash2 } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';

@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { ChevronRight, Target } from 'lucide-react';
+import { ChevronRight, Target } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { useWeakSpots } from './WeakSpotsPage';
 

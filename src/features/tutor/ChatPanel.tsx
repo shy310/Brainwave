@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
-import { ArrowUp, FileText, ImageIcon, Paperclip, Square, X } from 'lucide-react';
+import { ArrowUp, FileText, ImageIcon, Paperclip, Square, X } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { useProgress } from '@/features/learn/ProgressProvider';
 import { weakTopics } from '@/features/learn/progress';

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Sparkles, X, type LucideIcon } from 'lucide-react';
+import { Sparkles, X, type IconType } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { callAi } from '@/lib/api';
 import { useAiError } from '@/lib/useAiError';
@@ -31,7 +31,7 @@ interface Props {
   /** AI operation that writes the script; its result must have a `title`. */
   op: 'videoScript' | 'podcastScript';
   strings: StudioStrings;
-  icon: LucideIcon;
+  icon: IconType;
   /** Unused: the tool's colours come from TOOL_META. */
   tint?: string;
 }

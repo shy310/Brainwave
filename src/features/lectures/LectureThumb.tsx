@@ -1,4 +1,4 @@
-import { BookOpen, Camera, FileText, FileType, MonitorPlay, Mic, Upload } from 'lucide-react';
+import { BookOpen, Camera, FileText, FileType, MonitorPlay, Mic, Upload } from '@/ui/icons';
 import type { LectureSource } from '@shared/lectures';
 import { IconTile } from '@/ui/IconTile';
 

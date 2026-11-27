@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ToolHero } from '@/ui/PageHeader';
 import { Loading } from '@/ui/Wave';
 import { Link } from 'react-router';
-import { Target } from 'lucide-react';
+import { Target } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Button } from '@/ui/Button';

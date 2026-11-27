@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { CalendarClock, Mic } from 'lucide-react';
+import { CalendarClock, Mic } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { isNativeApp } from '@/lib/platform';
 import { upNext, type ClassSlot } from '@shared/schedule';

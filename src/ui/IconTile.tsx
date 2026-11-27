@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react';
+import type { IconType } from '@/ui/icons';
 import { cn } from '@/lib/cn';
 
 const SIZES = {
@@ -14,9 +14,9 @@ const SIZES = {
  * `tint` is the gradient, e.g. "from-brand-500 to-brand-700".
  */
 export const IconTile = ({ icon: Icon, tint, size = 'md', className }: {
-  icon: LucideIcon; tint: string; size?: keyof typeof SIZES; className?: string;
+  icon: IconType; tint: string; size?: keyof typeof SIZES; className?: string;
 }) => (
   <span aria-hidden="true" className={cn('key-tile relative flex shrink-0 items-center justify-center bg-gradient-to-br text-white', SIZES[size], tint, className)}>
-    <Icon className="relative drop-shadow-[0_1px_0_rgb(0_0_0/0.18)]" fill="currentColor" fillOpacity={0.22} strokeWidth={2.1} />
+    <Icon className="relative" weight="fill" />
   </span>
 );

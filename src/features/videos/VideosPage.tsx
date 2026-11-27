@@ -1,4 +1,4 @@
-import { Clapperboard } from 'lucide-react';
+import { Clapperboard } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { MediaStudio } from '@/features/media/MediaStudio';
 

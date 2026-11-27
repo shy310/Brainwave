@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ToolHero } from '@/ui/PageHeader';
 import { Loading } from '@/ui/Wave';
 import { Link, useSearchParams } from 'react-router';
-import { BookOpen, CarFront, ChevronRight, Folder as FolderIcon, Library, ListChecks, Send } from 'lucide-react';
+import { BookOpen, CarFront, ChevronRight, Folder as FolderIcon, Library, ListChecks, Send } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { storage } from '@/lib/storage';

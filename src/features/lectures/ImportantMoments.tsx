@@ -1,4 +1,4 @@
-import { Play, Star } from 'lucide-react';
+import { Play, Star } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { Card } from '@/ui/Card';
 import { markSegment } from '@shared/marks';
@@ -15,7 +15,7 @@ export const ImportantMoments = ({ marks, segments, onPlay, onShow }: {
   return (
     <Card className="space-y-3 border-accent-300/70 bg-accent-300/10 p-4 dark:border-accent-500/30 dark:bg-accent-500/5">
       <div>
-        <h2 className="flex items-center gap-2 font-semibold"><Star className="size-4 fill-accent-400 text-accent-500" aria-hidden="true" />{tm.title}</h2>
+        <h2 className="flex items-center gap-2 font-semibold"><Star className="size-4 text-accent-500" weight="fill" />{tm.title}</h2>
         <p className="mt-0.5 text-sm text-muted">{tm.body}</p>
       </div>
       <ol className="space-y-2">
@@ -26,7 +26,7 @@ export const ImportantMoments = ({ marks, segments, onPlay, onShow }: {
               {onPlay ? (
                 <button type="button" onClick={() => onPlay(Math.max(0, m - 20))} aria-label={tm.play(formatTime(m))}
                   className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg bg-accent-400 px-2 text-xs font-semibold tabular-nums text-slate-950 hover:bg-accent-300">
-                  <Play className="size-3 fill-current" aria-hidden="true" />{formatTime(m)}
+                  <Play className="size-3" weight="fill" />{formatTime(m)}
                 </button>
               ) : <span className="shrink-0 pt-0.5 text-xs font-semibold tabular-nums text-accent-600 dark:text-accent-300">{formatTime(m)}</span>}
               <div className="min-w-0 flex-1 space-y-1">

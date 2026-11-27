@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Flame } from 'lucide-react';
+import { Flame } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Card } from '@/ui/Card';

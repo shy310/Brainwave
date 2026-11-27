@@ -1,4 +1,4 @@
-import { Check, Languages } from 'lucide-react';
+import { Check, Languages } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/features/auth/AuthProvider';

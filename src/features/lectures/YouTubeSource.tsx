@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MonitorPlay } from 'lucide-react';
+import { MonitorPlay } from '@/ui/icons';
 import { useT } from '@/i18n';
 import { callAi, getApi } from '@/lib/api';
 import { useAiError } from '@/lib/useAiError';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { GraduationCap, Sparkles } from 'lucide-react';
+import { GraduationCap, Sparkles } from '@/ui/icons';
 import { useI18n, useT } from '@/i18n';
 import { findTopic } from '@shared/curriculum';
 import { Alert } from '@/ui/Alert';

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { PageHeader } from '@/ui/PageHeader';
 import { LectureThumb } from './LectureThumb';
 import { useBlocker, useNavigate, useSearchParams } from 'react-router';
-import { Check, Ear, Mic, Pause, Play, RefreshCw, Square, Star, Trash2, Upload } from 'lucide-react';
+import { Check, Ear, Mic, Pause, Play, RefreshCw, Square, Star, Trash2, Upload } from '@/ui/icons';
 import { useI18n } from '@/i18n';
 import { useAiError } from '@/lib/useAiError';
 import { cn } from '@/lib/cn';
@@ -533,19 +533,19 @@ export default function NewLecturePage() {
                   </button>
                   <button type="button" onClick={stopRecording} aria-label={t.lectures.stop} title={t.lectures.stop}
                     className="flex size-20 items-center justify-center rounded-full bg-rose-500 text-white shadow-[0_10px_30px_-8px_rgb(244_63_94/0.6)] ring-4 ring-rose-500/15 transition-transform duration-150 hover:bg-rose-600 active:scale-95">
-                    <Square className="size-7 fill-current" aria-hidden="true" />
+                    <Square className="size-7" weight="fill" />
                   </button>
                   <button type="button" onClick={togglePause} aria-label={phase === 'recording' ? t.lectures.pause : t.lectures.resume}
                     title={phase === 'recording' ? t.lectures.pause : t.lectures.resume}
                     className="flex size-14 items-center justify-center rounded-full bg-surface-2 text-fg transition-transform duration-150 hover:bg-line active:scale-95">
-                    {phase === 'recording' ? <Pause className="size-6 fill-current" aria-hidden="true" /> : <Play className="size-6 fill-current" aria-hidden="true" />}
+                    {phase === 'recording' ? <Pause className="size-6" weight="fill" /> : <Play className="size-6" weight="fill" />}
                   </button>
                 </div>
                 {/* Mark what matters: it gets extra weight in the notes, quiz and flashcards. */}
                 <div className="space-y-1.5">
                   <button type="button" onClick={markNow} aria-describedby="mark-hint"
                     className="pressable mx-auto inline-flex h-11 items-center gap-2 rounded-full bg-accent-400 px-5 font-semibold text-slate-950 shadow-sm hover:bg-accent-300">
-                    <Star className="size-5 fill-current" aria-hidden="true" />{t.lectures.marks.mark}
+                    <Star className="size-5" weight="fill" />{t.lectures.marks.mark}
                     {marks.length > 0 && <span key={marks.length} className="animate-digit rounded-full bg-slate-950/10 px-2 text-sm tabular-nums">{marks.length}</span>}
                   </button>
                   <p id="mark-hint" className="mx-auto max-w-xs text-xs text-muted">{t.lectures.marks.markHint}</p>

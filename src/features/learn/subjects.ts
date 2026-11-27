@@ -1,4 +1,4 @@
-import { Calculator, FlaskConical, Globe2, Landmark, Laptop, TrendingUp, type LucideIcon } from 'lucide-react';
+import { Calculator, FlaskConical, Globe2, Landmark, Laptop, TrendingUp, type IconType } from '@/ui/icons';
 import type { Subject } from '@shared/curriculum';
 
 /**
@@ -9,7 +9,7 @@ import type { Subject } from '@shared/curriculum';
  * Maths blue and purple, Science mint, Geography teal, History amber,
  * Coding purple, Economics navy and gold.
  */
-export const SUBJECT_META: Record<Subject, { icon: LucideIcon; tint: string; soft: string; field: string }> = {
+export const SUBJECT_META: Record<Subject, { icon: IconType; tint: string; soft: string; field: string }> = {
   math: { icon: Calculator, tint: 'from-brand-500 to-violet-600', field: 'bg-[linear-gradient(135deg,#3b5cf6,#6a54ea)]', soft: 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200' },
   science: { icon: FlaskConical, tint: 'from-emerald-400 to-emerald-600', field: 'bg-[linear-gradient(135deg,#0f7d5f,#0b5e48)]', soft: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200' },
   geography: { icon: Globe2, tint: 'from-teal-400 to-teal-600', field: 'bg-[linear-gradient(135deg,#0f766e,#115e59)]', soft: 'bg-teal-50 text-teal-700 dark:bg-teal-900/40 dark:text-teal-200' },
