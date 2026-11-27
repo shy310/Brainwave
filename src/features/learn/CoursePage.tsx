@@ -1,15 +1,15 @@
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { useI18n } from '@/i18n';
-import { Card } from '@/ui/Card';
 import { Alert } from '@/ui/Alert';
 import { findCourse } from '@shared/curriculum';
 import { SUBJECT_META } from './subjects';
 import { useProgress } from './ProgressProvider';
 import { topicStatus } from './progress';
-import { StatusIcon } from './StatusBadge';
 import { SubjectArt } from './SubjectArt';
 import { cn } from '@/lib/cn';
 import { BackLink } from '@/ui/PageHeader';
+import { StudyPath } from '@/ui/StudyPath';
+import { BookOpenText } from 'lucide-react';
 
 // The back link lives in the shared UI now; re-exported for the pages that import it from here.
 export { BackLink };
@@ -27,6 +27,8 @@ export default function CoursePage() {
     </div>
   );
   const meta = SUBJECT_META[course.subject];
+  // The one topic to do next: the first in the course that isn't mastered yet.
+  const nowId = course.units.flatMap((u) => u.topics).find((tp) => topicStatus(progress[tp.id]) !== 'mastered')?.id;
 
   return (
     <div className="space-y-6">
@@ -46,26 +48,18 @@ export default function CoursePage() {
             <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-full font-display text-sm font-bold', meta.soft)} aria-hidden="true">{ui + 1}</span>
             <span className="sr-only">{t.learn.unit(ui + 1)} · </span><span className="min-w-0">{unit.title[locale]}</span>
           </h2>
-          <Card className="divide-y divide-line overflow-hidden">
-            {unit.topics.map((topic) => {
+          {/* The unit as a path: mastered topics are done, the first one left in the course is "now". */}
+          <StudyPath label={unit.title[locale]} className="pt-2"
+            steps={unit.topics.map((topic) => {
               const status = topicStatus(progress[topic.id]);
-              return (
-                <Link key={topic.id} to={`/learn/topic/${topic.id}`}
-                  className="flex items-start gap-3 p-4 transition-colors hover:bg-surface-2 focus-visible:outline-offset-[-2px]">
-                  <StatusIcon status={status} className="mt-0.5" />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium">{topic.title[locale]}</p>
-                    <p className="mt-0.5 text-sm text-muted">{topic.description[locale]}</p>
-                  </div>
-                  {progress[topic.id]?.quiz_attempts ? (
-                    <span className="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium tabular-nums text-muted">
-                      {progress[topic.id].best_score}%
-                    </span>
-                  ) : null}
-                </Link>
-              );
-            })}
-          </Card>
+              const score = progress[topic.id]?.quiz_attempts ? ` · ${progress[topic.id].best_score}%` : '';
+              const state = status === 'mastered' ? 'done' : topic.id === nowId ? 'now' : 'todo';
+              return {
+                key: topic.id, to: `/learn/topic/${topic.id}`, icon: status === 'learning' ? BookOpenText : meta.icon, tint: meta.tint,
+                title: topic.title[locale], sub: `${topic.description[locale]}${score}`, state,
+                status: t.learn.status[status],
+              };
+            })} />
         </section>
       ))}
     </div>

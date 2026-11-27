@@ -128,7 +128,7 @@ export default function GamesPage() {
                   <>
                     <GameArt game={g} className="h-28 w-full sm:h-32" />
                     <span className="flex items-center gap-3 p-4">
-                      <span className={`icon-tile relative -mt-10 flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white ring-4 ring-surface ${tile}`}>
+                      <span className={`key-tile relative -mt-10 flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white ring-4 ring-surface ${tile}`}>
                         <Icon className="relative size-7" aria-hidden="true" />
                       </span>
                       <span className="min-w-0 flex-1">

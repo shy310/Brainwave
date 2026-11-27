@@ -2,25 +2,25 @@
 name: BrainWave
 description: From lecture to exam-ready. Playful Intelligence for students of every age.
 colors:
-  primary: "#3268f5"
-  primary-electric: "#518cff"
-  primary-pressed: "#2552d8"
-  primary-deep: "#1f43ad"
-  sky: "#dceaff"
-  navy-ink: "#172344"
-  periwinkle-ground: "#f6f8ff"
+  primary: "#3b5cf6"
+  primary-electric: "#5e7dff"
+  primary-pressed: "#2f49d6"
+  primary-deep: "#263cb0"
+  sky: "#e2e8ff"
+  navy-ink: "#141a3c"
+  periwinkle-ground: "#f5f6fb"
   surface: "#ffffff"
-  surface-sunk: "#edf1fd"
-  line: "#dde4f5"
-  muted-ink: "#56607e"
-  purple: "#9560ec"
-  mint: "#32cba0"
-  mint-deep: "#128a69"
-  sunshine: "#ffd35a"
-  coral: "#ff826f"
-  coral-deep: "#f2614c"
-  night-ground: "#0b1022"
-  night-surface: "#131a31"
+  surface-sunk: "#eceef8"
+  line: "#dce0f0"
+  muted-ink: "#545c7e"
+  purple: "#8b5cf6"
+  mint: "#22c997"
+  mint-deep: "#0d7f5e"
+  sunshine: "#ffcb45"
+  coral: "#ff7468"
+  coral-deep: "#c43c2a"
+  night-ground: "#0c0f24"
+  night-surface: "#151a36"
 typography:
   display:
     fontFamily: "Bricolage Grotesque, Rubik, IBM Plex Sans Arabic, system-ui, sans-serif"
@@ -98,14 +98,16 @@ components:
 
 ## Overview
 
-**Creative North Star: "Playful Intelligence"**
+**Creative North Star: "Playful Intelligence" (2.0)**
+
+2.0 keeps the blue identity, the fonts and Wave, and rebuilds how the app is held together: a sidebar with every tool, a "+ New" key on every screen, Home as today's path of real study steps, keycap tiles as the signature object, and a faint dot-grid ground like squared paper. The palette leans a little toward electric indigo with a deeper ink, fresher mint, warmer sunshine and pinker coral; every value is contrast-checked.
 
 BrainWave is a study companion that is playful but not childish, colourful but not chaotic, animated but not distracting, and professional but not boring. It has to feel right to a nine-year-old, a high-school student and a university student at the same time. The system gets there by putting its personality around the content and not inside it. There is a confident blue field, tactile buttons that press down, Wave the brain mascot at chosen moments, one signature brainwave line, and a colour field for each subject. Learning content itself (lessons, notes, questions) stays calm, readable and quiet.
 
 Density is comfortable: generous touch targets (44px and up), roomy cards, one clear next step per screen. Motion is short and physical. Presses sink, fields lift, and pieces settle with a soft overshoot. Everything is still under reduced motion.
 
 **Key Characteristics:**
-- Blue (#3268f5) is the brand; sunshine yellow is the rare highlight for the single most important call to action.
+- Blue (#3b5cf6) is the brand; sunshine yellow is the rare highlight for the single most important call to action.
 - Tactile controls: a 3px "lip" under primary buttons that the press absorbs.
 - Wave the mascot reacts to the moment (waving, reading, thinking, encouraging, celebrating, confused), and is decorative to assistive tech.
 - The brainwave line: the field edge, the step connector, the loader.
@@ -116,26 +118,26 @@ Density is comfortable: generous touch targets (44px and up), roomy cards, one c
 A saturated blue world on a cool periwinkle ground, with four friendly accents that each have one job.
 
 ### Primary
-- **BrainWave Blue** (#3268f5): primary buttons, active navigation, the landing hero field, the "Next up" field, selection.
-- **Electric Blue** (#518cff): light strokes and glows on blue fields. Never a fill behind white text (3.4:1).
-- **Pressed Blue** (#2552d8): hover on blue controls. Hovers darken, so white text keeps AA (6.4:1).
-- **Deep Blue** (#1f43ad): the button lip and the bottom of blue gradients.
-- Brand-coloured text uses #2552d8, which passes on every surface; #3268f5 passes only on pure white.
-- **Sky** (#dceaff): the active nav pill, info tints, the lesson hook callout.
+- **BrainWave Blue** (#3b5cf6): primary buttons, active navigation, the landing hero field, the "Next up" field, selection.
+- **Electric Blue** (#5e7dff): light strokes and glows on blue fields. Never a fill behind white text (3.4:1).
+- **Pressed Blue** (#2f49d6): hover on blue controls. Hovers darken, so white text keeps AA (6.4:1).
+- **Deep Blue** (#263cb0): the button lip and the bottom of blue gradients.
+- Brand-coloured text uses #2f49d6, which passes on every surface; #3b5cf6 passes only on pure white.
+- **Sky** (#e2e8ff): the active nav pill, info tints, the lesson hook callout.
 
 ### Secondary
-- **Sunshine** (#ffd35a): the one big call to action on a blue field (the landing's start button), the brainwave line on blue fields, the mascot's sparks. Text on it is navy.
+- **Sunshine** (#ffcb45): the one big call to action on a blue field (the landing's start button), the brainwave line on blue fields, the mascot's sparks. Text on it is navy.
 
 ### Tertiary
-- **Mint** (#32cba0, deep #128a69): correct answers, mastery progress, key points. Marks on mint use the deep shade for contrast.
-- **Coral** (#ff826f, deep #f2614c): a wrong pick in a quiz. It is kind, never alarming red. System errors keep rose.
-- **Purple** (#9560ec): maths and coding fields, the quiz tag, the mascot's question mark.
+- **Mint** (#22c997, deep #0d7f5e): correct answers, mastery progress, key points. Marks on mint use the deep shade for contrast.
+- **Coral** (#ff7468, deep #c43c2a): a wrong pick in a quiz. It is kind, never alarming red. System errors keep rose.
+- **Purple** (#8b5cf6): maths and coding fields, the quiz tag, the mascot's question mark.
 
 ### Neutral
-- **Navy Ink** (#172344): all body text and headings in light mode.
-- **Muted Ink** (#56607e): secondary text (5.9:1 on the ground).
-- **Periwinkle Ground** (#f6f8ff) / **Surface** (#ffffff) / **Sunk Surface** (#edf1fd) / **Line** (#dde4f5): page, cards, tracks and wells, borders.
-- **Night Ground** (#0b1022) / **Night Surface** (#131a31): dark mode. Blue fields and subject fields stay saturated in dark mode.
+- **Navy Ink** (#141a3c): all body text and headings in light mode.
+- **Muted Ink** (#545c7e): secondary text (5.9:1 on the ground).
+- **Periwinkle Ground** (#f5f6fb) / **Surface** (#ffffff) / **Sunk Surface** (#eceef8) / **Line** (#dce0f0): page, cards, tracks and wells, borders.
+- **Night Ground** (#0c0f24) / **Night Surface** (#151a36): dark mode. Blue fields and subject fields stay saturated in dark mode.
 
 ### Named Rules
 **The Right-and-Wrong-Never-By-Colour Rule.** Mint and coral always come with a mark: a check, an X, or a letter. A correct answer the student didn't pick gets a dashed mint outline.
@@ -149,12 +151,12 @@ Every tool owns a hue, the way every subject does (`src/ui/tools.ts`, `TOOL_META
 
 | Tool | Hue | Field |
 |---|---|---|
-| Learn, Lectures, Search | BrainWave Blue | #3268f5 → #1f43ad |
-| Tutor, Settings | Deep blue / navy | #2552d8 → #172344 |
+| Learn, Lectures, Search | BrainWave Blue | #3b5cf6 → #263cb0 |
+| Tutor, Settings | Deep blue / navy | #2f49d6 → #141a3c |
 | Videos, Weak spots | Coral (deep) | #c2412d → #9c3222 |
 | Podcasts, Concept maps | Purple | #7c45db → #522b93 |
 | Review flashcards | Deep purple | #6533b8 → #3f2470 |
-| Exams, Cheat sheets | Sunshine (navy ink) | #ffd35a → #ffc52e |
+| Exams, Cheat sheets | Sunshine (navy ink) | #ffcb45 → #ffc52e |
 | Calendar, Class schedule, Grader | Mint (deep) | #0e6f55 → #0b4637 |
 | Games | Orange | #c2410c → #9a3412 |
 | Study groups | Teal | #0f766e → #115e59 |
@@ -180,7 +182,7 @@ Every field passes 4.5:1 with white (sunshine fields carry navy, 9.8:1). Lecture
 
 ## Layout
 
-Single column on phones with a 16px gutter. The content container is max 72rem (`max-w-6xl`) with 24px gutters from `sm`. Grids step from 1 to 2 to 3 columns (`sm`, `lg`). On phones the main navigation is a floating five-tab bar at the bottom; from `md` it is a pill row in the header. Vertical rhythm is 24px between sections on phones and 32px from `sm` (`space-y-6 / sm:space-y-8`). The landing hero is a fixed 560×470 scene scaled to fit, so it composes the same at 320px and at 1920px.
+Single column on phones with a 16px gutter. The content container is max 72rem (`max-w-6xl`) with 24px gutters from `sm`. Grids step from 1 to 2 to 3 columns (`sm`, `lg`). On phones the main navigation is a floating five-tab pill at the bottom with a round **+** beside it; from `md` it is an icon rail, and from `lg` a 256px sidebar (see App shell). Behind everything is a faint dot grid (`--grid-dot`), like squared paper; reading surfaces sit on solid cards above it. Vertical rhythm is 24px between sections on phones and 32px from `sm` (`space-y-6 / sm:space-y-8`). The landing hero is a fixed 560×470 scene scaled to fit, so it composes the same at 320px and at 1920px.
 
 ## Elevation & Depth
 
@@ -217,12 +219,27 @@ Friendly and rounded, without becoming bubbly. Controls use 14px corners, cards 
 - **Style:** 1px line border, surface fill, 14px corners, 44px tall. Hover tints the border blue.
 - **Focus:** blue border plus a 4px blue ring at 15%. The caret is brand blue.
 
-### Navigation
-- **Mobile:** a floating, blurred tab bar. A tinted pill slides to the active tab, whose icon is filled and slightly scaled.
-- **Desktop:** header links with their icons (from `lg`); a sky highlight slides to the open page (one full-width layer clipped to the link). Between `md` and `lg`, Focus and the language button show icons only so the row fits.
+### App shell and navigation (`src/app/AppShell.tsx`, `Sidebar.tsx`, `CreateSheet.tsx`, `nav.tsx`)
+- **Desktop (lg):** a 256px sidebar: the logo, a blue **+ New** key, then every page in three groups (Learn and create · Study · Help), each with its tool's small keycap. A soft pill slides to the open page (one layer clipped to the link, so it moves on the GPU).
+- **Tablet (md–lg):** the same as a 76px icon rail; labels become tooltips and screen-reader text.
+- **Top bar:** your streak sticker, Focus, language and account; on phones also the logo and a **Study** grid button that opens the study tools as a sheet.
+- **Phones:** a floating pill with Home, Learn, Lectures, Video lessons and Podcasts, and a separate round **+** keycap beside it.
+- **+ New** opens one sheet with every way to make something: record, upload, YouTube, a document, a video lesson, a podcast, the tutor. Its tiles settle in 40ms apart.
 
-### Tool header (`ToolHero`)
-Every tool's main page opens on its field: the title (display, 3xl–4xl), one line about the tool, and the page's actions; its scene sits on the end side. The scene (`ToolArt`) is the tool's icon on a raised white tile tilted −6°, a small motif from the tool's world (sound bars, a film frame, a target, a calendar grid, linked nodes), and the brainwave in the tool's spark colour. The words keep clear of the scene; actions may run under it. The first time a tool is opened in a visit the tile settles in and the wave draws; after that the header simply appears. On the field, the main action is a raised white key (`heroAction`) and others are translucent pills; on sunshine fields the main action is navy.
+### Keycaps (`KeyTile`, `.key-tile`)
+The 2.0 signature object. A chunky tile of colour: a two-stop gradient (the tool's or subject's `tile`), a glossy top, a darker lip along the bottom and a soft cast shadow. Inside a pressed `.group` it sinks 2px onto its lip. `IconTile` renders the same look, so every tile in the app is a keycap.
+
+### Study paths (`StudyPath`)
+Round keycap steps in a gentle zig-zag, joined by a curving line. Finished steps are mint with a check and the line up to them turns mint; the step to do now is lit in its tool's colour, pulses once and has Wave beside it; the rest are quiet outlined keys. Used for Home's "Next up" and for every course unit (topics, mastered = done). Each step is a link; the path is an ordered list.
+
+### Stickers (`Sticker`)
+Rounded badges with a white keyline and a little lift for real numbers only: streak (sunshine), minutes today, cards due (purple).
+
+### Home
+Hello and today's stickers; **Next up**, the path of today's real steps (review due cards, the latest lecture, weak spots, the exam plan, 10 minutes of study, add a lecture; finished ones first); **Quick start**, a launcher of ten keycaps; and on wide screens a side column with your week and streak, the latest lectures and Your week.
+
+### Tool masthead (`ToolHero`)
+Every tool's main page opens on a compact masthead: the tool's big keycap, tilted −6° on a soft halo of its colour with a spark, the title in the display face (extrabold, 2.1–3rem), one line about the tool, its actions (`heroAction`: a blue key, then white keys) and any stat stickers. There is no coloured field, so the page's own content starts high. The first time a tool is opened in a visit its keycap settles in and the spark twinkles; after that the masthead simply appears.
 
 ### Page header (`PageHeader`)
 Item pages (a lecture, an episode, an exam, a group) use a back pill, the tool's tile, the title in the display face and chips or a line of detail. No field: the item's own content is the colour.
@@ -269,8 +286,11 @@ Tokens live in `src/styles.css`: `--dur-press` 140ms, `--dur-hover` 200ms, `--du
 | Press a tactile button | sinks 2px onto its lip, one brainwave pulse ring | every tap, 140ms |
 | Hover a card / row | lifts 2px, its tile leans in | fine pointers only, 200–240ms |
 | Move between pages | content rises 8px and fades in | every navigation, 400ms, no spring |
-| Desktop navigation | a clipped highlight slides to the open page | every navigation, 300ms clip-path |
-| Open a tool | its tile settles in, the brainwave draws | first visit per session only |
+| Sidebar | a clipped highlight slides to the open page | every navigation, 300ms clip-path |
+| Open a tool | its keycap settles in, the spark twinkles twice | first visit per session only |
+| Open Home or a course | the "now" step rings twice (scale + fade) | each visit, 2 rings |
+| Press a keycap or path step | sinks 2–3px onto its lip | every tap, 140ms |
+| Open + New / Study | the sheet slides up, its tiles settle in 40ms apart | occasional |
 | Turn a flashcard | the new side turns in | 260ms |
 | Pick an answer | check draws in / X shakes | per answer |
 | Finish a quiz | Wave celebrates, one confetti burst | rare |
@@ -286,7 +306,8 @@ Everything is transform, opacity or clip-path. Under `prefers-reduced-motion` mo
 - **Do** keep motion to transform and opacity, 140–520ms, and give every animation a reduced-motion state.
 - **Do** use Wave only at moments that carry a feeling (arrival, waiting, mistake, success, empty, lost), at most once per view.
 - **Do** keep lesson and note text calm: no animation once content is showing.
-- **Do** open every tool's main page with its `ToolHero`, and every item page with a `PageHeader` and the tool's tile.
+- **Do** open every tool's main page with its `ToolHero` masthead, and every item page with a `PageHeader` and the tool's keycap.
+- **Do** use keycaps (`KeyTile`/`IconTile`) for every tool, source and subject icon; never a flat icon square.
 - **Do** use the tool's own hue from `TOOL_META` for its tiles, chips and fields; never pick a colour ad hoc.
 
 ### Don't:

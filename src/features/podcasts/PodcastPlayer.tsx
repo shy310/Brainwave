@@ -83,7 +83,7 @@ export const PodcastPlayer = ({ script, locale, title, onAsk, listener }: Props)
   return (
     <div className="space-y-5">
       {/* The player on the podcast's purple field, the way a listening app shows "now playing". */}
-      <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-[linear-gradient(150deg,#7c45db,#3f2470)] p-5 text-white shadow-[var(--shadow-lift)] sm:p-6">
+      <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-[linear-gradient(150deg,#7c3aed,#3f1d7a)] p-5 text-white shadow-[var(--shadow-lift)] sm:p-6">
         <div className="pointer-events-none absolute -end-16 -top-16 size-56 rounded-full bg-white/8" aria-hidden="true" />
         <div className="relative flex items-center gap-4">
           {/* The two hosts, side by side. */}

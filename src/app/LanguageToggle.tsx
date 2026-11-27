@@ -25,7 +25,7 @@ export const LanguageToggle = ({ className }: { className?: string }) => {
           className={cn('inline-flex h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-medium text-muted hover:bg-surface-2 hover:text-fg sm:px-3', className)}>
           <Languages className="size-4" aria-hidden="true" />
           {/* On the narrowest phones only the icon shows; the name stays for screen readers. */}
-          <span className="max-[379px]:sr-only md:max-lg:sr-only" lang={locale}>{NATIVE_NAME[locale]}</span>
+          <span className="max-lg:sr-only" lang={locale}>{NATIVE_NAME[locale]}</span>
           <span className="sr-only">{t.onboarding.language}</span>
         </button>
       )} />

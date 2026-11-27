@@ -91,7 +91,7 @@ export const MediaStudio = ({ kind, op, strings: s, icon: Icon }: Props) => {
       <section aria-labelledby="media-create" className="mx-auto max-w-3xl">
         <Card className="overflow-hidden">
           <div className="space-y-4 p-5 sm:p-6">
-            <h2 id="media-create" className="font-display text-xl font-bold">{s.createTitle}</h2>
+            <h2 id="media-create" className="sr-only">{s.createTitle}</h2>
             {sourceLoading ? <p className="flex items-center gap-2 text-muted"><WaveLoader />{s.loadingSource}</p>
               : resolved ? (
                 <p className="flex flex-wrap items-center gap-2">
@@ -103,9 +103,10 @@ export const MediaStudio = ({ kind, op, strings: s, icon: Icon }: Props) => {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  <label htmlFor="media-prompt" className="text-sm font-semibold">{s.promptLabel}</label>
-                  <Textarea id="media-prompt" rows={2} maxLength={500} dir="auto" value={prompt} placeholder={s.promptPlaceholder}
-                    onChange={(e) => setPrompt(e.target.value)} disabled={working} className="text-base" />
+                  {/* Prompt first: the question is the heading, the box is big. */}
+                  <label htmlFor="media-prompt" className="block font-display text-2xl font-bold leading-tight sm:text-3xl">{s.promptLabel}</label>
+                  <Textarea id="media-prompt" rows={3} maxLength={500} dir="auto" value={prompt} placeholder={s.promptPlaceholder}
+                    onChange={(e) => setPrompt(e.target.value)} disabled={working} className="border-2 text-lg leading-relaxed" />
                   <div className="flex flex-wrap gap-2">
                     {s.suggestions.map((sug) => (
                       <button key={sug} type="button" disabled={working} onClick={() => { setPrompt(sug); void create(sug); }}

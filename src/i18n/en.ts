@@ -5,6 +5,19 @@ export const en = {
     home: 'Home', learn: 'Learn', lectures: 'Lectures', videos: 'Video lessons',
     podcasts: 'Podcasts', settings: 'Settings', signOut: 'Sign out', menu: 'Menu', account: 'Account',
   },
+  shell: {
+    create: 'New', createTitle: 'What do you want to make?', study: 'Study', studyTitle: 'Study tools',
+    sections: { learn: 'Learn and create', study: 'Study', help: 'Help' },
+    make: {
+      record: { title: 'Record a lecture', body: 'Live, from your microphone' },
+      upload: { title: 'Upload a recording', body: 'An audio or video file' },
+      youtube: { title: 'From YouTube', body: 'Paste a video link' },
+      document: { title: 'From a document', body: 'A PDF, photos, text or a web page' },
+      video: { title: 'Video lesson', body: 'An animated, narrated lesson' },
+      podcast: { title: 'Podcast episode', body: 'Two hosts talk it through' },
+      tutor: { title: 'Ask the tutor', body: 'Questions, homework, anything' },
+    },
+  },
   common: {
     delete: 'Delete', leave: 'Leave', remove: 'Remove',
     loading: 'Loading…', save: 'Save', saving: 'Saving…', saved: 'Saved', cancel: 'Cancel',

@@ -6,6 +6,19 @@ export const he: Dict = {
     home: 'בית', learn: 'לימוד', lectures: 'הרצאות', videos: 'שיעורי וידאו',
     podcasts: 'פודקאסטים', settings: 'הגדרות', signOut: 'התנתקות', menu: 'תפריט', account: 'חשבון',
   },
+  shell: {
+    create: 'חדש', createTitle: 'מה תרצו ליצור?', study: 'תרגול', studyTitle: 'כלי תרגול',
+    sections: { learn: 'ללמוד וליצור', study: 'תרגול', help: 'עזרה' },
+    make: {
+      record: { title: 'הקלטת הרצאה', body: 'בזמן אמת, מהמיקרופון' },
+      upload: { title: 'העלאת הקלטה', body: 'קובץ שמע או וידאו' },
+      youtube: { title: 'מיוטיוב', body: 'הדביקו קישור לסרטון' },
+      document: { title: 'ממסמך', body: 'PDF, תמונות, טקסט או דף אינטרנט' },
+      video: { title: 'שיעור וידאו', body: 'שיעור מונפש עם קריינות' },
+      podcast: { title: 'פרק פודקאסט', body: 'שני מגישים מסבירים את הנושא' },
+      tutor: { title: 'לשאול את המורה', body: 'שאלות, שיעורי בית, כל דבר' },
+    },
+  },
   common: {
     delete: 'מחיקה', leave: 'יציאה', remove: 'הסרה',
     loading: 'טוען…', save: 'שמירה', saving: 'שומר…', saved: 'נשמר', cancel: 'ביטול',

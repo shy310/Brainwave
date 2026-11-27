@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { ToolArt } from './ToolArt';
+import { KeyTile } from './KeyTile';
 import { TOOL_META, type Tool } from './tools';
 
 /** Back to the page this one belongs to: a quiet pill whose arrow nudges on hover. */
@@ -14,20 +14,17 @@ export const BackLink = ({ to, label, className }: { to: string; label: string; 
 );
 
 /**
- * Buttons and links that sit on a tool's field: the main action is a raised
- * white key (navy on sunshine fields), others are quiet translucent pills.
+ * The actions in a tool's masthead: the main one is the raised blue key,
+ * others are white keys with a line lip.
  */
-export const heroAction = (tool: Tool, kind: 'primary' | 'secondary' = 'primary') => {
-  const onSun = TOOL_META[tool].onField !== 'text-white';
-  return cn(
-    'relative inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[var(--radius-control)] px-4 text-sm font-semibold transition-[background-color,box-shadow,transform] duration-[var(--dur-press)] ease-out',
-    kind === 'primary'
-      ? (onSun ? 'btn-lip bg-brand-950 text-white [--lip:#0b1022] hover:bg-brand-900' : 'btn-lip bg-white text-brand-900 [--lip:rgb(11_16_34/0.28)] hover:bg-brand-50')
-      : (onSun ? 'bg-brand-950/10 text-brand-950 hover:bg-brand-950/15 active:scale-[0.97]' : 'bg-white/15 text-white ring-1 ring-inset ring-white/35 hover:bg-white/25 active:scale-[0.97]'),
-  );
-};
+export const heroAction = (_tool: Tool, kind: 'primary' | 'secondary' = 'primary') => cn(
+  'btn-lip relative inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[var(--radius-control)] px-4 text-sm font-semibold transition-[background-color,box-shadow,transform] duration-[var(--dur-press)] ease-out',
+  kind === 'primary'
+    ? 'bg-brand-600 text-white [--lip:var(--color-brand-800)] hover:bg-brand-700'
+    : 'border border-line bg-surface text-fg [--lip:var(--line)] hover:bg-surface-2',
+);
 
-/** The brainwave draws itself only the first time a tool's page is opened in a visit; after that the page just appears. */
+/** The tile settles in only the first time a tool's page is opened in a visit; after that the page just appears. */
 const useFirstVisit = (key: string) => useState(() => {
   try {
     const k = `bw.seen.${key}`;
@@ -38,13 +35,15 @@ const useFirstVisit = (key: string) => useState(() => {
 })[0];
 
 /**
- * The header of a tool's main page (Lectures, Videos, Exams…): the tool's
- * colour field with its scene, the page title and a line about it, and the
- * page's actions. Actions on the field use `onColor` buttons, or a white one
- * for the main action.
+ * A tool's masthead (Lectures, Videos, Exams…): the tool's big keycap, tilted,
+ * on a soft halo of its colour with a spark; then the title in the display
+ * face, a line about the tool, the page's actions and any stat stickers.
+ * Compact, so the page's own content starts high.
  */
-export const ToolHero = ({ tool, title, subtitle, actions, back, children, className }: {
+export const ToolHero = ({ tool, title, subtitle, actions, stats, back, children, className }: {
   tool: Tool; title: ReactNode; subtitle?: ReactNode; actions?: ReactNode;
+  /** Stickers with real numbers (e.g. cards due, exams coming). */
+  stats?: ReactNode;
   back?: { to: string; label: string }; children?: ReactNode; className?: string;
 }) => {
   const meta = TOOL_META[tool];
@@ -52,17 +51,27 @@ export const ToolHero = ({ tool, title, subtitle, actions, back, children, class
   return (
     <div className="space-y-3">
       {back && <BackLink to={back.to} label={back.label} />}
-      <header className={cn('relative isolate overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-lift)]', meta.field, meta.onField, className)}>
-        <div className="relative z-10 flex min-h-36 flex-col justify-end gap-4 p-5 sm:min-h-44 sm:p-7">
-          {/* The words keep clear of the scene on the end side; the actions may run under it. */}
-          <div className="space-y-1.5 pe-[36%] sm:pe-[36%] lg:pe-[32%]">
-            <h1 className="text-3xl font-bold leading-[1.05] sm:text-4xl" dir="auto">{title}</h1>
-            {subtitle && <p className={cn('max-w-prose text-[15px] font-medium leading-snug', meta.onField === 'text-white' ? 'text-white' : 'text-brand-950')}>{subtitle}</p>}
+      <header className={cn('flex items-start gap-5 sm:items-center sm:gap-7', className)}>
+        <span className={cn('masthead-tile relative mt-1 shrink-0 sm:mt-0', first && 'masthead-first')} aria-hidden="true">
+          <span className={cn('absolute -inset-3 rounded-[34px] sm:-inset-4 sm:rounded-[40px]', meta.soft)} />
+          <KeyTile icon={meta.icon} tint={meta.tile} size="xl" className="-rotate-6 sm:size-24 sm:rounded-[28px] sm:[&>svg]:size-12" />
+          <svg viewBox="0 0 20 20" className="masthead-spark absolute -end-3 -top-3 size-5 sm:-end-4 sm:-top-4 sm:size-6">
+            <path d="M10 0 q1.6 8.4 10 10 q-8.4 1.6 -10 10 q-1.6 -8.4 -10 -10 q8.4 -1.6 10 -10 z" fill={meta.spark} />
+          </svg>
+        </span>
+        <div className="min-w-0 flex-1 space-y-3">
+          <div className="space-y-1.5">
+            <h1 className="text-[2.1rem] font-extrabold leading-[1.02] sm:text-5xl" dir="auto">{title}</h1>
+            {subtitle && <p className="max-w-[60ch] text-base text-muted sm:text-lg">{subtitle}</p>}
           </div>
-          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+          {(actions || stats) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {actions}
+              {stats && <span className="flex flex-wrap items-center gap-2 sm:ms-2">{stats}</span>}
+            </div>
+          )}
           {children}
         </div>
-        <ToolArt tool={tool} draw={first} className="pointer-events-none absolute -end-2 top-2 h-28 w-[36%] max-w-64 sm:-end-3 sm:top-3 sm:h-40 sm:w-[38%] sm:max-w-72" />
       </header>
     </div>
   );
@@ -83,12 +92,10 @@ export const PageHeader = ({ title, subtitle, back, actions, tool, className, ti
       {back && <BackLink to={back.to} label={back.label} />}
       <div className="flex flex-wrap items-start gap-x-4 gap-y-3">
         {meta && (
-          <span className={cn('icon-tile relative mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white', meta.tile)} aria-hidden="true">
-            <meta.icon className="relative size-5" fill="currentColor" fillOpacity={0.2} />
-          </span>
+          <KeyTile icon={meta.icon} tint={meta.tile} size="md" className="mt-0.5" />
         )}
         <div className="min-w-0 flex-1 basis-60 space-y-1">
-          <h1 className={cn('text-3xl font-bold leading-tight sm:text-4xl', titleClassName)} dir="auto">{title}</h1>
+          <h1 className={cn('text-3xl font-extrabold leading-tight sm:text-4xl', titleClassName)} dir="auto">{title}</h1>
           {subtitle && <div className="text-muted">{subtitle}</div>}
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}

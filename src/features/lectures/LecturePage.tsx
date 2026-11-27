@@ -380,8 +380,11 @@ export default function LecturePage() {
 
       {!transcript && lecture.status === 'ready' ? <Alert>{t.lectures.emptyTranscript}</Alert> : (
         <>
-          <Segmented fill label={title} value={tab} onChange={setTab}
-            options={TABS.map((v) => ({ value: v, label: t.lectures.tabsView[v] }))} />
+          {/* The tabs stay in reach while you read: they stick under the top bar. */}
+          <div className="sticky top-16 z-20 -mx-4 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6 print:hidden">
+            <Segmented fill label={title} value={tab} onChange={setTab}
+              options={TABS.map((v) => ({ value: v, label: t.lectures.tabsView[v] }))} />
+          </div>
 
           {error && <Alert tone="error">{error}</Alert>}
           <AskPanel sessionKey={`bw.lectureChat.${id}`} context={chatContext} within={content} handle={ask} />
@@ -419,7 +422,7 @@ export default function LecturePage() {
                 <EditWithAi selection={editing} notes={lecture.notes} title={lecture.title} onClose={() => setEditing(null)}
                   onDone={(edit) => editing && onEdited(editing, edit)} />
                 {written && (
-                  <div role="status" className="fixed inset-x-0 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-4 print:hidden">
+                  <div role="status" className="fixed inset-x-0 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-4 md:ms-[76px] lg:ms-64 print:hidden">
                     <div className="flex items-center gap-3 rounded-full bg-fg py-1.5 pe-1.5 ps-4 text-sm text-bg shadow-[var(--shadow-lift)] animate-pop-in">
                       <span>{t.lectures.edit.done}</span>
                       <button type="button" onClick={() => { void patch(written.undo); setWritten(null); }}

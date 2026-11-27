@@ -50,7 +50,7 @@ export const LandingHero = () => {
         <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 overflow-visible">
           <path d="M40 120 C120 40 200 210 280 230 S440 90 520 150 M120 380 C200 330 220 260 280 250 S380 400 470 330"
             fill="none" stroke="#ffffff" strokeOpacity={0.45} strokeWidth={3.5} strokeLinecap="round" strokeDasharray="1 10" />
-          <path d="M40 120 C120 40 200 210 280 230 S440 90 520 150" fill="none" stroke="#ffd35a" strokeWidth={4} strokeLinecap="round" pathLength={1} className="wave-draw" />
+          <path d="M40 120 C120 40 200 210 280 230 S440 90 520 150" fill="none" stroke="#ffcb45" strokeWidth={4} strokeLinecap="round" pathLength={1} className="wave-draw" />
         </svg>
 
         <div className="hero-mascot absolute" style={{ left: W / 2 - 125, top: H / 2 - 145 }}>

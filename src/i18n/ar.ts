@@ -10,6 +10,19 @@ export const ar: Dict = {
     home: 'الرئيسية', learn: 'تعلّم', lectures: 'المحاضرات', videos: 'دروس الفيديو',
     podcasts: 'البودكاست', settings: 'الإعدادات', signOut: 'تسجيل الخروج', menu: 'القائمة', account: 'الحساب',
   },
+  shell: {
+    create: 'جديد', createTitle: 'ماذا تريد أن تصنع؟', study: 'المذاكرة', studyTitle: 'أدوات المذاكرة',
+    sections: { learn: 'تعلّم وأنشئ', study: 'المذاكرة', help: 'مساعدة' },
+    make: {
+      record: { title: 'تسجيل محاضرة', body: 'مباشرة من الميكروفون' },
+      upload: { title: 'رفع تسجيل', body: 'ملف صوت أو فيديو' },
+      youtube: { title: 'من يوتيوب', body: 'الصق رابط الفيديو' },
+      document: { title: 'من مستند', body: 'ملف PDF أو صور أو نص أو صفحة ويب' },
+      video: { title: 'درس فيديو', body: 'درس متحرك بصوت راوٍ' },
+      podcast: { title: 'حلقة بودكاست', body: 'مقدّمان يشرحان الموضوع' },
+      tutor: { title: 'اسأل المعلّم', body: 'أسئلة، واجبات، أي شيء' },
+    },
+  },
   common: {
     delete: 'حذف', leave: 'مغادرة', remove: 'إزالة',
     loading: 'جارٍ التحميل…', save: 'حفظ', saving: 'جارٍ الحفظ…', saved: 'تم الحفظ', cancel: 'إلغاء',

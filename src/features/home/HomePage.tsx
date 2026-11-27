@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import {
-  ArrowRight, CalendarClock, Target, Search, ClipboardCheck, FileText, Layers, MessageCircle, Mic, Gamepad2, MoreHorizontal, NotebookText, Upload, Users,
-} from 'lucide-react';
+import { Link } from 'react-router';
+import { Layers, Timer } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { Menu } from '@/ui/Menu';
 import { Mascot } from '@/ui/Mascot';
-import { WaveLine } from '@/ui/Wave';
+import { Sticker } from '@/ui/Sticker';
 import { TodayCard } from './TodayCard';
-import { ExamBanner } from '@/features/exams/ExamBanner';
-import { WeakSpotsBanner } from '@/features/weak/WeakSpotsBanner';
+import { TodayPath } from './TodayPath';
+import { ToolGrid } from './ToolGrid';
 import { WeekCard } from '@/features/stats/WeekCard';
 import { UpNextBanner } from '@/features/schedule/UpNext';
 import { activityRepo } from '@/features/stats/activity';
@@ -18,144 +15,88 @@ import { lectureRepo, type LectureSummary } from '@/features/lectures/repo';
 import { useDueCount } from '@/features/lectures/reviews';
 import { lectureTitle } from '@/features/lectures/LecturesPage';
 import { LectureThumb } from '@/features/lectures/LectureThumb';
-import { IconTile } from '@/ui/IconTile';
 import { dateLocale } from '@shared/locales';
-import type { DayActivity } from '@shared/activity';
+import { DAILY_MINUTES, localDay, type DayActivity } from '@shared/activity';
 
-/** The single next best thing to do: review due cards, else continue the latest lecture, else record one. */
-const NextUp = ({ due, latest }: { due: number; latest: LectureSummary | undefined }) => {
-  const { t, locale } = useI18n();
-  const th = t.home.hero;
-  const card = due > 0
-    ? { icon: Layers, title: th.review(due), body: th.reviewBody(Math.max(1, Math.ceil(due / 4))), cta: th.reviewCta, to: '/lectures/review' }
-    : latest
-      ? { icon: NotebookText, title: lectureTitle(latest, t.lectures.untitled, locale), body: th.continueTitle, cta: th.continueCta, to: `/lectures/${latest.id}` }
-      : { icon: Mic, title: th.recordTitle, body: th.recordBody, cta: th.recordCta, to: '/lectures/new' };
-  return (
-    <section aria-labelledby="next-title" className="relative overflow-hidden rounded-[var(--radius-card)] bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 p-5 text-white shadow-[var(--shadow-lift)] sm:p-6">
-      {/* The brainwave runs across the field, behind the words. */}
-      <div className="pointer-events-none absolute -end-24 top-3 w-64 text-accent-400 opacity-90 min-[400px]:-end-10" aria-hidden="true"><WaveLine width={256} waves={3} amp={10} stroke={5} draw /></div>
-      <div className="pointer-events-none absolute -bottom-16 -start-10 size-48 rounded-full bg-brand-400/40 blur-2xl" aria-hidden="true" />
-      <p className="relative text-sm font-semibold text-white" id="next-title">{t.home.nextUp}</p>
-      <div className="relative mt-2 flex items-start gap-3">
-        <card.icon className="mt-1 size-6 shrink-0" aria-hidden="true" />
-        <div className="min-w-0">
-          <h3 className="font-display text-2xl font-bold leading-tight" dir="auto">{card.title}</h3>
-          <p className="mt-1 text-sm text-white">{card.body}</p>
-        </div>
-      </div>
-      <Link to={card.to} className="btn-lip relative mt-5 inline-flex h-12 items-center gap-2 rounded-[var(--radius-control)] bg-white px-5 font-semibold text-brand-800 [--lip:var(--color-brand-900)]">
-        {card.cta}<ArrowRight className="size-4 rtl:rotate-180" aria-hidden="true" />
-      </Link>
-    </section>
-  );
-};
-
+/**
+ * Home: hello and today's numbers, today's path (the real next steps, in order),
+ * a launcher for everything else, and beside it on wide screens your streak,
+ * your week and your latest lectures.
+ */
 export default function HomePage() {
   const { t, locale } = useI18n();
-  const tq = t.home.quick;
   const { profile } = useAuth();
-  const navigate = useNavigate();
   const due = useDueCount();
-  const hour = new Date().getHours();
-  const lateNight = hour < 5;
+  const lateNight = new Date().getHours() < 5;
   const [recent, setRecent] = useState<LectureSummary[] | null>(null);
   const [days, setDays] = useState<DayActivity[] | null>(null);
   useEffect(() => { lectureRepo.list().then((l) => setRecent(l.slice(0, 6))).catch(() => setRecent([])); }, []);
   useEffect(() => { activityRepo.list().then(setDays).catch(() => setDays([])); }, []);
+  const minutes = Math.min(DAILY_MINUTES, days?.find((d) => d.day === localDay())?.minutes ?? 0);
 
   return (
-    <div className="stagger space-y-6 sm:space-y-8">
-      <header className="flex items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-3xl font-bold sm:text-4xl" dir="auto">{t.home.greeting(profile?.display_name ?? '')}</h1>
-          <p className="mt-1 text-muted">{t.home.subtitle}</p>
+    <div className="stagger space-y-8">
+      <header className="flex items-center gap-4">
+        <div className="min-w-0 flex-1 space-y-3">
+          <div>
+            <h1 className="text-4xl font-extrabold leading-[1.05] sm:text-5xl" dir="auto">{t.home.greeting(profile?.display_name ?? '')}</h1>
+            <p className="mt-1.5 text-lg text-muted">{t.home.subtitle}</p>
+          </div>
+          {/* Today's numbers, as stickers: minutes toward the goal, and cards waiting. */}
+          <div className="flex flex-wrap gap-2">
+            <Sticker icon={Timer} tone="plain" label={t.home.daily.minutesSoFar(minutes, DAILY_MINUTES)}>{minutes}/{DAILY_MINUTES}</Sticker>
+            {due > 0 && <Sticker icon={Layers} tone="purple" label={t.home.daily.reviewDue(due)}>{due}</Sticker>}
+          </div>
         </div>
-        {/* Wave says hello; after midnight it's asleep, gently suggesting the same. */}
-        <Mascot mood={lateNight ? 'sleeping' : 'happy'} size={76} className="-my-2 shrink-0" />
+        {/* Wave lives on the path beside the next step; after midnight it naps here instead, gently suggesting the same. */}
+        {lateNight && <Mascot mood="sleeping" size={96} className="-my-3 shrink-0 max-sm:size-20" />}
       </header>
       <UpNextBanner />
 
-      <div className="grid gap-6 sm:gap-8 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-start">
-      <div className="min-w-0 space-y-6 sm:space-y-8">
-      {recent && <NextUp due={due} latest={recent[0]} />}
-
-      {/* Start something: one primary action, two common ones, the rest in a menu. */}
-      <nav aria-label={tq.title} className="space-y-2">
-        <Link to="/lectures/new" className="btn-lip relative flex h-13 items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand-600 px-5 font-semibold text-white [--lip:var(--color-brand-800)] hover:bg-brand-700">
-          <Mic className="size-5" aria-hidden="true" />{t.home.record}
-        </Link>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { to: '/lectures/new?tab=upload', icon: Upload, label: tq.upload, tint: 'from-violet-500 to-violet-700' },
-            { to: '/lectures/new?tab=pdf', icon: FileText, label: tq.pdf, tint: 'from-emerald-400 to-emerald-600' },
-            { to: '/tutor', icon: MessageCircle, label: tq.tutor, tint: 'from-brand-600 to-brand-900' },
-          ].map((a) => (
-            <Link key={a.to} to={a.to} className="btn-lip group relative flex min-h-12 min-w-0 flex-col items-center justify-center gap-1.5 rounded-[var(--radius-control)] border border-line bg-surface px-2 py-2.5 text-sm font-semibold [--lip:var(--line)] hover:bg-surface-2 sm:flex-row sm:gap-2.5 sm:py-2">
-              <IconTile icon={a.icon} tint={a.tint} size="sm" className="tool-tile-hover size-8 rounded-[10px] [&>svg]:size-4" /><span className="max-w-full truncate">{a.label}</span>
-            </Link>
-          ))}
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] xl:items-start">
+        <div className="min-w-0 space-y-10">
+          {days && recent && <TodayPath days={days} due={due} latest={recent[0]} showWave={!lateNight} />}
+          <ToolGrid />
         </div>
-        <div className="flex justify-center">
-          <Menu label={t.home.more} items={[
-            { label: tq.search, icon: <Search />, onSelect: () => navigate('/search') },
-            { label: tq.review, icon: <Layers />, onSelect: () => navigate('/lectures/review') },
-            { label: tq.weak, icon: <Target />, onSelect: () => navigate('/practice') },
-            { label: tq.exams, icon: <CalendarClock />, onSelect: () => navigate('/exams') },
-            { label: tq.games, icon: <Gamepad2 />, onSelect: () => navigate('/play') },
-            { label: tq.grade, icon: <ClipboardCheck />, onSelect: () => navigate('/grader') },
-            { label: tq.groups, icon: <Users />, onSelect: () => navigate('/groups') },
-          ]} trigger={({ ref, props }) => (
-            <button ref={ref} type="button" {...props} className="inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-muted hover:bg-surface-2 hover:text-fg">
-              <MoreHorizontal className="size-4" aria-hidden="true" />{t.home.more}
-            </button>
-          )} />
-        </div>
-      </nav>
 
-
-      <section aria-labelledby="recent-title" className="space-y-3">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 id="recent-title" className="text-lg font-semibold">{t.home.recent}</h2>
-          {!!recent?.length && <Link to="/lectures" className="text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">{t.home.seeAll}</Link>}
-        </div>
-        {recent && !recent.length && (
-          <div className="flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4">
-            <Mascot mood="curious" size={56} className="shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold">{t.home.noRecent}</p>
-              <p className="text-sm text-muted">{t.home.noRecentBody}</p>
+        {/* The side column: your streak and goals, your week, your latest lectures. */}
+        <aside className="min-w-0 space-y-6">
+          {days && <TodayCard days={days} due={due} />}
+          <section aria-labelledby="recent-title" className="space-y-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 id="recent-title" className="font-display text-xl font-bold">{t.home.recent}</h2>
+              {!!recent?.length && <Link to="/lectures" className="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">{t.home.seeAll}</Link>}
             </div>
-          </div>
-        )}
-        {!!recent?.length && (
-          // Recent lectures as cards you can swipe through.
-          <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
-            {recent.slice(0, 6).map((l) => (
-              <li key={l.id} className="w-[70%] shrink-0 snap-start sm:w-auto">
-                <Link to={`/lectures/${l.id}`} className="group pressable lift flex h-full flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-soft)]">
-                  <LectureThumb source={l.source} className="tool-tile-hover" />
-                  <span className="line-clamp-2 font-semibold" dir="auto">{lectureTitle(l, t.lectures.untitled, locale)}</span>
-                  <span className="mt-auto text-xs text-muted">
-                    {new Date(l.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short' })}
-                    {l.duration_sec > 0 && ` · ${t.lectures.minutes(Math.max(1, Math.round(l.duration_sec / 60)))}`}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      </div>
-
-      {/* The side column: what's coming up and how the week is going. */}
-      <aside className="min-w-0 space-y-6 sm:space-y-8">
-        <ExamBanner />
-        <WeakSpotsBanner />
-        {days && <TodayCard days={days} due={due} />}
-        <WeekCard bare />
-      </aside>
+            {recent && !recent.length && (
+              <div className="flex items-center gap-4 rounded-[var(--radius-card)] border border-dashed border-line bg-surface/60 p-4">
+                <Mascot mood="curious" size={56} className="shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold">{t.home.noRecent}</p>
+                  <p className="text-sm text-muted">{t.home.noRecentBody}</p>
+                </div>
+              </div>
+            )}
+            {!!recent?.length && (
+              <ul className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface shadow-[var(--shadow-soft)]">
+                {recent.slice(0, 5).map((l) => (
+                  <li key={l.id} className="border-b border-line last:border-0">
+                    <Link to={`/lectures/${l.id}`} className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2">
+                      <LectureThumb source={l.source} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-semibold" dir="auto">{lectureTitle(l, t.lectures.untitled, locale)}</span>
+                        <span className="block text-xs text-muted">
+                          {new Date(l.created_at).toLocaleDateString(dateLocale(locale), { day: 'numeric', month: 'short' })}
+                          {l.duration_sec > 0 && ` · ${t.lectures.minutes(Math.max(1, Math.round(l.duration_sec / 60)))}`}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <WeekCard bare />
+        </aside>
       </div>
     </div>
   );

@@ -9,69 +9,70 @@
   --font-sans: "Rubik", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Bricolage Grotesque", "Rubik", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
 
-  /* Playful Intelligence. Signature Brainwave Blue owns primary actions and brand fields. */
-  --color-brand-50: #eef4ff;
-  --color-brand-100: #dceaff;   /* Soft Sky */
-  --color-brand-200: #bfd5ff;
-  --color-brand-300: #93b6ff;
-  --color-brand-400: #518cff;   /* Electric Blue */
-  --color-brand-500: #437bfa;
-  --color-brand-600: #3268f5;   /* Signature Blue: white text 4.7:1 */
-  --color-brand-700: #2552d8;   /* links on light grounds */
-  --color-brand-800: #1f43ad;
-  --color-brand-900: #1b3786;
-  --color-brand-950: #172344;   /* Midnight Navy */
+  /* Playful Intelligence 2.0. Signature Blue leans a little toward electric indigo; every
+     value is contrast-checked (white on 600 is 5.2:1, 700 text on the ground 6.4:1). */
+  --color-brand-50: #eff2ff;
+  --color-brand-100: #e2e8ff;   /* Soft Sky */
+  --color-brand-200: #c4d0ff;
+  --color-brand-300: #9db0ff;
+  --color-brand-400: #5e7dff;   /* Electric Blue: strokes and glows, never under white text */
+  --color-brand-500: #4a69fb;
+  --color-brand-600: #3b5cf6;   /* Signature Blue: white text 5.2:1 */
+  --color-brand-700: #2f49d6;   /* hovers, brand text on light grounds */
+  --color-brand-800: #263cb0;   /* the button lip */
+  --color-brand-900: #1f3189;
+  --color-brand-950: #141a3c;   /* Midnight Ink */
 
-  /* Sunshine: achievements and highlights. Fills (300-500) carry dark ink; 600 is text on white. */
-  --color-accent-200: #fff0c2;
-  --color-accent-300: #ffe49a;
-  --color-accent-400: #ffd35a;
-  --color-accent-500: #ffc52e;
-  --color-accent-600: #8a5a00;
+  /* Sunshine: a touch warmer. Fills (300-500) carry ink; 600 is text on white. */
+  --color-accent-200: #fff1c4;
+  --color-accent-300: #ffe08a;
+  --color-accent-400: #ffcb45;
+  --color-accent-500: #ffbc1f;
+  --color-accent-600: #8a5800;
 
   /* Creative Purple: discovery and AI moments (replaces Tailwind's violet). */
-  --color-violet-50: #f5f0fe;
-  --color-violet-100: #ebe0fd;
-  --color-violet-200: #d8c3fb;
-  --color-violet-300: #bd9cf6;
-  --color-violet-400: #a77cf1;
-  --color-violet-500: #9560ec;
-  --color-violet-600: #7c45db;
-  --color-violet-700: #6533b8;
-  --color-violet-800: #522b93;
-  --color-violet-900: #3f2470;
+  --color-violet-50: #f4f0ff;
+  --color-violet-100: #ebe3ff;
+  --color-violet-200: #d6c6ff;
+  --color-violet-300: #b99bfd;
+  --color-violet-400: #a07cf9;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+  --color-violet-700: #6a2cd4;
+  --color-violet-800: #5524a8;
+  --color-violet-900: #3f1d7a;
 
-  /* Mint: success, mastery and progress (replaces Tailwind's emerald everywhere). */
-  --color-emerald-50: #e9faf4;
-  --color-emerald-100: #cbf3e5;
-  --color-emerald-200: #9de8cf;
-  --color-emerald-300: #6bdab8;
-  --color-emerald-400: #32cba0;
-  --color-emerald-500: #1fb68b;
-  --color-emerald-600: #128a69;
-  --color-emerald-700: #0e6f55;
-  --color-emerald-800: #0d5845;
-  --color-emerald-900: #0b4637;
-  --color-emerald-950: #062a21;
+  /* Mint, a little fresher: success, mastery and progress (replaces Tailwind's emerald). */
+  --color-emerald-50: #e8faf3;
+  --color-emerald-100: #c7f3e3;
+  --color-emerald-200: #95e8cc;
+  --color-emerald-300: #5ddab2;
+  --color-emerald-400: #22c997;
+  --color-emerald-500: #12b083;
+  --color-emerald-600: #0d7f5e;
+  --color-emerald-700: #0b6a4f;
+  --color-emerald-800: #0a5540;
+  --color-emerald-900: #094434;
+  --color-emerald-950: #052a20;
 
-  /* Playful Coral: selected accents, gentle "not quite" moments. Errors stay rose. */
-  --color-coral-50: #fff2ef;
-  --color-coral-100: #ffe1db;
-  --color-coral-200: #ffc5ba;
-  --color-coral-300: #ffa696;
-  --color-coral-400: #ff826f;
-  --color-coral-500: #f2614c;
-  --color-coral-600: #c2412d;
-  --color-coral-700: #9c3222;
+  /* Coral, a little pinker: playful accents and gentle "not quite" moments. Errors stay rose. */
+  --color-coral-50: #fff1ef;
+  --color-coral-100: #ffe0db;
+  --color-coral-200: #ffc3b9;
+  --color-coral-300: #ffa294;
+  --color-coral-400: #ff7468;
+  --color-coral-500: #f2564a;
+  --color-coral-600: #c43c2a;
+  --color-coral-700: #9e2f21;
 
   /* Radii follow hierarchy: controls, cards, brand fields. */
   --radius-control: 0.875rem;
   --radius-card: 1.25rem;
   --radius-field: 2rem;
   /* Shadows are tinted with the navy ink, never grey. */
-  --shadow-soft: 0 1px 2px rgb(23 35 68 / 0.05), 0 10px 28px -14px rgb(23 35 68 / 0.2);
-  --shadow-lift: 0 2px 6px rgb(23 35 68 / 0.07), 0 22px 44px -18px rgb(23 35 68 / 0.3);
-  --shadow-float: 0 4px 10px rgb(23 35 68 / 0.08), 0 30px 60px -24px rgb(50 104 245 / 0.45);
+  --shadow-soft: 0 1px 2px rgb(20 26 60 / 0.05), 0 10px 28px -14px rgb(20 26 60 / 0.2);
+  --shadow-lift: 0 2px 6px rgb(20 26 60 / 0.07), 0 22px 44px -18px rgb(20 26 60 / 0.3);
+  --shadow-float: 0 4px 10px rgb(20 26 60 / 0.08), 0 30px 60px -24px rgb(59 92 246 / 0.45);
 
   /* Motion tokens. */
   --dur-press: 140ms;
@@ -91,22 +92,25 @@
 
 /* Semantic surface colours that flip with the theme. */
 :root {
-  --bg: #f6f8ff;
+  --bg: #f5f6fb;
   --surface: #ffffff;
-  --surface-2: #edf1fd;
-  --line: #dde4f5;
-  --fg: #172344;
-  --muted: #56607e;
+  --surface-2: #eceef8;
+  --line: #dce0f0;
+  --fg: #141a3c;
+  --muted: #545c7e;
+  /* The study-page ground: a faint dot grid behind the app (never behind reading surfaces). */
+  --grid-dot: rgb(59 92 246 / 0.09);
   --scroll-thumb: #c3cde6;
   --scroll-thumb-hover: #8fadf5;
 }
 .dark {
-  --bg: #0b1022;
-  --surface: #131a31;
-  --surface-2: #1b2442;
-  --line: #2a345a;
-  --fg: #eef2ff;
-  --muted: #a3acc9;
+  --bg: #0c0f24;
+  --surface: #151a36;
+  --surface-2: #1d2347;
+  --line: #2c3463;
+  --fg: #eef1ff;
+  --muted: #a6add0;
+  --grid-dot: rgb(157 176 255 / 0.08);
   --scroll-thumb: #34405f;
   --scroll-thumb-hover: #4c63a3;
   color-scheme: dark;
@@ -158,6 +162,10 @@
   body {
     @apply bg-bg text-fg font-sans antialiased;
     min-height: 100dvh;
+    /* The study-page ground: a faint dot grid, like squared paper. Reading surfaces sit on solid cards above it. */
+    background-image: radial-gradient(var(--grid-dot) 1.1px, transparent 1.3px);
+    background-size: 22px 22px;
+    background-attachment: fixed;
   }
   :focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; }
   /* Display type: headings carry the brand voice. */
@@ -453,20 +461,19 @@
 .wave-loader { animation: wave-travel 1.1s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .wave-draw, .wave-loader { animation: none; } }
 
-/* ── Tool headers (src/ui/PageHeader.tsx, ToolArt.tsx) ─────────────────────
-   The tool's tile settles in from a slight lift the first time its page opens
-   in a visit (the brainwave draws at the same time); the spark twinkles twice. */
-.tool-art .tool-spark { transform-box: fill-box; transform-origin: center; }
-@keyframes tool-tile-in { from { opacity: 0; transform: translateY(10px) rotate(-14deg) scale(0.92); } }
-@keyframes tool-spark { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(0.6) rotate(45deg); } }
+/* ── Tool mastheads (src/ui/PageHeader.tsx) ─────────────────────────────────
+   The tool's keycap settles in from a slight lift the first time its page
+   opens in a visit; its spark twinkles twice. */
+@keyframes masthead-in { from { opacity: 0; transform: translateY(10px) rotate(-14deg) scale(0.9); } }
+@keyframes masthead-spark { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(0.55) rotate(45deg); } }
 /* A tool's tile in a list leans in when its row is hovered (fine pointers only). */
 .tool-tile-hover { transition: transform 240ms var(--ease-out); }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .group:hover .tool-tile-hover { transform: rotate(-6deg) scale(1.06); }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .tool-art:has(.wave-draw) .tool-tile { animation: tool-tile-in 520ms var(--ease-spring) 80ms backwards; }
-  .tool-art .tool-spark { animation: tool-spark 1.6s ease-in-out 600ms 2; }
+  .masthead-first .key-tile { animation: masthead-in 520ms var(--ease-spring) 60ms backwards; }
+  .masthead-tile .masthead-spark { animation: masthead-spark 1.6s ease-in-out 500ms 2; transform-origin: center; }
 }
 
 /* ── Landing hero (src/features/auth/LandingHero.tsx) ──────────────────────
@@ -519,3 +526,46 @@
 @keyframes podcast-eq { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
 .podcast-eq { height: 100%; transform: scaleY(0.6); transform-origin: bottom; animation: podcast-eq 900ms ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .podcast-eq { animation: none; } }
+
+
+/* ── Playful Intelligence 2.0 primitives ──────────────────────────────────── */
+/* Keycap tiles (src/ui/KeyTile.tsx): a glossy top, a darker lip along the bottom, a soft cast shadow.
+   Inside a pressed .group they sink onto the lip. */
+.key-tile {
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.32), inset 0 -4px 0 rgb(0 0 0 / 0.18), 0 2px 3px rgb(20 26 60 / 0.12), 0 10px 18px -10px rgb(20 26 60 / 0.45);
+  transition: transform var(--dur-press) var(--ease-out), box-shadow var(--dur-press) var(--ease-out);
+}
+.key-tile::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(to bottom, rgb(255 255 255 / 0.26), rgb(255 255 255 / 0) 52%);
+}
+.group:active .key-tile { transform: translateY(2px); box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.32), inset 0 -2px 0 rgb(0 0 0 / 0.18), 0 1px 2px rgb(20 26 60 / 0.12), 0 4px 8px -6px rgb(20 26 60 / 0.4); }
+.dark .key-tile { box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.22), inset 0 -4px 0 rgb(0 0 0 / 0.28), 0 10px 18px -10px rgb(0 0 0 / 0.7); }
+
+/* Path steps (src/ui/StudyPath.tsx): round keycaps. The step to do now pulses once when the path appears. */
+.path-node {
+  box-shadow: inset 0 3px 0 rgb(255 255 255 / 0.3), inset 0 -5px 0 rgb(0 0 0 / 0.16), 0 10px 20px -10px rgb(20 26 60 / 0.5);
+  transition: transform var(--dur-press) var(--ease-out), box-shadow var(--dur-press) var(--ease-out);
+}
+.path-node.border-2 { box-shadow: inset 0 -4px 0 var(--line), 0 6px 14px -10px rgb(20 26 60 / 0.35); }
+.group:active .path-node { transform: translateY(3px); }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .group:hover .path-node { transform: translateY(-2px); }
+}
+/* The "now" step sends out a ring twice: scale and opacity only. */
+.path-pulse { box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-brand-400) 70%, transparent); opacity: 0; }
+@keyframes path-pulse { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(1.45); } }
+@media (prefers-reduced-motion: no-preference) {
+  .path-pulse { animation: path-pulse 1.1s var(--ease-out) 400ms 2; }
+}
+
+/* Stickers (src/ui/Sticker.tsx): a white keyline and a little lift, like a sticker on a notebook. */
+.sticker { box-shadow: 0 0 0 2px var(--surface), 0 4px 10px -4px rgb(20 26 60 / 0.35); }
+
+/* The Create and Study sheets: their tiles settle in one after another (40ms apart). */
+@media (prefers-reduced-motion: no-preference) {
+  .create-grid > li { animation: pop-in 260ms var(--ease-out) backwards; }
+  .create-grid > li:nth-child(2) { animation-delay: 40ms; } .create-grid > li:nth-child(3) { animation-delay: 80ms; }
+  .create-grid > li:nth-child(4) { animation-delay: 120ms; } .create-grid > li:nth-child(5) { animation-delay: 160ms; }
+  .create-grid > li:nth-child(n + 6) { animation-delay: 200ms; }
+}

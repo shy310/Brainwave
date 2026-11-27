@@ -97,7 +97,7 @@ export const QuizRunner = ({ questions, topicId, onFinish, onPractice, resultAct
   );
 };
 
-const CONFETTI = ['#3268f5', '#ffd35a', '#32cba0', '#ff826f', '#9560ec', '#518cff'];
+const CONFETTI = ['#3b5cf6', '#ffcb45', '#22c997', '#ff7468', '#8b5cf6', '#5e7dff'];
 /** A single, short confetti burst (CSS only; nothing under reduced motion). */
 const Confetti = () => (
   <div className="confetti pointer-events-none absolute inset-x-0 top-0 h-full" aria-hidden="true">

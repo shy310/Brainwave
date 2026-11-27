@@ -7,6 +7,7 @@ import { ToolHero, heroAction } from '@/ui/PageHeader';
 import { Loading } from '@/ui/Wave';
 import { LectureThumb } from './LectureThumb';
 import { TOOL_META, type Tool } from '@/ui/tools';
+import { KeyTile } from '@/ui/KeyTile';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -285,10 +286,10 @@ export default function LecturesPage() {
                 // Right-click, long-press or the ⋯ button for Rename, Favorite, Move and Delete.
                 <div key={l.id} className="relative min-w-0 select-none [-webkit-touch-callout:none]" {...triggers(openMenu(l))}>
                 <Link to={`/lectures/${l.id}`} className="group block min-w-0 rounded-[var(--radius-card)]">
-                  <Card className="lift flex items-center gap-3.5 p-4 pe-12">
-                    <LectureThumb source={l.source} className="tool-tile-hover" />
+                  <Card className="lift flex items-center gap-4 p-4 pe-12">
+                    <LectureThumb source={l.source} size="md" className="tool-tile-hover" />
                     <div className="min-w-0 flex-1">
-                      <p className="flex min-w-0 items-center gap-1.5 font-semibold">
+                      <p className="flex min-w-0 items-center gap-1.5 font-display text-[17px] font-bold">
                         <span className="truncate" dir="auto">{untitled(l)}</span>
                         {l.favorite && <StarBurst label={tl.starred} />}
                       </p>
@@ -363,24 +364,22 @@ const StudyTools = ({ due }: { due: number }) => {
     { to: '/calendar', tool: 'calendar', title: tt.calendar, body: tt.calendarBody },
   ];
   return (
+    // The study tools for these lectures as a launcher row of keycaps; the review key carries how many cards are due.
     <section aria-label={tt.title}>
-      {/* One surface split by hairlines (the gap shows the border colour), not four separate cards. */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line bg-line shadow-[var(--shadow-soft)] lg:grid-cols-3">
+      <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-6 sm:overflow-visible sm:px-0">
         {tools.map((x) => (
-          <Link key={x.to} to={x.to}
-            className={cn('group flex min-w-0 flex-col gap-2.5 p-4 transition-colors focus-visible:-outline-offset-2 sm:flex-row sm:items-center sm:gap-3',
-              x.highlight ? 'bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:hover:bg-brand-900/50' : 'bg-surface hover:bg-surface-2')}>
-            <span className="relative shrink-0">
-              <IconTile icon={TOOL_META[x.tool].icon} tint={TOOL_META[x.tool].tile} size="sm" className="tool-tile-hover" />
-              {x.highlight && <span className="absolute -end-1 -top-1 size-3 rounded-full bg-accent-400 ring-2 ring-brand-50 dark:ring-brand-900" aria-hidden="true" />}
-            </span>
-            <span className="min-w-0">
-              <span className="block font-semibold leading-tight">{x.title}</span>
-              <span className={cn('mt-0.5 block text-sm leading-snug', x.highlight ? 'font-medium text-brand-700 dark:text-brand-200' : 'text-muted')}>{x.body}</span>
-            </span>
-          </Link>
+          <li key={x.to} className="w-[5.5rem] shrink-0 sm:w-auto">
+            <Link to={x.to} className="group relative flex h-full flex-col items-center gap-2 rounded-2xl px-1 py-2 text-center text-[13px] font-semibold leading-tight transition-colors hover:bg-surface">
+              <span className="relative">
+                <KeyTile icon={TOOL_META[x.tool].icon} tint={TOOL_META[x.tool].tile} size="lg" />
+                {x.highlight && <span className="absolute -end-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-accent-400 px-1.5 text-xs font-bold tabular-nums text-brand-950 ring-2 ring-bg" aria-hidden="true">{due}</span>}
+              </span>
+              <span className="line-clamp-2">{x.title}</span>
+              <span className="sr-only">{x.body}</span>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   );
 };

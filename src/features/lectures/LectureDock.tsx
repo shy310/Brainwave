@@ -43,7 +43,7 @@ export const LectureDock = ({ actions, player }: { actions: DockAction[]; player
 
   return (
     // The page fades out behind the dock so its text never shows through the controls.
-    <div data-ask-room className="pointer-events-none fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-bg from-40% via-bg/80 to-transparent px-3 pb-[calc(0.625rem+env(safe-area-inset-bottom))] pt-8 print:hidden">
+    <div data-ask-room className="pointer-events-none fixed inset-x-0 bottom-0 z-40 md:ms-[76px] lg:ms-64 bg-gradient-to-t from-bg from-40% via-bg/80 to-transparent px-3 pb-[calc(0.625rem+env(safe-area-inset-bottom))] pt-8 print:hidden">
       <div className="pointer-events-auto mx-auto max-w-lg space-y-2 animate-rise">
         {!(collapsed && player) && (
           <div role="toolbar" aria-label={t.lectures.actions.toolbar}

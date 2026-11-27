@@ -27,8 +27,8 @@ const LOOK: Record<Mood, { eyes: Eyes; mouth: Mouth; arms: Arms }> = {
   waving: { eyes: 'happy', mouth: 'smile', arms: 'wave' },
 };
 
-const INK = '#172344';
-const ARM = '#2552d8';
+const INK = '#141a3c';
+const ARM = '#2f49d6';
 
 // Wavy arms: shoulder → elbow wiggle → hand. [path, hand x, hand y]
 const ARM_PATHS: Record<string, [string, number, number]> = {
@@ -97,7 +97,7 @@ export const Mascot = ({ mood = 'happy', size = 96, animate = true, label, class
         <radialGradient id={`${id}b`} cx="0.38" cy="0.3" r="0.85">
           <stop offset="0" stopColor="#7aa6ff" />
           <stop offset="0.55" stopColor="#3f76f7" />
-          <stop offset="1" stopColor="#2552d8" />
+          <stop offset="1" stopColor="#2f49d6" />
         </radialGradient>
       </defs>
       <ellipse cx={80} cy={150} rx={32} ry={5} fill={INK} opacity={0.12} className="mascot-shadow" />
@@ -114,7 +114,7 @@ export const Mascot = ({ mood = 'happy', size = 96, animate = true, label, class
         <g fill={`url(#${id}b)`}>
           <circle cx={52} cy={64} r={30} /><circle cx={80} cy={52} r={33} /><circle cx={108} cy={64} r={30} />
           <circle cx={44} cy={92} r={27} /><circle cx={116} cy={92} r={27} /><circle cx={80} cy={98} r={38} />
-          <ellipse cx={66} cy={138} rx={10} ry={6} fill="#1f43ad" /><ellipse cx={94} cy={138} rx={10} ry={6} fill="#1f43ad" />
+          <ellipse cx={66} cy={138} rx={10} ry={6} fill="#263cb0" /><ellipse cx={94} cy={138} rx={10} ry={6} fill="#263cb0" />
         </g>
         {/* Folds, and the brainwave across the forehead (the logo's waveform). */}
         <g fill="none" strokeLinecap="round">
@@ -124,15 +124,15 @@ export const Mascot = ({ mood = 'happy', size = 96, animate = true, label, class
             <path d="M36 50 q10 -5 15 4" /><path d="M26 76 q9 -3 13 5" /><path d="M58 30 q6 7 2 14" />
             <path d="M124 50 q-10 -5 -15 4" /><path d="M134 76 q-9 -3 -13 5" /><path d="M102 30 q-6 7 -2 14" />
           </g>
-          <g stroke="#dceaff" strokeOpacity={0.6} strokeWidth={2.5}>
+          <g stroke="#e2e8ff" strokeOpacity={0.6} strokeWidth={2.5}>
             <path d="M38 47 q9 -4 13 3" /><path d="M122 47 q-9 -4 -13 3" />
           </g>
         </g>
         <path className="mascot-wave" d="M44 64 q6 -9 12 0 t12 0 t12 0 t12 0 t12 0 t12 0" fill="none" stroke="#fff" strokeWidth={4.5} strokeLinecap="round" strokeLinejoin="round" />
 
         {/* Face. */}
-        <ellipse cx={58} cy={100} rx={7} ry={4.5} fill="#ff826f" opacity={0.45} />
-        <ellipse cx={102} cy={100} rx={7} ry={4.5} fill="#ff826f" opacity={0.45} />
+        <ellipse cx={58} cy={100} rx={7} ry={4.5} fill="#ff7468" opacity={0.45} />
+        <ellipse cx={102} cy={100} rx={7} ry={4.5} fill="#ff7468" opacity={0.45} />
         <g className={look.eyes === 'open' || look.eyes === 'side' || look.eyes === 'wide' ? 'mascot-blink' : undefined}>
           <Eye x={66} kind={look.eyes} />
           <Eye x={94} kind={look.eyes} right />
@@ -145,7 +145,7 @@ export const Mascot = ({ mood = 'happy', size = 96, animate = true, label, class
         {a === 'book' && (
           <>
             <g className="mascot-book">
-              <path d="M56 108 l24 6 l24 -6 v24 l-24 6 l-24 -6z" fill="#ffd35a" stroke="#8a5a00" strokeWidth={2.5} strokeLinejoin="round" />
+              <path d="M56 108 l24 6 l24 -6 v24 l-24 6 l-24 -6z" fill="#ffcb45" stroke="#8a5a00" strokeWidth={2.5} strokeLinejoin="round" />
               <path d="M80 114 v24" stroke="#8a5a00" strokeWidth={2.5} />
               <path d="M62 116 l12 3 M62 122 l12 3 M86 119 l12 -3 M86 125 l12 -3" stroke="#8a5a00" strokeWidth={1.8} strokeLinecap="round" opacity={0.6} />
             </g>
@@ -156,26 +156,26 @@ export const Mascot = ({ mood = 'happy', size = 96, animate = true, label, class
 
       {/* Props. */}
       {mood === 'thinking' && (
-        <g className="mascot-think" fill="#dceaff" stroke="#93b6ff" strokeWidth={2}>
+        <g className="mascot-think" fill="#e2e8ff" stroke="#93b6ff" strokeWidth={2}>
           <circle cx={124} cy={34} r={4} /><circle cx={134} cy={22} r={6} /><circle cx={148} cy={8} r={8} />
         </g>
       )}
-      {mood === 'confused' && <text x={128} y={40} fontSize={30} fontWeight={800} fill="#9560ec" fontFamily="var(--font-display)" className="mascot-q">?</text>}
+      {mood === 'confused' && <text x={128} y={40} fontSize={30} fontWeight={800} fill="#8b5cf6" fontFamily="var(--font-display)" className="mascot-q">?</text>}
       {mood === 'sleeping' && (
-        <g className="mascot-z" fill="#9560ec" fontWeight={800} fontFamily="var(--font-display)">
+        <g className="mascot-z" fill="#8b5cf6" fontWeight={800} fontFamily="var(--font-display)">
           <text x={118} y={42} fontSize={18}>z</text><text x={132} y={26} fontSize={13}>z</text><text x={142} y={14} fontSize={9}>z</text>
         </g>
       )}
       {(mood === 'celebrating' || mood === 'excited') && (
         <g className="mascot-confetti">
-          <path d="M20 30 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3z" fill="#ffd35a" />
-          <path d="M140 34 l2.5 5.5 l5.5 2.5 l-5.5 2.5 l-2.5 5.5 l-2.5 -5.5 l-5.5 -2.5 l5.5 -2.5z" fill="#32cba0" />
-          <circle cx={30} cy={58} r={3.5} fill="#ff826f" /><circle cx={132} cy={14} r={3} fill="#9560ec" />
-          <rect x={146} y={60} width={7} height={3.5} rx={1.75} fill="#ff826f" transform="rotate(30 149 62)" />
-          <rect x={6} y={78} width={7} height={3.5} rx={1.75} fill="#9560ec" transform="rotate(-25 9 80)" />
+          <path d="M20 30 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3z" fill="#ffcb45" />
+          <path d="M140 34 l2.5 5.5 l5.5 2.5 l-5.5 2.5 l-2.5 5.5 l-2.5 -5.5 l-5.5 -2.5 l5.5 -2.5z" fill="#22c997" />
+          <circle cx={30} cy={58} r={3.5} fill="#ff7468" /><circle cx={132} cy={14} r={3} fill="#8b5cf6" />
+          <rect x={146} y={60} width={7} height={3.5} rx={1.75} fill="#ff7468" transform="rotate(30 149 62)" />
+          <rect x={6} y={78} width={7} height={3.5} rx={1.75} fill="#8b5cf6" transform="rotate(-25 9 80)" />
         </g>
       )}
-      {mood === 'encouraging' && <path className="mascot-spark" d="M150 48 l2.5 5.5 l5.5 2.5 l-5.5 2.5 l-2.5 5.5 l-2.5 -5.5 l-5.5 -2.5 l5.5 -2.5z" fill="#ffd35a" />}
+      {mood === 'encouraging' && <path className="mascot-spark" d="M150 48 l2.5 5.5 l5.5 2.5 l-5.5 2.5 l-2.5 5.5 l-2.5 -5.5 l-5.5 -2.5 l5.5 -2.5z" fill="#ffcb45" />}
     </svg>
   );
 };

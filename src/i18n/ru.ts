@@ -13,6 +13,19 @@ export const ru: Dict = {
     home: 'Главная', learn: 'Учёба', lectures: 'Лекции', videos: 'Видеоуроки',
     podcasts: 'Подкасты', settings: 'Настройки', signOut: 'Выйти', menu: 'Меню', account: 'Аккаунт',
   },
+  shell: {
+    create: 'Новое', createTitle: 'Что хотите создать?', study: 'Занятия', studyTitle: 'Инструменты для занятий',
+    sections: { learn: 'Учиться и создавать', study: 'Занятия', help: 'Помощь' },
+    make: {
+      record: { title: 'Записать лекцию', body: 'Вживую, с микрофона' },
+      upload: { title: 'Загрузить запись', body: 'Аудио- или видеофайл' },
+      youtube: { title: 'С YouTube', body: 'Вставьте ссылку на видео' },
+      document: { title: 'Из документа', body: 'PDF, фото, текст или веб-страница' },
+      video: { title: 'Видеоурок', body: 'Анимированный урок с озвучкой' },
+      podcast: { title: 'Выпуск подкаста', body: 'Два ведущих обсуждают тему' },
+      tutor: { title: 'Спросить репетитора', body: 'Вопросы, домашка, что угодно' },
+    },
+  },
   common: {
     delete: 'Удалить', leave: 'Выйти', remove: 'Убрать',
     loading: 'Загрузка…', save: 'Сохранить', saving: 'Сохраняем…', saved: 'Сохранено', cancel: 'Отмена',

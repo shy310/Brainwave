@@ -28,9 +28,9 @@ export const Segmented = <T extends string>({ value, options, onChange, label, s
   }, [value, options.length]);
 
   return (
-    <div ref={group} role="radiogroup" aria-label={label} className={cn('relative gap-1 rounded-xl bg-surface-2 p-1', fill ? 'grid w-full auto-cols-fr grid-flow-col' : 'inline-flex', !fill && (scroll ? 'flex-nowrap whitespace-nowrap' : 'flex-wrap'))}>
+    <div ref={group} role="radiogroup" aria-label={label} className={cn('relative gap-1 rounded-2xl bg-surface-2 p-1', fill ? 'grid w-full auto-cols-fr grid-flow-col' : 'inline-flex', !fill && (scroll ? 'flex-nowrap whitespace-nowrap' : 'flex-wrap'))}>
       {pill && (
-        <span aria-hidden="true" className="pointer-events-none absolute rounded-lg bg-surface shadow-sm transition-[left,top,width,height] duration-[260ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
+        <span aria-hidden="true" className="pointer-events-none absolute rounded-xl bg-surface shadow-[0_2px_0_var(--line),0_6px_12px_-8px_rgb(20_26_60/0.35)] transition-[left,top,width,height] duration-[260ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
           style={{ left: pill.left, top: pill.top, width: pill.width, height: pill.height }} />
       )}
       {options.map(o => (
@@ -41,10 +41,10 @@ export const Segmented = <T extends string>({ value, options, onChange, label, s
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            'relative inline-flex min-h-9 items-center gap-1.5 rounded-lg text-sm font-medium transition-colors duration-200',
+            'relative inline-flex min-h-10 items-center gap-1.5 rounded-xl text-sm font-semibold transition-colors duration-200',
             fill ? 'min-w-0 justify-center px-1.5' : 'px-3',
             value === o.value ? (o.icon ? 'text-brand-700 dark:text-brand-300' : 'text-fg') : 'text-muted hover:text-fg',
-            !pill && value === o.value && 'bg-surface shadow-sm',
+            !pill && value === o.value && 'bg-surface shadow-[0_2px_0_var(--line)]',
           )}
         >
           {o.icon && <o.icon className="size-4 shrink-0" aria-hidden="true" />}

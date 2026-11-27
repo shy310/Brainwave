@@ -5,22 +5,24 @@ const lecture = (id: string, title: string, days: number) => ({ id, title, sourc
   segments: [{ start: 0, text: 'x' }], slides_text: null, notes: null, quiz: null, folder_id: null,
   flashcards: { cards: [{ front: `${title} card?`, back: 'Yes.' }] }, created_at: new Date(Date.now() - days * 864e5).toISOString(), updated_at: '' });
 
-test('home: next up, quick actions straight to the task, recent lectures', async ({ page }) => {
+test('home: today\'s path, the launcher straight to the task, recent lectures', async ({ page }) => {
   await onboard(page);
   await page.evaluate((L) => localStorage.setItem('bw.lectures', JSON.stringify(L)),
     [lecture('a', 'Newest', 0), lecture('b', 'Middle', 1), lecture('c', 'Older', 2), lecture('d', 'Oldest', 3)]);
   await page.reload();
-  // Cards are due, so "Next up" is reviewing them.
+  // Cards are due, so today's path starts with reviewing them, and that step is "now".
   const next = page.getByRole('region', { name: en.home.nextUp });
-  await expect(next.getByRole('heading', { name: en.home.hero.review(4) })).toBeVisible();
-  await expect(next.getByRole('link', { name: en.home.hero.reviewCta })).toHaveAttribute('href', '/lectures/review');
+  const review = next.getByRole('link', { name: new RegExp(en.home.hero.review(4)) });
+  await expect(review).toHaveAttribute('href', '/lectures/review');
+  await expect(review).toContainText(en.home.nextUp);
+  // The latest lecture is the next step after it.
+  await expect(next.getByRole('link', { name: /Newest/ })).toHaveAttribute('href', '/lectures/a');
   const quick = page.getByRole('navigation', { name: en.home.quick.title });
   await expect(quick.getByRole('link', { name: en.home.record })).toHaveAttribute('href', '/lectures/new');
   await expect(quick.getByRole('link', { name: en.home.quick.upload })).toHaveAttribute('href', '/lectures/new?tab=upload');
-  // The rest are one tap away in More.
-  await quick.getByRole('button', { name: en.home.more }).click();
-  await expect(page.getByRole('menuitem', { name: en.home.quick.grade })).toBeVisible();
-  await page.keyboard.press('Escape');
+  // Every other tool is one tap away on the launcher.
+  await expect(quick.getByRole('link', { name: en.home.quick.grade })).toHaveAttribute('href', '/grader');
+  await expect(quick.getByRole('link', { name: en.home.quick.groups })).toHaveAttribute('href', '/groups');
 
   // Recent lectures, newest first.
   const recent = page.getByRole('region', { name: en.home.recent });

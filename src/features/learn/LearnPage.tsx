@@ -83,8 +83,10 @@ export default function LearnPage() {
                   <div className={cn('relative h-32 px-4 pt-3', meta.field)}>
                     <SubjectArt subject={course.subject} className="mx-auto h-full w-full max-w-[240px]" />
                   </div>
-                  <div className="flex flex-1 flex-col gap-3 p-5">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-1 flex-col gap-3 p-5 pt-0">
+                    <div className="flex items-end gap-3">
+                      {/* The subject's keycap sits on the edge of its scene, like a cartridge label. */}
+                      <IconTile icon={meta.icon} tint={meta.tint} size="lg" className="-mt-7 ring-4 ring-surface" />
                       <div className="min-w-0 flex-1">
                         <h3 className="font-display text-xl font-bold">{t.subjects[course.subject]}</h3>
                         <p className="text-sm text-muted">{t.learn.topics(topics.length)}</p>

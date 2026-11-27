@@ -8,7 +8,7 @@ export const ListSection = ({ title, footer, children, className }: { title?: st
   const id = useId();
   return (
     <section aria-labelledby={title ? id : undefined} className={cn('space-y-2', className)}>
-      {title && <h2 id={id} className="px-4 text-sm font-semibold text-muted">{title}</h2>}
+      {title && <h2 id={id} className="px-1 font-display text-lg font-bold">{title}</h2>}
       <div className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface shadow-[var(--shadow-soft)]">
         {children}
       </div>
@@ -31,9 +31,10 @@ interface RowBase {
 const RowInner = ({ icon: Icon, label, value, danger, hint, trailing }: RowBase & { trailing?: ReactNode }) => (
   <>
     {Icon && (
-      <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-[10px]',
-        danger ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-brand-500/10 text-brand-700 dark:text-brand-300')}>
-        <Icon className="size-[18px]" aria-hidden="true" />
+      // A small keycap: blue for settings and options, rose for destructive rows.
+      <span className={cn('key-tile relative flex size-9 shrink-0 items-center justify-center rounded-[11px] bg-gradient-to-br text-white',
+        danger ? 'from-rose-400 to-rose-600' : 'from-brand-400 to-brand-700')} aria-hidden="true">
+        <Icon className="relative size-[18px]" strokeWidth={2.2} />
       </span>
     )}
     <span className="min-w-0 flex-1">

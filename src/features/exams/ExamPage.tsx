@@ -140,7 +140,7 @@ export default function ExamPage() {
       </header>
 
       {/* The countdown on the exam's sunshine field: how long is left, how ready you are, and practice. */}
-      <section aria-label={te.readiness} className="relative overflow-hidden rounded-[var(--radius-card)] bg-[linear-gradient(135deg,#ffd35a,#ffc52e)] p-5 text-brand-950 shadow-[var(--shadow-lift)] sm:p-6">
+      <section aria-label={te.readiness} className="relative overflow-hidden rounded-[var(--radius-card)] bg-[linear-gradient(135deg,#ffcb45,#ffbc1f)] p-5 text-brand-950 shadow-[var(--shadow-lift)] sm:p-6">
         <div className="pointer-events-none absolute -end-6 -top-4 w-56 text-brand-600 opacity-70" aria-hidden="true"><WaveLine width={224} waves={3} amp={8} stroke={4} /></div>
         <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:text-start">
           <span className="rounded-full bg-white p-1.5 shadow-[var(--shadow-soft)]"><ReadinessRing value={status.ready} size={96} label={te.ready(status.ready)} /></span>

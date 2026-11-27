@@ -8,8 +8,8 @@ const hash = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; 
 
 // Three shades per kind, all carrying white (AA). Videos are coral, podcasts purple.
 const FIELDS: Record<MediaKind, string[]> = {
-  video: ['linear-gradient(135deg,#c2412d,#9c3222)', 'linear-gradient(135deg,#b4371f,#7f2a1c)', 'linear-gradient(150deg,#c2412d,#6533b8)'],
-  podcast: ['linear-gradient(135deg,#7c45db,#522b93)', 'linear-gradient(135deg,#6533b8,#3f2470)', 'linear-gradient(150deg,#7c45db,#1f43ad)'],
+  video: ['linear-gradient(135deg,#c43c2a,#9e2f21)', 'linear-gradient(135deg,#b4371f,#7f2a1c)', 'linear-gradient(150deg,#c43c2a,#6a2cd4)'],
+  podcast: ['linear-gradient(135deg,#7c3aed,#5524a8)', 'linear-gradient(135deg,#6a2cd4,#3f1d7a)', 'linear-gradient(150deg,#7c3aed,#263cb0)'],
 };
 
 /**
@@ -29,13 +29,13 @@ export const Cover = ({ kind, seed, className }: { kind: MediaKind; seed: string
         <svg viewBox="0 0 100 100" className={cn('absolute inset-0 size-full', flip && '-scale-x-100')}>
           <circle cx={82} cy={14} r={30} fill="#fff" fillOpacity={0.08} />
           <circle cx={10} cy={96} r={22} fill="#fff" fillOpacity={0.06} />
-          {bars.map((b, i) => <rect key={i} x={16 + i * 8} y={52 - b * 0.7} width={4.5} height={b * 1.4} rx={2.25} fill={i === 4 ? '#ffd35a' : '#fff'} fillOpacity={i === 4 ? 1 : 0.55} />)}
+          {bars.map((b, i) => <rect key={i} x={16 + i * 8} y={52 - b * 0.7} width={4.5} height={b * 1.4} rx={2.25} fill={i === 4 ? '#ffcb45' : '#fff'} fillOpacity={i === 4 ? 1 : 0.55} />)}
         </svg>
       ) : (
         <svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" className={cn('absolute inset-0 size-full', flip && '-scale-x-100')}>
           <circle cx={128} cy={14} r={34} fill="#fff" fillOpacity={0.08} />
           <circle cx={18} cy={86} r={22} fill="#fff" fillOpacity={0.06} />
-          <path d={sinePath(160, 2, 5, 74)} fill="none" stroke="#ffd35a" strokeWidth={3.5} strokeLinecap="round" />
+          <path d={sinePath(160, 2, 5, 74)} fill="none" stroke="#ffcb45" strokeWidth={3.5} strokeLinecap="round" />
         </svg>
       )}
       {kind === 'video' && (

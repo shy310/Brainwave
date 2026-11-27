@@ -24,7 +24,7 @@ for (const lang of ['en', 'he'] as const) {
 
     // The timetable lives under the calendar (Calendar → Class times).
     await page.goto('/lectures');
-    await page.getByRole('link', { name: new RegExp(`^${t.lectures.tools.calendar}`) }).click();
+    await page.getByRole('region', { name: t.lectures.tools.title }).getByRole('link', { name: new RegExp(`^${t.lectures.tools.calendar}`) }).click();
     await page.getByRole('link', { name: t.calendar.classTimes }).click();
     await expect(page.getByText(ts.empty)).toBeVisible();
     await page.getByRole('button', { name: ts.add }).click();

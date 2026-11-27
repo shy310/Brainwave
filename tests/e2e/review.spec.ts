@@ -24,7 +24,7 @@ for (const lang of ['en', 'he'] as const) {
     const rateAs = (name: string) => page.getByRole('button', { name: new RegExp(`^${name} · `) }).click();
 
     await expect(page.getByText(tr.left(3))).toBeVisible();
-    await expect(page.getByText(tr.isNew)).toBeVisible();
+    await expect(page.locator('#main').getByText(tr.isNew, { exact: true })).toBeVisible();
     await flip();
     await expect(page.getByRole('button', { name: `${tr.good} · ${tr.inDays(1)}` })).toBeVisible();
     await expect(page.getByRole('button', { name: `${tr.again} · ${tr.inMinutes(10)}` })).toBeVisible();

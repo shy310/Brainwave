@@ -7,29 +7,29 @@
       "primary": {
         "role": "primary",
         "displayName": "BrainWave Blue",
-        "canonical": "#3268f5",
+        "canonical": "#3b5cf6",
         "tonalRamp": [
           "#eef4ff",
-          "#dceaff",
+          "#e2e8ff",
           "#bfd5ff",
           "#93b6ff",
-          "#518cff",
+          "#5e7dff",
           "#437bfa",
-          "#3268f5",
-          "#2552d8",
-          "#1f43ad",
+          "#3b5cf6",
+          "#2f49d6",
+          "#263cb0",
           "#1b3786",
-          "#172344"
+          "#141a3c"
         ]
       },
       "sunshine": {
         "role": "secondary",
         "displayName": "Sunshine",
-        "canonical": "#ffd35a",
+        "canonical": "#ffcb45",
         "tonalRamp": [
           "#fff0c2",
           "#ffe49a",
-          "#ffd35a",
+          "#ffcb45",
           "#ffc52e",
           "#8a5a00"
         ]
@@ -37,23 +37,23 @@
       "mint": {
         "role": "tertiary",
         "displayName": "Mint",
-        "canonical": "#32cba0",
+        "canonical": "#22c997",
         "tonalRamp": [
-          "#32cba0",
-          "#128a69"
+          "#22c997",
+          "#0d7f5e"
         ]
       },
       "coral": {
         "role": "tertiary",
         "displayName": "Coral",
-        "canonical": "#ff826f",
+        "canonical": "#ff7468",
         "tonalRamp": [
           "#fff2ef",
           "#ffe1db",
           "#ffc5ba",
           "#ffa696",
-          "#ff826f",
-          "#f2614c",
+          "#ff7468",
+          "#c43c2a",
           "#c2412d",
           "#9c3222"
         ]
@@ -61,22 +61,22 @@
       "purple": {
         "role": "tertiary",
         "displayName": "Purple",
-        "canonical": "#9560ec"
+        "canonical": "#8b5cf6"
       },
       "navy-ink": {
         "role": "neutral",
         "displayName": "Navy Ink",
-        "canonical": "#172344"
+        "canonical": "#141a3c"
       },
       "periwinkle-ground": {
         "role": "neutral",
         "displayName": "Periwinkle Ground",
-        "canonical": "#f6f8ff"
+        "canonical": "#f5f6fb"
       },
       "primary-pressed": {
         "role": "primary",
         "displayName": "Pressed Blue",
-        "canonical": "#2552d8"
+        "canonical": "#2f49d6"
       }
     },
     "typographyMeta": {
@@ -170,7 +170,7 @@
       "refersTo": "button-primary",
       "description": "Tactile blue button with a lip the press absorbs.",
       "html": "<button class=\"ds-btn\">Start the lesson</button>",
-      "css": ".ds-btn{height:44px;padding:0 16px;border:0;border-radius:14px;background:#3268f5;color:#fff;font:600 15px Rubik,system-ui;box-shadow:0 3px 0 #1f43ad;transition:transform 140ms cubic-bezier(.23,1,.32,1),box-shadow 140ms}.ds-btn:hover{background:#2552d8}.ds-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #1f43ad}"
+      "css": ".ds-btn{height:44px;padding:0 16px;border:0;border-radius:14px;background:#3b5cf6;color:#fff;font:600 15px Rubik,system-ui;box-shadow:0 3px 0 #263cb0;transition:transform 140ms cubic-bezier(.23,1,.32,1),box-shadow 140ms}.ds-btn:hover{background:#2f49d6}.ds-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #263cb0}"
     },
     {
       "name": "Sun Button",
@@ -178,7 +178,7 @@
       "refersTo": "button-sun",
       "description": "The single hero call to action on a blue field.",
       "html": "<button class=\"ds-sun\">Try BrainWave</button>",
-      "css": ".ds-sun{height:56px;padding:0 28px;border:0;border-radius:14px;background:#ffd35a;color:#172344;font:700 18px Rubik,system-ui;box-shadow:0 3px 0 #c9961a}"
+      "css": ".ds-sun{height:56px;padding:0 28px;border:0;border-radius:14px;background:#ffcb45;color:#141a3c;font:700 18px Rubik,system-ui;box-shadow:0 3px 0 #c9961a}"
     },
     {
       "name": "Selected Chip",
@@ -186,7 +186,7 @@
       "refersTo": "chip-selected",
       "description": "Band picker and segmented choices.",
       "html": "<span class=\"ds-chip\">Grades 9–10</span>",
-      "css": ".ds-chip{display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:9999px;background:#3268f5;color:#fff;font:600 14px Rubik,system-ui}"
+      "css": ".ds-chip{display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:9999px;background:#3b5cf6;color:#fff;font:600 14px Rubik,system-ui}"
     }
   ],
   "narrative": {
@@ -217,7 +217,7 @@
       },
       {
         "name": "The Fields-Carry-White Rule",
-        "body": "Every coloured field that carries text passes 4.5:1 with full-opacity white; hovers on blue darken to #2552d8; brand text uses #2552d8.",
+        "body": "Every coloured field that carries text passes 4.5:1 with full-opacity white; hovers on blue darken to #2f49d6; brand text uses #2f49d6.",
         "section": "colors"
       }
     ],
